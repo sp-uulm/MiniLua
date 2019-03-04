@@ -57,6 +57,9 @@ eval_result_t op_len(val v);
 eval_result_t op_not(val v);
 eval_result_t op_neg(val v);
 
+val fst(const val& v);
+vallist flatten(const vallist& list);
+
 struct ASTEvaluator {
     eval_result_t visit(const _LuaAST& ast, Environment& env, bool rvalue) const {
         return string {"unimplemented"};
@@ -77,6 +80,7 @@ struct ASTEvaluator {
     eval_result_t visit(const _LuaForStmt& for_stmt, Environment& env, bool rvalue) const;
     eval_result_t visit(const _LuaChunk& chunk, Environment& env, bool rvalue) const;
     eval_result_t visit(const _LuaTableconstructor& stmt, Environment& env, bool rvalue) const;
+    eval_result_t visit(const _LuaFunction& exp, Environment& env, bool rvalue) const;
 };
 
 } // rt

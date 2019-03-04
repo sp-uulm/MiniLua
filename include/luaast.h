@@ -50,6 +50,7 @@ using LuaBreakStmt = shared_ptr<struct _LuaBreakStmt>;
 using LuaForStmt = shared_ptr<struct _LuaForStmt>;
 using LuaChunk = shared_ptr<struct _LuaChunk>;
 using LuaTableconstructor = shared_ptr<struct _LuaTableconstructor>;
+using LuaFunction = shared_ptr<struct _LuaFunction>;
 
 namespace lua {
 namespace rt {
@@ -57,17 +58,25 @@ namespace rt {
 using nil = monostate;
 
 using cfunction_p = shared_ptr<struct cfunction>;
+using lfunction_p = shared_ptr<struct lfunction>;
 using table_p = shared_ptr<struct table>;
 using vallist_p = shared_ptr<struct vallist>;
 
-using val = variant<nil, bool, double, string, cfunction_p, table_p, vallist_p>;
+using val = variant<nil, bool, double, string, cfunction_p, table_p, vallist_p, lfunction_p>;
 
 struct table : public unordered_map<val, val> {};
 struct vallist : public vector<val> {};
+
 struct cfunction {
     template <typename T>
     cfunction(T f) : f{f} {}
     function<vallist(const vallist&)> f;
+};
+
+struct lfunction {
+    lfunction(const LuaChunk& f, const vallist& params) : f{f}, params{params} {}
+    LuaChunk f;
+    vallist params;
 };
 
 using eval_result_t = variant<val, string>;
@@ -201,6 +210,13 @@ struct _LuaChunk : public _LuaAST {
 struct _LuaTableconstructor : public _LuaExp {
     VISITABLE override;
 
+};
+
+struct _LuaFunction : public _LuaExp {
+    VISITABLE override;
+
+    LuaExplist params;
+    LuaChunk body;
 };
 
 #endif // LUAAST_H

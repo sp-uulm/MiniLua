@@ -137,6 +137,32 @@ eval_result_t op_neg(val v) {
     return string{"op_neg unimplemented"};
 }
 
+val fst(const val& v) {
+    if (holds_alternative<vallist_p>(v)) {
+        const vallist& vl = *get<vallist_p>(v);
+        return vl.size() > 0 ? vl[0] : nil();
+    }
+    return v;
+}
+
+vallist flatten(const vallist& list) {
+    vallist result;
+    for(int i = 0; i < list.size()-1; ++i) {
+        result.push_back(fst(list[i]));
+    }
+
+    if (holds_alternative<vallist_p>(list.back())) {
+        const vallist& vl = *get<vallist_p>(list.back());
+        for(int i = 0; i < vl.size(); ++i) {
+            result.push_back(vl[i]);
+        }
+    } else {
+        result.push_back(list.back());
+    }
+
+    return result;
+}
+
 void Environment::assign(const val& var, const val& newval) {
     // search environments for variable
     for (Environment *env = this; env != nullptr; env = env->parent) {
@@ -185,6 +211,9 @@ eval_result_t ASTEvaluator::visit(const _LuaOp& op, Environment& env, bool rvalu
 
     EVAL(rhs, op.rhs, *this, env);
 
+    lhs = fst(lhs);
+    rhs = fst(rhs);
+
     switch (op.op.type) {
     case LuaToken::Type::ADD:
         return op_add(lhs, rhs);
@@ -226,6 +255,8 @@ eval_result_t ASTEvaluator::visit(const _LuaUnop& op, Environment& env, bool rva
 
     EVAL(rhs, op.exp, *this, env);
 
+    rhs = fst(rhs);
+
     switch (op.op.type) {
     case LuaToken::Type::SUB:
         return op_neg(rhs);
@@ -256,11 +287,26 @@ eval_result_t ASTEvaluator::visit(const _LuaFunctioncall& exp, Environment& env,
 
     EVAL(func, exp.function, *this, env);
 
-    EVAL(args, exp.args, *this, env);
+    EVAL(_args, exp.args, *this, env);
+    vallist args = flatten(*get<vallist_p>(_args));
 
     // call builtin function
     if (holds_alternative<cfunction_p>(func)) {
-        return make_shared<vallist>(get<cfunction_p>(func)->f(*get<vallist_p>(args)));
+        return make_shared<vallist>(get<cfunction_p>(func)->f(args));
+    }
+
+    // call lua function
+    if (holds_alternative<lfunction_p>(func)) {
+        Environment new_env;
+        new_env.parent = &env;
+
+        for (unsigned i = 0; i < get<lfunction_p>(func)->params.size(); ++i) {
+            new_env.assign(get<lfunction_p>(func)->params[i], args.size() > i ? args[i] : nil());
+        }
+
+        EVAL(result, get<lfunction_p>(func)->f, *this, new_env);
+
+        return result;
     }
 
     if (holds_alternative<nil>(func)) {
@@ -277,10 +323,10 @@ eval_result_t ASTEvaluator::visit(const _LuaAssignment &assignment, Environment 
     vallist_p vars = get<vallist_p>(_vars);
 
     EVAL(_exps, assignment.explist, *this, env);
-    vallist_p exps = get<vallist_p>(_exps);
+    vallist exps = flatten(*get<vallist_p>(_exps));
 
     for (unsigned i = 0; i < vars->size(); ++i) {
-        env.assign(vars->at(i), exps->size() > i ? exps->at(i) : nil());
+        env.assign(vars->at(i), exps.size() > i ? exps[i] : nil());
     }
 
     return nil();
@@ -309,7 +355,9 @@ eval_result_t ASTEvaluator::visit(const _LuaMemberVar& var, Environment& env, bo
 
 eval_result_t ASTEvaluator::visit(const _LuaReturnStmt& stmt, Environment& env, bool rvalue) const {
     cout << "visit returnstmt" << endl;
-    return string{"returnstmt unimplemented"};
+
+    EVAL(result, stmt.explist, *this, env);
+    return make_shared<vallist>(flatten(*get<vallist_p>(result)));
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaBreakStmt& stmt, Environment& env, bool rvalue) const {
@@ -331,19 +379,23 @@ eval_result_t ASTEvaluator::visit(const _LuaValue& value, Environment& env, bool
         return val{stod(value.token.match)};
     case LuaToken::Type::STRINGLIT:
         return val{string(value.token.match.begin()+1, value.token.match.end()-1)};
+    default:
+        return string{"value unimplemented"};
     }
-
-    return string{"value unimplemented"};
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaChunk& chunk, Environment& env, bool rvalue) const {
     cout << "visit chunk" << endl;
 
-    for (const auto& stmt : chunk.statements)
-        if (auto result = stmt->accept(*this, env); holds_alternative<string>(result))
-            return result;
+    for (const auto& stmt : chunk.statements) {
+        EVAL(result, stmt, *this, env);
 
-    return nil();
+        // if the result is a vallist (from a return statement) stop evaluating
+        if (holds_alternative<vallist_p>(result))
+            return result;
+    }
+
+    return make_shared<vallist>();
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaForStmt& for_stmt, Environment& env, bool rvalue) const {
@@ -387,6 +439,15 @@ eval_result_t ASTEvaluator::visit(const _LuaForStmt& for_stmt, Environment& env,
 eval_result_t ASTEvaluator::visit(const _LuaTableconstructor& tableconst, Environment& env, bool rvalue) const {
     cout << "visit tableconstructor" << endl;
     return string{"tableconstructor unimplemented"};
+}
+
+eval_result_t ASTEvaluator::visit(const _LuaFunction& exp, Environment& env, bool rvalue) const {
+    cout << "visit function" << endl;
+
+    EVALL(_params, exp.params, *this, env);
+    vallist_p params = get<vallist_p>(_params);
+
+    return make_shared<lfunction>(exp.body, *params);
 }
 
 }
