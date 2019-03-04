@@ -34,7 +34,7 @@ private:
     auto parse_block            (token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaChunk>;
     auto parse_stat             (token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaStmt>;
     auto parse_laststat         (token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaStmt>;
-    auto parse_funcname         (token_it_t& begin, token_it_t& end) const -> parse_result_t<>;
+    auto parse_funcname         (token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaVar>;
     auto parse_varlist          (token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaExplist>;
     auto parse_var              (token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaVar>;
     auto parse_namelist         (token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaExplist>;

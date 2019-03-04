@@ -252,7 +252,27 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
         }
     }
     case LuaToken::Type::FUNCTION:
-        return "unimplemented";
+    {
+        begin++;
+
+        LuaAssignment assign = make_shared<_LuaAssignment>();
+
+        if (auto name = parse_funcname(begin, end); holds_alternative<string>(name)) {
+            return "stat (function): -> " + get<string>(name);
+        } else {
+            assign->varlist = make_shared<_LuaExplist>();
+            assign->varlist->exps.push_back(get<LuaVar>(name));
+        }
+
+        if (auto body = parse_funcbody(begin, end); holds_alternative<string>(body)) {
+            return "stat (function): -> " + get<string>(body);
+        } else {
+            assign->explist = make_shared<_LuaExplist>();
+            assign->explist->exps.push_back(get<LuaFunction>(body));
+        }
+
+        return assign;
+    }
     case LuaToken::Type::LOCAL:
         return "unimplemented";
     default:
@@ -741,4 +761,15 @@ auto LuaParser::parse_parlist(token_it_t &begin, token_it_t &end) const -> parse
 auto LuaParser::parse_tableconstructor(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaTableconstructor> {
     cout << "tableconstructor" << endl;
     return "unimplemented";
+}
+
+auto LuaParser::parse_funcname(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaVar> {
+    cout << "funcname" << endl;
+    // var ::=  funcname ::= Name {`.´ Name} [`:´ Name]
+
+    if (begin->type == LuaToken::Type::NAME) {
+        return make_shared<_LuaNameVar>(make_shared<_LuaName>(*begin++));
+    }
+
+    return "funcname: name expected";
 }

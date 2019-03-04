@@ -146,8 +146,12 @@ val fst(const val& v) {
 }
 
 vallist flatten(const vallist& list) {
+    if (list.size() == 0)
+        return {};
+
     vallist result;
-    for(int i = 0; i < list.size()-1; ++i) {
+
+    for(int i = 0; i < static_cast<int>(list.size())-1; ++i) {
         result.push_back(fst(list[i]));
     }
 
@@ -423,6 +427,8 @@ eval_result_t ASTEvaluator::visit(const _LuaForStmt& for_stmt, Environment& env,
             break;
 
         EVAL(result, for_stmt.body, *this, newenv);
+        if (holds_alternative<vallist_p>(result))
+            return result;
 
         EVAL(step, for_stmt.step, *this, newenv);
 
