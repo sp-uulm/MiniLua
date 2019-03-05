@@ -192,7 +192,66 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
     case LuaToken::Type::REPEAT:
         return "unimplemented";
     case LuaToken::Type::IF:
-        return "unimplemented";
+    {
+        begin++;
+
+        LuaIfStmt if_stmt = make_shared<_LuaIfStmt>();
+        if_stmt->branches.emplace_back();
+
+        if (auto exp = parse_exp(begin, end); holds_alternative<string>(exp)) {
+            return "stat (if) -> " + get<string>(exp);
+        } else {
+            if_stmt->branches.back().first = get<LuaExp>(exp);
+        }
+
+        if (begin++->type != LuaToken::Type::THEN) {
+            return "stat (if): 'then' expected";
+        }
+
+        if (auto then = parse_block(begin, end); holds_alternative<string>(then)) {
+            return "stat (if) -> " + get<string>(then);
+        } else {
+            if_stmt->branches.back().second = get<LuaChunk>(then);
+        }
+
+        while (begin->type == LuaToken::Type::ELSEIF) {
+            begin++; // elseif
+
+            if_stmt->branches.emplace_back();
+
+            if (auto exp = parse_exp(begin, end); holds_alternative<string>(exp)) {
+                return "stat (elseif) -> " + get<string>(exp);
+            } else {
+                if_stmt->branches.back().first = get<LuaExp>(exp);
+            }
+
+            if (begin++->type != LuaToken::Type::THEN) {
+                return "stat (elseif): 'then' expected";
+            }
+
+            if (auto then = parse_block(begin, end); holds_alternative<string>(then)) {
+                return "stat (elseif) -> " + get<string>(then);
+            } else {
+                if_stmt->branches.back().second = get<LuaChunk>(then);
+            }
+        }
+
+        if (begin->type == LuaToken::Type::ELSE) {
+            begin++; // else
+
+            if (auto then = parse_block(begin, end); holds_alternative<string>(then)) {
+                return "stat (else) -> " + get<string>(then);
+            } else {
+                if_stmt->branches.emplace_back(_LuaValue::True(), get<LuaChunk>(then));
+            }
+        }
+
+        if (begin++->type != LuaToken::Type::END) {
+            return "stat (if): 'end' expected";
+        }
+
+        return if_stmt;
+    }
     case LuaToken::Type::FOR:
     {
         begin++;
@@ -230,6 +289,8 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
                 } else {
                     for_stmt->step = get<LuaExp>(ast);
                 }
+            } else {
+                for_stmt->step = _LuaValue::Int(1);
             }
 
             if (begin++->type != LuaToken::Type::DO) {

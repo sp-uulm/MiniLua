@@ -48,6 +48,7 @@ using LuaStmt = shared_ptr<struct _LuaStmt>;
 using LuaReturnStmt = shared_ptr<struct _LuaReturnStmt>;
 using LuaBreakStmt = shared_ptr<struct _LuaBreakStmt>;
 using LuaForStmt = shared_ptr<struct _LuaForStmt>;
+using LuaIfStmt = shared_ptr<struct _LuaIfStmt>;
 using LuaChunk = shared_ptr<struct _LuaChunk>;
 using LuaTableconstructor = shared_ptr<struct _LuaTableconstructor>;
 using LuaFunction = shared_ptr<struct _LuaFunction>;
@@ -133,6 +134,16 @@ struct _LuaValue : public _LuaExp {
     VISITABLE override;
     _LuaValue(const LuaToken& token) : token {token} {}
 
+    static LuaValue True() {
+        LuaToken tok {LuaToken::Type::TRUE, "true"};
+        return make_shared<_LuaValue>(tok);
+    }
+
+    static LuaValue Int(int num) {
+        LuaToken tok {LuaToken::Type::NUMLIT, to_string(num)};
+        return make_shared<_LuaValue>(tok);
+    }
+
     LuaToken token;
 };
 
@@ -191,7 +202,6 @@ struct _LuaBreakStmt : public _LuaStmt {
 
 struct _LuaForStmt : public _LuaStmt {
     VISITABLE override;
-    virtual ~_LuaForStmt() = default;
 
     LuaName var;
     LuaExp start;
@@ -199,6 +209,12 @@ struct _LuaForStmt : public _LuaStmt {
     LuaExp step;
 
     LuaChunk body;
+};
+
+struct _LuaIfStmt : public _LuaStmt {
+    VISITABLE override;
+
+    vector<pair<LuaExp, LuaChunk>> branches;
 };
 
 struct _LuaChunk : public _LuaAST {

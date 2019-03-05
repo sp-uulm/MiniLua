@@ -9,9 +9,10 @@ auto main(int argc, char *argv[]) -> int {
 //    string program = "print('a ' .. \"b\", 5%2, (2+4)-1, 1*2*3/5)\nend";
 //    string program = "a = 3\nb=4\nprint(a+b)";
 //    string program = "mult = function(a, b) return a*b end print(mult(2, 3))";
-    string program = "function test() for i=1, 10 do return i, 2 end end print(test())";
-//    string program = "function test() for i=1, 10 do if i == 5 then return i end end end print(test())";
-//    string program = "function test() while true do if i == 5 then break end end return 1, 2 end print(test())";
+//    string program = "function test() for i=1, 10 do return i, 2 end end print(test())";
+    string program = "function test() for i=1, 10 do if i == 5 then return i end end end print(test())";
+//    string program = "b = -1 while not (b > 5) do a=0 repeat a=a+1 if a ~= b then print(a, b) else break end until a == 10 end b = b+1 end";
+//    string program = "function test() local i = 0 return function() while true do if i == 5 then break end i=i+1 end return i, 2 end end b=test() i="a" print(i, b())";
 
     LuaParser parser;
     const auto result = parser.parse(program);

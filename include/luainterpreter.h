@@ -81,6 +81,7 @@ struct ASTEvaluator {
     eval_result_t visit(const _LuaChunk& chunk, Environment& env, bool rvalue) const;
     eval_result_t visit(const _LuaTableconstructor& stmt, Environment& env, bool rvalue) const;
     eval_result_t visit(const _LuaFunction& exp, Environment& env, bool rvalue) const;
+    eval_result_t visit(const _LuaIfStmt& stmt, Environment& env, bool rvalue) const;
 };
 
 } // rt

@@ -157,7 +157,7 @@ vallist flatten(const vallist& list) {
 
     if (holds_alternative<vallist_p>(list.back())) {
         const vallist& vl = *get<vallist_p>(list.back());
-        for(int i = 0; i < vl.size(); ++i) {
+        for(unsigned i = 0; i < vl.size(); ++i) {
             result.push_back(vl[i]);
         }
     } else {
@@ -191,8 +191,8 @@ val Environment::getvar(const val& var) {
 }
 
 void Environment::populate_stdlib() {
-    t[string {"print"}] = make_shared<cfunction>([](vallist args) -> vallist {
-        for (unsigned i = 0; i < args.size() - 1; ++i) {
+    t[string {"print"}] = make_shared<cfunction>([](const vallist& args) -> vallist {
+        for (int i = 0; i < static_cast<int>(args.size()) - 1; ++i) {
             cout << args[i] << "\t";
         }
         if (args.size() > 0) {
@@ -310,7 +310,10 @@ eval_result_t ASTEvaluator::visit(const _LuaFunctioncall& exp, Environment& env,
 
         EVAL(result, get<lfunction_p>(func)->f, *this, new_env);
 
-        return result;
+        if (holds_alternative<vallist_p>(result))
+            return result;
+
+        return make_shared<vallist>();
     }
 
     if (holds_alternative<nil>(func)) {
@@ -399,7 +402,7 @@ eval_result_t ASTEvaluator::visit(const _LuaChunk& chunk, Environment& env, bool
             return result;
     }
 
-    return make_shared<vallist>();
+    return nil();
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaForStmt& for_stmt, Environment& env, bool rvalue) const {
@@ -454,6 +457,31 @@ eval_result_t ASTEvaluator::visit(const _LuaFunction& exp, Environment& env, boo
     vallist_p params = get<vallist_p>(_params);
 
     return make_shared<lfunction>(exp.body, *params);
+}
+
+eval_result_t ASTEvaluator::visit(const _LuaIfStmt &stmt, Environment &env, bool rvalue) const {
+    cout << "visit if" << endl;
+
+    for (const auto& branch : stmt.branches) {
+        EVAL(condition, branch.first, *this, env);
+
+        auto eq = op_eq(val{true}, condition);
+        if (holds_alternative<string>(eq)) {
+            return eq;
+        }
+
+        if (get<bool>(get<val>(eq))) {
+            lua::rt::Environment newenv;
+            newenv.parent = &env;
+
+            EVAL(result, branch.second, *this, newenv);
+            if (holds_alternative<vallist_p>(result))
+                return result;
+            break;
+        }
+    }
+
+    return lua::rt::nil();
 }
 
 }
