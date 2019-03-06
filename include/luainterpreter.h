@@ -78,6 +78,7 @@ struct ASTEvaluator {
     eval_result_t visit(const _LuaReturnStmt& chunk, Environment& env, bool rvalue) const;
     eval_result_t visit(const _LuaBreakStmt& chunk, Environment& env, bool rvalue) const;
     eval_result_t visit(const _LuaForStmt& for_stmt, Environment& env, bool rvalue) const;
+    eval_result_t visit(const _LuaLoopStmt& loop_stmt, Environment& env, bool rvalue) const;
     eval_result_t visit(const _LuaChunk& chunk, Environment& env, bool rvalue) const;
     eval_result_t visit(const _LuaTableconstructor& stmt, Environment& env, bool rvalue) const;
     eval_result_t visit(const _LuaFunction& exp, Environment& env, bool rvalue) const;

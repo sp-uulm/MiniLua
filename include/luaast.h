@@ -48,6 +48,7 @@ using LuaStmt = shared_ptr<struct _LuaStmt>;
 using LuaReturnStmt = shared_ptr<struct _LuaReturnStmt>;
 using LuaBreakStmt = shared_ptr<struct _LuaBreakStmt>;
 using LuaForStmt = shared_ptr<struct _LuaForStmt>;
+using LuaLoopStmt = shared_ptr<struct _LuaLoopStmt>;
 using LuaIfStmt = shared_ptr<struct _LuaIfStmt>;
 using LuaChunk = shared_ptr<struct _LuaChunk>;
 using LuaTableconstructor = shared_ptr<struct _LuaTableconstructor>;
@@ -121,6 +122,14 @@ struct _LuaOp : public _LuaExp {
 
 struct _LuaUnop : public _LuaExp {
     VISITABLE override;
+
+    static LuaUnop Not(const LuaExp& exp) {
+        auto result = make_shared<_LuaUnop>();
+        result->exp = exp;
+        result->op = {LuaToken::Type::NOT, "not"};
+        return result;
+    }
+
     LuaExp exp;
     LuaToken op;
 };
@@ -207,6 +216,15 @@ struct _LuaForStmt : public _LuaStmt {
     LuaExp start;
     LuaExp end;
     LuaExp step;
+
+    LuaChunk body;
+};
+
+struct _LuaLoopStmt : public _LuaStmt {
+    VISITABLE override;
+
+    bool head_controlled = true;
+    LuaExp end;
 
     LuaChunk body;
 };

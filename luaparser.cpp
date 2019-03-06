@@ -105,7 +105,10 @@ auto LuaParser::parse_chunk(token_it_t& begin, token_it_t& end) const -> parse_r
 
     while (begin->type != LuaToken::Type::RETURN &&
            begin->type != LuaToken::Type::BREAK &&
-           begin->type != LuaToken::Type::END && begin != end) {
+           begin->type != LuaToken::Type::END &&
+           begin->type != LuaToken::Type::ELSE &&
+           begin->type != LuaToken::Type::ELSEIF &&
+           begin->type != LuaToken::Type::UNTIL && begin != end) {
         auto ast = parse_stat(begin, end);
         if (holds_alternative<string>(ast)) {
             return "chunk -> " + get<string>(ast);
@@ -188,9 +191,57 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
     case LuaToken::Type::DO:
         return "unimplemented";
     case LuaToken::Type::WHILE:
-        return "unimplemented";
+    {
+        begin++; //while
+        LuaLoopStmt while_stmt = make_shared<_LuaLoopStmt>();
+        while_stmt->head_controlled = true;
+
+        if (auto exp = parse_exp(begin, end); holds_alternative<string>(exp)) {
+            return "stat (while) -> " + get<string>(exp);
+        } else {
+            while_stmt->end = get<LuaExp>(exp);
+        }
+
+        if (begin++->type != LuaToken::Type::DO) {
+            return "stat (while): 'do' expected";
+        }
+
+        if (auto block = parse_block(begin, end); holds_alternative<string>(block)) {
+            return "stat (while) -> " + get<string>(block);
+        } else {
+            while_stmt->body = get<LuaChunk>(block);
+        }
+
+        if (begin++->type != LuaToken::Type::END) {
+            return "stat (while): 'end' expected";
+        }
+
+        return while_stmt;
+    }
     case LuaToken::Type::REPEAT:
-        return "unimplemented";
+    {
+        begin++; //repeat
+        LuaLoopStmt repeat_stmt = make_shared<_LuaLoopStmt>();
+        repeat_stmt->head_controlled = false;
+
+        if (auto block = parse_block(begin, end); holds_alternative<string>(block)) {
+            return "stat (repeat) -> " + get<string>(block);
+        } else {
+            repeat_stmt->body = get<LuaChunk>(block);
+        }
+
+        if (begin++->type != LuaToken::Type::UNTIL) {
+            return "stat (repeat): 'until' expected";
+        }
+
+        if (auto exp = parse_exp(begin, end); holds_alternative<string>(exp)) {
+            return "stat (repeat) -> " + get<string>(exp);
+        } else {
+            repeat_stmt->end = _LuaUnop::Not(get<LuaExp>(exp));
+        }
+
+        return repeat_stmt;
+    }
     case LuaToken::Type::IF:
     {
         begin++;

@@ -134,7 +134,11 @@ eval_result_t op_not(val v) {
 }
 
 eval_result_t op_neg(val v) {
-    return string{"op_neg unimplemented"};
+    if (holds_alternative<double>(v)) {
+        return val {-get<double>(v)};
+    }
+
+    return string{"unary - can only be applied to a number"};
 }
 
 val fst(const val& v) {
@@ -369,7 +373,7 @@ eval_result_t ASTEvaluator::visit(const _LuaReturnStmt& stmt, Environment& env, 
 
 eval_result_t ASTEvaluator::visit(const _LuaBreakStmt& stmt, Environment& env, bool rvalue) const {
     cout << "visit breakstmt" << endl;
-    return string{"breakstmt unimplemented"};
+    return val{true};
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaValue& value, Environment& env, bool rvalue) const {
@@ -397,9 +401,9 @@ eval_result_t ASTEvaluator::visit(const _LuaChunk& chunk, Environment& env, bool
     for (const auto& stmt : chunk.statements) {
         EVAL(result, stmt, *this, env);
 
-        // if the result is a vallist (from a return statement) stop evaluating
-        if (holds_alternative<vallist_p>(result))
-            return result;
+        if (!holds_alternative<nil>(result) && !dynamic_pointer_cast<_LuaFunctioncall>(stmt)) {
+                return result;
+        }
     }
 
     return nil();
@@ -427,11 +431,14 @@ eval_result_t ASTEvaluator::visit(const _LuaForStmt& for_stmt, Environment& env,
             return gt;
         }
         if (get<bool>(get<val>(gt)))
-            break;
+            return nil();
 
         EVAL(result, for_stmt.body, *this, newenv);
         if (holds_alternative<vallist_p>(result))
             return result;
+
+        if (holds_alternative<bool>(result))
+            return nil();
 
         EVAL(step, for_stmt.step, *this, newenv);
 
@@ -441,8 +448,46 @@ eval_result_t ASTEvaluator::visit(const _LuaForStmt& for_stmt, Environment& env,
         else
             return sum;
     }
+}
 
-    return lua::rt::nil();
+eval_result_t ASTEvaluator::visit(const _LuaLoopStmt &loop_stmt, Environment &env, bool rvalue) const
+{
+    cout << "visit loop" << endl;
+
+    if (loop_stmt.head_controlled) {
+        EVAL(condition, loop_stmt.end, *this, env);
+
+        auto neq = op_neq(val{true}, condition);
+        if (holds_alternative<string>(neq)) {
+            return neq;
+        }
+        if (get<bool>(get<val>(neq))) {
+            return nil();
+        }
+    }
+
+    for (;;) {
+        lua::rt::Environment newenv;
+        newenv.parent = &env;
+
+        EVAL(result, loop_stmt.body, *this, newenv);
+        if (holds_alternative<vallist_p>(result))
+            return result;
+
+        if (holds_alternative<bool>(result))
+            return nil();
+
+        // check loop condition
+        EVAL(condition, loop_stmt.end, *this, newenv);
+
+        auto neq = op_neq(val{true}, condition);
+        if (holds_alternative<string>(neq)) {
+            return neq;
+        }
+        if (get<bool>(get<val>(neq))) {
+            return nil();
+        }
+    }
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaTableconstructor& tableconst, Environment& env, bool rvalue) const {
@@ -475,7 +520,7 @@ eval_result_t ASTEvaluator::visit(const _LuaIfStmt &stmt, Environment &env, bool
             newenv.parent = &env;
 
             EVAL(result, branch.second, *this, newenv);
-            if (holds_alternative<vallist_p>(result))
+            if (!holds_alternative<nil>(result))
                 return result;
             break;
         }
