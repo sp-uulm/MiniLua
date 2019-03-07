@@ -2,7 +2,7 @@
 #include "include/luainterpreter.h"
 
 ostream& operator<<(ostream& os, const LuaToken& token) {
-    return os << "[" << static_cast<int>(token.type) << "]" << token.match;
+    return os << "[" << static_cast<int>(token.type) << "]" << token.match << " start:" << token.pos << " length:" << token.length;
 }
 
 namespace lua {
@@ -26,7 +26,7 @@ ostream& operator<<(ostream& os, const val& value) {
         if constexpr (is_same_v<T, shared_ptr<table>>) {
             os << value.get();
         }
-    }, value);
+    }, static_cast<const val::value_t&>(value));
     return os;
 }
 

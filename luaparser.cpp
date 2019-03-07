@@ -68,29 +68,30 @@ auto LuaParser::parse(const string &program) -> parse_result_t<LuaChunk> {
 }
 
 auto LuaParser::tokenize(string::const_iterator begin, string::const_iterator end) -> token_list_t {
+    auto current = begin;
     token_list_t result;
 
     regex whitespace {"\\s*"};
-    while (begin != end) {
+    while (current != end) {
         // match all regexes
         for (const auto p : token_regexes) {
             smatch mr;
-            if (regex_search(begin, end, mr, p.first, regex_constants::match_continuous)) {
-                result.push_back(LuaToken{p.second, mr.str()});
-                begin += mr.length();
+            if (regex_search(current, end, mr, p.first, regex_constants::match_continuous)) {
+                result.push_back(LuaToken{p.second, mr.str(), mr.position() + current - begin, mr.length()});
+                current += mr.length();
                 goto regex_matched;
             }
         }
 
         // if no regex matched insert none token and skip char
-        result.push_back(LuaToken{LuaToken::Type::NONE, string{begin, begin+1}});
-        begin++;
+        result.push_back(LuaToken{LuaToken::Type::NONE, string{current, current+1}});
+        current++;
 
 regex_matched:
         // skip whitespace
         smatch mr;
-        if (regex_search(begin, end, mr, whitespace, regex_constants::match_continuous)) {
-            begin += mr.length();
+        if (regex_search(current, end, mr, whitespace, regex_constants::match_continuous)) {
+            current += mr.length();
         }
     }
 

@@ -27,6 +27,8 @@ struct LuaToken {
         NAME, STRINGLIT, NUMLIT, COMMENT
     } type;
     string match;
+    long pos = string::npos;
+    long length = 0;
 
     friend ostream& operator<<(ostream& os, const LuaToken& token);
 };
@@ -64,7 +66,31 @@ using lfunction_p = shared_ptr<struct lfunction>;
 using table_p = shared_ptr<struct table>;
 using vallist_p = shared_ptr<struct vallist>;
 
-using val = variant<nil, bool, double, string, cfunction_p, table_p, vallist_p, lfunction_p>;
+struct val : variant<nil, bool, double, string, cfunction_p, table_p, vallist_p, lfunction_p> {
+    using value_t = variant<nil, bool, double, string, cfunction_p, table_p, vallist_p, lfunction_p>;
+
+    val& operator=(const val&) = default;
+    val(const val&) = default;
+
+    template <typename T>
+    val(T&& val, const LuaExp& source = nullptr) : value_t {val}, source {source} {}
+
+    val() {}
+
+    LuaExp source;
+};
+
+}}
+namespace std {
+template<>
+struct hash<lua::rt::val> {
+    size_t operator()(const lua::rt::val &v) const {
+        return hash<lua::rt::val::value_t>()(v);
+    }
+};
+}
+namespace lua {
+namespace rt {
 
 struct table : public unordered_map<val, val> {};
 struct vallist : public vector<val> {};
