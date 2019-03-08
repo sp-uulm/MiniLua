@@ -12,17 +12,17 @@ using namespace std;
 namespace lua {
 namespace rt {
 
-#define EVAL(varname, exp, eval, env) \
+#define EVAL(varname, exp, env) \
 val varname; \
-if (auto eval_result = (exp)->accept((eval), (env), rvalue); holds_alternative<string>(eval_result)) {\
+if (auto eval_result = (exp)->accept(*this, (env), assign); holds_alternative<string>(eval_result)) {\
     return eval_result; \
 } else { \
     varname = get<val>(eval_result); \
 }
 
-#define EVALL(varname, exp, eval, env) \
+#define EVALL(varname, exp, env, newval) \
 val varname; \
-if (auto eval_result = (exp)->accept((eval), (env), false); holds_alternative<string>(eval_result)) {\
+if (auto eval_result = (exp)->accept(*this, (env), newval); holds_alternative<string>(eval_result)) {\
     return eval_result; \
 } else { \
     varname = get<val>(eval_result); \
@@ -61,28 +61,28 @@ val fst(const val& v);
 vallist flatten(const vallist& list);
 
 struct ASTEvaluator {
-    eval_result_t visit(const _LuaAST& ast, Environment& env, bool rvalue) const {
+    eval_result_t visit(const _LuaAST& ast, Environment& env, const optional<val>&) const {
         return string {"unimplemented"};
     }
 
-    eval_result_t visit(const _LuaName& chunk, Environment& env, bool rvalue) const;
-    eval_result_t visit(const _LuaOp& chunk, Environment& env, bool rvalue) const;
-    eval_result_t visit(const _LuaUnop& chunk, Environment& env, bool rvalue) const;
-    eval_result_t visit(const _LuaExplist& chunk, Environment& env, bool rvalue) const;
-    eval_result_t visit(const _LuaFunctioncall& chunk, Environment& env, bool rvalue) const;
-    eval_result_t visit(const _LuaAssignment& chunk, Environment& env, bool rvalue) const;
-    eval_result_t visit(const _LuaValue& chunk, Environment& env, bool rvalue) const;
-    eval_result_t visit(const _LuaNameVar& chunk, Environment& env, bool rvalue) const;
-    eval_result_t visit(const _LuaIndexVar& chunk, Environment& env, bool rvalue) const;
-    eval_result_t visit(const _LuaMemberVar& chunk, Environment& env, bool rvalue) const;
-    eval_result_t visit(const _LuaReturnStmt& chunk, Environment& env, bool rvalue) const;
-    eval_result_t visit(const _LuaBreakStmt& chunk, Environment& env, bool rvalue) const;
-    eval_result_t visit(const _LuaForStmt& for_stmt, Environment& env, bool rvalue) const;
-    eval_result_t visit(const _LuaLoopStmt& loop_stmt, Environment& env, bool rvalue) const;
-    eval_result_t visit(const _LuaChunk& chunk, Environment& env, bool rvalue) const;
-    eval_result_t visit(const _LuaTableconstructor& stmt, Environment& env, bool rvalue) const;
-    eval_result_t visit(const _LuaFunction& exp, Environment& env, bool rvalue) const;
-    eval_result_t visit(const _LuaIfStmt& stmt, Environment& env, bool rvalue) const;
+    eval_result_t visit(const _LuaName& chunk, Environment& env, const optional<val>& assign) const;
+    eval_result_t visit(const _LuaOp& chunk, Environment& env, const optional<val>& assign) const;
+    eval_result_t visit(const _LuaUnop& chunk, Environment& env, const optional<val>& assign) const;
+    eval_result_t visit(const _LuaExplist& chunk, Environment& env, const optional<val>& assign) const;
+    eval_result_t visit(const _LuaFunctioncall& chunk, Environment& env, const optional<val>& assign) const;
+    eval_result_t visit(const _LuaAssignment& chunk, Environment& env, const optional<val>& assign) const;
+    eval_result_t visit(const _LuaValue& chunk, Environment& env, const optional<val>& assign) const;
+    eval_result_t visit(const _LuaNameVar& chunk, Environment& env, const optional<val>& assign) const;
+    eval_result_t visit(const _LuaIndexVar& chunk, Environment& env, const optional<val>& assign) const;
+    eval_result_t visit(const _LuaMemberVar& chunk, Environment& env, const optional<val>& assign) const;
+    eval_result_t visit(const _LuaReturnStmt& chunk, Environment& env, const optional<val>& assign) const;
+    eval_result_t visit(const _LuaBreakStmt& chunk, Environment& env, const optional<val>& assign) const;
+    eval_result_t visit(const _LuaForStmt& for_stmt, Environment& env, const optional<val>& assign) const;
+    eval_result_t visit(const _LuaLoopStmt& loop_stmt, Environment& env, const optional<val>& assign) const;
+    eval_result_t visit(const _LuaChunk& chunk, Environment& env, const optional<val>& assign) const;
+    eval_result_t visit(const _LuaTableconstructor& stmt, Environment& env, const optional<val>& assign) const;
+    eval_result_t visit(const _LuaFunction& exp, Environment& env, const optional<val>& assign) const;
+    eval_result_t visit(const _LuaIfStmt& stmt, Environment& env, const optional<val>& assign) const;
 };
 
 struct SourceAssignment {

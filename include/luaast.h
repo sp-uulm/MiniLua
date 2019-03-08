@@ -117,9 +117,9 @@ struct cfunction {
 };
 
 struct lfunction {
-    lfunction(const LuaChunk& f, const vallist& params) : f{f}, params{params} {}
+    lfunction(const LuaChunk& f, const LuaExplist& params) : f{f}, params{params} {}
     LuaChunk f;
-    vallist params;
+    LuaExplist params;
 };
 
 using eval_result_t = variant<val, string>;
@@ -131,11 +131,15 @@ struct Environment;
 }
 
 #define VISITABLE \
-virtual lua::rt::eval_result_t accept(const lua::rt::ASTEvaluator& visitor, lua::rt::Environment& environment, bool rvalue = true) const
+virtual lua::rt::eval_result_t accept(const lua::rt::ASTEvaluator& visitor,\
+                                      lua::rt::Environment& environment,\
+                                      const optional<lua::rt::val>& assign = nullopt) const
 
 #define VISITABLE_IMPL(T) \
-lua::rt::eval_result_t T::accept(const lua::rt::ASTEvaluator& visitor, lua::rt::Environment& environment, bool rvalue) const { \
-    return visitor.visit(*this, environment, rvalue); \
+lua::rt::eval_result_t T::accept(const lua::rt::ASTEvaluator& visitor,\
+                                 lua::rt::Environment& environment,\
+                                 const optional<lua::rt::val>& assign) const { \
+    return visitor.visit(*this, environment, assign); \
 }
 
 struct _LuaAST {
