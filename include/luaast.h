@@ -86,7 +86,7 @@ struct val : _val_t {
     val(vallist_p v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
     val(lfunction_p v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
 
-    vector<struct SourceAssignment> forceValue(const val& v) const;
+    optional<vector<struct SourceAssignment>> forceValue(const val& v) const;
     string to_string() const;
 
     shared_ptr<struct sourceexp> source;

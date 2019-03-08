@@ -38,7 +38,7 @@ ostream& operator<<(ostream& os, const val& value) {
     return os << value.to_string();
 }
 
-vector<struct SourceAssignment> val::forceValue(const val& v) const {
+optional<vector<struct SourceAssignment>> val::forceValue(const val& v) const {
     if (source)
         return source->forceValue(v);
     return {};

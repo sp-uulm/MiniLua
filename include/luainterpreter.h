@@ -38,7 +38,7 @@ struct Environment {
     void populate_stdlib();
 };
 
-eval_result_t op_add(val a, val b);
+eval_result_t op_add(val a, val b, const LuaToken& tok = {LuaToken::Type::ADD, ""});
 eval_result_t op_sub(val a, val b);
 eval_result_t op_mul(val a, val b);
 eval_result_t op_div(val a, val b);
@@ -91,7 +91,7 @@ struct SourceAssignment {
 };
 
 struct sourceexp {
-    virtual vector<SourceAssignment> forceValue(const val& v) const = 0;
+    virtual optional<vector<SourceAssignment>> forceValue(const val& v) const = 0;
 };
 
 struct sourceval : sourceexp {
@@ -101,11 +101,50 @@ struct sourceval : sourceexp {
         return ptr;
     }
 
-    vector<SourceAssignment> forceValue(const val& v) const override{
-        return {SourceAssignment{location, v.to_string()}};
+    optional<vector<SourceAssignment>> forceValue(const val& v) const override{
+        return {{SourceAssignment{location, v.to_string()}}};
     }
 
     LuaToken location;
+};
+
+struct sourcebinop : sourceexp {
+    static shared_ptr<sourcebinop> create(const val& lhs, const val& rhs, const LuaToken& op) {
+        if (!lhs.source || !rhs.source)
+            return nullptr;
+
+        auto ptr = make_shared<sourcebinop>();
+        ptr->lhs = lhs;
+        ptr->rhs = rhs;
+        ptr->op = op;
+        return ptr;
+    }
+
+    optional<vector<SourceAssignment>> forceValue(const val& v) const override {
+        if (!holds_alternative<double>(v))
+            return nullopt;
+
+        switch (op.type) {
+        case LuaToken::Type::ADD:
+            if (lhs.source && holds_alternative<double>(rhs)) {
+                if (auto result = lhs.source->forceValue(val {get<double>(v) - get<double>(rhs)}); result) {
+                    return result;
+                }
+            }
+            if (rhs.source && holds_alternative<double>(lhs)) {
+                if (auto result = rhs.source->forceValue(val {get<double>(v) - get<double>(lhs)}); result) {
+                    return result;
+                }
+            }
+            return nullopt;
+        default:
+            return nullopt;
+        }
+    }
+
+    val lhs;
+    val rhs;
+    LuaToken op;
 };
 
 } // rt

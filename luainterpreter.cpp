@@ -5,9 +5,9 @@
 namespace lua {
 namespace rt {
 
-eval_result_t op_add(lua::rt::val a, lua::rt::val b) {
+eval_result_t op_add(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {
     if (holds_alternative<double>(a) && holds_alternative<double>(b))
-        return lua::rt::val {get<double>(a) + get<double>(b)};
+        return lua::rt::val {get<double>(a) + get<double>(b), sourcebinop::create(a, b, tok)};
 
     return string{"could not add values of type other than number (" + to_string(a.index()) + ")"};
 }
@@ -214,7 +214,13 @@ void Environment::populate_stdlib() {
         cout << "force " << args[0] << " to be " << args[1] << endl;
 
         auto source_changes = args[0].forceValue(args[1]);
-        for (const SourceAssignment& assignment : source_changes) {
+
+        if (!source_changes) {
+            cout << "could not force value, source location not available" << endl;
+            return {};
+        }
+
+        for (const SourceAssignment& assignment : *source_changes) {
             cout << assignment.token << " -> " << assignment.replacement << endl;
         }
 
