@@ -1,5 +1,6 @@
 #include "include/luaast.h"
 #include "include/luainterpreter.h"
+#include <sstream>
 
 ostream& operator<<(ostream& os, const LuaToken& token) {
     return os << "[" << static_cast<int>(token.type) << "]" << token.match << " start:" << token.pos << " length:" << token.length;
@@ -8,26 +9,39 @@ ostream& operator<<(ostream& os, const LuaToken& token) {
 namespace lua {
 namespace rt {
 
-ostream& operator<<(ostream& os, const val& value) {
-    visit([&os](auto&& value) {
+string val::to_string() const {
+    return visit([](auto&& value) -> string{
         using T = std::decay_t<decltype(value)>;
         if constexpr (is_same_v<T, nil>) {
-            os << "nil";
+            return "nil";
         }
         if constexpr (is_same_v<T, bool>) {
-            os << (value ? "true" : "false");
+            return (value ? "true" : "false");
         }
         if constexpr (is_same_v<T, double>) {
-            os << value;
+            stringstream ss;
+            ss << value;
+            return ss.str();
         }
         if constexpr (is_same_v<T, string>) {
-            os << value;
+            return value;
         }
         if constexpr (is_same_v<T, shared_ptr<table>>) {
-            os << value.get();
+            return std::to_string(reinterpret_cast<uint64_t>(value.get()));
         }
-    }, static_cast<const val::value_t&>(value));
-    return os;
+        return "";
+    }, static_cast<const val::value_t&>(*this));
+//            + (source ? string("@") : "");
+}
+
+ostream& operator<<(ostream& os, const val& value) {
+    return os << value.to_string();
+}
+
+vector<struct SourceAssignment> val::forceValue(const val& v) const {
+    if (source)
+        return source->forceValue(v);
+    return {};
 }
 
 }

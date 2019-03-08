@@ -66,18 +66,30 @@ using lfunction_p = shared_ptr<struct lfunction>;
 using table_p = shared_ptr<struct table>;
 using vallist_p = shared_ptr<struct vallist>;
 
-struct val : variant<nil, bool, double, string, cfunction_p, table_p, vallist_p, lfunction_p> {
-    using value_t = variant<nil, bool, double, string, cfunction_p, table_p, vallist_p, lfunction_p>;
+using _val_t = variant<nil, bool, double, string, cfunction_p, table_p, vallist_p, lfunction_p>;
+struct val : _val_t {
+    using value_t = _val_t;
 
     val& operator=(const val&) = default;
     val(const val&) = default;
-
-    template <typename T>
-    val(T&& val, const LuaExp& source = nullptr) : value_t {val}, source {source} {}
-
     val() {}
 
-    LuaExp source;
+//    template <typename T>
+//    val(T&& v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
+
+    val(nil v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
+    val(bool v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
+    val(double v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
+    val(string v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
+    val(cfunction_p v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
+    val(table_p v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
+    val(vallist_p v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
+    val(lfunction_p v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
+
+    vector<struct SourceAssignment> forceValue(const val& v) const;
+    string to_string() const;
+
+    shared_ptr<struct sourceexp> source;
 };
 
 }}
@@ -93,7 +105,10 @@ namespace lua {
 namespace rt {
 
 struct table : public unordered_map<val, val> {};
-struct vallist : public vector<val> {};
+struct vallist : public vector<val> {
+    template <typename... T>
+    vallist(T&&... v) : vector<val> {forward<T>(v)...} {}
+};
 
 struct cfunction {
     template <typename T>
@@ -167,16 +182,21 @@ struct _LuaExplist : public _LuaAST {
 
 struct _LuaValue : public _LuaExp {
     VISITABLE override;
+
     _LuaValue(const LuaToken& token) : token {token} {}
+
+    static LuaValue Value(const LuaToken& token) {
+        return make_shared<_LuaValue>(token);
+    }
 
     static LuaValue True() {
         LuaToken tok {LuaToken::Type::TRUE, "true"};
-        return make_shared<_LuaValue>(tok);
+        return Value(tok);
     }
 
     static LuaValue Int(int num) {
         LuaToken tok {LuaToken::Type::NUMLIT, to_string(num)};
-        return make_shared<_LuaValue>(tok);
+        return Value(tok);
     }
 
     LuaToken token;

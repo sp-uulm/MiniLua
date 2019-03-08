@@ -599,7 +599,7 @@ auto LuaParser::parse_exp(token_it_t& begin, token_it_t& end) const -> parse_res
         case LuaToken::Type::TRUE:
         case LuaToken::Type::NUMLIT:
         case LuaToken::Type::STRINGLIT:
-            exps.push_back(make_shared<_LuaValue>(*begin++));
+            exps.push_back(_LuaValue::Value(*begin++));
             break;
         case LuaToken::Type::ELLIPSE:
             begin++;

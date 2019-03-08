@@ -205,6 +205,21 @@ void Environment::populate_stdlib() {
         cout << endl;
         return {};
     });
+
+    t[string {"force"}] = make_shared<cfunction>([](const vallist& args) -> vallist {
+        if (args.size() != 2) {
+            return {val{nil()}, val{"wrong number of arguments (expected 2)"}};
+        }
+
+        cout << "force " << args[0] << " to be " << args[1] << endl;
+
+        auto source_changes = args[0].forceValue(args[1]);
+        for (const SourceAssignment& assignment : source_changes) {
+            cout << assignment.token << " -> " << assignment.replacement << endl;
+        }
+
+        return {};
+    });
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaName& name, Environment& env, bool rvalue) const {
@@ -381,15 +396,15 @@ eval_result_t ASTEvaluator::visit(const _LuaValue& value, Environment& env, bool
 
     switch (value.token.type) {
     case LuaToken::Type::NIL:
-        return nil();
+        return val{nil(), sourceval::create(value.token)};
     case LuaToken::Type::FALSE:
-        return false;
+        return val{false, sourceval::create(value.token)};
     case LuaToken::Type::TRUE:
-        return true;
+        return val{true, sourceval::create(value.token)};
     case LuaToken::Type::NUMLIT:
-        return val{stod(value.token.match)};
+        return val{stod(value.token.match), sourceval::create(value.token)};
     case LuaToken::Type::STRINGLIT:
-        return val{string(value.token.match.begin()+1, value.token.match.end()-1)};
+        return val{string(value.token.match.begin()+1, value.token.match.end()-1), sourceval::create(value.token)};
     default:
         return string{"value unimplemented"};
     }

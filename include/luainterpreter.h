@@ -85,6 +85,29 @@ struct ASTEvaluator {
     eval_result_t visit(const _LuaIfStmt& stmt, Environment& env, bool rvalue) const;
 };
 
+struct SourceAssignment {
+    LuaToken token;
+    string replacement;
+};
+
+struct sourceexp {
+    virtual vector<SourceAssignment> forceValue(const val& v) const = 0;
+};
+
+struct sourceval : sourceexp {
+    static shared_ptr<sourceval> create(const LuaToken& t) {
+        auto ptr = make_shared<sourceval>();
+        ptr->location = t;
+        return ptr;
+    }
+
+    vector<SourceAssignment> forceValue(const val& v) const override{
+        return {SourceAssignment{location, v.to_string()}};
+    }
+
+    LuaToken location;
+};
+
 } // rt
 } // lua
 
