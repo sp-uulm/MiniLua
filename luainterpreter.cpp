@@ -133,9 +133,9 @@ eval_result_t op_not(val v) {
     return val {false};
 }
 
-eval_result_t op_neg(val v) {
+eval_result_t op_neg(val v, const LuaToken& tok) {
     if (holds_alternative<double>(v)) {
-        return val {-get<double>(v)};
+        return val {-get<double>(v), sourceunop::create(v, tok)};
     }
 
     return string{"unary - can only be applied to a number"};
@@ -248,7 +248,7 @@ eval_result_t ASTEvaluator::visit(const _LuaOp& op, Environment& env, const opti
 
     switch (op.op.type) {
     case LuaToken::Type::ADD:
-        return op_add(lhs, rhs);
+        return op_add(lhs, rhs, op.op);
     case LuaToken::Type::SUB:
         return op_sub(lhs, rhs);
     case LuaToken::Type::MUL:
@@ -291,7 +291,7 @@ eval_result_t ASTEvaluator::visit(const _LuaUnop& op, Environment& env, const op
 
     switch (op.op.type) {
     case LuaToken::Type::SUB:
-        return op_neg(rhs);
+        return op_neg(rhs, op.op);
     case LuaToken::Type::LEN:
         return op_len(rhs);
     case LuaToken::Type::NOT:

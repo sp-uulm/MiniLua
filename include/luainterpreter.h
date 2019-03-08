@@ -55,7 +55,7 @@ eval_result_t op_and(val a, val b);
 eval_result_t op_or(val a, val b);
 eval_result_t op_len(val v);
 eval_result_t op_not(val v);
-eval_result_t op_neg(val v);
+eval_result_t op_neg(val v, const LuaToken& tok = {LuaToken::Type::SUB, ""});
 
 val fst(const val& v);
 vallist flatten(const vallist& list);
@@ -144,6 +144,43 @@ struct sourcebinop : sourceexp {
 
     val lhs;
     val rhs;
+    LuaToken op;
+};
+
+struct sourceunop : sourceexp {
+    static shared_ptr<sourceunop> create(const val& v, const LuaToken& op) {
+        if (!v.source)
+            return nullptr;
+
+        auto ptr = make_shared<sourceunop>();
+        ptr->v = v;
+        ptr->op = op;
+        return ptr;
+    }
+
+    optional<vector<SourceAssignment>> forceValue(const val& new_v) const override {
+        if (!holds_alternative<double>(new_v))
+            return nullopt;
+
+        switch (op.type) {
+        case LuaToken::Type::SUB:
+            if (v.source) {
+                if (auto result = v.source->forceValue(val {-get<double>(new_v)}); result) {
+                    if (auto p = dynamic_pointer_cast<sourceval>(v.source); !p || p->location.pos != op.pos+op.length)
+                        return result;
+                }
+                if (auto result = v.source->forceValue(val {get<double>(new_v)}); result) {
+                    result->push_back(SourceAssignment{op, ""});
+                    return result;
+                }
+            }
+            return nullopt;
+        default:
+            return nullopt;
+        }
+    }
+
+    val v;
     LuaToken op;
 };
 
