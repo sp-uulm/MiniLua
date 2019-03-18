@@ -2,8 +2,12 @@
 #include "include/luainterpreter.h"
 #include <sstream>
 
+string LuaToken::to_string() const {
+    return "[" + std::to_string(static_cast<int>(type)) + "]" + match + " start:" + std::to_string(pos) + " length:" + std::to_string(length);
+}
+
 ostream& operator<<(ostream& os, const LuaToken& token) {
-    return os << "[" << static_cast<int>(token.type) << "]" << token.match << " start:" << token.pos << " length:" << token.length;
+    return os << token.to_string();
 }
 
 namespace lua {
@@ -38,10 +42,10 @@ ostream& operator<<(ostream& os, const val& value) {
     return os << value.to_string();
 }
 
-optional<vector<struct SourceAssignment>> val::forceValue(const val& v) const {
+optional<shared_ptr<SourceChange>> val::forceValue(const val& v) const {
     if (source)
         return source->forceValue(v);
-    return {};
+    return nullopt;
 }
 
 }

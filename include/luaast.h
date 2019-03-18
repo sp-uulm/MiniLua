@@ -30,6 +30,7 @@ struct LuaToken {
     long pos = string::npos;
     long length = 0;
 
+    string to_string() const;
     friend ostream& operator<<(ostream& os, const LuaToken& token);
 };
 
@@ -86,7 +87,7 @@ struct val : _val_t {
     val(vallist_p v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
     val(lfunction_p v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
 
-    optional<vector<struct SourceAssignment>> forceValue(const val& v) const;
+    optional<shared_ptr<struct SourceChange>> forceValue(const val& v) const;
     string to_string() const;
 
     shared_ptr<struct sourceexp> source;

@@ -220,8 +220,8 @@ void Environment::populate_stdlib() {
             return {};
         }
 
-        for (const SourceAssignment& assignment : *source_changes) {
-            cout << assignment.token << " -> " << assignment.replacement << endl;
+        for (const SourceChange& assignment : *source_changes) {
+            cout << assignment.to_string();
         }
 
         return {};
@@ -490,7 +490,7 @@ eval_result_t ASTEvaluator::visit(const _LuaLoopStmt &loop_stmt, Environment &en
 
         EVAL(result, loop_stmt.body, newenv);
         if (holds_alternative<vallist_p>(result))
-            return result;
+            return move(result);
 
         if (holds_alternative<bool>(result))
             return nil();
@@ -536,13 +536,41 @@ eval_result_t ASTEvaluator::visit(const _LuaIfStmt &stmt, Environment &env, cons
 
             EVAL(result, branch.second, newenv);
             if (!holds_alternative<nil>(result))
-                return result;
+                return move(result);
             break;
         }
     }
 
     return lua::rt::nil();
 }
+
+SourceChange::~SourceChange() {}
+
+string SourceChangeOr::to_string() const {
+    stringstream ss;
+    ss << "(";
+    if (alternatives.size() != 0) {
+        ss << alternatives[0]->to_string();
+    }
+    for (unsigned i = 1; i < alternatives.size(); ++i)
+        ss << " | " << alternatives[i]->to_string();
+    ss << ")";
+    return ss.str();
+}
+
+string SourceChangeAnd::to_string() const {
+    stringstream ss;
+    ss << "(";
+    if (changes.size() != 0) {
+        ss << changes[0]->to_string();
+    }
+    for (unsigned i = 1; i < changes.size(); ++i)
+        ss << " & " << changes[i]->to_string();
+    ss << ")";
+    return ss.str();
+}
+
+sourceexp::~sourceexp() {}
 
 }
 }

@@ -85,13 +85,35 @@ struct ASTEvaluator {
     eval_result_t visit(const _LuaIfStmt& stmt, Environment& env, const optional<val>& assign) const;
 };
 
-struct SourceAssignment {
+struct SourceChange {
+    virtual ~SourceChange();
+    virtual string to_string() const = 0;
+};
+
+struct SourceChangeOr : SourceChange {
+    vector<shared_ptr<SourceChange>> alternatives;
+
+    virtual string to_string() const override;
+};
+
+struct SourceChangeAnd : SourceChange {
+    vector<shared_ptr<SourceChange>> changes;
+
+    virtual string to_string() const override;
+};
+
+struct SourceAssignment : SourceChange {
     LuaToken token;
     string replacement;
+
+    virtual string to_string() const override {
+        return token.to_string() + " -> " + replacement;
+    }
 };
 
 struct sourceexp {
-    virtual optional<vector<SourceAssignment>> forceValue(const val& v) const = 0;
+    virtual ~sourceexp();
+    virtual optional<shared_ptr<SourceChange>> forceValue(const val& v) const = 0;
 };
 
 struct sourceval : sourceexp {
@@ -101,7 +123,7 @@ struct sourceval : sourceexp {
         return ptr;
     }
 
-    optional<vector<SourceAssignment>> forceValue(const val& v) const override{
+    optional<shared_ptr<SourceChange>> forceValue(const val& v) const override{
         return {{SourceAssignment{location, v.to_string()}}};
     }
 
@@ -120,7 +142,7 @@ struct sourcebinop : sourceexp {
         return ptr;
     }
 
-    optional<vector<SourceAssignment>> forceValue(const val& v) const override {
+    optional<shared_ptr<SourceChange>> forceValue(const val& v) const override {
         if (!holds_alternative<double>(v))
             return nullopt;
 
@@ -158,7 +180,7 @@ struct sourceunop : sourceexp {
         return ptr;
     }
 
-    optional<vector<SourceAssignment>> forceValue(const val& new_v) const override {
+    optional<shared_ptr<SourceChange>> forceValue(const val& new_v) const override {
         if (!holds_alternative<double>(new_v))
             return nullopt;
 
