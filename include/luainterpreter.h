@@ -103,6 +103,13 @@ struct SourceChangeAnd : SourceChange {
 };
 
 struct SourceAssignment : SourceChange {
+    static shared_ptr<SourceAssignment> create(const LuaToken& token, const string& replacement) {
+        auto result = make_shared<SourceAssignment>();
+        result->token = token;
+        result->replacement = replacement;
+        return result;
+    }
+
     LuaToken token;
     string replacement;
 
@@ -124,7 +131,7 @@ struct sourceval : sourceexp {
     }
 
     optional<shared_ptr<SourceChange>> forceValue(const val& v) const override{
-        return {{SourceAssignment{location, v.to_string()}}};
+        return SourceAssignment::create(location, v.to_string());
     }
 
     LuaToken location;
@@ -148,17 +155,23 @@ struct sourcebinop : sourceexp {
 
         switch (op.type) {
         case LuaToken::Type::ADD:
+        {
+            auto res_or = make_shared<SourceChangeOr>();
             if (lhs.source && holds_alternative<double>(rhs)) {
                 if (auto result = lhs.source->forceValue(val {get<double>(v) - get<double>(rhs)}); result) {
-                    return result;
+                    res_or->alternatives.push_back(*result);
                 }
             }
             if (rhs.source && holds_alternative<double>(lhs)) {
                 if (auto result = rhs.source->forceValue(val {get<double>(v) - get<double>(lhs)}); result) {
-                    return result;
+                    res_or->alternatives.push_back(*result);
                 }
             }
+
+            if (!res_or->alternatives.empty())
+                return res_or;
             return nullopt;
+        }
         default:
             return nullopt;
         }
@@ -187,14 +200,21 @@ struct sourceunop : sourceexp {
         switch (op.type) {
         case LuaToken::Type::SUB:
             if (v.source) {
+                auto res_or = make_shared<SourceChangeOr>();
                 if (auto result = v.source->forceValue(val {-get<double>(new_v)}); result) {
-                    if (auto p = dynamic_pointer_cast<sourceval>(v.source); !p || p->location.pos != op.pos+op.length)
-                        return result;
+                    if (auto p = dynamic_pointer_cast<sourceval>(v.source); !p || p->location.pos != op.pos+op.length) {
+                        res_or->alternatives.push_back(*result);
+                    }
                 }
                 if (auto result = v.source->forceValue(val {get<double>(new_v)}); result) {
-                    result->push_back(SourceAssignment{op, ""});
-                    return result;
+                    auto res_and = make_shared<SourceChangeAnd>();
+                    res_and->changes.push_back(*result);
+                    res_and->changes.push_back(SourceAssignment::create(op, ""));
+                    res_or->alternatives.push_back(res_and);
                 }
+
+                if (!res_or->alternatives.empty())
+                    return res_or;
             }
             return nullopt;
         default:

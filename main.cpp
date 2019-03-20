@@ -3,14 +3,7 @@
 
 using namespace std;
 
-struct val2 : variant<bool> {
-    int i = 123;
-
-    template <typename T>
-    val2(T&& v) : variant<bool> {} {}
-};
-
-auto main(int argc, char *argv[]) -> int {
+/*auto main(int argc, char *argv[]) -> int {
 
 //    string program = "for i=1, 10, 1 do \n    print('hello world ', i)\nend";
 //    string program = "for i=1, 2 + 4 * 2, 1 do \n    print('hello world ' .. i)\nend";
@@ -24,7 +17,7 @@ auto main(int argc, char *argv[]) -> int {
 //    string program = "b = -1 while not (b > 5) do a=0 repeat a=a+1 if a ~= b then print(a, b) else break end until a == 10 b = b+1 end";
 //    string program = "force(2, 3)";
 //    string program = "i=(function() return 2 end)()+0.5; force(i, 3)";
-    string program = "i=2; force(-i, 3)";
+    string program = "i=1+1.5; force(-i, 3)";
 //    string program = "function test() local i = 0 return function() while true do if i == 5 then break end i=i+1 end return i, 2 end end b=test() i="a" print(i, b())";
 
     LuaParser parser;
@@ -45,4 +38,4 @@ auto main(int argc, char *argv[]) -> int {
     }
 
     return 0;
-}
+}*/

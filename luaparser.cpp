@@ -72,6 +72,14 @@ auto LuaParser::tokenize(string::const_iterator begin, string::const_iterator en
     token_list_t result;
 
     regex whitespace {"\\s*"};
+    if (current != end) {
+        // skip whitespace
+        smatch mr;
+        if (regex_search(current, end, mr, whitespace, regex_constants::match_continuous)) {
+            current += mr.length();
+        }
+    }
+
     while (current != end) {
         // match all regexes
         for (const auto p : token_regexes) {
@@ -104,12 +112,13 @@ auto LuaParser::parse_chunk(token_it_t& begin, token_it_t& end) const -> parse_r
 
     LuaChunk result = make_shared<_LuaChunk>();
 
-    while (begin->type != LuaToken::Type::RETURN &&
+    while (begin != end &&
+           begin->type != LuaToken::Type::RETURN &&
            begin->type != LuaToken::Type::BREAK &&
            begin->type != LuaToken::Type::END &&
            begin->type != LuaToken::Type::ELSE &&
            begin->type != LuaToken::Type::ELSEIF &&
-           begin->type != LuaToken::Type::UNTIL && begin != end) {
+           begin->type != LuaToken::Type::UNTIL) {
         auto ast = parse_stat(begin, end);
         if (holds_alternative<string>(ast)) {
             return "chunk -> " + get<string>(ast);
@@ -121,7 +130,7 @@ auto LuaParser::parse_chunk(token_it_t& begin, token_it_t& end) const -> parse_r
             begin++;
     }
 
-    if (begin->type == LuaToken::Type::RETURN || begin->type == LuaToken::Type::BREAK) {
+    if (begin != end && (begin->type == LuaToken::Type::RETURN || begin->type == LuaToken::Type::BREAK)) {
         auto ast = parse_laststat(begin, end);
         if (holds_alternative<string>(ast)) {
             return "chunk -> " + get<string>(ast);
@@ -448,6 +457,10 @@ auto LuaParser::parse_var(token_it_t& begin, token_it_t& end) const -> parse_res
 
     if (begin->type == LuaToken::Type::NAME) {
         return make_shared<_LuaNameVar>(make_shared<_LuaName>(*begin++));
+    }
+
+    if (begin->type != LuaToken::Type::LRB) {
+        return "var: '(' expected";
     }
 
     LuaExp prefixexp;
