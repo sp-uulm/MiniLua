@@ -12,37 +12,37 @@ eval_result_t op_add(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {
     return string{"could not add values of type other than number (" + to_string(a.index()) + ")"};
 }
 
-eval_result_t op_sub(lua::rt::val a, lua::rt::val b) {
+eval_result_t op_sub(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {
     if (holds_alternative<double>(a) && holds_alternative<double>(b))
-        return lua::rt::val {get<double>(a) - get<double>(b)};
+        return lua::rt::val {get<double>(a) - get<double>(b), sourcebinop::create(a, b, tok)};
 
     return string{"could not subtract variables of type other than number"};
 }
 
-eval_result_t op_mul(lua::rt::val a, lua::rt::val b) {
+eval_result_t op_mul(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {
     if (holds_alternative<double>(a) && holds_alternative<double>(b))
-        return lua::rt::val {get<double>(a) * get<double>(b)};
+        return lua::rt::val {get<double>(a) * get<double>(b), sourcebinop::create(a, b, tok)};
 
     return string{"could not multiply variables of type other than number"};
 }
 
-eval_result_t op_div(lua::rt::val a, lua::rt::val b) {
+eval_result_t op_div(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {
     if (holds_alternative<double>(a) && holds_alternative<double>(b))
-        return lua::rt::val {get<double>(a) / get<double>(b)};
+        return lua::rt::val {get<double>(a) / get<double>(b), sourcebinop::create(a, b, tok)};
 
     return string{"could not divide variables of type other than number"};
 }
 
-eval_result_t op_pow(lua::rt::val a, lua::rt::val b) {
+eval_result_t op_pow(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {
     if (holds_alternative<double>(a) && holds_alternative<double>(b))
-        return lua::rt::val {pow(get<double>(a), get<double>(b))};
+        return lua::rt::val {pow(get<double>(a), get<double>(b)), sourcebinop::create(a, b, tok)};
 
     return string{"could not exponentiate variables of type other than number"};
 }
 
-eval_result_t op_mod(lua::rt::val a, lua::rt::val b) {
+eval_result_t op_mod(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {
     if (holds_alternative<double>(a) && holds_alternative<double>(b))
-        return lua::rt::val {fmod(get<double>(a), get<double>(b))};
+        return lua::rt::val {fmod(get<double>(a), get<double>(b)), sourcebinop::create(a, b, tok)};
 
     return string{"could not mod variables of type other than number"};
 }
@@ -197,7 +197,7 @@ val Environment::getvar(const val& var) {
 void Environment::populate_stdlib() {
     t[string {"print"}] = make_shared<cfunction>([](const vallist& args) -> vallist {
         for (int i = 0; i < static_cast<int>(args.size()) - 1; ++i) {
-            cout << args[i] << "\t";
+            cout << args[i].to_string() << "\t";
         }
         if (args.size() > 0) {
             cout << args.back();
@@ -229,15 +229,15 @@ eval_result_t ASTEvaluator::visit(const _LuaOp& op, Environment& env, const opti
     case LuaToken::Type::ADD:
         return op_add(lhs, rhs, op.op);
     case LuaToken::Type::SUB:
-        return op_sub(lhs, rhs);
+        return op_sub(lhs, rhs, op.op);
     case LuaToken::Type::MUL:
-        return op_mul(lhs, rhs);
+        return op_mul(lhs, rhs, op.op);
     case LuaToken::Type::DIV:
-        return op_div(lhs, rhs);
+        return op_div(lhs, rhs, op.op);
     case LuaToken::Type::POW:
-        return op_pow(lhs, rhs);
+        return op_pow(lhs, rhs, op.op);
     case LuaToken::Type::MOD:
-        return op_mod(lhs, rhs);
+        return op_mod(lhs, rhs, op.op);
     case LuaToken::Type::CONCAT:
         return op_concat(lhs, rhs);
     case LuaToken::Type::LT:
@@ -386,7 +386,7 @@ eval_result_t ASTEvaluator::visit(const _LuaValue& value, Environment& env, cons
         return val{true, sourceval::create(value.token)};
     case LuaToken::Type::NUMLIT:
         try {
-            return val{stod("0" + value.token.match), sourceval::create(value.token)};
+            return val{atof(("0" + value.token.match).c_str()), sourceval::create(value.token)};
         } catch (const invalid_argument& invalid) {
             return string {"invalid_argument to stod: "} + invalid.what();
         }

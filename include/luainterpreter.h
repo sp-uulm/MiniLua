@@ -39,11 +39,11 @@ struct Environment {
 };
 
 eval_result_t op_add(val a, val b, const LuaToken& tok = {LuaToken::Type::ADD, ""});
-eval_result_t op_sub(val a, val b);
-eval_result_t op_mul(val a, val b);
-eval_result_t op_div(val a, val b);
-eval_result_t op_pow(val a, val b);
-eval_result_t op_mod(val a, val b);
+eval_result_t op_sub(val a, val b, const LuaToken& tok = {LuaToken::Type::SUB, ""});
+eval_result_t op_mul(val a, val b, const LuaToken& tok = {LuaToken::Type::MUL, ""});
+eval_result_t op_div(val a, val b, const LuaToken& tok = {LuaToken::Type::DIV, ""});
+eval_result_t op_pow(val a, val b, const LuaToken& tok = {LuaToken::Type::POW, ""});
+eval_result_t op_mod(val a, val b, const LuaToken& tok = {LuaToken::Type::MOD, ""});
 eval_result_t op_concat(val a, val b);
 eval_result_t op_lt(val a, val b);
 eval_result_t op_leq(val a, val b);
@@ -139,7 +139,7 @@ struct sourceval : sourceexp {
 
 struct sourcebinop : sourceexp {
     static shared_ptr<sourcebinop> create(const val& lhs, const val& rhs, const LuaToken& op) {
-        if (!lhs.source || !rhs.source)
+        if (!lhs.source && !rhs.source)
             return nullptr;
 
         auto ptr = make_shared<sourcebinop>();
@@ -164,6 +164,60 @@ struct sourcebinop : sourceexp {
             }
             if (rhs.source && holds_alternative<double>(lhs)) {
                 if (auto result = rhs.source->forceValue(val {get<double>(v) - get<double>(lhs)}); result) {
+                    res_or->alternatives.push_back(*result);
+                }
+            }
+
+            if (!res_or->alternatives.empty())
+                return res_or;
+            return nullopt;
+        }
+        case LuaToken::Type::SUB:
+        {
+            auto res_or = make_shared<SourceChangeOr>();
+            if (lhs.source && holds_alternative<double>(rhs)) {
+                if (auto result = lhs.source->forceValue(val {get<double>(v) + get<double>(rhs)}); result) {
+                    res_or->alternatives.push_back(*result);
+                }
+            }
+            if (rhs.source && holds_alternative<double>(lhs)) {
+                if (auto result = rhs.source->forceValue(val {get<double>(lhs) - get<double>(v)}); result) {
+                    res_or->alternatives.push_back(*result);
+                }
+            }
+
+            if (!res_or->alternatives.empty())
+                return res_or;
+            return nullopt;
+        }
+        case LuaToken::Type::MUL:
+        {
+            auto res_or = make_shared<SourceChangeOr>();
+            if (lhs.source && holds_alternative<double>(rhs)) {
+                if (auto result = lhs.source->forceValue(val {get<double>(v) / get<double>(rhs)}); result) {
+                    res_or->alternatives.push_back(*result);
+                }
+            }
+            if (rhs.source && holds_alternative<double>(lhs)) {
+                if (auto result = rhs.source->forceValue(val {get<double>(v) / get<double>(lhs)}); result) {
+                    res_or->alternatives.push_back(*result);
+                }
+            }
+
+            if (!res_or->alternatives.empty())
+                return res_or;
+            return nullopt;
+        }
+        case LuaToken::Type::DIV:
+        {
+            auto res_or = make_shared<SourceChangeOr>();
+            if (lhs.source && holds_alternative<double>(rhs)) {
+                if (auto result = lhs.source->forceValue(val {get<double>(v) * get<double>(rhs)}); result) {
+                    res_or->alternatives.push_back(*result);
+                }
+            }
+            if (rhs.source && holds_alternative<double>(lhs)) {
+                if (auto result = rhs.source->forceValue(val {get<double>(lhs) / get<double>(v)}); result) {
                     res_or->alternatives.push_back(*result);
                 }
             }

@@ -51,6 +51,8 @@ void DrawWidget::paintEvent(QPaintEvent *event) {
             return {};
         });
 
+        clearSourceChanges();
+
         if (auto eval_result = parse_result->accept(eval, env); holds_alternative<string>(eval_result)) {
             cerr << "Error: " << get<string>(eval_result) << endl;
         }
@@ -61,7 +63,9 @@ void DrawWidget::paintEvent(QPaintEvent *event) {
 }
 
 void DrawWidget::addSourceChanges(const shared_ptr<lua::rt::SourceChange>& change) {
-    current_source_changes = change;
+    if (!current_source_changes)
+        current_source_changes = make_shared<lua::rt::SourceChangeAnd>();
+    dynamic_pointer_cast<lua::rt::SourceChangeAnd>(current_source_changes)->changes.push_back(change);
 }
 
 void DrawWidget::clearSourceChanges() {
@@ -71,7 +75,7 @@ void DrawWidget::clearSourceChanges() {
 void highlight_changes(const shared_ptr<lua::rt::SourceChange>& change, QTextCursor& cursor) {
     if (auto p = dynamic_pointer_cast<lua::rt::SourceAssignment>(change); p) {
         QTextCharFormat fmt;
-        fmt.setBackground(Qt::yellow);
+        fmt.setBackground(Qt::red);
 
         cursor.setPosition(p->token.pos, QTextCursor::MoveAnchor);
         cursor.setPosition(p->token.pos+p->token.length, QTextCursor::KeepAnchor);
@@ -91,9 +95,13 @@ void highlight_changes(const shared_ptr<lua::rt::SourceChange>& change, QTextCur
 
 void DrawWidget::highlightSourceChanges(QPlainTextEdit *editor) {
     QTextCharFormat fmt;
-    fmt.setBackground(Qt::yellow);
 
     QTextCursor cursor(editor->document());
+
+    cursor.setPosition(0, QTextCursor::MoveAnchor);
+    cursor.setPosition(editor->document()->toPlainText().length(), QTextCursor::KeepAnchor);
+    cursor.setCharFormat(fmt);
+
 
     highlight_changes(current_source_changes, cursor);
 }
@@ -114,6 +122,8 @@ void DrawWidget::onTextChanged() {
 auto main(int argc, char *argv[]) -> int {
 
     QApplication app(argc, argv);
+    setlocale(LC_ALL, "C");
+
     QWidget window;
     window.resize(1280, 720);
 
@@ -124,9 +134,11 @@ auto main(int argc, char *argv[]) -> int {
 
     draw_area->setMinimumWidth(500);
 
-    editor->setPlainText("i=1+1.5;\n"
+    editor->setPlainText("print(1.5)\n"
+                         "i=1+1.5;\n"
                          "force(-i, 3)\n"
-                         "line(0, 0, 200, 200)");
+                         "line(0, 0, 200, 200)\n"
+                         "force(1, 2)");
 
     window.setLayout(layout);
     layout->addWidget(editor, 0, 0);
