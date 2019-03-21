@@ -47,11 +47,7 @@ private:
     auto parse_funcbody         (token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaFunction>;
     auto parse_parlist          (token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaExplist>;
     auto parse_tableconstructor (token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaTableconstructor>;
-    auto parse_fieldlist        (token_it_t& begin, token_it_t& end) const -> parse_result_t<>;
-    auto parse_field            (token_it_t& begin, token_it_t& end) const -> parse_result_t<>;
-    auto parse_fieldsep         (token_it_t& begin, token_it_t& end) const -> parse_result_t<>;
-    auto parse_binop            (token_it_t& begin, token_it_t& end) const -> parse_result_t<>;
-    auto parse_unop             (token_it_t& begin, token_it_t& end) const -> parse_result_t<>;
+    auto parse_field            (token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaField>;
 };
 
 #endif // LUAPARSER_H

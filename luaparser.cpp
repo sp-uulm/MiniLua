@@ -625,7 +625,12 @@ auto LuaParser::parse_exp(token_it_t& begin, token_it_t& end) const -> parse_res
                 return "exp -> " + get<string>(func);
             }
         case LuaToken::Type::LCB: // tableconstructor
-            return "unimplemented";
+            if (auto table = parse_tableconstructor(begin, end); holds_alternative<LuaTableconstructor>(table)) {
+                exps.push_back(get<LuaTableconstructor>(table));
+                break;
+            } else {
+                return "exp -> " + get<string>(table);
+            }
         case LuaToken::Type::LRB:
         case LuaToken::Type::NAME:
             if (auto ast = parse_prefixexp(begin, end); holds_alternative<LuaExp>(ast)) {
@@ -886,7 +891,88 @@ auto LuaParser::parse_parlist(token_it_t &begin, token_it_t &end) const -> parse
 
 auto LuaParser::parse_tableconstructor(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaTableconstructor> {
     cout << "tableconstructor" << endl;
-    return "unimplemented";
+    // tableconstructor ::= `{´ [fieldlist] `}´
+    // fieldlist ::= field {fieldsep field} [fieldsep]
+
+    if (begin == end)
+        return "tableconstructor: unexpected end";
+
+    if (begin++->type != LuaToken::Type::LCB) {
+        return "tableconstructor: '{' expected";
+    }
+
+    LuaTableconstructor result = make_shared<_LuaTableconstructor>();
+
+    if (begin->type != LuaToken::Type::RCB) {
+        if (auto field = parse_field(begin, end); holds_alternative<LuaField>(field)) {
+            result->fields.push_back(get<LuaField>(field));
+        } else {
+            return "tableconstructor -> " + get<string>(field);
+        }
+    }
+
+    while (begin->type == LuaToken::Type::SEM || begin->type == LuaToken::Type::COMMA) {
+        begin++; // ; bzw ,
+
+        if (begin->type == LuaToken::Type::RCB) {
+            break;
+        }
+
+        if (auto field = parse_field(begin, end); holds_alternative<LuaField>(field)) {
+            result->fields.push_back(get<LuaField>(field));
+        } else {
+            return "tableconstructor -> " + get<string>(field);
+        }
+    }
+
+    if (begin++->type != LuaToken::Type::RCB) {
+        return "tableconstructor: '}' expected";
+    }
+
+    return result;
+}
+
+auto LuaParser::parse_field(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaField> {
+    cout << "field" << endl;
+    // field ::= `[´ exp `]´ `=´ exp | Name `=´ exp | exp
+
+    if (begin == end)
+        return "field: unexpected end";
+
+    LuaField field = make_shared<_LuaField>();
+
+    if (begin->type == LuaToken::Type::LSB) {
+        begin++; // [
+
+        if (auto exp = parse_exp(begin, end); holds_alternative<LuaExp>(exp)) {
+            field->lhs = get<LuaExp>(exp);
+        } else {
+            return "field -> " + get<string>(exp);
+        }
+
+        if (begin++->type != LuaToken::Type::RSB) {
+            return "field: ']' expected";
+        }
+
+        if (begin++->type != LuaToken::Type::ASSIGN) {
+            return "field: '=' expected";
+        }
+
+    } else if (begin->type == LuaToken::Type::NAME) {
+        field->lhs = make_shared<_LuaName>(*begin++);
+
+        if (begin++->type != LuaToken::Type::ASSIGN) {
+            return "field: '=' expected";
+        }
+    }
+
+    if (auto exp = parse_exp(begin, end); holds_alternative<LuaExp>(exp)) {
+        field->rhs = get<LuaExp>(exp);
+    } else {
+        return "field -> " + get<string>(exp);
+    }
+
+    return field;
 }
 
 auto LuaParser::parse_funcname(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaVar> {

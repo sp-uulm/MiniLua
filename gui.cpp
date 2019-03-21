@@ -119,7 +119,7 @@ void DrawWidget::onTextChanged() {
     }
 }
 
-auto main(int argc, char *argv[]) -> int {
+/*auto main(int argc, char *argv[]) -> int {
 
     QApplication app(argc, argv);
     setlocale(LC_ALL, "C");
@@ -148,4 +148,4 @@ auto main(int argc, char *argv[]) -> int {
     window.setWindowTitle(
         QApplication::translate("toplevel", "QMiniLua"));
     return app.exec();
-}
+}*/

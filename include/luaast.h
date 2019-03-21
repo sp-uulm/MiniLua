@@ -55,6 +55,7 @@ using LuaLoopStmt = shared_ptr<struct _LuaLoopStmt>;
 using LuaIfStmt = shared_ptr<struct _LuaIfStmt>;
 using LuaChunk = shared_ptr<struct _LuaChunk>;
 using LuaTableconstructor = shared_ptr<struct _LuaTableconstructor>;
+using LuaField = shared_ptr<struct _LuaField>;
 using LuaFunction = shared_ptr<struct _LuaFunction>;
 
 namespace lua {
@@ -295,6 +296,14 @@ struct _LuaChunk : public _LuaAST {
 struct _LuaTableconstructor : public _LuaExp {
     VISITABLE override;
 
+    vector<LuaField> fields;
+};
+
+struct _LuaField : public _LuaAST {
+    VISITABLE override;
+
+    LuaExp lhs;
+    LuaExp rhs;
 };
 
 struct _LuaFunction : public _LuaExp {
