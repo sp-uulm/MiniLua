@@ -296,7 +296,7 @@ eval_result_t ASTEvaluator::visit(const _LuaExplist& explist, Environment& env, 
         }
     }
 
-    return t;
+    return move(t);
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaFunctioncall& exp, Environment& env, const optional<val>& assign) const {
@@ -322,7 +322,7 @@ eval_result_t ASTEvaluator::visit(const _LuaFunctioncall& exp, Environment& env,
         EVAL(result, get<lfunction_p>(func)->f, new_env);
 
         if (holds_alternative<vallist_p>(result))
-            return result;
+            return move(result);
 
         return make_shared<vallist>();
     }
@@ -405,7 +405,7 @@ eval_result_t ASTEvaluator::visit(const _LuaChunk& chunk, Environment& env, cons
         EVAL(result, stmt, env);
 
         if (!holds_alternative<nil>(result) && !dynamic_pointer_cast<_LuaFunctioncall>(stmt)) {
-                return result;
+                return move(result);
         }
     }
 
@@ -436,7 +436,7 @@ eval_result_t ASTEvaluator::visit(const _LuaForStmt& for_stmt, Environment& env,
 
         EVAL(result, for_stmt.body, newenv);
         if (holds_alternative<vallist_p>(result))
-            return result;
+            return move(result);
 
         if (holds_alternative<bool>(result))
             return nil();
@@ -509,7 +509,7 @@ eval_result_t ASTEvaluator::visit(const _LuaTableconstructor& tableconst, Enviro
         }
     }
 
-    return result;
+    return move(result);
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaFunction& exp, Environment& env, const optional<val>& assign) const {

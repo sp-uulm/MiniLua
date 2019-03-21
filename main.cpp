@@ -18,8 +18,8 @@ auto main(int argc, char *argv[]) -> int {
 //    string program = "force(2, 3)";
 //    string program = "i=(function() return 2 end)()+0.5; force(i, 3)";
 //    string program = "i=1+1.5; force(-i, 3)";
-    string program = "a = {1, 2, 3, [5] = 'foo'; bar = true, [5 == 18] = {}}";
-//    string program = "a = {1, 2, 3} print(a[1])";
+//    string program = "a = {1, 2, 3, [5] = 'foo'; bar = true, [5 == 18] = {}}";
+    string program = "a = {1, 2, 3}; print(a[1])";
 //    string program = "a = {foo = 'bar'} print(a.foo)";
 //    string program = "a = {} a.foo = 5 print(a.foo)";
 //    string program = "a = {} a['foo'] = 5 print(a['foo'])";

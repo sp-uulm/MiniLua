@@ -438,11 +438,15 @@ auto LuaParser::parse_varlist(token_it_t& begin, token_it_t& end) const -> parse
     LuaExplist varlist = make_shared<_LuaExplist>();
 
     do {
-        auto ast = parse_var(begin, end);
+        auto ast = parse_prefixexp(begin, end);
         if (holds_alternative<string>(ast)) {
             return "varlist -> " + get<string>(ast);
         } else {
-            varlist->exps.push_back(get<LuaVar>(ast));
+            if (dynamic_pointer_cast<_LuaVar>(get<LuaExp>(ast))) {
+                varlist->exps.push_back(get<LuaExp>(ast));
+            } else {
+                return "varlist: var expected, got functioncall";
+            }
         }
     } while (begin++->type == LuaToken::Type::COMMA);
 
@@ -459,10 +463,6 @@ auto LuaParser::parse_var(token_it_t& begin, token_it_t& end) const -> parse_res
         return make_shared<_LuaNameVar>(make_shared<_LuaName>(*begin++));
     }
 
-    if (begin->type != LuaToken::Type::LRB) {
-        return "var: '(' expected";
-    }
-
     LuaExp prefixexp;
     if (auto ast = parse_prefixexp(begin, end); holds_alternative<string>(ast)) {
         return "var -> " + get<string>(ast);
@@ -470,36 +470,36 @@ auto LuaParser::parse_var(token_it_t& begin, token_it_t& end) const -> parse_res
         prefixexp = get<LuaExp>(ast);
     }
 
-    if (begin->type == LuaToken::Type::LSB) {
-        LuaIndexVar var = make_shared<_LuaIndexVar>();
-        var->table = prefixexp;
+//    if (begin->type == LuaToken::Type::LSB) {
+//        LuaIndexVar var = make_shared<_LuaIndexVar>();
+//        var->table = prefixexp;
 
-        begin++; // [
+//        begin++; // [
 
-        if (auto ast = parse_exp(begin, end); holds_alternative<string>(ast)) {
-            return "var [] -> " + get<string>(ast);
-        } else {
-            var->index = get<LuaExp>(ast);
-        }
+//        if (auto ast = parse_exp(begin, end); holds_alternative<string>(ast)) {
+//            return "var [] -> " + get<string>(ast);
+//        } else {
+//            var->index = get<LuaExp>(ast);
+//        }
 
-        if (begin++->type != LuaToken::Type::RSB) {
-            return "var: ']' expected";
-        }
+//        if (begin++->type != LuaToken::Type::RSB) {
+//            return "var: ']' expected";
+//        }
 
-        return var;
-    } else if (begin->type == LuaToken::Type::DOT) {
-        LuaMemberVar var = make_shared<_LuaMemberVar>();
-        var->table = prefixexp;
-        begin++; // .
+//        return var;
+//    } else if (begin->type == LuaToken::Type::DOT) {
+//        LuaMemberVar var = make_shared<_LuaMemberVar>();
+//        var->table = prefixexp;
+//        begin++; // .
 
-        if (begin++->type != LuaToken::Type::NAME) {
-            return "var: Name expected";
-        } else {
-            var->member = make_shared<_LuaName>(*(begin-1));
-        }
+//        if (begin++->type != LuaToken::Type::NAME) {
+//            return "var: Name expected";
+//        } else {
+//            var->member = make_shared<_LuaName>(*(begin-1));
+//        }
 
-        return var;
-    }
+//        return var;
+//    }
 
     return "var: wrong alternative " + begin->match;
 }
@@ -714,16 +714,49 @@ auto LuaParser::parse_prefixexp(token_it_t& begin, token_it_t& end) const -> par
 
     while (begin != end && (
            begin->type == LuaToken::Type::LRB || begin->type == LuaToken::Type::COLON ||
-           begin->type == LuaToken::Type::LCB || begin->type == LuaToken::Type::STRINGLIT)) {
+           begin->type == LuaToken::Type::LCB || begin->type == LuaToken::Type::STRINGLIT ||
+           begin->type == LuaToken::Type::LSB || begin->type == LuaToken::Type::DOT)) {
 
-        if (auto call = parse_functioncall(begin, end, result); holds_alternative<string>(call)) {
-            return "prefixexp -> " + get<string>(call);
+        if (begin->type == LuaToken::Type::LSB) {
+            cout << "idx" << endl;
+            LuaIndexVar var = make_shared<_LuaIndexVar>();
+            var->table = result;
+
+            begin++; // [
+
+            if (auto ast = parse_exp(begin, end); holds_alternative<string>(ast)) {
+                return "var [] -> " + get<string>(ast);
+            } else {
+                var->index = get<LuaExp>(ast);
+            }
+
+            if (begin++->type != LuaToken::Type::RSB) {
+                return "var: ']' expected";
+            }
+
+            result = var;
+        } else if (begin->type == LuaToken::Type::DOT) {
+            LuaMemberVar var = make_shared<_LuaMemberVar>();
+            var->table = result;
+            begin++; // .
+
+            if (begin++->type != LuaToken::Type::NAME) {
+                return "var: Name expected";
+            } else {
+                var->member = make_shared<_LuaName>(*(begin-1));
+            }
+
+            result = var;
         } else {
-            result = get<LuaFunctioncall>(call);
+            if (auto call = parse_functioncall(begin, end, result); holds_alternative<string>(call)) {
+                return "prefixexp -> " + get<string>(call);
+            } else {
+                result = get<LuaFunctioncall>(call);
+            }
         }
     }
 
-    return result;
+    return move(result);
 }
 
 auto LuaParser::parse_functioncall(token_it_t& begin, token_it_t& end, const LuaExp& prefixexp) const -> parse_result_t<LuaFunctioncall> {
