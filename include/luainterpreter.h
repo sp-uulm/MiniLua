@@ -6,6 +6,7 @@
 #include <variant>
 #include <string>
 #include <memory>
+#include <cmath>
 
 using namespace std;
 
@@ -218,6 +219,45 @@ struct sourcebinop : sourceexp {
             }
             if (rhs.source && holds_alternative<double>(lhs)) {
                 if (auto result = rhs.source->forceValue(val {get<double>(lhs) / get<double>(v)}); result) {
+                    res_or->alternatives.push_back(*result);
+                }
+            }
+
+            if (!res_or->alternatives.empty())
+                return res_or;
+            return nullopt;
+        }
+        case LuaToken::Type::POW:
+        {
+            auto res_or = make_shared<SourceChangeOr>();
+            if (lhs.source && holds_alternative<double>(rhs)) {
+                if (auto result = lhs.source->forceValue(val {pow(get<double>(v), 1/get<double>(rhs))}); result) {
+                    res_or->alternatives.push_back(*result);
+                }
+            }
+            if (rhs.source && holds_alternative<double>(lhs)) {
+                auto new_rhs = log(get<double>(v)) / log(get<double>(lhs));
+                if (!isnan(new_rhs))
+                    if (auto result = rhs.source->forceValue(val {new_rhs}); result) {
+                        res_or->alternatives.push_back(*result);
+                    }
+            }
+
+            if (!res_or->alternatives.empty())
+                return res_or;
+            return nullopt;
+        }
+        case LuaToken::Type::MOD:
+        {
+            auto res_or = make_shared<SourceChangeOr>();
+            if (lhs.source && holds_alternative<double>(rhs)) {
+                if (auto result = lhs.source->forceValue(v); result && get<double>(rhs) > get<double>(v)) {
+                    res_or->alternatives.push_back(*result);
+                }
+            }
+            if (rhs.source && holds_alternative<double>(lhs)) {
+                //TODO: doesn't work if lhs < v
+                if (auto result = rhs.source->forceValue(val {get<double>(lhs) - get<double>(v)}); result) {
                     res_or->alternatives.push_back(*result);
                 }
             }
