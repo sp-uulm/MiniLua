@@ -21,6 +21,8 @@ auto main(int argc, char *argv[]) -> int {
     string program = "a = {1, 2, 3, [5] = 'foo'; bar = true, [5 == 18] = {}}";
 //    string program = "a = {1, 2, 3} print(a[1])";
 //    string program = "a = {foo = 'bar'} print(a.foo)";
+//    string program = "a = {} a.foo = 5 print(a.foo)";
+//    string program = "a = {} a['foo'] = 5 print(a['foo'])";
 
 //    string program = "function test() local i = 0 return function() while true do if i == 5 then break end i=i+1 end return i, 2 end end b=test() i="a" print(i, b())";
 

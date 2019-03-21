@@ -494,7 +494,22 @@ eval_result_t ASTEvaluator::visit(const _LuaLoopStmt &loop_stmt, Environment &en
 
 eval_result_t ASTEvaluator::visit(const _LuaTableconstructor& tableconst, Environment& env, const optional<val>& assign) const {
 //    cout << "visit tableconstructor" << endl;
-    return string{"tableconstructor unimplemented"};
+    table_p result = make_shared<table>();
+
+    double default_idx = 1.0;
+    for (const LuaField& field : tableconst.fields) {
+        EVAL(rhs, field->rhs, env);
+
+        if (!field->lhs) {
+            (*result)[val(default_idx)] = rhs;
+            default_idx++;
+        } else {
+            EVAL(lhs, field->lhs, env);
+            (*result)[lhs] = rhs;
+        }
+    }
+
+    return result;
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaFunction& exp, Environment& env, const optional<val>& assign) const {
