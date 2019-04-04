@@ -74,7 +74,7 @@ struct val : _val_t {
 
     val& operator=(const val&) = default;
     val(const val&) = default;
-    val() {}
+    val() : value_t {nil()} {}
 
 //    template <typename T>
 //    val(T&& v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
@@ -90,6 +90,19 @@ struct val : _val_t {
 
     optional<shared_ptr<struct SourceChange>> forceValue(const val& v) const;
     string to_string() const;
+    string type() const {
+        switch(index()) {
+        case 0: return "nil";
+        case 1: return "bool";
+        case 2: return "number";
+        case 3: return "string";
+        case 4: return "function";
+        case 5: return "table";
+        case 6: return "vallist";
+        case 7: return "function";
+        default: return "invalid";
+        }
+    }
 
     shared_ptr<struct sourceexp> source;
 };

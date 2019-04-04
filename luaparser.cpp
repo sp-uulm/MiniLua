@@ -2,7 +2,7 @@
 
 const vector<pair<regex, LuaToken::Type>> LuaParser::token_regexes {
     {regex{"--[^\n]*"}, {LuaToken::Type::COMMENT}},
-    {regex{"(\".*\")|('.*')"}, {LuaToken::Type::STRINGLIT}},
+    {regex{"(\"[^\"]*\")|('[^']*')"}, {LuaToken::Type::STRINGLIT}},
     {regex{"(\\d+\\.?\\d*)|(\\d*\\.?\\d+)(e-?\\d+)?"}, {LuaToken::Type::NUMLIT}},
     {regex{"\\+"}, {LuaToken::Type::ADD}},
     {regex{"-"}, {LuaToken::Type::SUB}},
@@ -452,7 +452,7 @@ auto LuaParser::parse_varlist(token_it_t& begin, token_it_t& end) const -> parse
 
     begin--;
 
-    return varlist;
+    return move(varlist);
 }
 
 auto LuaParser::parse_var(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaVar> {

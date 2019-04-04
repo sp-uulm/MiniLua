@@ -21,6 +21,14 @@ if (auto eval_result = (exp)->accept(*this, (env), assign); holds_alternative<st
     varname = get<val>(eval_result); \
 }
 
+#define EVALR(varname, exp, env) \
+val varname; \
+    if (auto eval_result = (exp)->accept(*this, (env), {}); holds_alternative<string>(eval_result)) {\
+    return eval_result; \
+} else { \
+    varname = get<val>(eval_result); \
+}
+
 #define EVALL(varname, exp, env, newval) \
 val varname; \
 if (auto eval_result = (exp)->accept(*this, (env), newval); holds_alternative<string>(eval_result)) {\

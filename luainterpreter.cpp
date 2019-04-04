@@ -345,7 +345,7 @@ eval_result_t ASTEvaluator::visit(const _LuaAssignment &assignment, Environment 
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaNameVar& var, Environment& env, const optional<val>& assign) const {
-//    cout << "visit namevar" << endl;
+//    cout << "visit namevar " << var.name->token << endl;
 
     EVAL(name, var.name, env);
 
@@ -354,7 +354,20 @@ eval_result_t ASTEvaluator::visit(const _LuaNameVar& var, Environment& env, cons
 
 eval_result_t ASTEvaluator::visit(const _LuaIndexVar& var, Environment& env, const optional<val>& assign) const {
 //    cout << "visit indexvar" << endl;
-    return string{"value unimplemented"};
+
+    EVAL(index, var.index, env);
+    EVALR(table, var.table, env);
+
+    if (holds_alternative<table_p>(table)) {
+
+        if (assign) {
+            (*get<table_p>(table))[index] = *assign;
+        }
+
+        return (*get<table_p>(table))[index];
+    } else {
+        return string{"cannot access index on " + table.type()};
+    }
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaMemberVar& var, Environment& env, const optional<val>& assign) const {
@@ -375,7 +388,7 @@ eval_result_t ASTEvaluator::visit(const _LuaBreakStmt& stmt, Environment& env, c
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaValue& value, Environment& env, const optional<val>& assign) const {
-//    cout << "visit value" << endl;
+//    cout << "visit value " << value.token << endl;
 
     switch (value.token.type) {
     case LuaToken::Type::NIL:
