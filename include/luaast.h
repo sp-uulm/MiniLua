@@ -253,6 +253,7 @@ struct _LuaAssignment : public _LuaStmt {
     VISITABLE override;
     LuaExplist varlist;
     LuaExplist explist;
+    bool local = false;
 };
 
 struct _LuaFunctioncall : public _LuaExp, _LuaStmt {

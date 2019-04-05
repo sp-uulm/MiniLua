@@ -197,7 +197,7 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
         }
         assign->explist = get<LuaExplist>(explist);
 
-        return static_pointer_cast<_LuaStmt>(assign);
+        return assign;
     }
     case LuaToken::Type::DO:
         return "unimplemented";
@@ -397,7 +397,50 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
         return assign;
     }
     case LuaToken::Type::LOCAL:
-        return "unimplemented";
+    {
+        begin++;
+
+        LuaAssignment assign = make_shared<_LuaAssignment>();
+        assign->local = true;
+
+        if (begin->type == LuaToken::Type::FUNCTION) {
+            begin++;
+
+            if (begin->type == LuaToken::Type::NAME) {
+                auto name = make_shared<_LuaName>(*begin++);
+                assign->varlist = make_shared<_LuaExplist>();
+                assign->varlist->exps.push_back(name);
+            } else {
+                return "stat (local function): name expected.";
+            }
+
+            if (auto body = parse_funcbody(begin, end); holds_alternative<string>(body)) {
+                return "stat (local function): -> " + get<string>(body);
+            } else {
+                assign->explist = make_shared<_LuaExplist>();
+                assign->explist->exps.push_back(get<LuaFunction>(body));
+            }
+
+        } else {
+            auto namelist = parse_namelist(begin, end);
+            if (holds_alternative<string>(namelist)) {
+                return "stat (local assignment) -> " + get<string>(namelist);
+            }
+            assign->varlist = get<LuaExplist>(namelist);
+
+            if (begin->type == LuaToken::Type::ASSIGN) {
+                begin++;
+                auto explist = parse_explist(begin, end);
+                if (holds_alternative<string>(explist)) {
+                    return "stat (local assignment) -> " + get<string>(explist);
+                }
+                assign->explist = get<LuaExplist>(explist);
+            } else {
+                assign->explist = make_shared<_LuaExplist>();
+            }
+        }
+        return move(assign);
+    }
     default:
         return "stat: wrong alternative " + begin->match;
     }
