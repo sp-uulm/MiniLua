@@ -372,7 +372,19 @@ eval_result_t ASTEvaluator::visit(const _LuaIndexVar& var, Environment& env, con
 
 eval_result_t ASTEvaluator::visit(const _LuaMemberVar& var, Environment& env, const optional<val>& assign) const {
 //    cout << "visit membervar" << endl;
-    return string{"value unimplemented"};
+    EVAL(index, var.member, env);
+    EVALR(table, var.table, env);
+
+    if (holds_alternative<table_p>(table)) {
+
+        if (assign) {
+            (*get<table_p>(table))[index] = *assign;
+        }
+
+        return (*get<table_p>(table))[index];
+    } else {
+        return string{"cannot access member on " + table.type()};
+    }
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaReturnStmt& stmt, Environment& env, const optional<val>& assign) const {

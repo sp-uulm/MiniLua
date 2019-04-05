@@ -22,9 +22,9 @@ auto main(int argc, char *argv[]) -> int {
 //    string program = "a = {4, 5, 6}; print(a[2])";
 //    string program = "a={}; a[1] = 2";
 //    string program = "a = {}; a['foo'] = 5; print(a['foo'])";
-    string program = "a = {foo = 'bar'} print(a.foo)";
+//    string program = "a = {foo = 'bar'} print(a.foo)";
 //    string program = "a = {foo = {'bar'}} print(a.foo[1])";
-//    string program = "a = {} a.foo = 5 print(a.foo)";
+    string program = "a = {} a.foo = 5 print(a.foo)";
 
 //    string program = "function test() local i = 0 return function() while true do if i == 5 then break end i=i+1 end return i, 2 end end b=test() i="a" print(i, b())";
 

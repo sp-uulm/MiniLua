@@ -29,6 +29,7 @@ const vector<pair<regex, LuaToken::Type>> LuaParser::token_regexes {
     {regex{","}, {LuaToken::Type::COMMA}},
     {regex{"\\.\\.\\."}, {LuaToken::Type::ELLIPSE}},
     {regex{"\\.\\."}, {LuaToken::Type::CONCAT}},
+    {regex{"\\."}, {LuaToken::Type::DOT}},
     {regex{"and\\b"}, {LuaToken::Type::AND}},
     {regex{"break\\b"}, {LuaToken::Type::BREAK}},
     {regex{"do\\b"}, {LuaToken::Type::DO}},
@@ -683,7 +684,7 @@ auto LuaParser::parse_exp(token_it_t& begin, token_it_t& end) const -> parse_res
 }
 
 auto LuaParser::parse_prefixexp(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaExp> {
-    cout << "prefixexp" << endl;
+    cout << "prefixexp " << *begin << endl;
     // prefixexp ::= var | functioncall | `(´ exp `)´
 
     LuaExp result;
