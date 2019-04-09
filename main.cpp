@@ -25,7 +25,7 @@ auto main(int argc, char *argv[]) -> int {
 //    string program = "a = {foo = 'bar'} print(a.foo)";
 //    string program = "a = {foo = {'bar'}} print(a.foo[1])";
 //    string program = "a = {} a.foo = 5 print(a.foo)";
-
+//    string program = "a=2 if true then local a=3 print(a) end print(a)";
     string program = "local function test() local i = 0 return function() while true do if i == 5 then break end i=i+1 end return i, 2 end end b=test() i=\"a\" print(i, b())";
 
     LuaParser parser;
@@ -35,10 +35,10 @@ auto main(int argc, char *argv[]) -> int {
         cerr << "Error: " << get<string>(result) << endl;
     } else {
         auto ast = get<LuaChunk>(result);
-        lua::rt::Environment env;
+        auto env = make_shared<lua::rt::Environment>(nullptr);
         lua::rt::ASTEvaluator eval;
 
-        env.populate_stdlib();
+        env->populate_stdlib();
 
         if (auto eval_result = ast->accept(eval, env); holds_alternative<string>(eval_result)) {
             cerr << "Error: " << get<string>(eval_result) << endl;

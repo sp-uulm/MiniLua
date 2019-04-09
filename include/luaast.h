@@ -119,6 +119,10 @@ struct hash<lua::rt::val> {
 namespace lua {
 namespace rt {
 
+using assign_t = optional<tuple<val, bool>>;
+struct ASTEvaluator;
+struct Environment;
+
 struct table : public unordered_map<val, val> {};
 struct vallist : public vector<val> {
     template <typename... T>
@@ -132,28 +136,27 @@ struct cfunction {
 };
 
 struct lfunction {
-    lfunction(const LuaChunk& f, const LuaExplist& params) : f{f}, params{params} {}
+    lfunction(const LuaChunk& f, const LuaExplist& params, const shared_ptr<Environment>& env) : f{f}, params{params}, env{env} {}
     LuaChunk f;
     LuaExplist params;
+    shared_ptr<Environment> env;
 };
 
 using eval_result_t = variant<val, string>;
 ostream& operator<<(ostream& os, const val& value);
 
-struct ASTEvaluator;
-struct Environment;
 }
 }
 
 #define VISITABLE \
 virtual lua::rt::eval_result_t accept(const lua::rt::ASTEvaluator& visitor,\
-                                      lua::rt::Environment& environment,\
-                                      const optional<lua::rt::val>& assign = nullopt) const
+                                      const shared_ptr<lua::rt::Environment>& environment,\
+                                      const lua::rt::assign_t& assign = nullopt) const
 
 #define VISITABLE_IMPL(T) \
 lua::rt::eval_result_t T::accept(const lua::rt::ASTEvaluator& visitor,\
-                                 lua::rt::Environment& environment,\
-                                 const optional<lua::rt::val>& assign) const { \
+                                 const shared_ptr<lua::rt::Environment>& environment,\
+                                 const lua::rt::assign_t& assign) const { \
     return visitor.visit(*this, environment, assign); \
 }
 

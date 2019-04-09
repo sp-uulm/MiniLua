@@ -10,12 +10,12 @@ void DrawWidget::paintEvent(QPaintEvent *event) {
     painter.fillRect(event->rect(), Qt::white);
 
     if (parse_result) {
-        lua::rt::Environment env;
+        auto env = shared_ptr<lua::rt::Environment>(nullptr);
         lua::rt::ASTEvaluator eval;
 
-        env.populate_stdlib();
+        env->populate_stdlib();
 
-        env.t[string {"line"}] = make_shared<lua::rt::cfunction>([&painter](const lua::rt::vallist& args) -> lua::rt::vallist {
+        env->assign(string {"line"}, make_shared<lua::rt::cfunction>([&painter](const lua::rt::vallist& args) -> lua::rt::vallist {
             if (args.size() != 4) {
                 return {lua::rt::nil(), string {"invalid number of arguments"}};
             }
@@ -29,9 +29,9 @@ void DrawWidget::paintEvent(QPaintEvent *event) {
             painter.drawLine(get<double>(args[0]), get<double>(args[1]), get<double>(args[2]), get<double>(args[3]));
 
             return {};
-        });
+        }), false);
 
-        env.t[string {"force"}] = make_shared<lua::rt::cfunction>([this](const lua::rt::vallist& args) -> lua::rt::vallist {
+        env->assign(string {"force"}, make_shared<lua::rt::cfunction>([this](const lua::rt::vallist& args) -> lua::rt::vallist {
             if (args.size() != 2) {
                 return {lua::rt::nil(), string {"wrong number of arguments (expected 2)"}};
             }
@@ -49,7 +49,7 @@ void DrawWidget::paintEvent(QPaintEvent *event) {
             addSourceChanges(*source_changes);
 
             return {};
-        });
+        }), false);
 
         clearSourceChanges();
 

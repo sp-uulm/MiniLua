@@ -171,22 +171,29 @@ vallist flatten(const vallist& list) {
     return result;
 }
 
-void Environment::assign(const val& var, const val& newval) {
+void Environment::assign(const val& var, const val& newval, bool is_local) {
+    // cout << "assignment " << var << "=" << newval << (is_local ? " (local)" : "") << endl;
+
+    if (is_local) {
+        t[var] = newval;
+        return;
+    }
+
     // search environments for variable
-    for (Environment *env = this; env != nullptr; env = env->parent) {
+    for (Environment *env = this; env != nullptr; env = env->parent.get()) {
         if (env->t.count(var)) {
             env->t[var] = newval;
             return;
         }
     }
 
-    // not yet assigned, assign to local environment
-    t[var] = newval;
+    // not yet assigned, assign to global environment
+    (*global)[var] = newval;
 }
 
 val Environment::getvar(const val& var) {
     // search environments for variable
-    for (Environment *env = this; env != nullptr; env = env->parent) {
+    for (Environment *env = this; env != nullptr; env = env->parent.get()) {
         if (env->t.count(var)) {
             return env->t[var];
         }
@@ -207,15 +214,15 @@ void Environment::populate_stdlib() {
     });
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaName& name, Environment& env, const optional<val>& assign) const {
+eval_result_t ASTEvaluator::visit(const _LuaName& name, const shared_ptr<Environment>& env, const assign_t& assign) const {
 //    cout << "visit name" << endl;
     if (assign) {
-        env.assign(val{name.token.match}, *assign);
+        env->assign(val{name.token.match}, get<val>(*assign), get<bool>(*assign));
     }
     return val{name.token.match};
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaOp& op, Environment& env, const optional<val>& assign) const {
+eval_result_t ASTEvaluator::visit(const _LuaOp& op, const shared_ptr<Environment>& env, const assign_t& assign) const {
 //    cout << "visit op" << endl;
 
     EVAL(lhs, op.lhs, env);
@@ -261,7 +268,7 @@ eval_result_t ASTEvaluator::visit(const _LuaOp& op, Environment& env, const opti
     }
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaUnop& op, Environment& env, const optional<val>& assign) const {
+eval_result_t ASTEvaluator::visit(const _LuaUnop& op, const shared_ptr<Environment>& env, const assign_t& assign) const {
 //    cout << "visit unop" << endl;
 
     EVAL(rhs, op.exp, env);
@@ -280,8 +287,8 @@ eval_result_t ASTEvaluator::visit(const _LuaUnop& op, Environment& env, const op
     }
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaExplist& explist, Environment& env, const optional<val>& assign) const {
-//    cout << "visit explist" << endl;
+eval_result_t ASTEvaluator::visit(const _LuaExplist& explist, const shared_ptr<Environment>& env, const assign_t& assign) const {
+    // cout << "visit explist" << endl;
 
     auto t = make_shared<vallist>();
     for (unsigned i = 0; i < explist.exps.size(); ++i) {
@@ -289,9 +296,11 @@ eval_result_t ASTEvaluator::visit(const _LuaExplist& explist, Environment& env, 
             EVAL(exp, explist.exps[i], env);
             t->push_back(exp);
         } else {
-            if (!holds_alternative<vallist_p>(*assign))
+            if (!holds_alternative<vallist_p>(get<val>(*assign)))
                 return string {"only a vallist can be assigned to a vallist"};
-            EVALL(exp, explist.exps[i], env, (get<vallist_p>(*assign)->size() > i ? get<vallist_p>(*assign)->at(i) : nil()));
+            bool local = get<bool>(*assign);
+            EVALL(exp, explist.exps[i], env, make_tuple(get<vallist_p>(get<val>(*assign))->size() > i ?
+                                                  get<vallist_p>(get<val>(*assign))->at(i) : nil(), local));
             t->push_back(exp);
         }
     }
@@ -299,7 +308,7 @@ eval_result_t ASTEvaluator::visit(const _LuaExplist& explist, Environment& env, 
     return move(t);
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaFunctioncall& exp, Environment& env, const optional<val>& assign) const {
+eval_result_t ASTEvaluator::visit(const _LuaFunctioncall& exp, const shared_ptr<Environment>& env, const assign_t& assign) const {
 //    cout << "visit functioncall" << endl;
 
     EVAL(func, exp.function, env);
@@ -314,12 +323,9 @@ eval_result_t ASTEvaluator::visit(const _LuaFunctioncall& exp, Environment& env,
 
     // call lua function
     if (holds_alternative<lfunction_p>(func)) {
-        Environment new_env;
-        new_env.parent = &env;
+        EVALL(params, get<lfunction_p>(func)->params, get<lfunction_p>(func)->env, make_tuple(make_shared<vallist>(args), true));
 
-        EVALL(params, get<lfunction_p>(func)->params, new_env, make_shared<vallist>(args));
-
-        EVAL(result, get<lfunction_p>(func)->f, new_env);
+        EVAL(result, get<lfunction_p>(func)->f, get<lfunction_p>(func)->env);
 
         if (holds_alternative<vallist_p>(result))
             return move(result);
@@ -334,25 +340,25 @@ eval_result_t ASTEvaluator::visit(const _LuaFunctioncall& exp, Environment& env,
     return string{"functioncall unimplemented"};
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaAssignment &assignment, Environment &env, const optional<val>& assign) const {
-//    cout << "visit assignment" << endl;
+eval_result_t ASTEvaluator::visit(const _LuaAssignment &assignment, const shared_ptr<Environment>& env, const assign_t& assign) const {
+//    cout << "visit assignment" << assignment.local << endl;
 
     EVAL(_exps, assignment.explist, env);
     vallist exps = flatten(*get<vallist_p>(_exps));
-    EVALL(_vars, assignment.varlist, env, make_shared<vallist>(exps));
+    EVALL(_vars, assignment.varlist, env, make_tuple(make_shared<vallist>(exps), assignment.local));
 
     return nil();
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaNameVar& var, Environment& env, const optional<val>& assign) const {
+eval_result_t ASTEvaluator::visit(const _LuaNameVar& var, const shared_ptr<Environment>& env, const assign_t& assign) const {
 //    cout << "visit namevar " << var.name->token << endl;
 
     EVAL(name, var.name, env);
 
-    return env.getvar(name);
+    return env->getvar(name);
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaIndexVar& var, Environment& env, const optional<val>& assign) const {
+eval_result_t ASTEvaluator::visit(const _LuaIndexVar& var, const shared_ptr<Environment>& env, const assign_t& assign) const {
 //    cout << "visit indexvar" << endl;
 
     EVAL(index, var.index, env);
@@ -361,7 +367,7 @@ eval_result_t ASTEvaluator::visit(const _LuaIndexVar& var, Environment& env, con
     if (holds_alternative<table_p>(table)) {
 
         if (assign) {
-            (*get<table_p>(table))[index] = *assign;
+            (*get<table_p>(table))[index] = get<val>(*assign);
         }
 
         return (*get<table_p>(table))[index];
@@ -370,7 +376,7 @@ eval_result_t ASTEvaluator::visit(const _LuaIndexVar& var, Environment& env, con
     }
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaMemberVar& var, Environment& env, const optional<val>& assign) const {
+eval_result_t ASTEvaluator::visit(const _LuaMemberVar& var, const shared_ptr<Environment>& env, const assign_t& assign) const {
 //    cout << "visit membervar" << endl;
     EVAL(index, var.member, env);
     EVALR(table, var.table, env);
@@ -378,7 +384,7 @@ eval_result_t ASTEvaluator::visit(const _LuaMemberVar& var, Environment& env, co
     if (holds_alternative<table_p>(table)) {
 
         if (assign) {
-            (*get<table_p>(table))[index] = *assign;
+            (*get<table_p>(table))[index] = get<val>(*assign);
         }
 
         return (*get<table_p>(table))[index];
@@ -387,19 +393,19 @@ eval_result_t ASTEvaluator::visit(const _LuaMemberVar& var, Environment& env, co
     }
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaReturnStmt& stmt, Environment& env, const optional<val>& assign) const {
+eval_result_t ASTEvaluator::visit(const _LuaReturnStmt& stmt, const shared_ptr<Environment>& env, const assign_t& assign) const {
 //    cout << "visit returnstmt" << endl;
 
     EVAL(result, stmt.explist, env);
     return make_shared<vallist>(flatten(*get<vallist_p>(result)));
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaBreakStmt& stmt, Environment& env, const optional<val>& assign) const {
+eval_result_t ASTEvaluator::visit(const _LuaBreakStmt& stmt, const shared_ptr<Environment>& env, const assign_t& assign) const {
 //    cout << "visit breakstmt" << endl;
     return val{true};
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaValue& value, Environment& env, const optional<val>& assign) const {
+eval_result_t ASTEvaluator::visit(const _LuaValue& value, const shared_ptr<Environment>& env, const assign_t& assign) const {
 //    cout << "visit value " << value.token << endl;
 
     switch (value.token.type) {
@@ -423,7 +429,7 @@ eval_result_t ASTEvaluator::visit(const _LuaValue& value, Environment& env, cons
     }
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaChunk& chunk, Environment& env, const optional<val>& assign) const {
+eval_result_t ASTEvaluator::visit(const _LuaChunk& chunk, const shared_ptr<Environment>& env, const assign_t& assign) const {
 //    cout << "visit chunk" << endl;
 
     for (const auto& stmt : chunk.statements) {
@@ -437,18 +443,17 @@ eval_result_t ASTEvaluator::visit(const _LuaChunk& chunk, Environment& env, cons
     return nil();
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaForStmt& for_stmt, Environment& env, const optional<val>& assign) const {
+eval_result_t ASTEvaluator::visit(const _LuaForStmt& for_stmt, const shared_ptr<Environment>& env, const assign_t& assign) const {
 //    cout << "visit for" << endl;
 
-    lua::rt::Environment newenv;
-    newenv.parent = &env;
+    auto newenv = make_shared<lua::rt::Environment>(env);
 
     EVAL(start, for_stmt.start, env);
 
-    EVALL(var, for_stmt.var, env, start);
+    EVALL(var, for_stmt.var, env, make_tuple(start, true));
 
     for (;;) {
-        val current = newenv.getvar(var);
+        val current = newenv->getvar(var);
 
         EVAL(end, for_stmt.end, newenv);
 
@@ -470,14 +475,14 @@ eval_result_t ASTEvaluator::visit(const _LuaForStmt& for_stmt, Environment& env,
 
         auto sum = op_add(current, step);
         if (holds_alternative<val>(sum)) {
-            EVALL(var, for_stmt.var, env, get<val>(sum));
+            EVALL(var, for_stmt.var, env, make_tuple(get<val>(sum), true));
         } else {
             return sum;
         }
     }
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaLoopStmt &loop_stmt, Environment &env, const optional<val>& assign) const
+eval_result_t ASTEvaluator::visit(const _LuaLoopStmt &loop_stmt, const shared_ptr<Environment>& env, const assign_t& assign) const
 {
 //    cout << "visit loop" << endl;
 
@@ -494,8 +499,7 @@ eval_result_t ASTEvaluator::visit(const _LuaLoopStmt &loop_stmt, Environment &en
     }
 
     for (;;) {
-        lua::rt::Environment newenv;
-        newenv.parent = &env;
+        auto newenv = make_shared<lua::rt::Environment>(env);
 
         EVAL(result, loop_stmt.body, newenv);
         if (holds_alternative<vallist_p>(result))
@@ -517,7 +521,7 @@ eval_result_t ASTEvaluator::visit(const _LuaLoopStmt &loop_stmt, Environment &en
     }
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaTableconstructor& tableconst, Environment& env, const optional<val>& assign) const {
+eval_result_t ASTEvaluator::visit(const _LuaTableconstructor& tableconst, const shared_ptr<Environment>& env, const assign_t& assign) const {
 //    cout << "visit tableconstructor" << endl;
     table_p result = make_shared<table>();
 
@@ -537,13 +541,13 @@ eval_result_t ASTEvaluator::visit(const _LuaTableconstructor& tableconst, Enviro
     return move(result);
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaFunction& exp, Environment& env, const optional<val>& assign) const {
+eval_result_t ASTEvaluator::visit(const _LuaFunction& exp, const shared_ptr<Environment>& env, const assign_t& assign) const {
 //    cout << "visit function" << endl;
 
-    return make_shared<lfunction>(exp.body, exp.params);
+    return make_shared<lfunction>(exp.body, exp.params, make_shared<Environment>(env));
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaIfStmt &stmt, Environment &env, const optional<val>& assign) const {
+eval_result_t ASTEvaluator::visit(const _LuaIfStmt &stmt, const shared_ptr<Environment>& env, const assign_t& assign) const {
 //    cout << "visit if" << endl;
 
     for (const auto& branch : stmt.branches) {
@@ -555,8 +559,7 @@ eval_result_t ASTEvaluator::visit(const _LuaIfStmt &stmt, Environment &env, cons
         }
 
         if (get<bool>(get<val>(eq))) {
-            lua::rt::Environment newenv;
-            newenv.parent = &env;
+            auto newenv = make_shared<lua::rt::Environment>(env);
 
             EVAL(result, branch.second, newenv);
             if (!holds_alternative<nil>(result))
