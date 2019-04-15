@@ -26,7 +26,8 @@ auto main(int argc, char *argv[]) -> int {
 //    string program = "a = {foo = {'bar'}} print(a.foo[1])";
 //    string program = "a = {} a.foo = 5 print(a.foo)";
 //    string program = "a=2 if true then local a=3 print(a) end print(a)";
-    string program = "local function test() local i = 0 return function() while true do if i == 5 then break end i=i+1 end return i, 2 end end b=test() i=\"a\" print(i, b())";
+//    string program = "local function test() local i = 0 return function() while true do if i == 5 then break end i=i+1 end return i, 2 end end b=test() i=\"a\" print(i, b())";
+string program = "a = 3 print(_G._G._G._G._G.a)";
 
     LuaParser parser;
     const auto result = parser.parse(program);
@@ -43,6 +44,8 @@ auto main(int argc, char *argv[]) -> int {
         if (auto eval_result = ast->accept(eval, env); holds_alternative<string>(eval_result)) {
             cerr << "Error: " << get<string>(eval_result) << endl;
         }
+
+        env->clear();
     }
 
     return 0;

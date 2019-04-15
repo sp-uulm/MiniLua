@@ -212,6 +212,10 @@ void Environment::populate_stdlib() {
         cout << endl;
         return {};
     });
+
+    t[string {"_G"}] = shared_ptr<table>(shared_from_this(), &t);
+
+    t[string {"__statement_count"}] = 0.0;
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaName& name, const shared_ptr<Environment>& env, const assign_t& assign) const {

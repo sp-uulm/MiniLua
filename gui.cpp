@@ -56,6 +56,8 @@ void DrawWidget::paintEvent(QPaintEvent *event) {
         if (auto eval_result = parse_result->accept(eval, env); holds_alternative<string>(eval_result)) {
             cerr << "Error: " << get<string>(eval_result) << endl;
         }
+
+        env->clear();
     }
 
     painter.end();

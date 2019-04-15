@@ -37,7 +37,7 @@ if (auto eval_result = (exp)->accept(*this, (env), newval); holds_alternative<st
     varname = get<val>(eval_result); \
 }
 
-struct Environment {
+struct Environment : enable_shared_from_this<Environment> {
 private:
     table t;
     shared_ptr<Environment> parent;
@@ -50,6 +50,10 @@ public:
         } else {
             global = &t;
         }
+    }
+
+    void clear() {
+        t.clear();
     }
 
     void assign(const val& var, const val& newval, bool is_local);
