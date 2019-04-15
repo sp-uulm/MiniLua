@@ -1,4 +1,4 @@
-#include "include/luaparser.h"
+#include "luaparser.h"
 
 const vector<pair<regex, LuaToken::Type>> LuaParser::token_regexes {
     {regex{"--[^\n]*"}, {LuaToken::Type::COMMENT}},

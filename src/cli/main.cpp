@@ -1,5 +1,5 @@
-#include "include/luaparser.h"
-#include "include/luainterpreter.h"
+#include "luaparser.h"
+#include "luainterpreter.h"
 
 using namespace std;
 

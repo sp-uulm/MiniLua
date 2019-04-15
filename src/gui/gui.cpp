@@ -1,6 +1,6 @@
-#include "include/luaparser.h"
-#include "include/luainterpreter.h"
-#include "include/gui.h"
+#include "luaparser.h"
+#include "luainterpreter.h"
+#include "gui.h"
 
 using namespace std;
 
@@ -10,7 +10,7 @@ void DrawWidget::paintEvent(QPaintEvent *event) {
     painter.fillRect(event->rect(), Qt::white);
 
     if (parse_result) {
-        auto env = shared_ptr<lua::rt::Environment>(nullptr);
+        auto env = make_shared<lua::rt::Environment>(nullptr);
         lua::rt::ASTEvaluator eval;
 
         env->populate_stdlib();
@@ -121,7 +121,7 @@ void DrawWidget::onTextChanged() {
     }
 }
 
-/*auto main(int argc, char *argv[]) -> int {
+auto main(int argc, char *argv[]) -> int {
 
     QApplication app(argc, argv);
     setlocale(LC_ALL, "C");
@@ -150,4 +150,4 @@ void DrawWidget::onTextChanged() {
     window.setWindowTitle(
         QApplication::translate("toplevel", "QMiniLua"));
     return app.exec();
-}*/
+}

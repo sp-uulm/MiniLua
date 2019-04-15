@@ -1,5 +1,5 @@
-#include "include/luaast.h"
-#include "include/luainterpreter.h"
+#include "luaast.h"
+#include "luainterpreter.h"
 #include <sstream>
 
 string LuaToken::to_string() const {

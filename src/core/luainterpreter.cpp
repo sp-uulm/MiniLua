@@ -1,4 +1,4 @@
-#include "include/luainterpreter.h"
+#include "luainterpreter.h"
 #include <sstream>
 #include <cmath>
 
