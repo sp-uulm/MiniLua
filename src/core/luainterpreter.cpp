@@ -213,6 +213,22 @@ void Environment::populate_stdlib() {
         return {};
     });
 
+    auto math = make_shared<table>();
+    t[string {"math"}] = math;
+    (*math)[string {"sin"}] = make_shared<cfunction>([](const vallist& args) -> vallist {
+        if (args.size() != 1 || args[0].type() != "number") {
+            return {nil(), string {"sin: one number argument expected"}};
+        }
+        return {sin(get<double>(args[0]))};
+    });
+
+    (*math)[string {"cos"}] = make_shared<cfunction>([](const vallist& args) -> vallist {
+        if (args.size() != 1 || args[0].type() != "number") {
+            return {nil(), string {"cos: one number argument expected"}};
+        }
+        return {cos(get<double>(args[0]))};
+    });
+
     t[string {"_G"}] = shared_ptr<table>(shared_from_this(), &t);
 
     t[string {"__statement_count"}] = 0.0;
