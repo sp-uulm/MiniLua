@@ -9,7 +9,7 @@ void DrawWidget::paintEvent(QPaintEvent *event) {
     painter.begin(this);
     painter.fillRect(event->rect(), Qt::white);
 
-    if (parse_result) {
+    if (lock_guard<mutex> lock(parse_result_mutex); parse_result) {
         auto env = make_shared<lua::rt::Environment>(nullptr);
         lua::rt::ASTEvaluator eval;
 
@@ -114,6 +114,7 @@ void DrawWidget::onTextChanged() {
 
     if (holds_alternative<string>(result)) {
         cerr << "Error: " << get<string>(result) << endl;
+        lock_guard<mutex> lock(parse_result_mutex);
         parse_result.reset();
     } else {
         parse_result = get<LuaChunk>(result);

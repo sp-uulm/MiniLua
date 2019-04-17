@@ -4,6 +4,7 @@
 #include <QtGui>
 #include <QtWidgets>
 #include <memory>
+#include <mutex>
 
 namespace lua {
 namespace rt {
@@ -16,6 +17,7 @@ class DrawWidget : public QWidget {
 
     QPlainTextEdit *editor = nullptr;
     std::shared_ptr<struct _LuaChunk> parse_result;
+    std::mutex parse_result_mutex;
     std::shared_ptr<lua::rt::SourceChange> current_source_changes;
 
 public:

@@ -1,6 +1,6 @@
 #include "luaparser.h"
 
-const vector<pair<regex, LuaToken::Type>> LuaParser::token_regexes {
+const vector<pair<const regex, LuaToken::Type>> LuaParser::token_regexes {
     {regex{"--[^\n]*"}, {LuaToken::Type::COMMENT}},
     {regex{"(\"[^\"]*\")|('[^']*')"}, {LuaToken::Type::STRINGLIT}},
     {regex{"(\\d+\\.?\\d*)|(\\d*\\.?\\d+)(e-?\\d+)?"}, {LuaToken::Type::NUMLIT}},
@@ -59,13 +59,16 @@ LuaParser::LuaParser() {
 
 }
 
-auto LuaParser::parse(const string &program) -> parse_result_t<LuaChunk> {
+auto LuaParser::parse(const string program) -> parse_result_t<LuaChunk> {
     auto tokens = tokenize(begin(program), end(program));
     for (const auto& token : tokens)
         cout << token << endl;
 
-    token_it_t begin_tok = tokens.begin();
-    token_it_t end_tok = tokens.end();
+    // safety measurement, as the parser sometimes reads past end_tok
+    tokens.push_back(LuaToken{});
+
+    token_it_t begin_tok = tokens.cbegin();
+    token_it_t end_tok = tokens.cend()-1;
     return parse_chunk(begin_tok, end_tok);
 }
 
@@ -84,7 +87,7 @@ auto LuaParser::tokenize(string::const_iterator begin, string::const_iterator en
 
     while (current != end) {
         // match all regexes
-        for (const auto p : token_regexes) {
+        for (const auto& p : token_regexes) {
             smatch mr;
             if (regex_search(current, end, mr, p.first, regex_constants::match_continuous)) {
                 result.push_back(LuaToken{p.second, mr.str(), mr.position() + current - begin, mr.length()});
@@ -144,7 +147,7 @@ auto LuaParser::parse_chunk(token_it_t& begin, token_it_t& end) const -> parse_r
             begin++;
     }
 
-    return result;
+    return move(result);
 }
 
 auto LuaParser::parse_block(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaChunk> {
@@ -198,7 +201,7 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
         }
         assign->explist = get<LuaExplist>(explist);
 
-        return assign;
+        return move(assign);
     }
     case LuaToken::Type::DO:
         return "unimplemented";

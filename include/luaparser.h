@@ -21,12 +21,12 @@ public:
     using parse_result_t = variant<T, string>;
 
     using token_list_t = vector<LuaToken>;
-    using token_it_t = token_list_t::iterator;
+    using token_it_t = token_list_t::const_iterator;
 
-    auto parse(const string& program) -> parse_result_t<LuaChunk>;
+    auto parse(const string program) -> parse_result_t<LuaChunk>;
 
 private:
-    const static vector<pair<regex, LuaToken::Type>> token_regexes;
+    const static vector<pair<const regex, LuaToken::Type>> token_regexes;
 
     auto tokenize(string::const_iterator begin, string::const_iterator end) -> token_list_t;
 
