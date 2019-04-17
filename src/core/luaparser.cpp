@@ -60,21 +60,19 @@ LuaParser::LuaParser() {
 }
 
 auto LuaParser::parse(const string program) -> parse_result_t<LuaChunk> {
-    auto tokens = tokenize(begin(program), end(program));
-    for (const auto& token : tokens)
-        cout << token << endl;
-
-    // safety measurement, as the parser sometimes reads past end_tok
-    tokens.push_back(LuaToken{});
+    tokens = tokenize(begin(program), end(program));
+//    for (const auto& token : tokens)
+//        cout << token << endl;
 
     token_it_t begin_tok = tokens.cbegin();
-    token_it_t end_tok = tokens.cend()-1;
+    token_it_t end_tok = tokens.cend()-1; //end_token is not part of the program
     return parse_chunk(begin_tok, end_tok);
 }
 
 auto LuaParser::tokenize(string::const_iterator begin, string::const_iterator end) -> token_list_t {
     auto current = begin;
     token_list_t result;
+    string last_ws;
 
     regex whitespace {"\\s*"};
     if (current != end) {
@@ -82,6 +80,7 @@ auto LuaParser::tokenize(string::const_iterator begin, string::const_iterator en
         smatch mr;
         if (regex_search(current, end, mr, whitespace, regex_constants::match_continuous)) {
             current += mr.length();
+            last_ws = mr.str();
         }
     }
 
@@ -90,14 +89,15 @@ auto LuaParser::tokenize(string::const_iterator begin, string::const_iterator en
         for (const auto& p : token_regexes) {
             smatch mr;
             if (regex_search(current, end, mr, p.first, regex_constants::match_continuous)) {
-                result.push_back(LuaToken{p.second, mr.str(), mr.position() + current - begin, mr.length()});
+                result.push_back(LuaToken{p.second, mr.str(), mr.position() + current - begin, mr.length(), last_ws});
                 current += mr.length();
                 goto regex_matched;
             }
         }
 
         // if no regex matched insert none token and skip char
-        result.push_back(LuaToken{LuaToken::Type::NONE, string{current, current+1}});
+        result.push_back(LuaToken{LuaToken::Type::NONE, string{current, current+1}, 0, 1, last_ws});
+        last_ws = "";
         current++;
 
 regex_matched:
@@ -105,8 +105,13 @@ regex_matched:
         smatch mr;
         if (regex_search(current, end, mr, whitespace, regex_constants::match_continuous)) {
             current += mr.length();
+            last_ws = mr.str();
         }
     }
+
+    LuaToken end_token {LuaToken::Type::NONE, ""};
+    end_token.ws = last_ws;
+    result.push_back(end_token);
 
     return result;
 }
@@ -1066,4 +1071,14 @@ auto LuaParser::parse_funcname(token_it_t& begin, token_it_t& end) const -> pars
     }
 
     return "funcname: name expected";
+}
+
+string get_string(const LuaParser::token_list_t& tokens) {
+    stringstream ss;
+
+    for (const auto& t : tokens) {
+        ss << t.ws << t.match;
+    }
+
+    return ss.str();
 }

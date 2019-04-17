@@ -112,18 +112,21 @@ struct ASTEvaluator {
 struct SourceChange {
     virtual ~SourceChange();
     virtual string to_string() const = 0;
+    virtual void apply(vector<LuaToken>&) const = 0;
 };
 
 struct SourceChangeOr : SourceChange {
     vector<shared_ptr<SourceChange>> alternatives;
 
     virtual string to_string() const override;
+    virtual void apply(vector<LuaToken>&) const override;
 };
 
 struct SourceChangeAnd : SourceChange {
     vector<shared_ptr<SourceChange>> changes;
 
     virtual string to_string() const override;
+    virtual void apply(vector<LuaToken>&) const override;
 };
 
 struct SourceAssignment : SourceChange {
@@ -140,6 +143,7 @@ struct SourceAssignment : SourceChange {
     virtual string to_string() const override {
         return token.to_string() + " -> " + replacement;
     }
+    virtual void apply(vector<LuaToken>&) const override;
 };
 
 struct sourceexp {

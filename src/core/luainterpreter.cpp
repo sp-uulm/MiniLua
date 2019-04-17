@@ -624,6 +624,22 @@ string SourceChangeAnd::to_string() const {
     return ss.str();
 }
 
+void SourceChangeOr::apply(vector<LuaToken>& tokens) const {
+    if (!alternatives.empty())
+        alternatives[0]->apply(tokens);
+}
+
+void SourceChangeAnd::apply(vector<LuaToken>& tokens) const {
+    for (const auto& c : changes)
+        c->apply(tokens);
+}
+
+void SourceAssignment::apply(vector<LuaToken>& tokens) const {
+    for (auto& t : tokens)
+        if (t.pos == token.pos && t.length == token.length)
+            t.match = replacement;
+}
+
 sourceexp::~sourceexp() {}
 
 }

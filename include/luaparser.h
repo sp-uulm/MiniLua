@@ -25,6 +25,7 @@ public:
 
     auto parse(const string program) -> parse_result_t<LuaChunk>;
 
+    token_list_t tokens;
 private:
     const static vector<pair<const regex, LuaToken::Type>> token_regexes;
 
@@ -49,5 +50,7 @@ private:
     auto parse_tableconstructor (token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaTableconstructor>;
     auto parse_field            (token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaField>;
 };
+
+string get_string(const LuaParser::token_list_t& tokens);
 
 #endif // LUAPARSER_H

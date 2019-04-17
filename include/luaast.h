@@ -29,6 +29,7 @@ struct LuaToken {
     string match;
     long pos = string::npos;
     long length = 0;
+    string ws = "";
 
     string to_string() const;
     friend ostream& operator<<(ostream& os, const LuaToken& token);
