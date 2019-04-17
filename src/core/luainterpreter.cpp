@@ -123,6 +123,11 @@ eval_result_t op_len(val v) {
     return string{"op_len unimplemented"};
 }
 
+eval_result_t op_strip(val v) {
+    v.source.reset();
+    return move(v);
+}
+
 eval_result_t op_not(val v) {
     if (holds_alternative<nil>(v))
         return val {true};
@@ -302,6 +307,8 @@ eval_result_t ASTEvaluator::visit(const _LuaUnop& op, const shared_ptr<Environme
         return op_len(rhs);
     case LuaToken::Type::NOT:
         return op_not(rhs);
+    case LuaToken::Type::STRIP:
+        return op_strip(rhs);
     default:
         return string {op.op.match + " is not a unary operator"};
     }

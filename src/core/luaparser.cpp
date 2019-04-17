@@ -11,6 +11,7 @@ const vector<pair<regex, LuaToken::Type>> LuaParser::token_regexes {
     {regex{"%"}, {LuaToken::Type::MOD}},
     {regex{"\\^"}, {LuaToken::Type::POW}},
     {regex{"\\#"}, {LuaToken::Type::LEN}},
+    {regex{"\\$"}, {LuaToken::Type::STRIP}},
     {regex{"=="}, {LuaToken::Type::EQ}},
     {regex{"~="}, {LuaToken::Type::NEQ}},
     {regex{"<="}, {LuaToken::Type::LEQ}},
@@ -685,7 +686,8 @@ auto LuaParser::parse_exp(token_it_t& begin, token_it_t& end) const -> parse_res
             }
         case LuaToken::Type::SUB:
         case LuaToken::Type::NOT:
-        case LuaToken::Type::LEN: // unop
+        case LuaToken::Type::LEN:
+        case LuaToken::Type::STRIP: // unop
             is_unop = true;
             unop_token = *begin++;
             continue;
