@@ -151,6 +151,21 @@ struct sourceexp {
     virtual optional<shared_ptr<SourceChange>> forceValue(const val& v) const = 0;
 };
 
+struct sourcelambda : sourceexp {
+    template<typename T>
+    static shared_ptr<sourcelambda> create(T func) {
+        auto ptr = make_shared<sourcelambda>();
+        ptr->f = func;
+        return ptr;
+    }
+
+    function<optional<shared_ptr<SourceChange>>(const val&)> f;
+
+    optional<shared_ptr<SourceChange>> forceValue(const val& v) const override {
+        return f(v);
+    }
+};
+
 struct sourceval : sourceexp {
     static shared_ptr<sourceval> create(const LuaToken& t) {
         auto ptr = make_shared<sourceval>();

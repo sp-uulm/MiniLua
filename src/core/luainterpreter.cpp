@@ -224,14 +224,48 @@ void Environment::populate_stdlib() {
         if (args.size() != 1 || args[0].type() != "number") {
             return {nil(), string {"sin: one number argument expected"}};
         }
-        return {sin(get<double>(args[0]))};
+
+        val result = sin(get<double>(args[0]));
+        if (args[0].source)
+            result.source = sourcelambda::create([v = args[0]](const val& newval) -> optional<shared_ptr<SourceChange>> {
+                    if (newval.type() == "number")
+                        if (double x = asin(get<double>(newval)); isfinite(x))
+                            return v.forceValue(x);
+                    return nullopt;
+                });
+        return {result};
     });
 
     (*math)[string {"cos"}] = make_shared<cfunction>([](const vallist& args) -> vallist {
         if (args.size() != 1 || args[0].type() != "number") {
             return {nil(), string {"cos: one number argument expected"}};
         }
-        return {cos(get<double>(args[0]))};
+
+        val result = cos(get<double>(args[0]));
+        if (args[0].source)
+            result.source = sourcelambda::create([v = args[0]](const val& newval) -> optional<shared_ptr<SourceChange>> {
+                    if (newval.type() == "number")
+                        if (double x = acos(get<double>(newval)); isfinite(x))
+                            return v.forceValue(x);
+                    return nullopt;
+                });
+        return {result};
+    });
+
+    (*math)[string {"tan"}] = make_shared<cfunction>([](const vallist& args) -> vallist {
+        if (args.size() != 1 || args[0].type() != "number") {
+            return {nil(), string {"tan: one number argument expected"}};
+        }
+
+        val result = tan(get<double>(args[0]));
+        if (args[0].source)
+            result.source = sourcelambda::create([v = args[0]](const val& newval) -> optional<shared_ptr<SourceChange>> {
+                    if (newval.type() == "number")
+                        if (double x = atan(get<double>(newval)); isfinite(x))
+                            return v.forceValue(x);
+                    return nullopt;
+                });
+        return {result};
     });
 
     t[string {"_G"}] = shared_ptr<table>(shared_from_this(), &t);
