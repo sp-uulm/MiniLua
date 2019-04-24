@@ -1046,10 +1046,10 @@ auto LuaParser::parse_field(token_it_t& begin, token_it_t& end) const -> parse_r
         }
 
     } else if (begin->type == LuaToken::Type::NAME) {
-        field->lhs = make_shared<_LuaName>(*begin++);
-
-        if (begin++->type != LuaToken::Type::ASSIGN) {
-            return "field: '=' expected";
+        if (begin+1 != end && (begin+1)->type == LuaToken::Type::ASSIGN) {
+            field->lhs = make_shared<_LuaName>(*begin);
+            begin++; // name
+            begin++; // =
         }
     }
 

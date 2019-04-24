@@ -105,6 +105,16 @@ struct val : _val_t {
         }
     }
 
+    bool isnumber() const {
+        return index() == 2;
+    }
+
+    double def_number(double def = 0.0) {
+        if (isnumber())
+            return get<double>(*this);
+        return def;
+    }
+
     shared_ptr<struct sourceexp> source;
 };
 
@@ -158,6 +168,12 @@ virtual lua::rt::eval_result_t accept(const lua::rt::ASTEvaluator& visitor,\
 lua::rt::eval_result_t T::accept(const lua::rt::ASTEvaluator& visitor,\
                                  const shared_ptr<lua::rt::Environment>& environment,\
                                  const lua::rt::assign_t& assign) const { \
+    \
+    unsigned count = get<double>(environment->getvar(string{"__visit_count"}));\
+    if (count++ > get<double>(environment->getvar(string{"__visit_limit"})))\
+        return string{"visit limit reached, stopping"};\
+    environment->assign(string{"__visit_count"}, static_cast<double>(count), false);\
+    \
     return visitor.visit(*this, environment, assign); \
 }
 
