@@ -207,7 +207,7 @@ val Environment::getvar(const val& var) {
 }
 
 void Environment::populate_stdlib() {
-    t[string {"print"}] = make_shared<cfunction>([](const vallist& args) -> vallist {
+    t[string {"print"}] = make_shared<cfunction>([](const vallist& args) -> cfunction::result {
         for (int i = 0; i < static_cast<int>(args.size()) - 1; ++i) {
             cout << args[i].to_string() << "\t";
         }
@@ -220,9 +220,9 @@ void Environment::populate_stdlib() {
 
     auto math = make_shared<table>();
     t[string {"math"}] = math;
-    (*math)[string {"sin"}] = make_shared<cfunction>([](const vallist& args) -> vallist {
+    (*math)[string {"sin"}] = make_shared<cfunction>([](const vallist& args) -> cfunction::result {
         if (args.size() != 1 || args[0].type() != "number") {
-            return {nil(), string {"sin: one number argument expected"}};
+            return vallist{nil(), string {"sin: one number argument expected"}};
         }
 
         val result = sin(get<double>(args[0]));
@@ -236,9 +236,9 @@ void Environment::populate_stdlib() {
         return {result};
     });
 
-    (*math)[string {"cos"}] = make_shared<cfunction>([](const vallist& args) -> vallist {
+    (*math)[string {"cos"}] = make_shared<cfunction>([](const vallist& args) -> cfunction::result {
         if (args.size() != 1 || args[0].type() != "number") {
-            return {nil(), string {"cos: one number argument expected"}};
+            return vallist{nil(), string {"cos: one number argument expected"}};
         }
 
         val result = cos(get<double>(args[0]));
@@ -252,9 +252,9 @@ void Environment::populate_stdlib() {
         return {result};
     });
 
-    (*math)[string {"tan"}] = make_shared<cfunction>([](const vallist& args) -> vallist {
+    (*math)[string {"tan"}] = make_shared<cfunction>([](const vallist& args) -> cfunction::result {
         if (args.size() != 1 || args[0].type() != "number") {
-            return {nil(), string {"tan: one number argument expected"}};
+            return vallist{nil(), string {"tan: one number argument expected"}};
         }
 
         val result = tan(get<double>(args[0]));
@@ -380,7 +380,11 @@ eval_result_t ASTEvaluator::visit(const _LuaFunctioncall& exp, const shared_ptr<
 
     // call builtin function
     if (holds_alternative<cfunction_p>(func)) {
-        return make_shared<vallist>(get<cfunction_p>(func)->f(args));
+        if (auto result = get<cfunction_p>(func)->f(args); holds_alternative<vallist>(result))
+            return make_shared<vallist>(get<vallist>(result));
+        else {
+            return get<string>(result);
+        }
     }
 
     // call lua function

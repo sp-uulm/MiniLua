@@ -141,9 +141,11 @@ struct vallist : public vector<val> {
 };
 
 struct cfunction {
+    using result = variant<vallist, string>;
+
     template <typename T>
     cfunction(T f) : f{f} {}
-    function<vallist(const vallist&)> f;
+    function<result(const vallist&)> f;
 };
 
 struct lfunction {
