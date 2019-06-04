@@ -146,6 +146,25 @@ eval_result_t op_neg(val v, const LuaToken& tok) {
     return string{"unary - can only be applied to a number"};
 }
 
+eval_result_t op_sqrt(val v) {
+    if (holds_alternative<double>(v)) {
+        return val {sqrt(get<double>(v)), sourcelambda::create([v](const val& newval) -> optional<shared_ptr<SourceChange>> {
+                if (newval.type() == "number")
+                    if (double x = get<double>(newval)*get<double>(newval); isfinite(x))
+                        return v.forceValue(x);
+                return nullopt;
+            })};
+    }
+
+    return string{"sqrt can only be applied to a number"};
+}
+
+val unwrap(const eval_result_t& result) {
+    if (holds_alternative<string>(result))
+        throw runtime_error(get<string>(result));
+    return get<val>(result);
+}
+
 val fst(const val& v) {
     if (holds_alternative<vallist_p>(v)) {
         const vallist& vl = *get<vallist_p>(v);

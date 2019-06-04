@@ -109,6 +109,18 @@ struct val : _val_t {
         return index() == 2;
     }
 
+    bool isstring() const {
+        return index() == 3;
+    }
+
+    bool istable() const {
+        return index() == 5;
+    }
+
+    bool isnil() const {
+        return index() == 0;
+    }
+
     double def_number(double def = 0.0) {
         if (isnumber())
             return get<double>(*this);
@@ -134,7 +146,13 @@ using assign_t = optional<tuple<val, bool>>;
 struct ASTEvaluator;
 struct Environment;
 
-struct table : public unordered_map<val, val> {};
+struct table : public unordered_map<val, val> {
+    table() {}
+    table(const vector<pair<val, val>>& content) {
+        for (const auto& p : content)
+            operator[](p.first) = p.second;
+    }
+};
 struct vallist : public vector<val> {
     template <typename... T>
     vallist(T&&... v) : vector<val> {forward<T>(v)...} {}

@@ -63,23 +63,104 @@ public:
 };
 
 eval_result_t op_add(val a, val b, const LuaToken& tok = {LuaToken::Type::ADD, ""});
+inline val operator+(const val& a, const val& b) {
+    eval_result_t result = op_add(a, b);
+    if (holds_alternative<string>(result))
+        throw runtime_error(get<string>(result));
+    return get<val>(result);
+}
+
 eval_result_t op_sub(val a, val b, const LuaToken& tok = {LuaToken::Type::SUB, ""});
+inline val operator-(const val& a, const val& b) {
+    eval_result_t result = op_sub(a, b);
+    if (holds_alternative<string>(result))
+        throw runtime_error(get<string>(result));
+    return get<val>(result);
+}
+
 eval_result_t op_mul(val a, val b, const LuaToken& tok = {LuaToken::Type::MUL, ""});
+inline val operator*(const val& a, const val& b) {
+    eval_result_t result = op_mul(a, b);
+    if (holds_alternative<string>(result))
+        throw runtime_error(get<string>(result));
+    return get<val>(result);
+}
+
 eval_result_t op_div(val a, val b, const LuaToken& tok = {LuaToken::Type::DIV, ""});
+inline val operator/(const val& a, const val& b) {
+    eval_result_t result = op_div(a, b);
+    if (holds_alternative<string>(result))
+        throw runtime_error(get<string>(result));
+    return get<val>(result);
+}
+
 eval_result_t op_pow(val a, val b, const LuaToken& tok = {LuaToken::Type::POW, ""});
+inline val operator^(const val& a, const val& b) {
+    eval_result_t result = op_pow(a, b);
+    if (holds_alternative<string>(result))
+        throw runtime_error(get<string>(result));
+    return get<val>(result);
+}
+
 eval_result_t op_mod(val a, val b, const LuaToken& tok = {LuaToken::Type::MOD, ""});
 eval_result_t op_concat(val a, val b);
+
 eval_result_t op_lt(val a, val b);
+inline bool operator<(const val& a, const val& b) {
+    eval_result_t result = op_lt(a, b);
+    if (holds_alternative<string>(result))
+        throw runtime_error(get<string>(result));
+    return get<bool>(get<val>(result));
+}
+
 eval_result_t op_leq(val a, val b);
+inline bool operator<=(const val& a, const val& b) {
+    eval_result_t result = op_leq(a, b);
+    if (holds_alternative<string>(result))
+        throw runtime_error(get<string>(result));
+    return get<bool>(get<val>(result));
+}
+
 eval_result_t op_gt(val a, val b);
+inline bool operator>(const val& a, const val& b) {
+    eval_result_t result = op_gt(a, b);
+    if (holds_alternative<string>(result))
+        throw runtime_error(get<string>(result));
+    return get<bool>(get<val>(result));
+}
+
 eval_result_t op_geq(val a, val b);
+inline bool operator>=(const val& a, const val& b) {
+    eval_result_t result = op_geq(a, b);
+    if (holds_alternative<string>(result))
+        throw runtime_error(get<string>(result));
+    return get<bool>(get<val>(result));
+}
+
 eval_result_t op_eq(val a, val b);
+inline bool operator==(const val& a, const val& b) {
+    eval_result_t result = op_eq(a, b);
+    if (holds_alternative<string>(result))
+        throw runtime_error(get<string>(result));
+    return get<bool>(get<val>(result));
+}
+
 eval_result_t op_neq(val a, val b);
+inline bool operator!=(const val& a, const val& b) {
+    eval_result_t result = op_neq(a, b);
+    if (holds_alternative<string>(result))
+        throw runtime_error(get<string>(result));
+    return get<bool>(get<val>(result));
+}
+
 eval_result_t op_and(val a, val b);
 eval_result_t op_or(val a, val b);
 eval_result_t op_len(val v);
 eval_result_t op_not(val v);
 eval_result_t op_neg(val v, const LuaToken& tok = {LuaToken::Type::SUB, ""});
+eval_result_t op_sqrt(val v);
+
+val unwrap(const eval_result_t& result);
 
 val fst(const val& v);
 vallist flatten(const vallist& list);
