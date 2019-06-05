@@ -399,7 +399,7 @@ eval_result_t ASTEvaluator::visit(const _LuaFunctioncall& exp, const shared_ptr<
 
     // call builtin function
     if (holds_alternative<cfunction_p>(func)) {
-        if (auto result = get<cfunction_p>(func)->f(args); holds_alternative<vallist>(result))
+        if (auto result = get<cfunction_p>(func)->f(args, exp); holds_alternative<vallist>(result))
             return make_shared<vallist>(get<vallist>(result));
         else {
             return get<string>(result);

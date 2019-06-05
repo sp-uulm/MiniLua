@@ -162,8 +162,14 @@ struct cfunction {
     using result = variant<vallist, string>;
 
     template <typename T>
-    cfunction(T f) : f{f} {}
-    function<result(const vallist&)> f;
+    cfunction(T f) {
+        if constexpr (is_convertible<T, function<result(const vallist&, const _LuaFunctioncall&)>>::value) {
+            this->f = f;
+        } else {
+            this->f = [f](const vallist& args, const _LuaFunctioncall&) mutable -> result {return f(args);};
+        }
+    }
+    function<result(const vallist&, const _LuaFunctioncall&)> f;
 };
 
 struct lfunction {
@@ -287,6 +293,8 @@ struct _LuaMemberVar : public _LuaVar {
 struct _LuaStmt : public _LuaAST {
     VISITABLE override = 0;
     virtual ~_LuaStmt() = default;
+
+    vector<LuaToken> tokens;
 };
 
 struct _LuaAssignment : public _LuaStmt {

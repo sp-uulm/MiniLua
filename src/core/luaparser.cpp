@@ -177,6 +177,8 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
     if (begin == end)
         return "stat: unexpected end";
 
+    auto stat_begin = begin;
+
     switch (begin->type) {
     case LuaToken::Type::NAME: // varlist, functioncall
     {
@@ -184,6 +186,7 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
         if (auto prefix = parse_prefixexp(begin, end); holds_alternative<LuaExp>(prefix)) {
             auto callexp = get<LuaExp>(prefix);
             if (auto call = dynamic_pointer_cast<_LuaFunctioncall>(callexp); call) {
+                copy(stat_begin, begin, back_inserter(call->tokens));
                 return static_pointer_cast<_LuaStmt>(call);
             }
         }
@@ -206,6 +209,7 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
         }
         assign->explist = get<LuaExplist>(explist);
 
+        copy(stat_begin, begin, back_inserter(assign->tokens));
         return move(assign);
     }
     case LuaToken::Type::DO:
@@ -236,7 +240,8 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
             return "stat (while): 'end' expected";
         }
 
-        return while_stmt;
+        copy(stat_begin, begin, back_inserter(while_stmt->tokens));
+        return move(while_stmt);
     }
     case LuaToken::Type::REPEAT:
     {
@@ -260,7 +265,8 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
             repeat_stmt->end = _LuaUnop::Not(get<LuaExp>(exp));
         }
 
-        return repeat_stmt;
+        copy(stat_begin, begin, back_inserter(repeat_stmt->tokens));
+        return move(repeat_stmt);
     }
     case LuaToken::Type::IF:
     {
@@ -321,7 +327,8 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
             return "stat (if): 'end' expected";
         }
 
-        return if_stmt;
+        copy(stat_begin, begin, back_inserter(if_stmt->tokens));
+        return move(if_stmt);
     }
     case LuaToken::Type::FOR:
     {
@@ -378,7 +385,8 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
                 return "stat (for): 'end' expected";
             }
 
-            return for_stmt;
+            copy(stat_begin, begin, back_inserter(for_stmt->tokens));
+            return move(for_stmt);
         } else {
             return "unimplemented";
         }
@@ -403,7 +411,8 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
             assign->explist->exps.push_back(get<LuaFunction>(body));
         }
 
-        return assign;
+        copy(stat_begin, begin, back_inserter(assign->tokens));
+        return move(assign);
     }
     case LuaToken::Type::LOCAL:
     {
@@ -448,6 +457,7 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
                 assign->explist = make_shared<_LuaExplist>();
             }
         }
+        copy(stat_begin, begin, back_inserter(assign->tokens));
         return move(assign);
     }
     default:
