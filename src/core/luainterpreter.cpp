@@ -682,20 +682,30 @@ string SourceChangeAnd::to_string() const {
     return ss.str();
 }
 
-void SourceChangeOr::apply(vector<LuaToken>& tokens) const {
+vector<LuaToken> SourceChangeOr::apply(vector<LuaToken>& tokens) const {
     if (!alternatives.empty())
-        alternatives[0]->apply(tokens);
+        return alternatives[0]->apply(tokens);
+    return vector<LuaToken>();
 }
 
-void SourceChangeAnd::apply(vector<LuaToken>& tokens) const {
-    for (const auto& c : changes)
-        c->apply(tokens);
+vector<LuaToken> SourceChangeAnd::apply(vector<LuaToken>& tokens) const {
+    vector<LuaToken> result;
+    for (const auto& c : changes) {
+        auto modifications = c->apply(tokens);
+        move(modifications.begin(), modifications.end(), back_inserter(result));
+    }
+    return result;
 }
 
-void SourceAssignment::apply(vector<LuaToken>& tokens) const {
+vector<LuaToken> SourceAssignment::apply(vector<LuaToken>& tokens) const {
+    vector<LuaToken> result;
     for (auto& t : tokens)
-        if (t.pos == token.pos && t.length == token.length)
+        if (t.pos == token.pos && t.length == token.length) {
             t.match = replacement;
+            result.push_back(token);
+            result.back().length = static_cast<long>(replacement.length());
+        }
+    return result;
 }
 
 sourceexp::~sourceexp() {}
