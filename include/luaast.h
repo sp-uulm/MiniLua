@@ -83,7 +83,9 @@ struct val : _val_t {
     val(nil v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
     val(bool v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
     val(double v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
+    val(int v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {static_cast<double>(v)}, source {source} {}
     val(string v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
+    val(const char* v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {string{v}}, source {source} {}
     val(cfunction_p v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
     val(table_p v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
     val(vallist_p v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}

@@ -449,6 +449,8 @@ eval_result_t ASTEvaluator::visit(const _LuaIndexVar& var, const shared_ptr<Envi
     EVAL(index, var.index, env);
     EVALR(table, var.table, env);
 
+    table = fst(table);
+
     if (holds_alternative<table_p>(table)) {
 
         if (assign) {
@@ -466,7 +468,9 @@ eval_result_t ASTEvaluator::visit(const _LuaMemberVar& var, const shared_ptr<Env
     EVAL(index, var.member, env);
     EVALR(table, var.table, env);
 
-    if (holds_alternative<table_p>(table)) {
+    table = fst(table);
+
+    if (holds_alternative<table_p>(fst(table))) {
 
         if (assign) {
             (*get<table_p>(table))[index] = get<val>(*assign);
