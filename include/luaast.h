@@ -94,6 +94,10 @@ struct val : _val_t {
     optional<shared_ptr<struct SourceChange>> forceValue(const val& v) const;
     val reevaluate();
 
+    bool to_bool() const {
+        return !isnil() && (!isbool() || get<bool>(*this));
+    }
+
     string to_string() const;
     string type() const {
         switch(index()) {
@@ -107,6 +111,10 @@ struct val : _val_t {
         case 7: return "function";
         default: return "invalid";
         }
+    }
+
+    bool isbool() const {
+        return index() == 1;
     }
 
     bool isnumber() const {

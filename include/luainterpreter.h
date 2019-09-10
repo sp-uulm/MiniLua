@@ -154,10 +154,39 @@ inline bool operator!=(const val& a, const val& b) {
 }
 
 eval_result_t op_and(val a, val b);
+inline val operator&&(const val& a, const val& b) {
+    eval_result_t result = op_and(a, b);
+    if (holds_alternative<string>(result))
+        throw runtime_error(get<string>(result));
+    return get<val>(result);
+}
+
 eval_result_t op_or(val a, val b);
+inline val operator||(const val& a, const val& b) {
+    eval_result_t result = op_or(a, b);
+    if (holds_alternative<string>(result))
+        throw runtime_error(get<string>(result));
+    return get<val>(result);
+}
+
 eval_result_t op_len(val v);
+
 eval_result_t op_not(val v);
+inline bool operator!(const val& a) {
+    eval_result_t result = op_not(a);
+    if (holds_alternative<string>(result))
+        throw runtime_error(get<string>(result));
+    return get<bool>(get<val>(result));
+}
+
 eval_result_t op_neg(val v, const LuaToken& tok = {LuaToken::Type::SUB, ""});
+inline val operator-(const val& a) {
+    eval_result_t result = op_neg(a);
+    if (holds_alternative<string>(result))
+        throw runtime_error(get<string>(result));
+    return get<val>(result);
+}
+
 eval_result_t op_sqrt(val v);
 eval_result_t op_strip(val v);
 

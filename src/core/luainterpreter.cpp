@@ -112,15 +112,26 @@ eval_result_t op_neq(val a, val b) {
 }
 
 eval_result_t op_and(val a, val b) {
-    return string{"op_and unimplemented"};
+    return a.to_bool() ? val{b} : val{a};
 }
 
 eval_result_t op_or(val a, val b) {
-    return string{"op_or unimplemented"};
+    return a.to_bool() ? val{a} : val{b};
 }
 
 eval_result_t op_len(val v) {
-    return string{"op_len unimplemented"};
+    if (!v.istable()) {
+        return string{"unary # can only be applied to a table"};
+    }
+
+    table& t = *get<table_p>(v);
+
+    int i = 1;
+    for ( ;; i++) {
+         if (auto idx = t.find(i); idx == t.end() || idx->second.isnil())
+            break;
+    }
+    return val{i-1};
 }
 
 eval_result_t op_strip(val v) {
@@ -129,13 +140,7 @@ eval_result_t op_strip(val v) {
 }
 
 eval_result_t op_not(val v) {
-    if (holds_alternative<nil>(v))
-        return val {true};
-
-    if (holds_alternative<bool>(v))
-        return val {!get<bool>(v)};
-
-    return val {false};
+    return val {!v.to_bool()};
 }
 
 eval_result_t op_neg(val v, const LuaToken& tok) {
