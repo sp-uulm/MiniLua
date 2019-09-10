@@ -159,6 +159,7 @@ eval_result_t op_len(val v);
 eval_result_t op_not(val v);
 eval_result_t op_neg(val v, const LuaToken& tok = {LuaToken::Type::SUB, ""});
 eval_result_t op_sqrt(val v);
+eval_result_t op_strip(val v);
 
 val unwrap(const eval_result_t& result);
 
@@ -227,24 +228,11 @@ struct SourceAssignment : SourceChange {
     virtual vector<LuaToken> apply(vector<LuaToken>&) const override;
 };
 
-struct sourceexp {
+struct sourceexp : std::enable_shared_from_this<sourceexp> {
     virtual ~sourceexp();
     virtual optional<shared_ptr<SourceChange>> forceValue(const val& v) const = 0;
-};
-
-struct sourcelambda : sourceexp {
-    template<typename T>
-    static shared_ptr<sourcelambda> create(T func) {
-        auto ptr = make_shared<sourcelambda>();
-        ptr->f = func;
-        return ptr;
-    }
-
-    function<optional<shared_ptr<SourceChange>>(const val&)> f;
-
-    optional<shared_ptr<SourceChange>> forceValue(const val& v) const override {
-        return f(v);
-    }
+    virtual eval_result_t reevaluate() = 0;
+    virtual bool isDirty() = 0;
 };
 
 struct sourceval : sourceexp {
@@ -256,6 +244,15 @@ struct sourceval : sourceexp {
 
     optional<shared_ptr<SourceChange>> forceValue(const val& v) const override{
         return SourceAssignment::create(location, v.to_string());
+    }
+
+    eval_result_t reevaluate() override {
+        // should not be necessary, as the value cannot change
+        return string{"reevaluate unimplemented"};
+    }
+
+    bool isDirty() override {
+        return false;
     }
 
     LuaToken location;
@@ -394,6 +391,51 @@ struct sourcebinop : sourceexp {
         }
     }
 
+    eval_result_t reevaluate() override {
+        auto _lhs = fst(lhs.reevaluate());
+        auto _rhs = fst(rhs.reevaluate());
+
+        switch (op.type) {
+        case LuaToken::Type::ADD:
+            return op_add(_lhs, _rhs, op);
+        case LuaToken::Type::SUB:
+            return op_sub(_lhs, _rhs, op);
+        case LuaToken::Type::MUL:
+            return op_mul(_lhs, _rhs, op);
+        case LuaToken::Type::DIV:
+            return op_div(_lhs, _rhs, op);
+        case LuaToken::Type::POW:
+            return op_pow(_lhs, _rhs, op);
+        case LuaToken::Type::MOD:
+            return op_mod(_lhs, _rhs, op);
+        case LuaToken::Type::CONCAT:
+            return op_concat(_lhs, _rhs);
+        case LuaToken::Type::LT:
+            return op_lt(_lhs, _rhs);
+        case LuaToken::Type::LEQ:
+            return op_leq(_lhs, _rhs);
+        case LuaToken::Type::GT:
+            return op_gt(_lhs, _rhs);
+        case LuaToken::Type::GEQ:
+            return op_geq(_lhs, _rhs);
+        case LuaToken::Type::EQ:
+            return op_eq(_lhs, _rhs);
+        case LuaToken::Type::NEQ:
+            return op_neq(_lhs, _rhs);
+        case LuaToken::Type::AND:
+            return op_and(_lhs, _rhs);
+        case LuaToken::Type::OR:
+            return op_or(_lhs, _rhs);
+        default:
+            return string {op.match + " is not a binary operator"};
+        }
+    }
+
+    bool isDirty() override {
+        return (lhs.source && lhs.source->isDirty())
+            || (rhs.source && rhs.source->isDirty());
+    }
+
     val lhs;
     val rhs;
     LuaToken op;
@@ -437,6 +479,27 @@ struct sourceunop : sourceexp {
         default:
             return nullopt;
         }
+    }
+
+    eval_result_t reevaluate() override {
+        auto _v = fst(v.reevaluate());
+
+        switch (op.type) {
+        case LuaToken::Type::SUB:
+            return op_neg(_v, op);
+        case LuaToken::Type::LEN:
+            return op_len(_v);
+        case LuaToken::Type::NOT:
+            return op_not(_v);
+        case LuaToken::Type::STRIP:
+            return op_strip(_v);
+        default:
+            return string {op.match + " is not a unary operator"};
+        }
+    }
+
+    bool isDirty() override {
+        return v.source && v.source->isDirty();
     }
 
     val v;

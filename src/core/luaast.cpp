@@ -48,6 +48,16 @@ optional<shared_ptr<SourceChange>> val::forceValue(const val& v) const {
     return nullopt;
 }
 
+val val::reevaluate() {
+    if (source && source->isDirty()) {
+        if(auto result = source->reevaluate(); holds_alternative<val>(result))
+            return get<val>(result);
+
+        // reevaluation failed: return original value
+    }
+    return *this;
+}
+
 }
 }
 

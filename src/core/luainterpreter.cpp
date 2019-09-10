@@ -148,12 +148,31 @@ eval_result_t op_neg(val v, const LuaToken& tok) {
 
 eval_result_t op_sqrt(val v) {
     if (holds_alternative<double>(v)) {
-        return val {sqrt(get<double>(v)), sourcelambda::create([v](const val& newval) -> optional<shared_ptr<SourceChange>> {
-                if (newval.type() == "number")
+        struct sqrt_exp : sourceexp {
+            sqrt_exp(const val& v) : v(v) {}
+
+            optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override{
+                if (newval.isnumber())
                     if (double x = get<double>(newval)*get<double>(newval); isfinite(x))
                         return v.forceValue(x);
                 return nullopt;
-            })};
+            }
+
+            eval_result_t reevaluate() override {
+                if (holds_alternative<double>(v)) {
+                    return sqrt(get<double>(v.reevaluate()));
+                }
+                return string{"sqrt can only be applied to a number"};
+            }
+
+            bool isDirty() override {
+                return v.source && v.source->isDirty();
+            }
+
+            val v;
+        };
+
+        return val {sqrt(get<double>(v)), std::make_shared<sqrt_exp>(v)};
     }
 
     return string{"sqrt can only be applied to a number"};
@@ -226,7 +245,7 @@ val Environment::getvar(const val& var) {
 }
 
 void Environment::populate_stdlib() {
-    t[string {"print"}] = make_shared<cfunction>([](const vallist& args) -> cfunction::result {
+    t["print"] = make_shared<cfunction>([](const vallist& args) -> cfunction::result {
         for (int i = 0; i < static_cast<int>(args.size()) - 1; ++i) {
             cout << args[i].to_string() << "\t";
         }
@@ -238,59 +257,122 @@ void Environment::populate_stdlib() {
     });
 
     auto math = make_shared<table>();
-    t[string {"math"}] = math;
-    (*math)[string {"sin"}] = make_shared<cfunction>([](const vallist& args) -> cfunction::result {
+    t["math"] = math;
+    (*math)["sin"] = make_shared<cfunction>([](const vallist& args) -> cfunction::result {
         if (args.size() != 1 || args[0].type() != "number") {
             return vallist{nil(), string {"sin: one number argument expected"}};
         }
 
         val result = sin(get<double>(args[0]));
-        if (args[0].source)
-            result.source = sourcelambda::create([v = args[0]](const val& newval) -> optional<shared_ptr<SourceChange>> {
-                    if (newval.type() == "number")
+        if (args[0].source) {
+            struct sin_exp : sourceexp {
+                sin_exp(const val& v) : v(v) {}
+
+                optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override{
+                    if (newval.isnumber())
                         if (double x = asin(get<double>(newval)); isfinite(x))
                             return v.forceValue(x);
                     return nullopt;
-                });
+                }
+
+                eval_result_t reevaluate() override {
+                    if (holds_alternative<double>(v)) {
+                        return sin(get<double>(v.reevaluate()));
+                    }
+                    return string{"sin can only be applied to a number"};
+                }
+
+                bool isDirty() override {
+                    return v.source && v.source->isDirty();
+                }
+
+                val v;
+            };
+
+            result.source = std::make_shared<sin_exp>(args[0]);
+        }
+
         return {result};
     });
 
-    (*math)[string {"cos"}] = make_shared<cfunction>([](const vallist& args) -> cfunction::result {
+    (*math)["cos"] = make_shared<cfunction>([](const vallist& args) -> cfunction::result {
         if (args.size() != 1 || args[0].type() != "number") {
             return vallist{nil(), string {"cos: one number argument expected"}};
         }
 
         val result = cos(get<double>(args[0]));
-        if (args[0].source)
-            result.source = sourcelambda::create([v = args[0]](const val& newval) -> optional<shared_ptr<SourceChange>> {
-                    if (newval.type() == "number")
+        if (args[0].source) {
+            struct cos_exp : sourceexp {
+                cos_exp(const val& v) : v(v) {}
+
+                optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override{
+                    if (newval.isnumber())
                         if (double x = acos(get<double>(newval)); isfinite(x))
                             return v.forceValue(x);
                     return nullopt;
-                });
+                }
+
+                eval_result_t reevaluate() override {
+                    if (holds_alternative<double>(v)) {
+                        return cos(get<double>(v.reevaluate()));
+                    }
+                    return string{"cos can only be applied to a number"};
+                }
+
+                bool isDirty() override {
+                    return v.source && v.source->isDirty();
+                }
+
+                val v;
+            };
+
+            result.source = std::make_shared<cos_exp>(args[0]);
+        }
+
         return {result};
     });
 
-    (*math)[string {"tan"}] = make_shared<cfunction>([](const vallist& args) -> cfunction::result {
+    (*math)["tan"] = make_shared<cfunction>([](const vallist& args) -> cfunction::result {
         if (args.size() != 1 || args[0].type() != "number") {
             return vallist{nil(), string {"tan: one number argument expected"}};
         }
 
         val result = tan(get<double>(args[0]));
-        if (args[0].source)
-            result.source = sourcelambda::create([v = args[0]](const val& newval) -> optional<shared_ptr<SourceChange>> {
-                    if (newval.type() == "number")
+        if (args[0].source) {
+            struct tan_exp : sourceexp {
+                tan_exp(const val& v) : v(v) {}
+
+                optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override{
+                    if (newval.isnumber())
                         if (double x = atan(get<double>(newval)); isfinite(x))
                             return v.forceValue(x);
                     return nullopt;
-                });
+                }
+
+                eval_result_t reevaluate() override {
+                    if (holds_alternative<double>(v)) {
+                        return tan(get<double>(v.reevaluate()));
+                    }
+                    return string{"sin can only be applied to a number"};
+                }
+
+                bool isDirty() override {
+                    return v.source && v.source->isDirty();
+                }
+
+                val v;
+            };
+
+            result.source = std::make_shared<tan_exp>(args[0]);
+        }
+
         return {result};
     });
 
-    t[string {"_G"}] = shared_ptr<table>(shared_from_this(), &t);
+    t["_G"] = shared_ptr<table>(shared_from_this(), &t);
 
-    t[string {"__visit_count"}] = 0.0;
-    t[string {"__visit_limit"}] = 1000.0;
+    t["__visit_count"] = 0.0;
+    t["__visit_limit"] = 1000.0;
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaName& name, const shared_ptr<Environment>& env, const assign_t& assign) const {

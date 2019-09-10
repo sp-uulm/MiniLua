@@ -92,6 +92,8 @@ struct val : _val_t {
     val(lfunction_p v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
 
     optional<shared_ptr<struct SourceChange>> forceValue(const val& v) const;
+    val reevaluate();
+
     string to_string() const;
     string type() const {
         switch(index()) {
@@ -197,7 +199,7 @@ lua::rt::eval_result_t T::accept(const lua::rt::ASTEvaluator& visitor,\
                                  const shared_ptr<lua::rt::Environment>& environment,\
                                  const lua::rt::assign_t& assign) const { \
     \
-    unsigned count = get<double>(environment->getvar(string{"__visit_count"}));\
+    unsigned count = static_cast<unsigned>(get<double>(environment->getvar(string{"__visit_count"})));\
     if (count++ > get<double>(environment->getvar(string{"__visit_limit"})))\
         return string{"visit limit reached, stopping"};\
     environment->assign(string{"__visit_count"}, static_cast<double>(count), false);\
