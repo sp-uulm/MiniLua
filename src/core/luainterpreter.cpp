@@ -68,6 +68,15 @@ eval_result_t op_eval(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {
     return move(result);
 }
 
+eval_result_t op_postfix_eval(val a, const LuaToken& tok) {
+    cout << a << "\\" << endl;
+
+    val result = a;
+    result.source = sourceunop::create(a, tok);
+
+    return move(result);
+}
+
 eval_result_t op_lt(lua::rt::val a, lua::rt::val b) {
     if (holds_alternative<double>(a) && holds_alternative<double>(b))
         return lua::rt::val {get<double>(a) < get<double>(b)};
@@ -461,6 +470,8 @@ eval_result_t ASTEvaluator::visit(const _LuaUnop& op, const shared_ptr<Environme
         return op_not(rhs);
     case LuaToken::Type::STRIP:
         return op_strip(rhs);
+    case LuaToken::Type::EVAL:
+        return op_postfix_eval(rhs, op.op);
     default:
         return string {op.op.match + " is not a unary operator"};
     }

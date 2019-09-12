@@ -105,6 +105,7 @@ inline val operator^(const val& a, const val& b) {
 eval_result_t op_mod(val a, val b, const LuaToken& tok = {LuaToken::Type::MOD, ""});
 eval_result_t op_concat(val a, val b);
 eval_result_t op_eval(val a, val b, const LuaToken& tok = {LuaToken::Type::EVAL, ""});
+eval_result_t op_postfix_eval(val a, const LuaToken& tok = {LuaToken::Type::EVAL, ""});
 
 eval_result_t op_lt(val a, val b);
 inline bool operator<(const val& a, const val& b) {
@@ -506,26 +507,31 @@ struct sourceunop : sourceexp {
         if (!holds_alternative<double>(new_v))
             return nullopt;
 
+        if (!v.source)
+            return nullopt;
+
         switch (op.type) {
         case LuaToken::Type::SUB:
-            if (v.source) {
-                auto res_or = make_shared<SourceChangeOr>();
-                if (auto result = v.source->forceValue(val {-get<double>(new_v)}); result) {
-                    if (auto p = dynamic_pointer_cast<sourceval>(v.source); !p || p->location.pos != op.pos+op.length) {
-                        res_or->alternatives.push_back(*result);
-                    }
+        {
+            auto res_or = make_shared<SourceChangeOr>();
+            if (auto result = v.source->forceValue(val {-get<double>(new_v)}); result) {
+                if (auto p = dynamic_pointer_cast<sourceval>(v.source); !p || p->location.pos != op.pos+op.length) {
+                    res_or->alternatives.push_back(*result);
                 }
-                if (auto result = v.source->forceValue(val {get<double>(new_v)}); result) {
-                    auto res_and = make_shared<SourceChangeAnd>();
-                    res_and->changes.push_back(*result);
-                    res_and->changes.push_back(SourceAssignment::create(op, ""));
-                    res_or->alternatives.push_back(res_and);
-                }
-
-                if (!res_or->alternatives.empty())
-                    return res_or;
             }
+            if (auto result = v.source->forceValue(val {get<double>(new_v)}); result) {
+                auto res_and = make_shared<SourceChangeAnd>();
+                res_and->changes.push_back(*result);
+                res_and->changes.push_back(SourceAssignment::create(op, ""));
+                res_or->alternatives.push_back(res_and);
+            }
+
+            if (!res_or->alternatives.empty())
+                return res_or;
             return nullopt;
+        }
+        case LuaToken::Type::EVAL:
+            return v.source->forceValue(new_v);
         default:
             return nullopt;
         }
@@ -543,6 +549,8 @@ struct sourceunop : sourceexp {
             return op_not(_v);
         case LuaToken::Type::STRIP:
             return op_strip(_v);
+        case LuaToken::Type::EVAL:
+            return op_postfix_eval(_v);
         default:
             return string {op.match + " is not a unary operator"};
         }

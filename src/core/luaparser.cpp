@@ -712,7 +712,16 @@ auto LuaParser::parse_exp(token_it_t& begin, token_it_t& end) const -> parse_res
             unop_token = *begin++;
             continue;
         default:
-            return "wrong alternative " + begin->match;
+            // if the last operator was \, then we can parse it as postfix operator
+            // otherwise, the right operand is missing
+
+            if (ops.back().type == LuaToken::Type::EVAL) {
+                is_unop = true;
+                unop_token = ops.back();
+                ops.pop_back();
+            } else {
+                return "wrong alternative " + begin->match;
+            }
         }
 
         if (is_unop) {
