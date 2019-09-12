@@ -104,6 +104,7 @@ inline val operator^(const val& a, const val& b) {
 
 eval_result_t op_mod(val a, val b, const LuaToken& tok = {LuaToken::Type::MOD, ""});
 eval_result_t op_concat(val a, val b);
+eval_result_t op_eval(val a, val b, const LuaToken& tok = {LuaToken::Type::EVAL, ""});
 
 eval_result_t op_lt(val a, val b);
 inline bool operator<(const val& a, const val& b) {
@@ -415,6 +416,24 @@ struct sourcebinop : sourceexp {
                 return res_or;
             return nullopt;
         }
+        case LuaToken::Type::EVAL:
+        {
+            auto res_and = make_shared<SourceChangeAnd>();
+            if (lhs.source) {
+                if (auto result = lhs.source->forceValue(v); result) {
+                    res_and->changes.push_back(*result);
+                }
+            }
+            if (rhs.source) {
+                if (auto result = rhs.source->forceValue(v); result) {
+                    res_and->changes.push_back(*result);
+                }
+            }
+
+            if (!res_and->changes.empty())
+                return res_and;
+            return nullopt;
+        }
         default:
             return nullopt;
         }
@@ -439,6 +458,8 @@ struct sourcebinop : sourceexp {
             return op_mod(_lhs, _rhs, op);
         case LuaToken::Type::CONCAT:
             return op_concat(_lhs, _rhs);
+        case LuaToken::Type::EVAL:
+            return op_eval(_lhs, _rhs, op);
         case LuaToken::Type::LT:
             return op_lt(_lhs, _rhs);
         case LuaToken::Type::LEQ:
@@ -456,7 +477,7 @@ struct sourcebinop : sourceexp {
         case LuaToken::Type::OR:
             return op_or(_lhs, _rhs);
         default:
-            return string {op.match + " is not a binary operator"};
+            return string {op.match + " cannot be reevaluated"};
         }
     }
 

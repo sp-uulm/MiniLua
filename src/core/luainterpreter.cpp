@@ -59,6 +59,15 @@ eval_result_t op_concat(lua::rt::val a, lua::rt::val b) {
     return string{"could not concatenate other types than strings or numbers"};
 }
 
+eval_result_t op_eval(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {
+    cout << a << "\\" << b << endl;
+
+    val result = a;
+    result.source = sourcebinop::create(a, b, tok);
+
+    return move(result);
+}
+
 eval_result_t op_lt(lua::rt::val a, lua::rt::val b) {
     if (holds_alternative<double>(a) && holds_alternative<double>(b))
         return lua::rt::val {get<double>(a) < get<double>(b)};
@@ -413,6 +422,8 @@ eval_result_t ASTEvaluator::visit(const _LuaOp& op, const shared_ptr<Environment
         return op_mod(lhs, rhs, op.op);
     case LuaToken::Type::CONCAT:
         return op_concat(lhs, rhs);
+    case LuaToken::Type::EVAL:
+        return op_eval(lhs, rhs, op.op);
     case LuaToken::Type::LT:
         return op_lt(lhs, rhs);
     case LuaToken::Type::LEQ:

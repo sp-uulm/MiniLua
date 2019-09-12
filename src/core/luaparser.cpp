@@ -12,6 +12,7 @@ const vector<pair<const regex, LuaToken::Type>> LuaParser::token_regexes {
     {regex{"\\^"}, {LuaToken::Type::POW}},
     {regex{"\\#"}, {LuaToken::Type::LEN}},
     {regex{"\\$"}, {LuaToken::Type::STRIP}},
+    {regex{"\\\\"}, {LuaToken::Type::EVAL}},
     {regex{"=="}, {LuaToken::Type::EQ}},
     {regex{"~="}, {LuaToken::Type::NEQ}},
     {regex{"<="}, {LuaToken::Type::LEQ}},
@@ -623,7 +624,8 @@ LuaExp resolve_precedence(vector<LuaExp>& exps, vector<LuaToken>& ops) {
         {LuaToken::Type::EQ, {3, true}},
         {LuaToken::Type::NEQ, {3, true}},
         {LuaToken::Type::AND, {2, true}},
-        {LuaToken::Type::OR, {1, true}}
+        {LuaToken::Type::OR, {1, true}},
+        {LuaToken::Type::EVAL, {9, true}}
     };
 
     for (int i = 0; i < static_cast<int>(ops.size())-1; ++i) {
@@ -728,6 +730,7 @@ auto LuaParser::parse_exp(token_it_t& begin, token_it_t& end) const -> parse_res
             begin->type == LuaToken::Type::POW ||
             begin->type == LuaToken::Type::MOD ||
             begin->type == LuaToken::Type::CONCAT ||
+            begin->type == LuaToken::Type::EVAL ||
             begin->type == LuaToken::Type::LT ||
             begin->type == LuaToken::Type::LEQ ||
             begin->type == LuaToken::Type::GT ||
