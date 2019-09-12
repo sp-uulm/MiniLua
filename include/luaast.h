@@ -191,7 +191,8 @@ struct lfunction {
     shared_ptr<Environment> env;
 };
 
-using eval_success_t = pair<val, optional<shared_ptr<SourceChange>>>;
+using source_change_t = optional<shared_ptr<SourceChange>>;
+using eval_success_t = pair<val, source_change_t>;
 using eval_result_t = variant<eval_success_t, string>;
 
 inline eval_result_t eval_success(const val& v, optional<shared_ptr<SourceChange>> sc = nullopt) {
