@@ -191,7 +191,27 @@ struct lfunction {
     shared_ptr<Environment> env;
 };
 
-using eval_result_t = variant<val, string>;
+using eval_success_t = pair<val, optional<shared_ptr<SourceChange>>>;
+using eval_result_t = variant<eval_success_t, string>;
+
+inline eval_result_t eval_success(const val& v, optional<shared_ptr<SourceChange>> sc = nullopt) {
+    return make_pair(v, sc);
+}
+
+inline val get_val(const eval_result_t& result) {
+    return get<eval_success_t>(result).first;
+}
+
+inline optional<shared_ptr<SourceChange>> get_sc(const eval_result_t& result) {
+    return get<eval_success_t>(result).second;
+}
+
+inline val unwrap(const eval_result_t& result) {
+    if (holds_alternative<string>(result))
+        throw runtime_error(get<string>(result));
+    return get_val(result);
+}
+
 ostream& operator<<(ostream& os, const val& value);
 
 }

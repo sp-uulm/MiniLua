@@ -7,42 +7,42 @@ namespace rt {
 
 eval_result_t op_add(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {
     if (holds_alternative<double>(a) && holds_alternative<double>(b))
-        return lua::rt::val {get<double>(a) + get<double>(b), sourcebinop::create(a, b, tok)};
+        return eval_success({get<double>(a) + get<double>(b), sourcebinop::create(a, b, tok)});
 
     return string{"could not add values of type other than number (" + a.type() + ", " + b.type() + ")"};
 }
 
 eval_result_t op_sub(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {
     if (holds_alternative<double>(a) && holds_alternative<double>(b))
-        return lua::rt::val {get<double>(a) - get<double>(b), sourcebinop::create(a, b, tok)};
+        return eval_success(lua::rt::val {get<double>(a) - get<double>(b), sourcebinop::create(a, b, tok)});
 
     return string{"could not subtract variables of type other than number"};
 }
 
 eval_result_t op_mul(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {
     if (holds_alternative<double>(a) && holds_alternative<double>(b))
-        return lua::rt::val {get<double>(a) * get<double>(b), sourcebinop::create(a, b, tok)};
+        return eval_success(lua::rt::val {get<double>(a) * get<double>(b), sourcebinop::create(a, b, tok)});
 
     return string{"could not multiply variables of type other than number"};
 }
 
 eval_result_t op_div(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {
     if (holds_alternative<double>(a) && holds_alternative<double>(b))
-        return lua::rt::val {get<double>(a) / get<double>(b), sourcebinop::create(a, b, tok)};
+        return eval_success(lua::rt::val {get<double>(a) / get<double>(b), sourcebinop::create(a, b, tok)});
 
     return string{"could not divide variables of type other than number"};
 }
 
 eval_result_t op_pow(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {
     if (holds_alternative<double>(a) && holds_alternative<double>(b))
-        return lua::rt::val {pow(get<double>(a), get<double>(b)), sourcebinop::create(a, b, tok)};
+        return eval_success(lua::rt::val {pow(get<double>(a), get<double>(b)), sourcebinop::create(a, b, tok)});
 
     return string{"could not exponentiate variables of type other than number"};
 }
 
 eval_result_t op_mod(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {
     if (holds_alternative<double>(a) && holds_alternative<double>(b))
-        return lua::rt::val {fmod(get<double>(a), get<double>(b)), sourcebinop::create(a, b, tok)};
+        return eval_success(lua::rt::val {fmod(get<double>(a), get<double>(b)), sourcebinop::create(a, b, tok)});
 
     return string{"could not mod variables of type other than number"};
 }
@@ -53,7 +53,7 @@ eval_result_t op_concat(lua::rt::val a, lua::rt::val b) {
 
         stringstream ss;
         ss << a << b;
-        return lua::rt::val {ss.str()};
+        return eval_success(lua::rt::val {ss.str()});
     }
 
     return string{"could not concatenate other types than strings or numbers"};
@@ -65,7 +65,7 @@ eval_result_t op_eval(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {
     val result = a;
     result.source = sourcebinop::create(a, b, tok);
 
-    return move(result);
+    return eval_success(result);
 }
 
 eval_result_t op_postfix_eval(val a, const LuaToken& tok) {
@@ -74,25 +74,25 @@ eval_result_t op_postfix_eval(val a, const LuaToken& tok) {
     val result = a;
     result.source = sourceunop::create(a, tok);
 
-    return move(result);
+    return eval_success(result);
 }
 
 eval_result_t op_lt(lua::rt::val a, lua::rt::val b) {
     if (holds_alternative<double>(a) && holds_alternative<double>(b))
-        return lua::rt::val {get<double>(a) < get<double>(b)};
+        return eval_success(lua::rt::val {get<double>(a) < get<double>(b)});
 
     if (holds_alternative<string>(a) && holds_alternative<string>(b))
-        return lua::rt::val {get<string>(a) < get<string>(b)};
+        return eval_success(lua::rt::val {get<string>(a) < get<string>(b)});
 
     return string{"only strings and numbers can be compared"};
 }
 
 eval_result_t op_leq(lua::rt::val a, lua::rt::val b) {
     if (holds_alternative<double>(a) && holds_alternative<double>(b))
-        return lua::rt::val {get<double>(a) <= get<double>(b)};
+        return eval_success(lua::rt::val {get<double>(a) <= get<double>(b)});
 
     if (holds_alternative<string>(a) && holds_alternative<string>(b))
-        return lua::rt::val {get<string>(a) <= get<string>(b)};
+        return eval_success(lua::rt::val {get<string>(a) <= get<string>(b)});
 
     return string{"only strings and numbers can be compared"};
 }
@@ -100,8 +100,8 @@ eval_result_t op_leq(lua::rt::val a, lua::rt::val b) {
 eval_result_t op_gt(lua::rt::val a, lua::rt::val b) {
     auto leq = op_leq(a, b);
 
-    if (holds_alternative<val>(leq))
-        return op_not(get<val>(leq));
+    if (holds_alternative<eval_success_t>(leq))
+        return op_not(get_val(leq));
 
     return string{"only strings and numbers can be compared"};
 }
@@ -109,32 +109,32 @@ eval_result_t op_gt(lua::rt::val a, lua::rt::val b) {
 eval_result_t op_geq(lua::rt::val a, lua::rt::val b) {
     auto leq = op_lt(a, b);
 
-    if (holds_alternative<val>(leq))
-        return op_not(get<val>(leq));
+    if (holds_alternative<eval_success_t>(leq))
+        return op_not(get_val(leq));
 
     return string{"only strings and numbers can be compared"};
 }
 
 eval_result_t op_eq(lua::rt::val a, lua::rt::val b) {
     if (a.index() != b.index())
-        return val {false};
+        return eval_success(false);
 
-    return visit([&b](auto&& a){
+    return eval_success(visit([&b](auto&& a){
         using T = std::decay_t<decltype(a)>;
         return val {a == get<T>(b)};
-    }, static_cast<lua::rt::val::value_t>(a));
+    }, static_cast<val::value_t>(a)));
 }
 
 eval_result_t op_neq(val a, val b) {
-    return op_not(get<val>(op_eq(a, b)));
+    return op_not(get_val(op_eq(a, b)));
 }
 
 eval_result_t op_and(val a, val b) {
-    return a.to_bool() ? val{b} : val{a};
+    return eval_success(a.to_bool() ? b : a);
 }
 
 eval_result_t op_or(val a, val b) {
-    return a.to_bool() ? val{a} : val{b};
+    return eval_success(a.to_bool() ? a : b);
 }
 
 eval_result_t op_len(val v) {
@@ -149,21 +149,21 @@ eval_result_t op_len(val v) {
          if (auto idx = t.find(i); idx == t.end() || idx->second.isnil())
             break;
     }
-    return val{i-1};
+    return eval_success(i-1);
 }
 
 eval_result_t op_strip(val v) {
     v.source.reset();
-    return move(v);
+    return eval_success(v);
 }
 
 eval_result_t op_not(val v) {
-    return val {!v.to_bool()};
+    return eval_success(!v.to_bool());
 }
 
 eval_result_t op_neg(val v, const LuaToken& tok) {
     if (holds_alternative<double>(v)) {
-        return val {-get<double>(v), sourceunop::create(v, tok)};
+        return eval_success(val {-get<double>(v), sourceunop::create(v, tok)});
     }
 
     return string{"unary - can only be applied to a number"};
@@ -183,7 +183,7 @@ eval_result_t op_sqrt(val v) {
 
             eval_result_t reevaluate() override {
                 if (holds_alternative<double>(v)) {
-                    return sqrt(get<double>(v.reevaluate()));
+                    return eval_success(sqrt(get<double>(v.reevaluate())));
                 }
                 return string{"sqrt can only be applied to a number"};
             }
@@ -195,16 +195,10 @@ eval_result_t op_sqrt(val v) {
             val v;
         };
 
-        return val {sqrt(get<double>(v)), std::make_shared<sqrt_exp>(v)};
+        return eval_success(val {sqrt(get<double>(v)), std::make_shared<sqrt_exp>(v)});
     }
 
     return string{"sqrt can only be applied to a number"};
-}
-
-val unwrap(const eval_result_t& result) {
-    if (holds_alternative<string>(result))
-        throw runtime_error(get<string>(result));
-    return get<val>(result);
 }
 
 val fst(const val& v) {
@@ -300,7 +294,7 @@ void Environment::populate_stdlib() {
 
                 eval_result_t reevaluate() override {
                     if (holds_alternative<double>(v)) {
-                        return sin(get<double>(v.reevaluate()));
+                        return eval_success(sin(get<double>(v.reevaluate())));
                     }
                     return string{"sin can only be applied to a number"};
                 }
@@ -337,7 +331,7 @@ void Environment::populate_stdlib() {
 
                 eval_result_t reevaluate() override {
                     if (holds_alternative<double>(v)) {
-                        return cos(get<double>(v.reevaluate()));
+                        return eval_success(cos(get<double>(v.reevaluate())));
                     }
                     return string{"cos can only be applied to a number"};
                 }
@@ -374,7 +368,7 @@ void Environment::populate_stdlib() {
 
                 eval_result_t reevaluate() override {
                     if (holds_alternative<double>(v)) {
-                        return tan(get<double>(v.reevaluate()));
+                        return eval_success(tan(get<double>(v.reevaluate())));
                     }
                     return string{"sin can only be applied to a number"};
                 }
@@ -403,7 +397,7 @@ eval_result_t ASTEvaluator::visit(const _LuaName& name, const shared_ptr<Environ
     if (assign) {
         env->assign(val{name.token.match}, get<val>(*assign), get<bool>(*assign));
     }
-    return val{name.token.match};
+    return eval_success(name.token.match);
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaOp& op, const shared_ptr<Environment>& env, const assign_t& assign) const {
@@ -495,7 +489,7 @@ eval_result_t ASTEvaluator::visit(const _LuaExplist& explist, const shared_ptr<E
         }
     }
 
-    return move(t);
+    return eval_success(t);
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaFunctioncall& exp, const shared_ptr<Environment>& env, const assign_t& assign) const {
@@ -509,7 +503,7 @@ eval_result_t ASTEvaluator::visit(const _LuaFunctioncall& exp, const shared_ptr<
     // call builtin function
     if (holds_alternative<cfunction_p>(func)) {
         if (auto result = get<cfunction_p>(func)->f(args, exp); holds_alternative<vallist>(result))
-            return make_shared<vallist>(get<vallist>(result));
+            return eval_success(make_shared<vallist>(get<vallist>(result)));
         else {
             return get<string>(result);
         }
@@ -522,9 +516,9 @@ eval_result_t ASTEvaluator::visit(const _LuaFunctioncall& exp, const shared_ptr<
         EVAL(result, get<lfunction_p>(func)->f, get<lfunction_p>(func)->env);
 
         if (holds_alternative<vallist_p>(result))
-            return move(result);
+            return eval_success(result);
 
-        return make_shared<vallist>();
+        return eval_success(make_shared<vallist>());
     }
 
     if (holds_alternative<nil>(func)) {
@@ -541,7 +535,7 @@ eval_result_t ASTEvaluator::visit(const _LuaAssignment &assignment, const shared
     vallist exps = flatten(*get<vallist_p>(_exps));
     EVALL(_vars, assignment.varlist, env, make_tuple(make_shared<vallist>(exps), assignment.local));
 
-    return nil();
+    return eval_success(nil());
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaNameVar& var, const shared_ptr<Environment>& env, const assign_t& assign) const {
@@ -549,7 +543,7 @@ eval_result_t ASTEvaluator::visit(const _LuaNameVar& var, const shared_ptr<Envir
 
     EVAL(name, var.name, env);
 
-    return env->getvar(name);
+    return eval_success(env->getvar(name));
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaIndexVar& var, const shared_ptr<Environment>& env, const assign_t& assign) const {
@@ -566,7 +560,7 @@ eval_result_t ASTEvaluator::visit(const _LuaIndexVar& var, const shared_ptr<Envi
             (*get<table_p>(table))[index] = get<val>(*assign);
         }
 
-        return (*get<table_p>(table))[index];
+        return eval_success((*get<table_p>(table))[index]);
     } else {
         return string{"cannot access index on " + table.type()};
     }
@@ -585,7 +579,7 @@ eval_result_t ASTEvaluator::visit(const _LuaMemberVar& var, const shared_ptr<Env
             (*get<table_p>(table))[index] = get<val>(*assign);
         }
 
-        return (*get<table_p>(table))[index];
+        return eval_success((*get<table_p>(table))[index]);
     } else {
         return string{"cannot access member on " + table.type()};
     }
@@ -595,12 +589,12 @@ eval_result_t ASTEvaluator::visit(const _LuaReturnStmt& stmt, const shared_ptr<E
 //    cout << "visit returnstmt" << endl;
 
     EVAL(result, stmt.explist, env);
-    return make_shared<vallist>(flatten(*get<vallist_p>(result)));
+    return eval_success(make_shared<vallist>(flatten(*get<vallist_p>(result))));
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaBreakStmt& stmt, const shared_ptr<Environment>& env, const assign_t& assign) const {
 //    cout << "visit breakstmt" << endl;
-    return val{true};
+    return eval_success(true);
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaValue& value, const shared_ptr<Environment>& env, const assign_t& assign) const {
@@ -608,20 +602,20 @@ eval_result_t ASTEvaluator::visit(const _LuaValue& value, const shared_ptr<Envir
 
     switch (value.token.type) {
     case LuaToken::Type::NIL:
-        return val{nil(), sourceval::create(value.token)};
+        return eval_success(val{nil(), sourceval::create(value.token)});
     case LuaToken::Type::FALSE:
-        return val{false, sourceval::create(value.token)};
+        return eval_success(val{false, sourceval::create(value.token)});
     case LuaToken::Type::TRUE:
-        return val{true, sourceval::create(value.token)};
+        return eval_success(val{true, sourceval::create(value.token)});
     case LuaToken::Type::NUMLIT:
         try {
-            return val{atof(("0" + value.token.match).c_str()), sourceval::create(value.token)};
+            return eval_success(val{atof(("0" + value.token.match).c_str()), sourceval::create(value.token)});
         } catch (const invalid_argument& invalid) {
             return string {"invalid_argument to stod: "} + invalid.what();
         }
 
     case LuaToken::Type::STRINGLIT:
-        return val{string(value.token.match.begin()+1, value.token.match.end()-1), sourceval::create(value.token)};
+        return eval_success(val{string(value.token.match.begin()+1, value.token.match.end()-1), sourceval::create(value.token)});
     default:
         return string{"value unimplemented"};
     }
@@ -634,11 +628,11 @@ eval_result_t ASTEvaluator::visit(const _LuaChunk& chunk, const shared_ptr<Envir
         EVAL(result, stmt, env);
 
         if (!holds_alternative<nil>(result) && !dynamic_pointer_cast<_LuaFunctioncall>(stmt)) {
-                return move(result);
+                return eval_success(result);
         }
     }
 
-    return nil();
+    return eval_success(nil());
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaForStmt& for_stmt, const shared_ptr<Environment>& env, const assign_t& assign) const {
@@ -659,21 +653,21 @@ eval_result_t ASTEvaluator::visit(const _LuaForStmt& for_stmt, const shared_ptr<
         if (holds_alternative<string>(gt)) {
             return gt;
         }
-        if (get<bool>(get<val>(gt)))
-            return nil();
+        if (get<bool>(get_val(gt)))
+            return eval_success(nil());
 
         EVAL(result, for_stmt.body, newenv);
         if (holds_alternative<vallist_p>(result))
-            return move(result);
+            return eval_success(result);
 
         if (holds_alternative<bool>(result))
-            return nil();
+            return eval_success(nil());
 
         EVAL(step, for_stmt.step, newenv);
 
         auto sum = op_add(current, step);
-        if (holds_alternative<val>(sum)) {
-            EVALL(var, for_stmt.var, env, make_tuple(get<val>(sum), true));
+        if (holds_alternative<eval_success_t>(sum)) {
+            EVALL(var, for_stmt.var, env, make_tuple(get_val(sum), true));
         } else {
             return sum;
         }
@@ -691,8 +685,8 @@ eval_result_t ASTEvaluator::visit(const _LuaLoopStmt &loop_stmt, const shared_pt
         if (holds_alternative<string>(neq)) {
             return neq;
         }
-        if (get<bool>(get<val>(neq))) {
-            return nil();
+        if (get<bool>(get_val(neq))) {
+            return eval_success(nil());
         }
     }
 
@@ -701,10 +695,10 @@ eval_result_t ASTEvaluator::visit(const _LuaLoopStmt &loop_stmt, const shared_pt
 
         EVAL(result, loop_stmt.body, newenv);
         if (holds_alternative<vallist_p>(result))
-            return move(result);
+            return eval_success(result);
 
         if (holds_alternative<bool>(result))
-            return nil();
+            return eval_success(nil());
 
         // check loop condition
         EVAL(condition, loop_stmt.end, newenv);
@@ -713,8 +707,8 @@ eval_result_t ASTEvaluator::visit(const _LuaLoopStmt &loop_stmt, const shared_pt
         if (holds_alternative<string>(neq)) {
             return neq;
         }
-        if (get<bool>(get<val>(neq))) {
-            return nil();
+        if (get<bool>(get_val(neq))) {
+            return eval_success(nil());
         }
     }
 }
@@ -736,13 +730,13 @@ eval_result_t ASTEvaluator::visit(const _LuaTableconstructor& tableconst, const 
         }
     }
 
-    return move(result);
+    return eval_success(result);
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaFunction& exp, const shared_ptr<Environment>& env, const assign_t& assign) const {
 //    cout << "visit function" << endl;
 
-    return make_shared<lfunction>(exp.body, exp.params, make_shared<Environment>(env));
+    return eval_success(make_shared<lfunction>(exp.body, exp.params, make_shared<Environment>(env)));
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaIfStmt &stmt, const shared_ptr<Environment>& env, const assign_t& assign) const {
@@ -751,22 +745,17 @@ eval_result_t ASTEvaluator::visit(const _LuaIfStmt &stmt, const shared_ptr<Envir
     for (const auto& branch : stmt.branches) {
         EVAL(condition, branch.first, env);
 
-        auto eq = op_eq(val{true}, condition);
-        if (holds_alternative<string>(eq)) {
-            return eq;
-        }
-
-        if (get<bool>(get<val>(eq))) {
+        if (condition.to_bool()) {
             auto newenv = make_shared<lua::rt::Environment>(env);
 
             EVAL(result, branch.second, newenv);
             if (!holds_alternative<nil>(result))
-                return move(result);
+                return eval_success(result);
             break;
         }
     }
 
-    return lua::rt::nil();
+    return eval_success(nil());
 }
 
 SourceChange::~SourceChange() {}

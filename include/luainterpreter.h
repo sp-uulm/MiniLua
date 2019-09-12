@@ -18,7 +18,7 @@ val varname; \
 if (auto eval_result = (exp)->accept(*this, (env), assign); holds_alternative<string>(eval_result)) {\
     return eval_result; \
 } else { \
-    varname = get<val>(eval_result); \
+    varname = get_val(eval_result); \
 }
 
 #define EVALR(varname, exp, env) \
@@ -26,7 +26,7 @@ val varname; \
     if (auto eval_result = (exp)->accept(*this, (env), {}); holds_alternative<string>(eval_result)) {\
     return eval_result; \
 } else { \
-    varname = get<val>(eval_result); \
+    varname = get_val(eval_result); \
 }
 
 #define EVALL(varname, exp, env, newval) \
@@ -34,7 +34,7 @@ val varname; \
 if (auto eval_result = (exp)->accept(*this, (env), newval); holds_alternative<string>(eval_result)) {\
     return eval_result; \
 } else { \
-    varname = get<val>(eval_result); \
+    varname = get_val(eval_result); \
 }
 
 struct Environment : enable_shared_from_this<Environment> {
@@ -64,42 +64,27 @@ public:
 
 eval_result_t op_add(val a, val b, const LuaToken& tok = {LuaToken::Type::ADD, ""});
 inline val operator+(const val& a, const val& b) {
-    eval_result_t result = op_add(a, b);
-    if (holds_alternative<string>(result))
-        throw runtime_error(get<string>(result));
-    return get<val>(result);
+    return unwrap(op_add(a, b));
 }
 
 eval_result_t op_sub(val a, val b, const LuaToken& tok = {LuaToken::Type::SUB, ""});
 inline val operator-(const val& a, const val& b) {
-    eval_result_t result = op_sub(a, b);
-    if (holds_alternative<string>(result))
-        throw runtime_error(get<string>(result));
-    return get<val>(result);
+    return unwrap(op_sub(a, b));
 }
 
 eval_result_t op_mul(val a, val b, const LuaToken& tok = {LuaToken::Type::MUL, ""});
 inline val operator*(const val& a, const val& b) {
-    eval_result_t result = op_mul(a, b);
-    if (holds_alternative<string>(result))
-        throw runtime_error(get<string>(result));
-    return get<val>(result);
+    return unwrap(op_mul(a, b));
 }
 
 eval_result_t op_div(val a, val b, const LuaToken& tok = {LuaToken::Type::DIV, ""});
 inline val operator/(const val& a, const val& b) {
-    eval_result_t result = op_div(a, b);
-    if (holds_alternative<string>(result))
-        throw runtime_error(get<string>(result));
-    return get<val>(result);
+    return unwrap(op_div(a, b));
 }
 
 eval_result_t op_pow(val a, val b, const LuaToken& tok = {LuaToken::Type::POW, ""});
 inline val operator^(const val& a, const val& b) {
-    eval_result_t result = op_pow(a, b);
-    if (holds_alternative<string>(result))
-        throw runtime_error(get<string>(result));
-    return get<val>(result);
+    return unwrap(op_pow(a, b));
 }
 
 eval_result_t op_mod(val a, val b, const LuaToken& tok = {LuaToken::Type::MOD, ""});
@@ -109,90 +94,58 @@ eval_result_t op_postfix_eval(val a, const LuaToken& tok = {LuaToken::Type::EVAL
 
 eval_result_t op_lt(val a, val b);
 inline bool operator<(const val& a, const val& b) {
-    eval_result_t result = op_lt(a, b);
-    if (holds_alternative<string>(result))
-        throw runtime_error(get<string>(result));
-    return get<bool>(get<val>(result));
+    return get<bool>(unwrap(op_lt(a, b)));
 }
 
 eval_result_t op_leq(val a, val b);
 inline bool operator<=(const val& a, const val& b) {
-    eval_result_t result = op_leq(a, b);
-    if (holds_alternative<string>(result))
-        throw runtime_error(get<string>(result));
-    return get<bool>(get<val>(result));
+    return get<bool>(unwrap(op_leq(a, b)));
 }
 
 eval_result_t op_gt(val a, val b);
 inline bool operator>(const val& a, const val& b) {
-    eval_result_t result = op_gt(a, b);
-    if (holds_alternative<string>(result))
-        throw runtime_error(get<string>(result));
-    return get<bool>(get<val>(result));
+    return get<bool>(unwrap(op_gt(a, b)));
 }
 
 eval_result_t op_geq(val a, val b);
 inline bool operator>=(const val& a, const val& b) {
-    eval_result_t result = op_geq(a, b);
-    if (holds_alternative<string>(result))
-        throw runtime_error(get<string>(result));
-    return get<bool>(get<val>(result));
+    return get<bool>(unwrap(op_geq(a, b)));
 }
 
 eval_result_t op_eq(val a, val b);
 inline bool operator==(const val& a, const val& b) {
-    eval_result_t result = op_eq(a, b);
-    if (holds_alternative<string>(result))
-        throw runtime_error(get<string>(result));
-    return get<bool>(get<val>(result));
+    return get<bool>(unwrap(op_eq(a, b)));
 }
 
 eval_result_t op_neq(val a, val b);
 inline bool operator!=(const val& a, const val& b) {
-    eval_result_t result = op_neq(a, b);
-    if (holds_alternative<string>(result))
-        throw runtime_error(get<string>(result));
-    return get<bool>(get<val>(result));
+    return get<bool>(unwrap(op_neq(a, b)));
 }
 
 eval_result_t op_and(val a, val b);
 inline val operator&&(const val& a, const val& b) {
-    eval_result_t result = op_and(a, b);
-    if (holds_alternative<string>(result))
-        throw runtime_error(get<string>(result));
-    return get<val>(result);
+    return unwrap(op_and(a, b));
 }
 
 eval_result_t op_or(val a, val b);
 inline val operator||(const val& a, const val& b) {
-    eval_result_t result = op_or(a, b);
-    if (holds_alternative<string>(result))
-        throw runtime_error(get<string>(result));
-    return get<val>(result);
+    return unwrap(op_or(a, b));
 }
 
 eval_result_t op_len(val v);
 
 eval_result_t op_not(val v);
 inline bool operator!(const val& a) {
-    eval_result_t result = op_not(a);
-    if (holds_alternative<string>(result))
-        throw runtime_error(get<string>(result));
-    return get<bool>(get<val>(result));
+    return get<bool>(unwrap(op_not(a)));
 }
 
 eval_result_t op_neg(val v, const LuaToken& tok = {LuaToken::Type::SUB, ""});
 inline val operator-(const val& a) {
-    eval_result_t result = op_neg(a);
-    if (holds_alternative<string>(result))
-        throw runtime_error(get<string>(result));
-    return get<val>(result);
+    return unwrap(op_neg(a));
 }
 
 eval_result_t op_sqrt(val v);
 eval_result_t op_strip(val v);
-
-val unwrap(const eval_result_t& result);
 
 val fst(const val& v);
 vallist flatten(const vallist& list);

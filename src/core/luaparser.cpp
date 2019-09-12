@@ -715,7 +715,7 @@ auto LuaParser::parse_exp(token_it_t& begin, token_it_t& end) const -> parse_res
             // if the last operator was \, then we can parse it as postfix operator
             // otherwise, the right operand is missing
 
-            if (ops.back().type == LuaToken::Type::EVAL) {
+            if (!ops.empty() && ops.back().type == LuaToken::Type::EVAL) {
                 is_unop = true;
                 unop_token = ops.back();
                 ops.pop_back();
