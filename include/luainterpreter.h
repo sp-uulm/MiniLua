@@ -218,6 +218,34 @@ struct SourceAssignment : SourceChange {
     virtual vector<LuaToken> apply(vector<LuaToken>&) const override;
 };
 
+inline source_change_t operator| (const source_change_t& lhs, const source_change_t& rhs) {
+    if (lhs && rhs) {
+        auto sc_or = make_shared<SourceChangeOr>();
+        sc_or->alternatives = {*lhs, *rhs};
+        return move(sc_or);
+    }
+
+    return lhs ? lhs : rhs;
+}
+
+inline source_change_t operator& (const source_change_t& lhs, const source_change_t& rhs) {
+    if (lhs && rhs) {
+        auto sc_and = make_shared<SourceChangeAnd>();
+        sc_and->changes = {*lhs, *rhs};
+        return move(sc_and);
+    }
+
+    return lhs ? lhs : rhs;
+}
+
+// adds a source change to an eval_result_t
+inline eval_result_t operator<< (const eval_result_t& lhs, const source_change_t& rhs) {
+    if (holds_alternative<string>(lhs))
+        return lhs;
+
+    return eval_success(get_val(lhs), get_sc(lhs) & rhs);
+}
+
 struct sourceexp : std::enable_shared_from_this<sourceexp> {
     virtual ~sourceexp();
     virtual source_change_t forceValue(const val& v) const = 0;
@@ -228,6 +256,12 @@ struct sourceexp : std::enable_shared_from_this<sourceexp> {
 struct sourceval : sourceexp {
     static shared_ptr<sourceval> create(const LuaToken& t) {
         auto ptr = make_shared<sourceval>();
+        ptr->location.push_back(t);
+        return ptr;
+    }
+
+    static shared_ptr<sourceval> create(const vector<LuaToken>& t) {
+        auto ptr = make_shared<sourceval>();
         ptr->location = t;
         return ptr;
     }
@@ -236,7 +270,7 @@ struct sourceval : sourceexp {
     eval_result_t reevaluate() override;
     bool isDirty() const override;
 
-    LuaToken location;
+    vector<LuaToken> location;
 };
 
 struct sourcebinop : sourceexp {

@@ -1011,6 +1011,7 @@ auto LuaParser::parse_tableconstructor(token_it_t& begin, token_it_t& end) const
     }
 
     LuaTableconstructor result = make_shared<_LuaTableconstructor>();
+    auto tableconst_begin = begin-1;
 
     if (begin->type != LuaToken::Type::RCB) {
         if (auto field = parse_field(begin, end); holds_alternative<LuaField>(field)) {
@@ -1038,7 +1039,11 @@ auto LuaParser::parse_tableconstructor(token_it_t& begin, token_it_t& end) const
         return "tableconstructor: '}' expected";
     }
 
-    return result;
+    // add all tokens
+    for (auto it = tableconst_begin; it != begin; ++it)
+        result->tokens.push_back(*it);
+
+    return move(result);
 }
 
 auto LuaParser::parse_field(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaField> {

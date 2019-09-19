@@ -13,6 +13,37 @@ ostream& operator<<(ostream& os, const LuaToken& token) {
 namespace lua {
 namespace rt {
 
+string val::literal() const {
+    return visit([](auto&& value) -> string{
+        using T = std::decay_t<decltype(value)>;
+        if constexpr (is_same_v<T, nil>) {
+            return "nil";
+        }
+        if constexpr (is_same_v<T, bool>) {
+            return (value ? "true" : "false");
+        }
+        if constexpr (is_same_v<T, double>) {
+            stringstream ss;
+            ss << value;
+            return ss.str();
+        }
+        if constexpr (is_same_v<T, string>) {
+            return "'" + value + "'";
+        }
+        if constexpr (is_same_v<T, shared_ptr<table>>) {
+            stringstream ss;
+            ss << "{";
+            for (auto [k,v] : *value) {
+                ss << "[" << k.literal() << "]=" << v.literal() << ",";
+            }
+            ss << "}";
+            return ss.str();
+        }
+        return "";
+    }, static_cast<const val::value_t&>(*this));
+//            + (source ? string("@") : "");
+}
+
 string val::to_string() const {
     return visit([](auto&& value) -> string{
         using T = std::decay_t<decltype(value)>;

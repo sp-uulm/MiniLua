@@ -99,6 +99,8 @@ struct val : _val_t {
     }
 
     string to_string() const;
+    string literal() const;
+
     string type() const {
         switch(index()) {
         case 0: return "nil";
@@ -392,6 +394,7 @@ struct _LuaTableconstructor : public _LuaExp {
     VISITABLE override;
 
     vector<LuaField> fields;
+    vector<LuaToken> tokens;
 };
 
 struct _LuaField : public _LuaAST {
