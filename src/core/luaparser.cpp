@@ -3,7 +3,7 @@
 const vector<pair<const regex, LuaToken::Type>> LuaParser::token_regexes {
     {regex{"--[^\n]*"}, {LuaToken::Type::COMMENT}},
     {regex{"(\"[^\"]*\")|('[^']*')"}, {LuaToken::Type::STRINGLIT}},
-    {regex{"(\\d+\\.?\\d*)|(\\d*\\.?\\d+)(e-?\\d+)?"}, {LuaToken::Type::NUMLIT}},
+    {regex{"((\\d+\\.?\\d*)|(\\d*\\.?\\d+))(e-?\\d+)?"}, {LuaToken::Type::NUMLIT}},
     {regex{"\\+"}, {LuaToken::Type::ADD}},
     {regex{"-"}, {LuaToken::Type::SUB}},
     {regex{"\\*"}, {LuaToken::Type::MUL}},
