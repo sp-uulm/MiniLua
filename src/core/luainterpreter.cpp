@@ -814,6 +814,8 @@ eval_result_t ASTEvaluator::visit(const _LuaIfStmt &stmt, const shared_ptr<Envir
     return eval_success(nil(), sc);
 }
 
+SourceChangeVisitor::~SourceChangeVisitor() {}
+
 SourceChange::~SourceChange() {}
 
 string SourceChangeOr::to_string() const {
@@ -840,30 +842,26 @@ string SourceChangeAnd::to_string() const {
     return ss.str();
 }
 
-vector<LuaToken> SourceChangeOr::apply(vector<LuaToken>& tokens) const {
-    if (!alternatives.empty())
-        return alternatives[0]->apply(tokens);
-    return vector<LuaToken>();
+void ApplySCVisitor::visit(const SourceChangeOr& sc_or) {
+    if (!sc_or.alternatives.empty())
+        sc_or.alternatives[0]->accept(*this);
 }
 
-vector<LuaToken> SourceChangeAnd::apply(vector<LuaToken>& tokens) const {
-    vector<LuaToken> result;
-    for (const auto& c : changes) {
-        auto modifications = c->apply(tokens);
-        move(modifications.begin(), modifications.end(), back_inserter(result));
+void ApplySCVisitor::visit(const SourceChangeAnd& sc_and) {
+    for (const auto& c : sc_and.changes) {
+        c->accept(*this);
     }
-    return result;
 }
 
-vector<LuaToken> SourceAssignment::apply(vector<LuaToken>& tokens) const {
-    vector<LuaToken> result;
+void ApplySCVisitor::visit(const SourceAssignment& sc_ass) {
     for (auto& t : tokens)
-        if (t.pos == token.pos && t.length == token.length) {
-            t.match = replacement;
-            result.push_back(token);
-            result.back().length = static_cast<long>(replacement.length());
+        if (t.pos == sc_ass.token.pos && t.length == sc_ass.token.length) {
+            t.match = sc_ass.replacement;
+            t.length = static_cast<long>(sc_ass.replacement.length());
+            return;
         }
-    return result;
+
+    throw runtime_error("Could not apply source change " + sc_ass.to_string());
 }
 
 sourceexp::~sourceexp() {}

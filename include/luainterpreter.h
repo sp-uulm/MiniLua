@@ -181,24 +181,56 @@ struct ASTEvaluator {
     eval_result_t visit(const _LuaIfStmt& stmt, const shared_ptr<Environment>& env, const assign_t& assign) const;
 };
 
+struct SourceChangeVisitor {
+    virtual ~SourceChangeVisitor();
+
+    virtual void visit(const struct SourceChangeOr& sc) = 0;
+    virtual void visit(const struct SourceChangeAnd& sc) = 0;
+    virtual void visit(const struct SourceAssignment& sc) = 0;
+};
+
+struct ApplySCVisitor : public SourceChangeVisitor {
+    ApplySCVisitor(const vector<LuaToken>& tokens) : tokens {tokens} {}
+
+    void visit(const SourceChangeOr& sc) override;
+    void visit(const SourceChangeAnd& sc) override;
+    void visit(const SourceAssignment& sc) override;
+
+    vector<LuaToken> tokens;
+};
+
 struct SourceChange {
     virtual ~SourceChange();
     virtual string to_string() const = 0;
-    virtual vector<LuaToken> apply(vector<LuaToken>&) const = 0;
+
+    vector<LuaToken> apply(const vector<LuaToken>& tokens) {
+        ApplySCVisitor vis(tokens);
+        accept(vis);
+
+        return vis.tokens;
+    }
+
+    virtual void accept(SourceChangeVisitor& v) const = 0;
 };
 
 struct SourceChangeOr : SourceChange {
     vector<shared_ptr<SourceChange>> alternatives;
 
     virtual string to_string() const override;
-    virtual vector<LuaToken> apply(vector<LuaToken>&) const override;
+
+    virtual void accept(SourceChangeVisitor& v) const override {
+        v.visit(*this);
+    }
 };
 
 struct SourceChangeAnd : SourceChange {
     vector<shared_ptr<SourceChange>> changes;
 
     virtual string to_string() const override;
-    virtual vector<LuaToken> apply(vector<LuaToken>&) const override;
+
+    virtual void accept(SourceChangeVisitor& v) const override {
+        v.visit(*this);
+    }
 };
 
 struct SourceAssignment : SourceChange {
@@ -215,7 +247,10 @@ struct SourceAssignment : SourceChange {
     virtual string to_string() const override {
         return token.to_string() + " -> " + replacement;
     }
-    virtual vector<LuaToken> apply(vector<LuaToken>&) const override;
+
+    virtual void accept(SourceChangeVisitor& v) const override {
+        v.visit(*this);
+    }
 };
 
 inline source_change_t operator| (const source_change_t& lhs, const source_change_t& rhs) {
