@@ -190,13 +190,13 @@ struct SourceChangeVisitor {
 };
 
 struct ApplySCVisitor : public SourceChangeVisitor {
-    ApplySCVisitor(const vector<LuaToken>& tokens) : tokens {tokens} {}
-
     void visit(const SourceChangeOr& sc) override;
     void visit(const SourceChangeAnd& sc) override;
     void visit(const SourceAssignment& sc) override;
 
-    vector<LuaToken> tokens;
+    vector<LuaToken> apply_changes(const vector<LuaToken>& tokens);
+
+    std::vector<SourceAssignment> changes;
 };
 
 struct SourceChange {
@@ -204,10 +204,10 @@ struct SourceChange {
     virtual string to_string() const = 0;
 
     vector<LuaToken> apply(const vector<LuaToken>& tokens) {
-        ApplySCVisitor vis(tokens);
+        ApplySCVisitor vis;
         accept(vis);
 
-        return vis.tokens;
+        return vis.apply_changes(tokens);
     }
 
     virtual void accept(SourceChangeVisitor& v) const = 0;

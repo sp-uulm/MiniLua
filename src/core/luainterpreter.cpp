@@ -153,7 +153,7 @@ eval_result_t op_or(val a, val b) {
 
 eval_result_t op_len(val v) {
     if (!v.istable()) {
-        return string{"unary # can only be applied to a table"};
+        return string{"unary # can only be applied to a table (is " + v.type() + ")"};
     }
 
     table& t = *get<table_p>(v);
@@ -285,6 +285,14 @@ void Environment::populate_stdlib() {
         }
         cout << endl;
         return {};
+    });
+
+    t["type"] = make_shared<cfunction>([](const vallist& args) -> cfunction::result {
+        if (args.size() != 1) {
+            return vallist{nil(), string {"type: one argument expected"}};
+        }
+
+        return {val(args[0].type())};
     });
 
     auto math = make_shared<table>();
@@ -567,7 +575,7 @@ eval_result_t ASTEvaluator::visit(const _LuaNameVar& var, const shared_ptr<Envir
 eval_result_t ASTEvaluator::visit(const _LuaIndexVar& var, const shared_ptr<Environment>& env, const assign_t& assign) const {
 //    cout << "visit indexvar" << endl;
 
-    EVAL(index, var.index, env);
+    EVALR(index, var.index, env);
     EVALR(table, var.table, env);
 
     table = fst(table);
@@ -854,14 +862,31 @@ void ApplySCVisitor::visit(const SourceChangeAnd& sc_and) {
 }
 
 void ApplySCVisitor::visit(const SourceAssignment& sc_ass) {
-    for (auto& t : tokens)
-        if (t.pos == sc_ass.token.pos && t.length == sc_ass.token.length) {
-            t.match = sc_ass.replacement;
-            t.length = static_cast<long>(sc_ass.replacement.length());
-            return;
-        }
+    changes.push_back(sc_ass);
+}
 
-    throw runtime_error("Could not apply source change " + sc_ass.to_string());
+vector<LuaToken> ApplySCVisitor::apply_changes(const vector<LuaToken>& tokens) {
+    auto new_tokens = tokens;
+
+    // sort the collected changes according to their position
+    std::sort(changes.begin(), changes.end(), [](const auto& a, const auto& b){
+        return a.token.pos > b.token.pos;
+    });
+
+    // apply the changes from back to front
+    for (const auto& sc : changes) {
+        for (auto& t : new_tokens) {
+            if (t.pos == sc.token.pos) {
+                t.match = sc.replacement;
+                t.length = static_cast<long>(sc.replacement.length());
+            }
+        }
+    }
+
+    // delete list of changes
+    changes.clear();
+
+    return new_tokens;
 }
 
 sourceexp::~sourceexp() {}

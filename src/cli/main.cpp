@@ -27,7 +27,36 @@ auto main(int argc, char *argv[]) -> int {
 //    string program = "a = {} a.foo = 5 print(a.foo)";
 //    string program = "a=2 if true then local a=3 print(a) end print(a)";
 //    string program = "local function test() local i = 0 return function() while true do if i == 5 then break end i=i+1 end return i, 2 end end b=test() i=\"a\" print(i, b())";
-string program = "a = 3 print(_G._G._G._G._G.a)";
+//    string program = "a = 3 print(_G._G._G._G._G.a)";
+//    string program = "a = 3\\";
+/*string program = R"-(
+                 function f(x)
+                    return math.sin(x)
+                 end
+
+                 a = {}
+                 for i=1, 10, 1 do
+                    print(type(a), #a);
+                    a[#a + 1] = f(i)\;
+                 end
+                 )-";*/
+
+/*string program = R"-(
+    print('hello world')
+
+    a = {1,2,3,[5] = 5}
+
+    a[4] = "foo"
+
+    print(#a)
+    )-";*/
+
+string program = R"-(
+    a, b = {}, {}
+    print(type(a), #a)
+    a[#b] = {1,2}
+    print(#a[0])
+    )-";
 
     LuaParser parser;
     const auto result = parser.parse(program);
@@ -43,6 +72,11 @@ string program = "a = 3 print(_G._G._G._G._G.a)";
 
         if (auto eval_result = ast->accept(eval, env); holds_alternative<string>(eval_result)) {
             cerr << "Error: " << get<string>(eval_result) << endl;
+        } else {
+            if (auto sc = get_sc(eval_result)) {
+                cout << "Source changes: " << (*sc)->to_string() << endl;
+                cout << "New program: " << get_string((*sc)->apply(parser.tokens)) << endl;
+            }
         }
 
         env->clear();
