@@ -61,13 +61,23 @@ LuaParser::LuaParser() {
 }
 
 auto LuaParser::parse(const string program) -> parse_result_t<LuaChunk> {
+    auto tokenize_start = chrono::steady_clock::now();
     tokens = tokenize(begin(program), end(program));
+    auto tokenize_end = chrono::steady_clock::now();
 //    for (const auto& token : tokens)
 //        cout << token << endl;
 
     token_it_t begin_tok = tokens.cbegin();
     token_it_t end_tok = tokens.cend()-1; //end_token is not part of the program
-    return parse_chunk(begin_tok, end_tok);
+    auto parse_result = parse_chunk(begin_tok, end_tok);
+
+    auto parse_end = chrono::steady_clock::now();
+
+    cerr << "Parse time [µs]" << endl
+         << " - Tokenize: " << chrono::duration_cast<chrono::microseconds>(tokenize_end - tokenize_start).count() << endl
+         << " - Parse: " << chrono::duration_cast<chrono::microseconds>(parse_end - tokenize_end).count() << endl;
+
+    return parse_result;
 }
 
 auto LuaParser::tokenize(string::const_iterator begin, string::const_iterator end) -> token_list_t {
@@ -118,7 +128,7 @@ regex_matched:
 }
 
 auto LuaParser::parse_chunk(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaChunk> {
-    cout << "chunk" << endl;
+    //cout << "chunk" << endl;
     // chunk ::= {stat [`;´]} [laststat [`;´]]
 
     LuaChunk result = make_shared<_LuaChunk>();
@@ -157,12 +167,12 @@ auto LuaParser::parse_chunk(token_it_t& begin, token_it_t& end) const -> parse_r
 }
 
 auto LuaParser::parse_block(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaChunk> {
-    cout << "block" << endl;
+    //cout << "block" << endl;
     return parse_chunk(begin, end);
 }
 
 auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaStmt> {
-    cout << "stat" << endl;
+    //cout << "stat" << endl;
     /* stat ::=     varlist `=´ explist |
                     functioncall |
                     do block end |
@@ -467,7 +477,7 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
 }
 
 auto LuaParser::parse_laststat(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaStmt> {
-    cout << "laststat" << endl;
+    //cout << "laststat" << endl;
     // laststat ::= return [explist] | break
 
     if (begin == end)
@@ -496,7 +506,7 @@ auto LuaParser::parse_laststat(token_it_t& begin, token_it_t& end) const -> pars
 }
 
 auto LuaParser::parse_varlist(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaExplist> {
-    cout << "varlist" << endl;
+    //cout << "varlist" << endl;
     // varlist ::= var {`,´ var}
 
     LuaExplist varlist = make_shared<_LuaExplist>();
@@ -520,7 +530,7 @@ auto LuaParser::parse_varlist(token_it_t& begin, token_it_t& end) const -> parse
 }
 
 auto LuaParser::parse_var(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaVar> {
-    cout << "var" << endl;
+    //cout << "var" << endl;
     // var ::=  Name | prefixexp `[´ exp `]´ | prefixexp `.´ Name
 
     if (begin->type == LuaToken::Type::NAME) {
@@ -569,7 +579,7 @@ auto LuaParser::parse_var(token_it_t& begin, token_it_t& end) const -> parse_res
 }
 
 auto LuaParser::parse_namelist(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaExplist> {
-    cout << "namelist" << endl;
+    //cout << "namelist" << endl;
     // namelist ::= Name {`,´ Name}
 
     LuaExplist namelist = make_shared<_LuaExplist>();
@@ -588,7 +598,7 @@ auto LuaParser::parse_namelist(token_it_t& begin, token_it_t& end) const -> pars
 }
 
 auto LuaParser::parse_explist(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaExplist> {
-    cout << "explist" << endl;
+    //cout << "explist" << endl;
     // explist ::= {exp `,´} exp
 
     LuaExplist explist = make_shared<_LuaExplist>();
@@ -658,7 +668,7 @@ LuaExp resolve_precedence(vector<LuaExp>& exps, vector<LuaToken>& ops) {
 }
 
 auto LuaParser::parse_exp(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaExp> {
-    cout << "exp" << endl;
+    //cout << "exp" << endl;
     // exp ::=  nil | false | true | Number | String | `...´ | function |
     //          prefixexp | tableconstructor | exp binop exp | unop exp
 
@@ -759,7 +769,7 @@ auto LuaParser::parse_exp(token_it_t& begin, token_it_t& end) const -> parse_res
 }
 
 auto LuaParser::parse_prefixexp(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaExp> {
-    cout << "prefixexp " << *begin << endl;
+    //cout << "prefixexp " << *begin << endl;
     // prefixexp ::= var | functioncall | `(´ exp `)´
 
     LuaExp result;
@@ -794,7 +804,7 @@ auto LuaParser::parse_prefixexp(token_it_t& begin, token_it_t& end) const -> par
            begin->type == LuaToken::Type::LSB || begin->type == LuaToken::Type::DOT)) {
 
         if (begin->type == LuaToken::Type::LSB) {
-            cout << "idx" << endl;
+            //cout << "idx" << endl;
             LuaIndexVar var = make_shared<_LuaIndexVar>();
             var->table = result;
 
@@ -836,7 +846,7 @@ auto LuaParser::parse_prefixexp(token_it_t& begin, token_it_t& end) const -> par
 }
 
 auto LuaParser::parse_functioncall(token_it_t& begin, token_it_t& end, const LuaExp& prefixexp) const -> parse_result_t<LuaFunctioncall> {
-    cout << "functioncall" << endl;
+    //cout << "functioncall" << endl;
     // functioncall ::=  prefixexp args | prefixexp `:´ Name args
     LuaFunctioncall call = make_shared<_LuaFunctioncall>();
 
@@ -867,7 +877,7 @@ auto LuaParser::parse_functioncall(token_it_t& begin, token_it_t& end, const Lua
 }
 
 auto LuaParser::parse_args(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaExplist> {
-    cout << "args" << endl;
+    //cout << "args" << endl;
     // args ::=  `(´ [explist] `)´ | tableconstructor | String
 
     if (begin == end)
@@ -913,7 +923,7 @@ auto LuaParser::parse_args(token_it_t& begin, token_it_t& end) const -> parse_re
 }
 
 auto LuaParser::parse_function(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaFunction> {
-    cout << "function" << endl;
+    //cout << "function" << endl;
     // function ::= function funcbody
 
     if (begin == end)
@@ -927,7 +937,7 @@ auto LuaParser::parse_function(token_it_t& begin, token_it_t& end) const -> pars
 }
 
 auto LuaParser::parse_funcbody(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaFunction> {
-    cout << "funcbody" << endl;
+    //cout << "funcbody" << endl;
     // funcbody ::= `(´ [parlist] `)´ block end
 
     if (begin == end)
@@ -967,7 +977,7 @@ auto LuaParser::parse_funcbody(token_it_t& begin, token_it_t& end) const -> pars
 }
 
 auto LuaParser::parse_parlist(token_it_t &begin, token_it_t &end) const -> parse_result_t<LuaExplist> {
-    cout << "parlist" << endl;
+    //cout << "parlist" << endl;
     // parlist ::= namelist [`,´ `...´] | `...´
 
     if (begin == end)
@@ -999,7 +1009,7 @@ auto LuaParser::parse_parlist(token_it_t &begin, token_it_t &end) const -> parse
 }
 
 auto LuaParser::parse_tableconstructor(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaTableconstructor> {
-    cout << "tableconstructor" << endl;
+    //cout << "tableconstructor" << endl;
     // tableconstructor ::= `{´ [fieldlist] `}´
     // fieldlist ::= field {fieldsep field} [fieldsep]
 
@@ -1047,7 +1057,7 @@ auto LuaParser::parse_tableconstructor(token_it_t& begin, token_it_t& end) const
 }
 
 auto LuaParser::parse_field(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaField> {
-    cout << "field" << endl;
+    //cout << "field" << endl;
     // field ::= `[´ exp `]´ `=´ exp | Name `=´ exp | exp
 
     if (begin == end)
@@ -1090,7 +1100,7 @@ auto LuaParser::parse_field(token_it_t& begin, token_it_t& end) const -> parse_r
 }
 
 auto LuaParser::parse_funcname(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaVar> {
-    cout << "funcname" << endl;
+    //cout << "funcname" << endl;
     // var ::=  funcname ::= Name {`.´ Name} [`:´ Name]
 
     if (begin->type == LuaToken::Type::NAME) {

@@ -1,5 +1,6 @@
 #include "luaparser.h"
 #include "luainterpreter.h"
+#include <chrono>
 
 using namespace std;
 
@@ -35,11 +36,33 @@ auto main(int argc, char *argv[]) -> int {
                  end
 
                  a = {}
-                 for i=1, 10, 1 do
-                    print(type(a), #a);
+                 for i=1, 20, 1 do
                     a[#a + 1] = f(i)\;
                  end
                  )-";*/
+
+string program = R"-(
+                 _G.print(0,0,0)
+                 _G.print(0,0,0)
+                 _G.print(0,0,0)
+                 _G.print(0,0,0)
+                 _G.print(0,0,0)
+                 _G.print(0,0,0)
+                 _G.print(0,0,0)
+                 _G.print(0,0,0)
+                 _G.print(0,0,0)
+                 _G.print(0,0,0)
+                 _G.print(0,0,0)
+                 _G.print(0,0,0)
+                 _G.print(0,0,0)
+                 _G.print(0,0,0)
+                 _G.print(0,0,0)
+                 _G.print(0,0,0)
+                 _G.print(0,0,0)
+                 _G.print(0,0,0)
+                 _G.print(0,0,0)
+                 _G.print(0,0,0)
+                 )-";
 
 /*string program = R"-(
     print('hello world')
@@ -51,31 +74,38 @@ auto main(int argc, char *argv[]) -> int {
     print(#a)
     )-";*/
 
-string program = R"-(
-    a, b = {}, {}
-    print(type(a), #a)
-    a[#b] = {1,2}
-    print(#a[0])
-    )-";
-
+    auto parse_start = std::chrono::steady_clock::now();
     LuaParser parser;
     const auto result = parser.parse(program);
+    auto parse_end = std::chrono::steady_clock::now();
 
     if (holds_alternative<string>(result)) {
         cerr << "Error: " << get<string>(result) << endl;
     } else {
+        auto eval_start = std::chrono::steady_clock::now();
         auto ast = get<LuaChunk>(result);
         auto env = make_shared<lua::rt::Environment>(nullptr);
         lua::rt::ASTEvaluator eval;
 
         env->populate_stdlib();
+        auto stdlib_end = std::chrono::steady_clock::now();
 
         if (auto eval_result = ast->accept(eval, env); holds_alternative<string>(eval_result)) {
             cerr << "Error: " << get<string>(eval_result) << endl;
         } else {
+            auto eval_end = std::chrono::steady_clock::now();
             if (auto sc = get_sc(eval_result)) {
+                auto new_program = get_string((*sc)->apply(parser.tokens));
+                auto apply_end = std::chrono::steady_clock::now();
+
                 cout << "Source changes: " << (*sc)->to_string() << endl;
-                cout << "New program: " << get_string((*sc)->apply(parser.tokens)) << endl;
+                cout << "New program: " << new_program << endl;
+
+                cout << "Parse [µs]: " << std::chrono::duration_cast<std::chrono::microseconds>(parse_end - parse_start).count() << endl;
+                cout << "Execute [µs]: " << std::chrono::duration_cast<std::chrono::microseconds>(eval_end - eval_start).count() << endl;
+                cout << "Apply SC [µs]: " << std::chrono::duration_cast<std::chrono::microseconds>(apply_end - eval_end).count() << endl;
+
+                cout << "Total time [µs]: " << std::chrono::duration_cast<std::chrono::microseconds>(apply_end - parse_start).count() << endl;
             }
         }
 

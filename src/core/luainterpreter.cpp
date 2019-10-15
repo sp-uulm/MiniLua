@@ -60,7 +60,7 @@ eval_result_t op_concat(lua::rt::val a, lua::rt::val b) {
 }
 
 eval_result_t op_eval(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {
-    cout << a.literal() << "\\" << b.literal() << endl;
+    //cout << a.literal() << "\\" << b.literal() << endl;
 
     val result = a;
     result.source = sourcebinop::create(a, b, tok);
@@ -83,7 +83,7 @@ eval_result_t op_eval(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {
 }
 
 eval_result_t op_postfix_eval(val a, const LuaToken& tok) {
-    cout << a.literal() << "\\" << endl;
+    //cout << a.literal() << "\\" << endl;
 
     val result = a;
     result.source = sourceunop::create(a, tok);
