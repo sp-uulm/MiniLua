@@ -14,6 +14,7 @@ auto main(int argc, char *argv[]) -> int {
 //    string program = "mult = function(a, b) return a*b end print(mult(2, 3))";
 //    string program = "function test() for i=1, 10 do return i, 2 end end print(test())";
 //    string program = "function test() for i=1, 10 do if i == 5 then return i end end end print(test())";
+    string program = "if a then print('fail') else print('pass') end ";
 //    string program = "for i=1, 5 do print(i) if i==2 then break end end";
 //    string program = "b = -1 while not (b > 5) do a=0 repeat a=a+1 if a ~= b then print(a, b) else break end until a == 10 b = b+1 end";
 //    string program = "force(2, 3)";
@@ -41,7 +42,7 @@ auto main(int argc, char *argv[]) -> int {
                  end
                  )-";*/
 
-string program = R"-(
+/*string program = R"-(
                  _G.print(0,0,0)
                  _G.print(0,0,0)
                  _G.print(0,0,0)
@@ -62,7 +63,7 @@ string program = R"-(
                  _G.print(0,0,0)
                  _G.print(0,0,0)
                  _G.print(0,0,0)
-                 )-";
+                 )-";*/
 
 /*string program = R"-(
     print('hello world')
@@ -76,8 +77,12 @@ string program = R"-(
 
     auto parse_start = std::chrono::steady_clock::now();
     LuaParser parser;
-    const auto result = parser.parse(program);
+    PerformanceStatistics ps;
+    const auto result = parser.parse(program, ps);
     auto parse_end = std::chrono::steady_clock::now();
+
+    for (const auto& tok : parser.tokens)
+        cout << tok << endl;
 
     if (holds_alternative<string>(result)) {
         cerr << "Error: " << get<string>(result) << endl;

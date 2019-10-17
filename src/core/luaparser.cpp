@@ -1,66 +1,10 @@
 #include "luaparser.h"
 
-const vector<pair<const regex, LuaToken::Type>> LuaParser::token_regexes {
-    {regex{"--[^\n]*"}, {LuaToken::Type::COMMENT}},
-    {regex{"(\"[^\"]*\")|('[^']*')"}, {LuaToken::Type::STRINGLIT}},
-    {regex{"((\\d+\\.?\\d*)|(\\d*\\.?\\d+))(e-?\\d+)?"}, {LuaToken::Type::NUMLIT}},
-    {regex{"\\+"}, {LuaToken::Type::ADD}},
-    {regex{"-"}, {LuaToken::Type::SUB}},
-    {regex{"\\*"}, {LuaToken::Type::MUL}},
-    {regex{"/"}, {LuaToken::Type::DIV}},
-    {regex{"%"}, {LuaToken::Type::MOD}},
-    {regex{"\\^"}, {LuaToken::Type::POW}},
-    {regex{"\\#"}, {LuaToken::Type::LEN}},
-    {regex{"\\$"}, {LuaToken::Type::STRIP}},
-    {regex{"\\\\"}, {LuaToken::Type::EVAL}},
-    {regex{"=="}, {LuaToken::Type::EQ}},
-    {regex{"~="}, {LuaToken::Type::NEQ}},
-    {regex{"<="}, {LuaToken::Type::LEQ}},
-    {regex{">="}, {LuaToken::Type::GEQ}},
-    {regex{"<"}, {LuaToken::Type::LT}},
-    {regex{">"}, {LuaToken::Type::GT}},
-    {regex{"="}, {LuaToken::Type::ASSIGN}},
-    {regex{"\\{"}, {LuaToken::Type::LCB}},
-    {regex{"\\}"}, {LuaToken::Type::RCB}},
-    {regex{"\\("}, {LuaToken::Type::LRB}},
-    {regex{"\\)"}, {LuaToken::Type::RRB}},
-    {regex{"\\["}, {LuaToken::Type::LSB}},
-    {regex{"\\]"}, {LuaToken::Type::RSB}},
-    {regex{";"}, {LuaToken::Type::SEM}},
-    {regex{":"}, {LuaToken::Type::COLON}},
-    {regex{","}, {LuaToken::Type::COMMA}},
-    {regex{"\\.\\.\\."}, {LuaToken::Type::ELLIPSE}},
-    {regex{"\\.\\."}, {LuaToken::Type::CONCAT}},
-    {regex{"\\."}, {LuaToken::Type::DOT}},
-    {regex{"and\\b"}, {LuaToken::Type::AND}},
-    {regex{"break\\b"}, {LuaToken::Type::BREAK}},
-    {regex{"do\\b"}, {LuaToken::Type::DO}},
-    {regex{"elseif\\b"}, {LuaToken::Type::ELSEIF}},
-    {regex{"else\\b"}, {LuaToken::Type::ELSE}},
-    {regex{"end\\b"}, {LuaToken::Type::END}},
-    {regex{"false\\b"}, {LuaToken::Type::FALSE}},
-    {regex{"for\\b"}, {LuaToken::Type::FOR}},
-    {regex{"function\\b"}, {LuaToken::Type::FUNCTION}},
-    {regex{"if\\b"}, {LuaToken::Type::IF}},
-    {regex{"in\\b"}, {LuaToken::Type::IN}},
-    {regex{"local\\b"}, {LuaToken::Type::LOCAL}},
-    {regex{"nil\\b"}, {LuaToken::Type::NIL}},
-    {regex{"not\\b"}, {LuaToken::Type::NOT}},
-    {regex{"or\\b"}, {LuaToken::Type::OR}},
-    {regex{"repeat\\b"}, {LuaToken::Type::REPEAT}},
-    {regex{"return\\b"}, {LuaToken::Type::RETURN}},
-    {regex{"then\\b"}, {LuaToken::Type::THEN}},
-    {regex{"true\\b"}, {LuaToken::Type::TRUE}},
-    {regex{"until\\b"}, {LuaToken::Type::UNTIL}},
-    {regex{"while\\b"}, {LuaToken::Type::WHILE}},
-    {regex{"[a-zA-Z_]\\w*"}, {LuaToken::Type::NAME}},
-};
-
 LuaParser::LuaParser() {
 
 }
 
-auto LuaParser::parse(const string program) -> parse_result_t<LuaChunk> {
+auto LuaParser::parse(const string program, PerformanceStatistics& ps) -> parse_result_t<LuaChunk> {
     auto tokenize_start = chrono::steady_clock::now();
     tokens = tokenize(begin(program), end(program));
     auto tokenize_end = chrono::steady_clock::now();
@@ -73,58 +17,38 @@ auto LuaParser::parse(const string program) -> parse_result_t<LuaChunk> {
 
     auto parse_end = chrono::steady_clock::now();
 
-    cerr << "Parse time [µs]" << endl
-         << " - Tokenize: " << chrono::duration_cast<chrono::microseconds>(tokenize_end - tokenize_start).count() << endl
-         << " - Parse: " << chrono::duration_cast<chrono::microseconds>(parse_end - tokenize_end).count() << endl;
+    ps.tokenize = chrono::duration_cast<chrono::microseconds>(tokenize_end - tokenize_start);
+    ps.parse = chrono::duration_cast<chrono::microseconds>(parse_end - tokenize_end);
 
     return parse_result;
 }
 
-auto LuaParser::tokenize(string::const_iterator begin, string::const_iterator end) -> token_list_t {
-    auto current = begin;
-    token_list_t result;
-    string last_ws;
+auto LuaParser::tokenize(string::const_iterator first, string::const_iterator last) -> token_list_t {
+    string ws = "";
 
-    regex whitespace {"\\s*"};
-    if (current != end) {
-        // skip whitespace
-        smatch mr;
-        if (regex_search(current, end, mr, whitespace, regex_constants::match_continuous)) {
-            current += mr.length();
-            last_ws = mr.str();
+    token_list_t result_tokens;
+    bool tokenize_result = bs::lex::tokenize(first, last, lua_lexer, [&, start = first](const auto& token) {
+        if (token.id() == WS) {
+            ws = string(token.value().begin(), token.value().end());
+            return true;
         }
+
+        string match = string(token.value().begin(), token.value().end());
+        long pos = token.value().begin() - start;
+        long length = static_cast<long>(match.size());
+        result_tokens.push_back(LuaToken{static_cast<LuaToken::Type>(token.id()), match, pos, length, ws});
+        ws = "";
+        return true;
+    });
+
+    if (!tokenize_result) {
+        cerr << "tokenizing failed" << endl;
     }
 
-    while (current != end) {
-        // match all regexes
-        for (const auto& p : token_regexes) {
-            smatch mr;
-            if (regex_search(current, end, mr, p.first, regex_constants::match_continuous)) {
-                result.push_back(LuaToken{p.second, mr.str(), mr.position() + current - begin, mr.length(), last_ws});
-                current += mr.length();
-                goto regex_matched;
-            }
-        }
+    LuaToken end_token {LuaToken::Type::NONE, "", -1, 0, ws};
+    result_tokens.push_back(end_token);
 
-        // if no regex matched insert none token and skip char
-        result.push_back(LuaToken{LuaToken::Type::NONE, string{current, current+1}, 0, 1, last_ws});
-        last_ws = "";
-        current++;
-
-regex_matched:
-        // skip whitespace
-        smatch mr;
-        if (regex_search(current, end, mr, whitespace, regex_constants::match_continuous)) {
-            current += mr.length();
-            last_ws = mr.str();
-        }
-    }
-
-    LuaToken end_token {LuaToken::Type::NONE, ""};
-    end_token.ws = last_ws;
-    result.push_back(end_token);
-
-    return result;
+    return result_tokens;
 }
 
 auto LuaParser::parse_chunk(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaChunk> {

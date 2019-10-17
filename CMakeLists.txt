@@ -8,6 +8,7 @@ aux_source_directory(src/gui GUI_SRC_LIST)
 aux_source_directory(src/cli CLI_SRC_LIST)
 
 find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
+find_package(Boost REQUIRED)
 
 #set(CMAKE_AUTOMOC ON)
 

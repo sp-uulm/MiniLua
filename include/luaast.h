@@ -12,7 +12,7 @@
 using namespace std;
 
 struct LuaToken {
-    enum class Type {
+    enum Type {
         NONE,
         ADD, SUB, MUL, DIV, MOD, POW, LEN, STRIP, EVAL, //+, -, *, /, %, ^, #, $, "\"
         EQ, NEQ, LEQ, GEQ, LT, GT, ASSIGN, //==, ~=, <=, >=, <, >, =

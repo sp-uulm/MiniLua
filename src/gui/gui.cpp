@@ -110,7 +110,8 @@ void DrawWidget::highlightSourceChanges(QPlainTextEdit *editor) {
 
 void DrawWidget::onTextChanged() {
     LuaParser parser;
-    const auto result = parser.parse(editor->toPlainText().toStdString());
+    PerformanceStatistics ps;
+    const auto result = parser.parse(editor->toPlainText().toStdString(), ps);
 
     if (holds_alternative<string>(result)) {
         cerr << "Error: " << get<string>(result) << endl;
