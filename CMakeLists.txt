@@ -24,7 +24,10 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 qt5_wrap_cpp(gui_SRC include/gui.h)
 add_executable(${PROJECT_NAME}-gui ${GUI_SRC_LIST} ${gui_SRC})
-#target_include_directories(${PROJECT_NAME} PUBLIC include)
+
+target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+                                                  "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>")
+
 target_link_libraries(${PROJECT_NAME}-gui ${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME}-gui Qt5::Widgets Qt5::Core)
 
@@ -32,7 +35,11 @@ add_executable(${PROJECT_NAME}-cli ${CLI_SRC_LIST})
 target_link_libraries(${PROJECT_NAME}-cli ${PROJECT_NAME})
 
 install(TARGETS ${PROJECT_NAME}
+        EXPORT ${PROJECT_NAME}
         LIBRARY DESTINATION lib
         PUBLIC_HEADER DESTINATION include)
 install(TARGETS ${PROJECT_NAME}-gui ${PROJECT_NAME}-cli RUNTIME DESTINATION bin)
+install(EXPORT ${PROJECT_NAME}
+        FILE ${PROJECT_NAME}Config.cmake        
+        DESTINATION lib/cmake/${PROJECT_NAME})
 
