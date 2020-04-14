@@ -135,7 +135,7 @@ struct val : _val_t {
         return index() == 0;
     }
 
-    double def_number(double def = 0.0) {
+    double def_number(double def = 0.0) const {
         if (isnumber())
             return get<double>(*this);
         return def;
