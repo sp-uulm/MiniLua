@@ -460,6 +460,19 @@ void Environment::populate_stdlib() {
                     return (y.source && y.source->isDirty()) || (x.source && x.source->isDirty());
                 }
 
+                vector<LuaToken> get_all_tokens() const override {
+                    vector<LuaToken> result;
+                    if (y.source) {
+                        auto lhs_tokens = y.source->get_all_tokens();
+                        result.insert(end(result), begin(lhs_tokens), end(lhs_tokens));
+                    }
+                    if (x.source) {
+                        auto rhs_tokens = x.source->get_all_tokens();
+                        result.insert(end(result), begin(rhs_tokens), end(rhs_tokens));
+                    }
+                    return result;
+                }
+
                 val y, x;
             };
 
@@ -508,6 +521,12 @@ void Environment::populate_stdlib() {
 
                 bool isDirty() const override {
                     return v.source && v.source->isDirty();
+                }
+
+                vector<LuaToken> get_all_tokens() const override {
+                    if (v.source)
+                        return v.source->get_all_tokens();
+                    return {};
                 }
 
                 val v;
