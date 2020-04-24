@@ -206,6 +206,12 @@ eval_result_t op_sqrt(val v) {
                 return v.source && v.source->isDirty();
             }
 
+            vector<LuaToken> get_all_tokens() const override {
+                if (v.source)
+                    return v.source->get_all_tokens();
+                return {};
+            }
+
             val v;
         };
 
@@ -325,6 +331,12 @@ void Environment::populate_stdlib() {
                     return v.source && v.source->isDirty();
                 }
 
+                vector<LuaToken> get_all_tokens() const override {
+                    if (v.source)
+                        return v.source->get_all_tokens();
+                    return {};
+                }
+
                 val v;
             };
 
@@ -362,6 +374,12 @@ void Environment::populate_stdlib() {
                     return v.source && v.source->isDirty();
                 }
 
+                vector<LuaToken> get_all_tokens() const override {
+                    if (v.source)
+                        return v.source->get_all_tokens();
+                    return {};
+                }
+
                 val v;
             };
 
@@ -397,6 +415,12 @@ void Environment::populate_stdlib() {
 
                 bool isDirty() const override {
                     return v.source && v.source->isDirty();
+                }
+
+                vector<LuaToken> get_all_tokens() const override {
+                    if (v.source)
+                        return v.source->get_all_tokens();
+                    return {};
                 }
 
                 val v;
