@@ -432,6 +432,95 @@ void Environment::populate_stdlib() {
         return {result};
     });
 
+    (*math)["atan2"] = make_shared<cfunction>([](const vallist& args) -> cfunction::result {
+        if (args.size() != 2 || !args[0].isnumber() || !args[1].isnumber()) {
+            return vallist{nil(), string {"atan2: two number arguments expected"}};
+        }
+
+        val result = atan2(get<double>(args[0]), get<double>(args[1]));
+        if (args[0].source || args[1].source) {
+            struct atan2_exp : sourceexp {
+                atan2_exp(const val& y, const val& x) : y(y), x(x) {}
+
+                optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override{
+                    if (newval.isnumber())
+                        if (double result = tan(get<double>(newval)); isfinite(result))
+                            return (y/x).forceValue(result);
+                    return nullopt;
+                }
+
+                eval_result_t reevaluate() override {
+                    if (holds_alternative<double>(y) && holds_alternative<double>(x)) {
+                        return eval_success(atan2(get<double>(y.reevaluate()), get<double>(x.reevaluate())));
+                    }
+                    return string{"atan2 can only be applied to numbers"};
+                }
+
+                bool isDirty() const override {
+                    return (y.source && y.source->isDirty()) || (x.source && x.source->isDirty());
+                }
+
+                val y, x;
+            };
+
+            result.source = std::make_shared<atan2_exp>(args[0], args[1]);
+        }
+
+        return {result};
+    });
+
+    (*math)["sqrt"] = make_shared<cfunction>([](const vallist& args) -> cfunction::result {
+        if (args.size() != 1 || args[0].type() != "number") {
+            return vallist{nil(), string {"sqrt: one number argument expected"}};
+        }
+
+        val result = unwrap(op_sqrt(args[0]));
+        return {result};
+    });
+
+    (*math)["abs"] = make_shared<cfunction>([](const vallist& args) -> cfunction::result {
+        if (args.size() != 1 || !args[0].isnumber()) {
+            return vallist{nil(), string {"abs: one number argument expected"}};
+        }
+
+        val result = fabs(get<double>(args[0]));
+        if (args[0].source) {
+            struct abs_exp : sourceexp {
+                abs_exp(const val& v) : v(v) {}
+
+                optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override{
+                    if (newval.isnumber() && get<double>(newval) >= 0) {
+                        if (get<double>(v) >= 0) {
+                            return v.forceValue(newval);
+                        } else {
+                            return v.forceValue(-newval);
+                        }
+                    }
+                    return nullopt;
+                }
+
+                eval_result_t reevaluate() override {
+                    if (holds_alternative<double>(v)) {
+                        return eval_success(fabs(get<double>(v.reevaluate())));
+                    }
+                    return string{"abs can only be applied to a number"};
+                }
+
+                bool isDirty() const override {
+                    return v.source && v.source->isDirty();
+                }
+
+                val v;
+            };
+
+            result.source = std::make_shared<abs_exp>(args[0]);
+        }
+
+        return {result};
+    });
+
+    (*math)["pi"] = 3.1415926;
+
     t["_G"] = shared_ptr<table>(shared_from_this(), &t);
 
     t["__visit_count"] = 0.0;
