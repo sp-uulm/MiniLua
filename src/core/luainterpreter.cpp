@@ -538,6 +538,17 @@ void Environment::populate_stdlib() {
         return {result};
     });
 
+    (*math)["floor"] = make_shared<cfunction>([](const vallist& args) -> cfunction::result {
+        if (args.size() != 1 || !args[0].isnumber()) {
+            return vallist{nil(), string {"floor: one number argument expected"}};
+        }
+
+        val result = floor(get<double>(args[0]));
+        result.source = args[0].source;
+
+        return {result};
+    });
+
     (*math)["pi"] = 3.1415926;
 
     t["_G"] = shared_ptr<table>(shared_from_this(), &t);
