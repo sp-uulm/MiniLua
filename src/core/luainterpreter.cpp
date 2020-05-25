@@ -554,7 +554,7 @@ void Environment::populate_stdlib() {
     t["_G"] = shared_ptr<table>(shared_from_this(), &t);
 
     t["__visit_count"] = 0.0;
-    t["__visit_limit"] = 1000.0;
+    t["__visit_limit"] = 250.0;
 }
 
 eval_result_t ASTEvaluator::visit(const _LuaName& name, const shared_ptr<Environment>& env, const assign_t& assign) const {
