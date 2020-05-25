@@ -826,7 +826,7 @@ eval_result_t ASTEvaluator::visit(const _LuaForStmt& for_stmt, const shared_ptr<
         EVAL(end, for_stmt.end, newenv);
         sc = sc & end_sc;
 
-        auto gt = op_gt(current, end);
+        auto gt = op_gt(current, fst(end));
         if (holds_alternative<string>(gt)) {
             return gt;
         }
