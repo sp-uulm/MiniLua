@@ -432,6 +432,144 @@ void Environment::populate_stdlib() {
         return {result};
     });
 
+    (*math)["atan"] = make_shared<cfunction>([](const vallist& args) -> cfunction::result {
+        if (args.size() != 1 || !args[0].isnumber()) {
+            return vallist{nil(), string {"atan: one number argument expected"}};
+        }
+
+        val result = atan(get<double>(args[0]));
+        if (args[0].source) {
+            struct atan_exp : sourceexp {
+                atan_exp(const val& x) : x(x) {}
+
+                optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override{
+                    if (newval.isnumber())
+                        if (double result = tan(get<double>(newval)); isfinite(result))
+                            return x.forceValue(result);
+                    return nullopt;
+                }
+
+                eval_result_t reevaluate() override {
+                    if (holds_alternative<double>(x)) {
+                        return eval_success(atan(get<double>(x.reevaluate())));
+                    }
+                    return string{"atan can only be applied to numbers"};
+                }
+
+                bool isDirty() const override {
+                    return (x.source && x.source->isDirty());
+                }
+
+                vector<LuaToken> get_all_tokens() const override {
+                    vector<LuaToken> result;
+                    if (x.source) {
+                        auto rhs_tokens = x.source->get_all_tokens();
+                        result.insert(end(result), begin(rhs_tokens), end(rhs_tokens));
+                    }
+                    return result;
+                }
+
+                val x;
+            };
+
+            result.source = std::make_shared<atan_exp>(args[0]);
+        }
+
+        return {result};
+    });
+
+    (*math)["acos"] = make_shared<cfunction>([](const vallist& args) -> cfunction::result {
+        if (args.size() != 1 || !args[0].isnumber()) {
+            return vallist{nil(), string {"acos: one number argument expected"}};
+        }
+
+        val result = acos(get<double>(args[0]));
+        if (args[0].source) {
+            struct acos_exp : sourceexp {
+                acos_exp(const val& x) : x(x) {}
+
+                optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override{
+                    if (newval.isnumber())
+                        if (double result = cos(get<double>(newval)); isfinite(result))
+                            return x.forceValue(result);
+                    return nullopt;
+                }
+
+                eval_result_t reevaluate() override {
+                    if (holds_alternative<double>(x)) {
+                        return eval_success(acos(get<double>(x.reevaluate())));
+                    }
+                    return string{"acos can only be applied to numbers"};
+                }
+
+                bool isDirty() const override {
+                    return (x.source && x.source->isDirty());
+                }
+
+                vector<LuaToken> get_all_tokens() const override {
+                    vector<LuaToken> result;
+                    if (x.source) {
+                        auto rhs_tokens = x.source->get_all_tokens();
+                        result.insert(end(result), begin(rhs_tokens), end(rhs_tokens));
+                    }
+                    return result;
+                }
+
+                val x;
+            };
+
+            result.source = std::make_shared<acos_exp>(args[0]);
+        }
+
+        return {result};
+    });
+
+    (*math)["asin"] = make_shared<cfunction>([](const vallist& args) -> cfunction::result {
+        if (args.size() != 1 || !args[0].isnumber()) {
+            return vallist{nil(), string {"asin: one number argument expected"}};
+        }
+
+        val result = asin(get<double>(args[0]));
+        if (args[0].source) {
+            struct asin_exp : sourceexp {
+                asin_exp(const val& x) : x(x) {}
+
+                optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override{
+                    if (newval.isnumber())
+                        if (double result = sin(get<double>(newval)); isfinite(result))
+                            return x.forceValue(result);
+                    return nullopt;
+                }
+
+                eval_result_t reevaluate() override {
+                    if (holds_alternative<double>(x)) {
+                        return eval_success(asin(get<double>(x.reevaluate())));
+                    }
+                    return string{"asin can only be applied to numbers"};
+                }
+
+                bool isDirty() const override {
+                    return (x.source && x.source->isDirty());
+                }
+
+                vector<LuaToken> get_all_tokens() const override {
+                    vector<LuaToken> result;
+                    if (x.source) {
+                        auto rhs_tokens = x.source->get_all_tokens();
+                        result.insert(end(result), begin(rhs_tokens), end(rhs_tokens));
+                    }
+                    return result;
+                }
+
+                val x;
+            };
+
+            result.source = std::make_shared<asin_exp>(args[0]);
+        }
+
+        return {result};
+    });
+
     (*math)["atan2"] = make_shared<cfunction>([](const vallist& args) -> cfunction::result {
         if (args.size() != 2 || !args[0].isnumber() || !args[1].isnumber()) {
             return vallist{nil(), string {"atan2: two number arguments expected"}};
