@@ -446,7 +446,11 @@ auto LuaParser::parse_varlist(token_it_t& begin, token_it_t& end) const -> parse
                 return "varlist: var expected, got functioncall";
             }
         }
-    } while (begin++->type == LuaToken::Type::COMMA);
+
+        if (begin == end)
+            return move(varlist);
+
+    } while (begin++->type == LuaToken::Type::COMMA && begin != end && begin->type == LuaToken::Type::NAME);
 
     begin--;
 
