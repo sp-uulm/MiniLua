@@ -254,6 +254,10 @@ vallist flatten(const vallist& list) {
 void Environment::assign(const val& var, const val& newval, bool is_local) {
     // cout << "assignment " << var << "=" << newval << (is_local ? " (local)" : "") << endl;
 
+    if (newval.source && newval.source->identifier.empty()) {
+        newval.source->identifier = var.to_string();
+    }
+
     if (is_local) {
         t[var] = newval;
         return;
@@ -1181,6 +1185,7 @@ source_change_t sourceval::forceValue(const val& v) const {
     }
 
     dynamic_pointer_cast<SourceAssignment>(sc->changes[0])->replacement = v.literal();
+    sc->changes[0]->hint = identifier;
 
     return move(sc);
 }

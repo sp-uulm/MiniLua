@@ -211,6 +211,7 @@ struct SourceChange {
     }
 
     virtual void accept(SourceChangeVisitor& v) const = 0;
+    std::string hint = "?";
 };
 
 struct SourceChangeOr : SourceChange {
@@ -245,7 +246,7 @@ struct SourceAssignment : SourceChange {
     string replacement;
 
     virtual string to_string() const override {
-        return token.to_string() + " -> " + replacement;
+        return token.to_string() + " -> " + replacement + " [" + hint + "]";
     }
 
     virtual void accept(SourceChangeVisitor& v) const override {
@@ -257,6 +258,7 @@ inline source_change_t operator| (const source_change_t& lhs, const source_chang
     if (lhs && rhs) {
         auto sc_or = make_shared<SourceChangeOr>();
         sc_or->alternatives = {*lhs, *rhs};
+
         return move(sc_or);
     }
 
@@ -267,6 +269,7 @@ inline source_change_t operator& (const source_change_t& lhs, const source_chang
     if (lhs && rhs) {
         auto sc_and = make_shared<SourceChangeAnd>();
         sc_and->changes = {*lhs, *rhs};
+
         return move(sc_and);
     }
 
@@ -287,6 +290,8 @@ struct sourceexp : std::enable_shared_from_this<sourceexp> {
     virtual eval_result_t reevaluate() = 0;
     virtual bool isDirty() const = 0;
     virtual vector<LuaToken> get_all_tokens() const = 0;
+
+    string identifier = "";
 };
 
 struct sourceval : sourceexp {
