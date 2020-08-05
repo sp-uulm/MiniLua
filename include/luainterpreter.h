@@ -7,10 +7,7 @@
 #include "sourceexp.h"
 #include "luaast.h"
 
-#include <variant>
-#include <string>
 #include <memory>
-#include <cmath>
 
 using namespace std;
 
@@ -46,9 +43,6 @@ if (auto eval_result = (exp)->accept(*this, (env), newval); holds_alternative<st
     varname = get_val(eval_result); \
     varname##_sc = get_sc(eval_result); \
 }
-
-val fst(const val& v);
-vallist flatten(const vallist& list);
 
 struct ASTEvaluator {
     eval_result_t visit(const _LuaAST&, const shared_ptr<Environment>&, const assign_t&) const {

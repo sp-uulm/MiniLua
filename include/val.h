@@ -66,9 +66,6 @@ struct val : _val_t {
     val(vallist_p v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
     val(lfunction_p v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
 
-    optional<shared_ptr<struct SourceChange>> forceValue(const val& v) const;
-    val reevaluate();
-
     bool to_bool() const {
         return !isnil() && (!isbool() || get<bool>(*this));
     }
@@ -115,6 +112,9 @@ struct val : _val_t {
             return get<double>(*this);
         return def;
     }
+
+    optional<shared_ptr<struct SourceChange>> forceValue(const val& v) const;
+    val reevaluate();
 
     shared_ptr<struct sourceexp> source;
 };
@@ -191,6 +191,9 @@ inline val unwrap(const eval_result_t& result) {
         throw runtime_error(get<string>(result));
     return get_val(result);
 }
+
+val fst(const val& v);
+vallist flatten(const vallist& list);
 
 ostream& operator<<(ostream& os, const val& value);
 
