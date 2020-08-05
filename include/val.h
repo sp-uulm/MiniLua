@@ -52,9 +52,6 @@ struct val : _val_t {
     val(const val&) = default;
     val() : value_t {nil()} {}
 
-//    template <typename T>
-//    val(T&& v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
-
     val(nil v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
     val(bool v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
     val(double v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
@@ -65,6 +62,9 @@ struct val : _val_t {
     val(table_p v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
     val(vallist_p v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
     val(lfunction_p v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
+
+    template <typename... T>
+    val(function<T...>&& v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {make_shared<cfunction>(v)}, source {source} {}
 
     bool to_bool() const {
         return !isnil() && (!isbool() || get<bool>(*this));
