@@ -19,7 +19,7 @@ include_directories(include)
 
 add_library(${PROJECT_NAME} SHARED ${CORE_SRC_LIST})
 set_target_properties(${PROJECT_NAME} PROPERTIES
-  PUBLIC_HEADER "include/luaparser.h;include/luainterpreter.h;include/luaast.h"
+  PUBLIC_HEADER "include/luaparser.h;include/luainterpreter.h;include/luaast.h;include/luatoken.h;include/val.h;include/sourceexp.h;include/environment.h;include/sourcechange.h;include/operators.h"
 )
 
 qt5_wrap_cpp(gui_SRC include/gui.h)
