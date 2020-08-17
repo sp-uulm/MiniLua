@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <type_traits>
 #include <functional>
+#include <stdexcept>
 
 using namespace std;
 
