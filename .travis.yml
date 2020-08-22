@@ -1,5 +1,8 @@
 language: cpp
 
+before_install:
+  - sudo apt-get install qt5-default
+
 before_script:
   - mkdir build
   - cd build
