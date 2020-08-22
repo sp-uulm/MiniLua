@@ -1,7 +1,7 @@
 language: cpp
 
 before_install:
-  - sudo apt-get install qt5-default
+  - sudo apt-get install qt5-default libboost-all-dev
 
 before_script:
   - mkdir build
