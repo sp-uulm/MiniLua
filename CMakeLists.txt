@@ -1,45 +1,28 @@
-project(MiniLua)
-cmake_minimum_required(VERSION 3.0)
+# set minimum version of CMake
+# (this is compatible with all version of CMake but versions before 3.12 ignore
+# the range and only use the first version)
+cmake_minimum_required(VERSION 3.8...3.18)
+# fallback to provide the same functionallity as in CMake 3.12+
+if(${CMAKE_VERSION} VERSION_LESS 3.12)
+    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
+endif()
 
-#set(CMAKE_VERBOSE_MAKEFILE ON)
+# project definition
+project(MiniLua VERSION 1.0
+                DESCRIPTION "Value tracing lua interpreter"
+                LANGUAGES CXX)
 
-aux_source_directory(src/core CORE_SRC_LIST)
-aux_source_directory(src/gui GUI_SRC_LIST)
-aux_source_directory(src/cli CLI_SRC_LIST)
+# global settings
+set(CMAKE_CXX_STANDARD 17)
+add_compile_options(-Wall)
 
+# dependencies
 find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
 find_package(Boost REQUIRED)
 
-#set(CMAKE_AUTOMOC ON)
+# library
+add_subdirectory(src)
 
-add_compile_options(-std=c++17 -Wall)
-set(CMAKE_CXX_STANDARD 17)
-
-include_directories(include)
-
-add_library(${PROJECT_NAME} SHARED ${CORE_SRC_LIST})
-set_target_properties(${PROJECT_NAME} PROPERTIES
-  PUBLIC_HEADER "include/luaparser.h;include/luainterpreter.h;include/luaast.h;include/luatoken.h;include/val.h;include/sourceexp.h;include/environment.h;include/sourcechange.h;include/operators.h"
-)
-
-qt5_wrap_cpp(gui_SRC include/gui.h)
-add_executable(${PROJECT_NAME}-gui ${GUI_SRC_LIST} ${gui_SRC})
-
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-                                                  "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>")
-
-target_link_libraries(${PROJECT_NAME}-gui ${PROJECT_NAME})
-target_link_libraries(${PROJECT_NAME}-gui Qt5::Widgets Qt5::Core)
-
-add_executable(${PROJECT_NAME}-cli ${CLI_SRC_LIST})
-target_link_libraries(${PROJECT_NAME}-cli ${PROJECT_NAME})
-
-install(TARGETS ${PROJECT_NAME}
-        EXPORT ${PROJECT_NAME}
-        LIBRARY DESTINATION lib
-        PUBLIC_HEADER DESTINATION include)
-install(TARGETS ${PROJECT_NAME}-gui ${PROJECT_NAME}-cli RUNTIME DESTINATION bin)
-install(EXPORT ${PROJECT_NAME}
-        FILE ${PROJECT_NAME}Config.cmake        
-        DESTINATION lib/cmake/${PROJECT_NAME})
+# example applications
+add_subdirectory(examples)
 
