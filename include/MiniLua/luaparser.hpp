@@ -1,7 +1,7 @@
 #ifndef LUAPARSER_H
 #define LUAPARSER_H
 
-#include "luaast.h"
+#include "luaast.hpp"
 
 #include <string>
 #include <variant>

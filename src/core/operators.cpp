@@ -1,6 +1,6 @@
-#include "operators.h"
-#include "sourceexp.h"
-#include "sourcechange.h"
+#include "MiniLua/operators.hpp"
+#include "MiniLua/sourceexp.hpp"
+#include "MiniLua/sourcechange.hpp"
 
 #include <cmath>
 #include <sstream>
