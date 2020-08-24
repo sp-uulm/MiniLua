@@ -4,4 +4,4 @@ add_executable(${PROJECT_NAME}-gui ${GUI_SRC_LIST} ${gui_SRC})
 target_link_libraries(${PROJECT_NAME}-gui PUBLIC ${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME}-gui PUBLIC Qt5::Widgets Qt5::Core)
 
-install(TARGETS ${PROJECT_NAME}-gui RUNTIME)
+install(TARGETS ${PROJECT_NAME}-gui RUNTIME DESTINATION bin)

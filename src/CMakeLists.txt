@@ -12,7 +12,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${HEADER_LIST}")
 
 install(TARGETS ${PROJECT_NAME}
         EXPORT ${PROJECT_NAME}
-        LIBRARY)
+        LIBRARY DESTINATION lib)
 install(EXPORT ${PROJECT_NAME}
         FILE ${PROJECT_NAME}Config.cmake
         DESTINATION lib/cmake/${PROJECT_NAME})
