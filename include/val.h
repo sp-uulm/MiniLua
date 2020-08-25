@@ -10,6 +10,8 @@
 
 using namespace std;
 
+// Forward declarations for the types in luaast.h
+
 using LuaAST = shared_ptr<struct _LuaAST>;
 using LuaName = shared_ptr<struct _LuaName>;
 using LuaExp = shared_ptr<struct _LuaExp>;
@@ -44,6 +46,9 @@ using lfunction_p = shared_ptr<struct lfunction>;
 using table_p = shared_ptr<struct table>;
 using vallist_p = shared_ptr<struct vallist>;
 
+// A value in Lua can be nil, bool, number, string, function or table. Vallist
+// is used for parameter packs (e.g. multiple returns)
+
 using _val_t = variant<nil, bool, double, string, cfunction_p, table_p, vallist_p, lfunction_p>;
 struct val : _val_t {
     using value_t = _val_t;
@@ -70,6 +75,9 @@ struct val : _val_t {
         return !isnil() && (!isbool() || get<bool>(*this));
     }
 
+    // val("foo").to_string() -> foo
+    // val("foo").literal() -> "foo"
+    // literal is needed when the value is replaced due to SourceChanges
     string to_string() const;
     string literal() const;
 
@@ -113,6 +121,9 @@ struct val : _val_t {
         return def;
     }
 
+    // special operations using the source:
+    // forceValue returns the necessary SourceChanges to change the current value to v
+    // reevaluate doesn't really work yet.
     optional<shared_ptr<struct SourceChange>> forceValue(const val& v) const;
     val reevaluate();
 
@@ -154,6 +165,12 @@ struct cfunction {
 
     template <typename T>
     cfunction(T f) {
+        /*
+        Two signatures for c functions are possible: result(const vallist& [, const _LuaFunctioncall&]).
+        The variant with the LuaFunctioncall is necessary, when the function wants
+        to replace or highlight the site of the call, e.g. to mark the currently executed statement.
+        */
+    
         if constexpr (is_convertible<T, function<result(const vallist&, const _LuaFunctioncall&)>>::value) {
             this->f = f;
         } else {
@@ -165,34 +182,72 @@ struct cfunction {
 
 struct lfunction {
     lfunction(const LuaChunk& f, const LuaExplist& params, const shared_ptr<Environment>& env) : f{f}, params{params}, env{env} {}
-    LuaChunk f;
-    LuaExplist params;
-    shared_ptr<Environment> env;
+    LuaChunk f;                    // function body
+    LuaExplist params;             // formal parameters that the arguments are assigned to
+    shared_ptr<Environment> env;   // closure environment
 };
+
+/*
+Evaluating and expression or program (LuaExp, LuaChunk, LuaStatement etc) may
+result in either an error string or an eval_success_t.
+This successful result contains a value (the result of evaluating an expression)
+or nil (statements have no result) and an optional source change as a side
+effect.
+
+Examples:
+Evaluating 2+4 results in (6, nullopt); 6 and no source changes
+Evaluating 3\5 where \ is the live evaluation operator results in (3, 5 -> 3);
+    the result is 3 and the 5 is replaced by the value on the left side (3).
+Evaluating "a"+"b" results in "+ does not work on strings"; …or some
+    similar error message.
+Evaluating a=4 results in (nil, nullopt); a successful execution with no result
+    and no changes.
+*/
 
 using source_change_t = optional<shared_ptr<SourceChange>>;
 using eval_success_t = pair<val, source_change_t>;
 using eval_result_t = variant<eval_success_t, string>;
 
+// when evaluating an expression, signal success with result v and SourceChange side effect sc
 inline eval_result_t eval_success(const val& v, optional<shared_ptr<SourceChange>> sc = nullopt) {
     return make_pair(v, sc);
 }
 
+// gets the value of the result (no error check!)
 inline val get_val(const eval_result_t& result) {
     return get<eval_success_t>(result).first;
 }
 
+// gets the source change side effect of the result (no error check!)
 inline optional<shared_ptr<SourceChange>> get_sc(const eval_result_t& result) {
     return get<eval_success_t>(result).second;
 }
 
+// gets the values and throws errors as a runtime exception
 inline val unwrap(const eval_result_t& result) {
     if (holds_alternative<string>(result))
         throw runtime_error(get<string>(result));
     return get_val(result);
 }
 
+/*
+lua allows the following:
+
+function foo() return 1,2,3 end
+print(foo(),4) -> 1 4
+a,b,c,d = foo()
+print(a,b,c,d) -> 1 2 3 nil
+
+foo returns a vallist (1,2,3) that is collapsed to its first element, when print(foo(),4) is called.
+The assignment fills the missing value with nil.
+
+the following helper functions are therefore often needed when evaluating function calls.
+*/
+
+// if v is a vallist, its head. v otherwise
 val fst(const val& v);
+
+// flattens nested vallists
 vallist flatten(const vallist& list);
 
 ostream& operator<<(ostream& os, const val& value);
