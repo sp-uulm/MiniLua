@@ -18,6 +18,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 add_compile_options(-Wall)
 
+# generates compile_commands.json that can be used by clang tooling
+# (e.g. language server)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # dependencies
 find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
 find_package(Boost REQUIRED)

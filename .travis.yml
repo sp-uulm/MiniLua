@@ -1,4 +1,5 @@
 language: cpp
+os: linux
 dist: bionic
 
 before_install:
@@ -12,3 +13,6 @@ before_script:
 script:
   - make
   # - make test
+  - cd ..
+  - ./scripts/lint.sh
+  - ./scripts/check_format.sh || { echo -e "\nCode not correctly formated!" && exit 1; }

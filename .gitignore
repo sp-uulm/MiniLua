@@ -75,4 +75,3 @@ Thumbs.db
 # Ignore user build directories
 /build*
 /.clangd
-/compile_commands.json
