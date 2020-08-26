@@ -21,7 +21,7 @@ before_script:
 
 script:
   - ./scripts/build.sh
-  # - ./scripts/test.sh
+  - ./scripts/test.sh
 
 jobs:
   include:
