@@ -13,8 +13,9 @@ void add_force_function_to_env(const std::shared_ptr<lua::rt::Environment>& env)
 
         auto source_changes = args[0].forceValue(args[1]);
 
-        cout << (*source_changes)->to_string() << endl;
-        // addSourceChanges(*source_changes);
+        if (source_changes.has_value()) {
+            return {source_changes.value()};
+        }
 
         return {};
     }), false);
