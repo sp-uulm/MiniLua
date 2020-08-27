@@ -1,12 +1,9 @@
 # DEPENDENCIES
 FetchContent_Declare(
-    catch
+    Catch2
     GIT_REPOSITORY https://github.com/catchorg/Catch2.git
     GIT_TAG        v2.13.0)
-FetchContent_MakeAvailable(catch)
+FetchContent_MakeAvailable(Catch2)
 
-# TESTS
-add_executable(unit_tests unit_tests.cpp)
-target_link_libraries(unit_tests PRIVATE Catch2::Catch2)
-add_test(NAME test_unit_tests COMMAND unit_tests)
-
+add_executable(MiniLua-tests main.cpp unit_tests.cpp integration_tests.cpp)
+target_link_libraries(MiniLua-tests PRIVATE Catch2::Catch2 MiniLua)

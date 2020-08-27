@@ -29,11 +29,6 @@ include(cmake/add_FetchContent_MakeAvailable.cmake)
 find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
 find_package(Boost REQUIRED)
 
-# enable testing
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-    include(CTest)
-endif()
-
 # library
 add_subdirectory(src)
 
@@ -42,6 +37,6 @@ add_subdirectory(src)
 add_subdirectory(examples)
 
 # tests
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     add_subdirectory(tests)
 endif()

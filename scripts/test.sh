@@ -2,6 +2,7 @@
 set -ev
 
 pushd build
-make test
+make MiniLua-tests
+./tests/MiniLua-tests $@
 popd
 
