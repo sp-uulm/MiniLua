@@ -32,9 +32,15 @@ FetchContent_MakeAvailable(Tree-Sitter-Lua)
 
 # core
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/core CORE_SRC_LIST)
-list(APPEND CORE_SRC_LIST "${tree-sitter-lua_SOURCE_DIR}/src/parser.c")
-list(APPEND CORE_SRC_LIST "${tree-sitter-lua_SOURCE_DIR}/src/scanner.cc")
-add_library(${PROJECT_NAME} SHARED ${CORE_SRC_LIST})
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/tree-sitter TREE_SITTER_WRAPPER_SRC_LIST)
+
+set(LIB_SRC_LIST
+    ${CORE_SRC_LIST}
+    ${TREE_SITTER_WRAPPER_SRC_LIST}
+    "${tree-sitter-lua_SOURCE_DIR}/src/parser.c"
+    "${tree-sitter-lua_SOURCE_DIR}/src/scanner.cc")
+
+add_library(${PROJECT_NAME} SHARED ${LIB_SRC_LIST})
 target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:../include>
