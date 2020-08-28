@@ -13,10 +13,14 @@
 #include <chrono>
 #include <boost/spirit/include/lex_lexertl.hpp>
 
+#include <tree_sitter/api.h>
+
 using namespace std;
 namespace bs = boost::spirit;
 
 constexpr size_t WS = 1000;
+
+extern "C" const TSLanguage* tree_sitter_lua();
 
 template <typename Lexer>
 struct lua_tokens : bs::lex::lexer<Lexer>
