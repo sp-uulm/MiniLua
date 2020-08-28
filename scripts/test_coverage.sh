@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -ev
 
-mkdir -pv build
 pushd build
-cmake .. $@
+make MiniLua-tests-coverage
 popd
 

@@ -22,8 +22,18 @@ add_compile_options(-Wall)
 # (e.g. language server)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
+
 include(FetchContent)
-include(cmake/add_FetchContent_MakeAvailable.cmake)
+include(add_FetchContent_MakeAvailable)
+
+set(COVERAGE OFF CACHE BOOL "Turns on code coverage generation for tests")
+if(COVERAGE)
+    include(CodeCoverage)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_COVERAGE}")
+    # remove tests and dependencies from coverage report
+    set(LCOV_REMOVE_EXTRA "'${CMAKE_SOURCE_DIR}/tests/*'" "'${CMAKE_BINARY_DIR}/*'")
+endif()
 
 # DEPENDENCIES
 find_package(Qt5 COMPONENTS Core Widgets REQUIRED)

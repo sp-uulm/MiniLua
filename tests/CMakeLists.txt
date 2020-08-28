@@ -7,3 +7,7 @@ FetchContent_MakeAvailable(Catch2)
 
 add_executable(MiniLua-tests main.cpp unit_tests.cpp integration_tests.cpp)
 target_link_libraries(MiniLua-tests PRIVATE Catch2::Catch2 MiniLua)
+
+if(COVERAGE)
+    setup_target_for_coverage(MiniLua-tests-coverage MiniLua-tests coverage)
+endif()
