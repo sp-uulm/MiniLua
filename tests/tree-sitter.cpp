@@ -199,8 +199,6 @@ end
                 CHECK(call4_arg1.get_text(source_code) == "4"s);
             }
         }
-
-        FAIL();
     }
 }
 
