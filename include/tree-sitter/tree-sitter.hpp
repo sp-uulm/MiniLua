@@ -14,6 +14,17 @@ extern "C" const TSLanguage* tree_sitter_lua();
 namespace ts {
 
 /**
+ * Contains a source location.
+ */
+struct Point {
+    std::uint32_t row;
+    std::uint32_t column;
+};
+
+bool operator==(const Point&, const Point&);
+std::ostream& operator<<(std::ostream&, const Point&);
+
+/**
  * Wrapper for a 'TSNode'.
  *
  * Nodes can be named or anonymous (see [Named vs Anonymous
@@ -37,9 +48,25 @@ public:
 
     const char* get_type() const;
 
+    /**
+     * Get the nth child. This will also return anonymous nodes.
+     */
     Node get_child(std::uint32_t index) const;
+    std::uint32_t get_child_count() const;
+
+    /**
+     * Get the nth named child.
+     */
     Node get_named_child(std::uint32_t index) const;
     std::uint32_t get_named_child_count() const;
+
+    std::uint32_t get_start_byte() const;
+    std::uint32_t get_end_byte() const;
+
+    Point get_start_point() const;
+    Point get_end_point() const;
+
+    std::string get_text(const std::string&) const;
 
     std::string as_string() const;
 };
@@ -62,12 +89,19 @@ public:
     Tree& operator=(Tree&& other) noexcept;
     friend void swap(Tree& self, Tree& other) noexcept;
 
-    const TSTree* get_raw() const noexcept;
+    /**
+     * Use with care. Mostly intended vor internal use in the wrapper types.
+     *
+     * WARNING: Never free or otherwise delete this pointer.
+     */
+    const TSTree* get_raw() const;
 
     /**
      * The returned node is only valid as long as this tree is not destructed.
      */
     Node get_root_node() const noexcept;
+
+    void print_dot_graph(std::string path) const;
 };
 
 /**
@@ -88,6 +122,8 @@ public:
     // move assignment
     Parser& operator=(Parser&& other) noexcept;
     friend void swap(Parser& self, Parser& other) noexcept;
+
+    TSParser* get_raw();
 
     // will reulse parts of old_tree
     // source changes must already be exctly present in the old_tree (see ts_tree_edit)
