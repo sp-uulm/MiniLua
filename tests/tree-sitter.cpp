@@ -10,24 +10,22 @@ TEST_CASE("Tree-Sitter-Wrapper", "[parse]") {
     std::string source_code = "1 + 2";
     ts::Tree tree = parser.parse_string(source_code);
 
-    TSNode root_node = tree.get_root_node();
-    TSNode expr_node = ts_node_named_child(root_node, 0);
-    TSNode bin_op_node = ts_node_named_child(expr_node, 0);
-    TSNode number_1_node = ts_node_named_child(bin_op_node, 0);
-    TSNode number_2_node = ts_node_named_child(bin_op_node, 1);
+    ts::Node root_node = tree.get_root_node();
+    ts::Node expr_node = root_node.get_child(0);
+    ts::Node bin_op_node = expr_node.get_named_child(0);
+    ts::Node number_1_node = bin_op_node.get_named_child(0);
+    ts::Node number_2_node = bin_op_node.get_named_child(1);
 
-    REQUIRE(ts_node_type(root_node) == std::string{"program"});
-    REQUIRE(ts_node_type(expr_node) == std::string{"expression"});
-    REQUIRE(ts_node_type(bin_op_node) == std::string{"binary_operation"});
-    REQUIRE(ts_node_named_child_count(bin_op_node) == 2);
-    REQUIRE(ts_node_type(number_1_node) == std::string{"number"});
-    REQUIRE(ts_node_type(number_2_node) == std::string{"number"});
+    REQUIRE(root_node.get_type() == std::string{"program"});
+    REQUIRE(expr_node.get_type() == std::string{"expression"});
+    REQUIRE(bin_op_node.get_type() == std::string{"binary_operation"});
+    REQUIRE(bin_op_node.get_named_child_count() == 2);
+    REQUIRE(number_1_node.get_type() == std::string{"number"});
+    REQUIRE(number_2_node.get_type() == std::string{"number"});
 
-    char* s = ts_node_string(root_node);
+    std::string s = root_node.as_string();
 
     INFO(s);
-
-    free(s);
 }
 
 TEST_CASE("Tree-Sitter", "[parse]") {
@@ -35,11 +33,7 @@ TEST_CASE("Tree-Sitter", "[parse]") {
     ts_parser_set_language(parser, tree_sitter_lua());
 
     const char* source_code = "1 + 2";
-    TSTree* tree = ts_parser_parse_string(
-            parser,
-            NULL,
-            source_code,
-            strlen(source_code));
+    TSTree* tree = ts_parser_parse_string(parser, NULL, source_code, strlen(source_code));
 
     TSNode root_node = ts_tree_root_node(tree);
     TSNode expr_node = ts_node_named_child(root_node, 0);
@@ -61,4 +55,3 @@ TEST_CASE("Tree-Sitter", "[parse]") {
     free(s);
     ts_tree_delete(tree);
 }
-
