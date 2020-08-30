@@ -10,7 +10,9 @@ add_executable(MiniLua-tests
     unit_tests.cpp
     integration_tests.cpp
     tree-sitter.cpp)
-target_link_libraries(MiniLua-tests PRIVATE Catch2::Catch2 MiniLua)
+target_link_libraries(MiniLua-tests
+    PRIVATE Catch2::Catch2 MiniLua
+    INTERFACE Tree-Sitter)
 
 if(COVERAGE)
     setup_target_for_coverage(MiniLua-tests-coverage MiniLua-tests coverage)
