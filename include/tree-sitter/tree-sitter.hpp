@@ -24,6 +24,8 @@ struct Point {
 bool operator==(const Point&, const Point&);
 std::ostream& operator<<(std::ostream&, const Point&);
 
+class Cursor;
+
 /**
  * Wrapper for a 'TSNode'.
  *
@@ -40,6 +42,11 @@ class Node {
 
 public:
     Node(TSNode node) noexcept;
+
+    /**
+     * Only for internal use.
+     */
+    TSNode get_raw() const noexcept;
 
     /**
      * Returns true if the node is null.
@@ -102,6 +109,36 @@ public:
     Node get_root_node() const noexcept;
 
     void print_dot_graph(std::string path) const;
+};
+
+/**
+ * Allows more efficient walking of a 'Tree' than with the methods on 'Node'.
+ */
+class Cursor {
+    // TSTreeCursor internally allocates heap.
+    // It can be copied with "ts_tree_cursor_copy" but it can not moved
+    // because there is no easy way to clear the cursor. We can only reset the
+    // cursor using a different tree.
+    TSTreeCursor cursor;
+
+public:
+    explicit Cursor(Node) noexcept;
+    explicit Cursor(Tree&) noexcept;
+    ~Cursor() noexcept;
+    // copy constructor
+    Cursor(const Cursor&) noexcept;
+    // copy assignment
+    Cursor& operator=(const Cursor&) noexcept;
+    // delete move (see above)
+    Cursor(Cursor&&) = delete;
+    Cursor& operator=(Cursor&&) = delete;
+
+    Node current_node() const noexcept;
+
+    bool goto_parent() noexcept;
+    // TODO should these throw exceptions when there are no more named nodes?
+    bool goto_first_child();
+    bool goto_next_sibling();
 };
 
 /**

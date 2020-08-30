@@ -18,6 +18,8 @@ std::ostream& operator<<(std::ostream& o, const Point& self) {
 // class Node
 Node::Node(TSNode node) noexcept : node(node) {}
 
+TSNode Node::get_raw() const noexcept { return this->node; }
+
 bool Node::is_null() const noexcept { return ts_node_is_null(this->node); }
 
 const char* Node::get_type() const { return ts_node_type(this->node); }
@@ -81,6 +83,34 @@ void Tree::print_dot_graph(std::string path) const {
     std::FILE* file = std::fopen(path.c_str(), "w");
     ts_tree_print_dot_graph(this->get_raw(), file);
     fclose(file);
+}
+
+// class Cursor
+Cursor::Cursor(Node node) noexcept : cursor(ts_tree_cursor_new(node.get_raw())) {}
+Cursor::Cursor(Tree& tree) noexcept : Cursor(tree.get_root_node()) {}
+Cursor::~Cursor() noexcept { ts_tree_cursor_delete(&this->cursor); }
+Cursor::Cursor(const Cursor& cursor) noexcept : cursor(ts_tree_cursor_copy(&cursor.cursor)) {}
+
+Node Cursor::current_node() const noexcept {
+    return Node(ts_tree_cursor_current_node(&this->cursor));
+}
+
+bool Cursor::goto_parent() noexcept { return ts_tree_cursor_goto_parent(&this->cursor); }
+bool Cursor::goto_first_child() {
+    do {
+        if (!ts_tree_cursor_goto_first_child(&this->cursor)) {
+            return false;
+        }
+    } while (!ts_node_is_named(ts_tree_cursor_current_node(&this->cursor)));
+    return true;
+}
+bool Cursor::goto_next_sibling() {
+    do {
+        if (!ts_tree_cursor_goto_next_sibling(&this->cursor)) {
+            return false;
+        }
+    } while (!ts_node_is_named(ts_tree_cursor_current_node(&this->cursor)));
+    return true;
 }
 
 // class Parser

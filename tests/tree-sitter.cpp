@@ -6,7 +6,28 @@
 
 using namespace std::string_literals;
 
-TEST_CASE("Tree-Sitter-Wrapper", "[parse]") {
+TEST_CASE("Cursor", "[tree-sitter]") {
+    ts::Parser parser;
+
+    std::string source = "1 + 2";
+    ts::Tree tree = parser.parse_string(source);
+
+    ts::Cursor cursor{tree};
+
+    CHECK(cursor.current_node().get_type() == "program"s);
+    CHECK(cursor.goto_first_child());
+    CHECK(cursor.current_node().get_type() == "expression"s);
+    CHECK(cursor.goto_first_child());
+    CHECK(cursor.current_node().get_type() == "binary_operation"s);
+    CHECK(cursor.goto_first_child());
+    CHECK(cursor.current_node().get_type() == "number"s);
+    CHECK(cursor.current_node().get_text(source) == "1"s);
+    CHECK(cursor.goto_next_sibling());
+    CHECK(cursor.current_node().get_type() == "number"s);
+    CHECK(cursor.current_node().get_text(source) == "2"s);
+}
+
+TEST_CASE("Tree-Sitter-Wrapper", "[tree-sitter][parser]") {
     SECTION("Simple addition") {
         ts::Parser parser;
 
@@ -202,7 +223,7 @@ end
     }
 }
 
-TEST_CASE("Tree-Sitter", "[parse]") {
+TEST_CASE("Tree-Sitter", "[tree-sitter][parser]") {
     TSParser* parser = ts_parser_new();
     ts_parser_set_language(parser, tree_sitter_lua());
 

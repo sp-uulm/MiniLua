@@ -20,14 +20,14 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC Tree-Sitter)
 
-# needed for installation
-file(GLOB_RECURSE HEADER_LIST "${PROJECT_SOURCE_DIR}/include/*.hpp")
-set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${HEADER_LIST}")
-
 install(TARGETS ${PROJECT_NAME}
         EXPORT ${PROJECT_NAME}
-        LIBRARY DESTINATION lib
-        PUBLIC_HEADER DESTINATION include)
+        LIBRARY DESTINATION lib)
+# install includes separately (and not as PUBLIC_HEADERs) to preserver directory structure
+# trailing / is important
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/
+    DESTINATION include
+    FILES_MATCHING PATTERN "*.hpp")
 install(EXPORT ${PROJECT_NAME}
         FILE ${PROJECT_NAME}Config.cmake
         DESTINATION lib/cmake/${PROJECT_NAME})
