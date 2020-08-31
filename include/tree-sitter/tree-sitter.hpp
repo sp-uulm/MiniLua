@@ -24,7 +24,33 @@ struct Point {
 bool operator==(const Point&, const Point&);
 std::ostream& operator<<(std::ostream&, const Point&);
 
+struct Location {
+    Point point;
+    std::uint32_t byte;
+};
+
+bool operator==(const Location&, const Location&);
+std::ostream& operator<<(std::ostream&, const Location&);
+
+struct Range {
+    Location start;
+    Location end;
+};
+
+bool operator==(const Range&, const Range&);
+std::ostream& operator<<(std::ostream&, const Range&);
+
+struct Edit {
+    Range range;
+    std::string replacement;
+};
+
+bool operator==(const Edit&, const Edit&);
+std::ostream& operator<<(std::ostream&, const Edit&);
+
+// forward declarations
 class Cursor;
+class Tree;
 
 /**
  * Wrapper for a 'TSNode'.
@@ -39,106 +65,51 @@ class Cursor;
  */
 class Node {
     TSNode node;
+    const Tree& tree_;
 
 public:
-    Node(TSNode node) noexcept;
+    explicit Node(TSNode node, const Tree& tree) noexcept;
 
     /**
      * Only for internal use.
      */
-    TSNode get_raw() const noexcept;
+    TSNode raw() const;
+
+    const Tree& tree() const;
 
     /**
      * Returns true if the node is null.
      */
-    bool is_null() const noexcept;
+    bool is_null() const;
 
-    const char* get_type() const;
+    const char* type() const;
 
     /**
      * Get the nth child. This will also return anonymous nodes.
      */
-    Node get_child(std::uint32_t index) const;
-    std::uint32_t get_child_count() const;
+    Node child(std::uint32_t index) const;
+    std::uint32_t child_count() const;
 
     /**
      * Get the nth named child.
      */
-    Node get_named_child(std::uint32_t index) const;
-    std::uint32_t get_named_child_count() const;
+    Node named_child(std::uint32_t index) const;
+    std::uint32_t named_child_count() const;
 
-    std::uint32_t get_start_byte() const;
-    std::uint32_t get_end_byte() const;
+    std::uint32_t start_byte() const;
+    std::uint32_t end_byte() const;
 
-    Point get_start_point() const;
-    Point get_end_point() const;
+    Point start_point() const;
+    Point end_point() const;
 
-    std::string get_text(const std::string&) const;
+    Location start() const;
+    Location end() const;
+
+    Range range() const;
+
+    std::string text() const;
 
     std::string as_string() const;
-};
-
-class Tree {
-    std::unique_ptr<TSTree, void (*)(TSTree*)> tree;
-
-public:
-    // explicit because this class handles the pointer as a ressource
-    // automatic conversion from pointer to this type is dangerous
-    explicit Tree(TSTree* tree);
-
-    // don't copy because we manage pointers
-    Tree(const Tree&) = delete;
-    Tree& operator=(const Tree&) = delete;
-
-    // move constructor
-    Tree(Tree&& other) noexcept;
-    // move assignment
-    Tree& operator=(Tree&& other) noexcept;
-    friend void swap(Tree& self, Tree& other) noexcept;
-
-    /**
-     * Use with care. Mostly intended vor internal use in the wrapper types.
-     *
-     * WARNING: Never free or otherwise delete this pointer.
-     */
-    const TSTree* get_raw() const;
-
-    /**
-     * The returned node is only valid as long as this tree is not destructed.
-     */
-    Node get_root_node() const noexcept;
-
-    void print_dot_graph(std::string path) const;
-};
-
-/**
- * Allows more efficient walking of a 'Tree' than with the methods on 'Node'.
- */
-class Cursor {
-    // TSTreeCursor internally allocates heap.
-    // It can be copied with "ts_tree_cursor_copy" but it can not moved
-    // because there is no easy way to clear the cursor. We can only reset the
-    // cursor using a different tree.
-    TSTreeCursor cursor;
-
-public:
-    explicit Cursor(Node) noexcept;
-    explicit Cursor(Tree&) noexcept;
-    ~Cursor() noexcept;
-    // copy constructor
-    Cursor(const Cursor&) noexcept;
-    // copy assignment
-    Cursor& operator=(const Cursor&) noexcept;
-    // delete move (see above)
-    Cursor(Cursor&&) = delete;
-    Cursor& operator=(Cursor&&) = delete;
-
-    Node current_node() const noexcept;
-
-    bool goto_parent() noexcept;
-    // TODO should these throw exceptions when there are no more named nodes?
-    bool goto_first_child();
-    bool goto_next_sibling();
 };
 
 /**
@@ -160,16 +131,108 @@ public:
     Parser& operator=(Parser&& other) noexcept;
     friend void swap(Parser& self, Parser& other) noexcept;
 
-    TSParser* get_raw();
+    TSParser* raw();
 
-    // will reulse parts of old_tree
-    // source changes must already be exctly present in the old_tree (see ts_tree_edit)
-    Tree parse_string(Tree old_tree, std::string&);
     Tree parse_string(std::string&);
     // TODO other methods
 
 private:
     Tree parse_string(const TSTree* old_tree, std::string&);
+};
+
+class Tree {
+    std::unique_ptr<TSTree, void (*)(TSTree*)> tree;
+    // maybe a separate Input type is better to be more flexible
+    std::string source_;
+    Parser& parser;
+
+public:
+    // explicit because this class handles the pointer as a ressource
+    // automatic conversion from pointer to this type is dangerous
+    explicit Tree(TSTree* tree, std::string& source, Parser& parser);
+
+    // don't copy because we manage pointers
+    Tree(const Tree&) = delete;
+    Tree& operator=(const Tree&) = delete;
+
+    // move constructor
+    Tree(Tree&& other) noexcept;
+    // move assignment
+    Tree& operator=(Tree&& other) noexcept;
+    friend void swap(Tree& self, Tree& other) noexcept;
+
+    /**
+     * Use with care. Mostly intended vor internal use in the wrapper types.
+     *
+     * WARNING: Never free or otherwise delete this pointer.
+     */
+    const TSTree* raw() const;
+
+    const std::string& source() const;
+
+    /**
+     * The returned node is only valid as long as this tree is not destructed.
+     */
+    Node root_node() const;
+
+    /**
+     * Edit the syntax tree and source code.
+     *
+     * You need to call 'sync' after applying all the edits to bring the tree
+     * back into a valid state.
+     *
+     * WARNING: Applying multiple edits is difficult if the replacement is a
+     * different size than the original because the content after the edit will
+     * move and subsequent edits will not have correct locations and this is
+     * undefined behaviour.
+     *
+     * To avoid this you should apply the edits back to front. Meaning edits at
+     * the end of the source should be applied before edit at the beginning.
+     *
+     * WARNING: Take care not to apply overlapping edits.
+     */
+    void edit(const Edit&);
+
+    /**
+     * Syncronizes the tree with the source code.
+     *
+     * You need to call this method after applying all the edits to bring the
+     * tree back into a valid state.
+     */
+    void sync();
+
+    void print_dot_graph(std::string path) const;
+};
+
+/**
+ * Allows more efficient walking of a 'Tree' than with the methods on 'Node'.
+ */
+class Cursor {
+    // TSTreeCursor internally allocates heap.
+    // It can be copied with "ts_tree_cursor_copy" but it can not moved
+    // because there is no easy way to clear the cursor. We can only reset the
+    // cursor using a different tree.
+    TSTreeCursor cursor;
+    const Tree& tree;
+
+public:
+    explicit Cursor(Node) noexcept;
+    explicit Cursor(const Tree&) noexcept;
+    ~Cursor() noexcept;
+    // copy constructor
+    Cursor(const Cursor&) noexcept;
+    // copy assignment
+    Cursor& operator=(const Cursor&) noexcept;
+    // delete move (see above)
+    Cursor(Cursor&&) = delete;
+    Cursor& operator=(Cursor&&) = delete;
+
+    Node current_node() const;
+
+    bool goto_parent();
+    // TODO should these throw exceptions when there are no more named nodes?
+    bool goto_first_child();
+    bool goto_next_sibling();
 };
 
 } // namespace ts
