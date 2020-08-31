@@ -1,6 +1,7 @@
 #ifndef VAL_H
 #define VAL_H
 
+#include <optional>
 #include <string>
 #include <memory>
 #include <variant>
@@ -162,7 +163,8 @@ struct vallist : public vector<val> {
 };
 
 struct cfunction {
-    using result = variant<vallist, string>;
+    // TODO make a helper class that holds the result
+    using result = variant<vallist, string, std::shared_ptr<SourceChange>>;
 
     template <typename T>
     cfunction(T f) {

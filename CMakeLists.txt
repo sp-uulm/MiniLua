@@ -1,7 +1,7 @@
 # set minimum version of CMake
 # (this is compatible with all version of CMake but versions before 3.12 ignore
 # the range and only use the first version)
-cmake_minimum_required(VERSION 3.8...3.18)
+cmake_minimum_required(VERSION 3.11...3.18)
 # fallback to provide the same functionallity as in CMake 3.12+
 if(${CMAKE_VERSION} VERSION_LESS 3.12)
     cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
@@ -22,7 +22,20 @@ add_compile_options(-Wall)
 # (e.g. language server)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# dependencies
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
+
+include(FetchContent)
+include(add_FetchContent_MakeAvailable)
+
+set(COVERAGE OFF CACHE BOOL "Turns on code coverage generation for tests")
+if(COVERAGE)
+    include(CodeCoverage)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_COVERAGE}")
+    # remove tests and dependencies from coverage report
+    set(LCOV_REMOVE_EXTRA "'${CMAKE_SOURCE_DIR}/tests/*'" "'${CMAKE_BINARY_DIR}/*'")
+endif()
+
+# DEPENDENCIES
 find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
 find_package(Boost REQUIRED)
 
@@ -30,5 +43,10 @@ find_package(Boost REQUIRED)
 add_subdirectory(src)
 
 # example applications
+# (get compiled in ci but not run like tests)
 add_subdirectory(examples)
 
+# tests
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    add_subdirectory(tests)
+endif()
