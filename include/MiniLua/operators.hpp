@@ -1,8 +1,8 @@
 #ifndef OPERATORS_H
 #define OPERATORS_H
 
-#include "val.h"
-#include "luatoken.h"
+#include "val.hpp"
+#include "luatoken.hpp"
 
 namespace lua {
 namespace rt {

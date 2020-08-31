@@ -1,11 +1,11 @@
 #ifndef LUAINTERPRETER_H
 #define LUAINTERPRETER_H
 
-#include "operators.h"
-#include "sourcechange.h"
-#include "environment.h"
-#include "sourceexp.h"
-#include "luaast.h"
+#include "operators.hpp"
+#include "sourcechange.hpp"
+#include "environment.hpp"
+#include "sourceexp.hpp"
+#include "luaast.hpp"
 
 #include <memory>
 

@@ -1,14 +1,33 @@
 language: cpp
+os: linux
 dist: bionic
 
+compiler:
+  - gcc
+  - clang
+
+addons:
+  apt:
+    packages:
+      - qt5-default
+      - libboost-all-dev
+
 before_install:
-  - sudo apt-get install qt5-default libboost-all-dev
+  - echo $LANG
+  - echo $LC_ALL
 
 before_script:
-  - mkdir build
-  - cd build
-  - cmake ..
+  - ./scripts/setup_build.sh
 
 script:
-  - make
-  # - make test
+  - ./scripts/build.sh
+  # - ./scripts/test.sh
+
+jobs:
+  include:
+    - name: Linting
+      script: ./scripts/lint.sh
+      allow_failure: true
+    - name: Check code format
+      script: ./scripts/check_format.sh
+      allow_failure: true

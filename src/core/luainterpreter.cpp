@@ -1,4 +1,4 @@
-#include "luainterpreter.h"
+#include "MiniLua/luainterpreter.hpp"
 
 namespace lua {
 namespace rt {

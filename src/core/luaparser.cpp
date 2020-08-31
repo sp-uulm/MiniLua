@@ -1,4 +1,4 @@
-#include "luaparser.h"
+#include "MiniLua/luaparser.hpp"
 
 LuaParser::LuaParser() {
 

@@ -1,7 +1,7 @@
 #ifndef ENVIRONMENT_H
 #define ENVIRONMENT_H
 
-#include "val.h"
+#include "val.hpp"
 
 namespace lua {
 namespace rt {
