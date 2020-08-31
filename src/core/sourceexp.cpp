@@ -238,6 +238,7 @@ source_change_t sourceunop::forceValue(const val& new_v) const {
             auto res_and = make_shared<SourceChangeAnd>();
             res_and->changes.push_back(*result);
             res_and->changes.push_back(SourceAssignment::create(op, ""));
+            res_and->changes.back()->hint = identifier;
             res_or->alternatives.push_back(res_and);
         }
 

@@ -110,6 +110,11 @@ inline eval_result_t operator<< (const eval_result_t& lhs, const source_change_t
     return eval_success(get_val(lhs), get_sc(lhs) & rhs);
 }
 
+// helper functions to name and choose the source change variants
+optional<string> default_source_change_label(const val& v);
+vector<string> source_change_labels(const val& v);
+optional<shared_ptr<SourceChange>> get_sc_for_hint(const val& v, const string& hint);
+
 }
 }
 
