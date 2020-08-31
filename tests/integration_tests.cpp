@@ -72,3 +72,4 @@ TEST_CASE("parse, eval, update", "[parse]") {
         REQUIRE(result == "force(3, 3)");
     }
 }
+

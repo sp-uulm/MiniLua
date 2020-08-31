@@ -1,7 +1,6 @@
 #include "MiniLua/luaparser.hpp"
 
 LuaParser::LuaParser() {
-
 }
 
 auto LuaParser::parse(const string program, PerformanceStatistics& ps) -> parse_result_t<LuaChunk> {

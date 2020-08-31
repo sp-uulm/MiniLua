@@ -10,7 +10,7 @@ endif()
 # project definition
 project(MiniLua VERSION 1.0
                 DESCRIPTION "Value tracing lua interpreter"
-                LANGUAGES CXX)
+                LANGUAGES CXX C)
 
 # global settings
 set(CMAKE_CXX_STANDARD 17)
@@ -34,10 +34,6 @@ if(COVERAGE)
     # remove tests and dependencies from coverage report
     set(LCOV_REMOVE_EXTRA "'${CMAKE_SOURCE_DIR}/tests/*'" "'${CMAKE_BINARY_DIR}/*'")
 endif()
-
-# DEPENDENCIES
-find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
-find_package(Boost REQUIRED)
 
 # library
 add_subdirectory(src)
