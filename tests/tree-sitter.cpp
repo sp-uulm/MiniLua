@@ -88,6 +88,17 @@ TEST_CASE("Print", "[tree-sitter][!hide]") {
     FAIL();
 }
 
+TEST_CASE("tree can be copied", "[tree-sitter]") {
+    ts::Parser parser;
+    std::string source = "1 + 2";
+    const ts::Tree tree = parser.parse_string(source);
+
+    ts::Tree tree_copy = tree;
+    CHECK(tree.source() == tree_copy.source());
+    // root node is not equal because the tree is different
+    CHECK(&tree.root_node().tree() != &tree_copy.root_node().tree());
+}
+
 TEST_CASE("Tree-Sitter Edit", "[tree-sitter]") {
     ts::Parser parser;
 

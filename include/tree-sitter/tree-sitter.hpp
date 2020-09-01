@@ -302,16 +302,19 @@ class Tree {
     std::unique_ptr<TSTree, void (*)(TSTree*)> tree;
     // maybe a separate Input type is better to be more flexible
     std::string source_;
-    Parser& parser;
+
+    // use pointer instead of reference because we need to reassign in the copy
+    // constructor
+    Parser* parser;
 
 public:
     // explicit because this class handles the pointer as a ressource
     // automatic conversion from pointer to this type is dangerous
-    explicit Tree(TSTree* tree, std::string& source, Parser& parser);
+    explicit Tree(TSTree* tree, const std::string& source, Parser& parser);
 
-    // don't copy because we manage pointers
-    Tree(const Tree&) = delete;
-    Tree& operator=(const Tree&) = delete;
+    // TSTree* can be safely (and fast) copied using ts_tree_copy
+    Tree(const Tree&);
+    Tree& operator=(const Tree&);
 
     // move constructor
     Tree(Tree&& other) noexcept;

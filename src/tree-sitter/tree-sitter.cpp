@@ -138,8 +138,23 @@ bool operator==(const Node& lhs, const Node& rhs) {
 bool operator!=(const Node& lhs, const Node& rhs) { return !(lhs == rhs); }
 
 // class Tree
-Tree::Tree(TSTree* tree, std::string& source, Parser& parser)
-    : tree(tree, ts_tree_delete), source_(source), parser(parser) {}
+Tree::Tree(TSTree* tree, const std::string& source, Parser& parser)
+    : tree(tree, ts_tree_delete), source_(source), parser(&parser) {}
+
+Tree::Tree(const Tree& other)
+    : tree(ts_tree_copy(other.raw()), ts_tree_delete), source_(other.source()),
+      parser(other.parser) {}
+Tree& Tree::operator=(const Tree& other) {
+    // check self assignment
+    if (&other == this) {
+        return *this;
+    }
+
+    this->tree.reset(ts_tree_copy(other.raw()));
+    this->source_ = other.source();
+    this->parser = other.parser;
+    return *this;
+}
 
 // move constructor
 Tree::Tree(Tree&& other) noexcept
@@ -195,7 +210,7 @@ void Tree::edit(const Edit& edit) {
 }
 
 void Tree::sync() {
-    TSTree* new_tree = ts_parser_parse_string(this->parser.raw(), this->tree.get(),
+    TSTree* new_tree = ts_parser_parse_string(this->parser->raw(), this->tree.get(),
                                               this->source().c_str(), this->source().size());
     // delete old tree and insert new tree pointer
     this->tree.reset(new_tree);
