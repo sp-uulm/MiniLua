@@ -8,33 +8,37 @@
 namespace ts {
 
 // struct Point
-bool operator==(const Point& self, const Point& other) {
-    return self.row == other.row && self.column == other.column;
+bool operator==(const Point& lhs, const Point& rhs) {
+    return lhs.row == rhs.row && lhs.column == rhs.column;
 }
+bool operator!=(const Point& lhs, const Point& rhs) { return !(lhs == rhs); }
 std::ostream& operator<<(std::ostream& o, const Point& self) {
     return o << "Point{ .row = " << self.row << ", .column = " << self.column << "}";
 }
 
 // struct Location
-bool operator==(const Location& self, const Location& other) {
-    return self.point == other.point && self.byte == other.byte;
+bool operator==(const Location& lhs, const Location& rhs) {
+    return lhs.point == rhs.point && lhs.byte == rhs.byte;
 }
+bool operator!=(const Location& lhs, const Location& rhs) { return !(lhs == rhs); }
 std::ostream& operator<<(std::ostream& o, const Location& self) {
     return o << "Location{ .point = " << self.point << ", .byte = " << self.byte << "}";
 }
 
 // struct Range
-bool operator==(const Range& self, const Range& other) {
-    return self.start == other.start && self.end == other.end;
+bool operator==(const Range& lhs, const Range& rhs) {
+    return lhs.start == rhs.start && lhs.end == rhs.end;
 }
+bool operator!=(const Range& lhs, const Range& rhs) { return !(lhs == rhs); }
 std::ostream& operator<<(std::ostream& o, const Range& self) {
     return o << "Range{ .start = " << self.start << ", .end = " << self.end << "}";
 }
 
 // struct Edit
-bool operator==(const Edit& self, const Edit& other) {
-    return self.range == other.range && self.replacement == other.replacement;
+bool operator==(const Edit& lhs, const Edit& rhs) {
+    return lhs.range == rhs.range && lhs.replacement == rhs.replacement;
 }
+bool operator!=(const Edit& lhs, const Edit& rhs) { return !(lhs == rhs); }
 std::ostream& operator<<(std::ostream& o, const Edit& self) {
     return o << "Edit{ .range = " << self.range << ", .replacement = " << self.replacement << "}";
 }
@@ -46,19 +50,36 @@ TSNode Node::raw() const { return this->node; }
 const Tree& Node::tree() const { return this->tree_; }
 
 bool Node::is_null() const { return ts_node_is_null(this->node); }
+bool Node::is_named() const { return ts_node_is_named(this->node); }
+bool Node::is_missing() const { return ts_node_is_missing(this->node); }
+bool Node::is_extra() const { return ts_node_is_extra(this->node); }
+bool Node::has_changes() const { return ts_node_has_changes(this->node); }
+bool Node::has_error() const { return ts_node_has_error(this->node); }
 
 const char* Node::type() const { return ts_node_type(this->node); }
+TypeId Node::type_id() const { return ts_node_symbol(this->node); }
+
+Node Node::parent() const { return Node(ts_node_parent(this->node), this->tree()); }
 
 std::uint32_t Node::child_count() const { return ts_node_child_count(this->node); }
 
 Node Node::child(std::uint32_t index) const {
-    return Node(ts_node_child(this->node, index), this->tree_);
+    return Node(ts_node_child(this->node, index), this->tree());
 }
 
 std::uint32_t Node::named_child_count() const { return ts_node_named_child_count(this->node); }
 
 Node Node::named_child(std::uint32_t index) const {
-    return Node(ts_node_named_child(this->node, index), this->tree_);
+    return Node(ts_node_named_child(this->node, index), this->tree());
+}
+
+Node Node::next_sibling() const { return Node(ts_node_next_sibling(this->node), this->tree()); }
+Node Node::prev_sibling() const { return Node(ts_node_prev_sibling(this->node), this->tree()); }
+Node Node::next_named_sibling() const {
+    return Node(ts_node_next_named_sibling(this->node), this->tree());
+}
+Node Node::prev_named_sibling() const {
+    return Node(ts_node_prev_named_sibling(this->node), this->tree());
 }
 
 std::uint32_t Node::start_byte() const { return ts_node_start_byte(this->node); }
@@ -99,7 +120,7 @@ std::string Node::text() const {
     return this->tree().source().substr(start, count);
 }
 
-std::string Node::as_string() const {
+std::string Node::as_s_expr() const {
     char* raw_string = ts_node_string(this->node);
     if (raw_string == nullptr) {
         return std::string();
@@ -109,6 +130,12 @@ std::string Node::as_string() const {
         return str;
     }
 }
+
+bool operator==(const Node& lhs, const Node& rhs) {
+    // was created from the same tree and nodes are equal
+    return &lhs.tree() == &rhs.tree() && ts_node_eq(lhs.raw(), rhs.raw());
+}
+bool operator!=(const Node& lhs, const Node& rhs) { return !(lhs == rhs); }
 
 // class Tree
 Tree::Tree(TSTree* tree, std::string& source, Parser& parser)

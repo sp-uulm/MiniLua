@@ -14,6 +14,11 @@ extern "C" const TSLanguage* tree_sitter_lua();
 namespace ts {
 
 /**
+ * Numeric representation of the type of a node.
+ */
+typedef TSSymbol TypeId;
+
+/**
  * Contains a source location.
  */
 struct Point {
@@ -22,6 +27,7 @@ struct Point {
 };
 
 bool operator==(const Point&, const Point&);
+bool operator!=(const Point&, const Point&);
 std::ostream& operator<<(std::ostream&, const Point&);
 
 struct Location {
@@ -30,6 +36,7 @@ struct Location {
 };
 
 bool operator==(const Location&, const Location&);
+bool operator!=(const Location&, const Location&);
 std::ostream& operator<<(std::ostream&, const Location&);
 
 struct Range {
@@ -38,6 +45,7 @@ struct Range {
 };
 
 bool operator==(const Range&, const Range&);
+bool operator!=(const Range&, const Range&);
 std::ostream& operator<<(std::ostream&, const Range&);
 
 struct Edit {
@@ -46,6 +54,7 @@ struct Edit {
 };
 
 bool operator==(const Edit&, const Edit&);
+bool operator!=(const Edit&, const Edit&);
 std::ostream& operator<<(std::ostream&, const Edit&);
 
 // forward declarations
@@ -62,12 +71,19 @@ class Tree;
  * Nodes can be null (check with is_null).
  *
  * Note: This object is only valid for as long as the 'Tree' it was created from.
+ * If the tree was edited methods on the node might return wrong results. In this
+ * case you should retrieve the node from the tree again.
  */
 class Node {
     TSNode node;
     const Tree& tree_;
 
 public:
+    /**
+     * Creates a new node from the given tree-sitter node and the tree.
+     *
+     * NOTE: Should only be used internally.
+     */
     explicit Node(TSNode node, const Tree& tree) noexcept;
 
     /**
@@ -75,42 +91,184 @@ public:
      */
     TSNode raw() const;
 
+    /**
+     * Get the tree this node was created from.
+     */
     const Tree& tree() const;
 
     /**
-     * Returns true if the node is null.
+     * Get the string representation of the type of the node.
      */
-    bool is_null() const;
-
     const char* type() const;
 
     /**
-     * Get the nth child. This will also return anonymous nodes.
+     * Get the numeric representation of the type of the node.
+     *
+     * In tree-sitter this is called *symbol*.
+     *
+     * NOTE: There is currently no real way to use it because there are no
+     * constants available to compare to.
+     */
+    TypeId type_id() const;
+
+    /**
+     * Check if the node is null.
+     *
+     * Methods like 'child' or 'next_sibling' can return null nodes.
+     */
+    bool is_null() const;
+
+    /**
+     * Check if the node is named.
+     */
+    bool is_named() const;
+
+    /**
+     * Check if the node is *missing*.
+     *
+     * Missing nodes are used to recover from some kinds of syntax errors.
+     */
+    bool is_missing() const;
+
+    /**
+     * Check if the node is *extra*.
+     *
+     * Extra nodes represent things like comments.
+     */
+    bool is_extra() const;
+
+    /**
+     * Check if the node has been edited.
+     */
+    bool has_changes() const;
+
+    /**
+     * Get true if the node is a syntax error or contains any syntax errors.
+     */
+    bool has_error() const;
+
+    /**
+     * Gets the nodes parent.
+     *
+     * Can return a null node.
+     */
+    Node parent() const;
+
+    /**
+     * Get the n-th child (0 indexed).
+     *
+     * This will also return anonymous nodes.
+     *
+     * Can return a null node.
      */
     Node child(std::uint32_t index) const;
+
+    /**
+     * Get the count of all children.
+     */
     std::uint32_t child_count() const;
 
     /**
-     * Get the nth named child.
+     * Get the n-th named child (0 indexed).
+     *
+     * This will not return anonymous nodes and the index only considers named
+     * nodes.
+     *
+     * Can return a null node.
      */
     Node named_child(std::uint32_t index) const;
+
+    /**
+     * Get the count of named children.
+     */
     std::uint32_t named_child_count() const;
 
+    /**
+     * Get the node's next sibling.
+     *
+     * This will also return anonymous nodes.
+     *
+     * Can return a null node.
+     */
+    Node next_sibling() const;
+
+    /**
+     * Get the node's previous sibling.
+     *
+     * This will also return anonymous nodes.
+     *
+     * Can return a null node.
+     */
+    Node prev_sibling() const;
+
+    /**
+     * Get the node's next *named* sibling.
+     *
+     * This will not return anonymous nodes.
+     *
+     * Can return a null node.
+     */
+    Node next_named_sibling() const;
+
+    /**
+     * Get the node's previous *named* sibling.
+     *
+     * This will not return anonymous nodes.
+     *
+     * Can return a null node.
+     */
+    Node prev_named_sibling() const;
+
+    /**
+     * Get the start position as a byte offset.
+     */
     std::uint32_t start_byte() const;
+
+    /**
+     * Get the end position as a byte offset.
+     *
+     * Returns the position after the last character.
+     */
     std::uint32_t end_byte() const;
 
+    /**
+     * Get the start position as a 'Point' (row + column).
+     */
     Point start_point() const;
+
+    /**
+     * Get the end position as a 'Point' (row + column).
+     */
     Point end_point() const;
 
+    /**
+     * Get the start position as a 'Location' ('Point' + byte).
+     */
     Location start() const;
+
+    /**
+     * Get the end position as a 'Location' ('Point' + byte).
+     */
     Location end() const;
 
+    /**
+     * Get the 'Range' of the node (start and end location).
+     */
     Range range() const;
 
+    /**
+     * Get the original string this node represents.
+     */
     std::string text() const;
 
-    std::string as_string() const;
+    /**
+     * Returns the syntax tree starting from node represented as an s-expression.
+     */
+    std::string as_s_expr() const;
 };
+
+bool operator==(const Node& lhs, const Node& rhs);
+bool operator!=(const Node& lhs, const Node& rhs);
 
 /**
  * Parser for the Lua language.

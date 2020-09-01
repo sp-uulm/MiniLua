@@ -6,7 +6,7 @@
 
 using namespace std::string_literals;
 
-TEST_CASE("Navigation", "[tree-sitter]") {
+TEST_CASE("Navigation", "[tree-sitter][!hide]") {
     // This is a possible design of how to use tree-sitter in the interpreter.
     // But of course this would be split up over multiple functions
     // and could use better variable names because of that.
@@ -84,7 +84,7 @@ TEST_CASE("Print", "[tree-sitter][!hide]") {
     ts::Tree tree = parser.parse_string(source);
     ts::Node root = tree.root_node();
 
-    INFO(root.as_string());
+    INFO(root.as_s_expr());
     FAIL();
 }
 
@@ -94,7 +94,7 @@ TEST_CASE("Tree-Sitter Edit", "[tree-sitter]") {
     std::string source = "1 + 2";
     ts::Tree tree = parser.parse_string(source);
 
-    INFO("Pre edit: " << tree.root_node().as_string());
+    INFO("Pre edit: " << tree.root_node().as_s_expr());
 
     {
         ts::Node one_node = tree.root_node().named_child(0).named_child(0).named_child(0);
@@ -112,7 +112,7 @@ TEST_CASE("Tree-Sitter Edit", "[tree-sitter]") {
         // don't use one_node after this
     }
 
-    INFO("Post edit: " << tree.root_node().as_string());
+    INFO("Post edit: " << tree.root_node().as_s_expr());
 
     CHECK(tree.source() == "15 + 2"s);
 
@@ -120,6 +120,28 @@ TEST_CASE("Tree-Sitter Edit", "[tree-sitter]") {
     CHECK(one_node.type() == "number"s);
     INFO(one_node.range());
     CHECK(one_node.text() == "15"s);
+}
+
+TEST_CASE("Tree-Sitter detects errors", "[tree-sitter][parse]") {
+    ts::Parser parser;
+
+    SECTION("correct code does not have an error") {
+        std::string source = "1 + 2";
+        ts::Tree tree = parser.parse_string(source);
+        ts::Node root = tree.root_node();
+
+        INFO(root.as_s_expr());
+        CHECK(!root.has_error());
+    }
+
+    SECTION("missing operands are detected") {
+        std::string source = "1 +";
+        ts::Tree tree = parser.parse_string(source);
+        ts::Node root = tree.root_node();
+
+        INFO(root.as_s_expr());
+        CHECK(root.has_error());
+    }
 }
 
 TEST_CASE("Cursor", "[tree-sitter]") {
@@ -151,7 +173,7 @@ TEST_CASE("Tree-Sitter-Wrapper", "[tree-sitter][parser]") {
         ts::Tree tree = parser.parse_string(source_code);
 
         ts::Node root_node = tree.root_node();
-        INFO(root_node.as_string());
+        INFO(root_node.as_s_expr());
         CHECK(root_node.type() == "program"s);
 
         ts::Node expr_node = root_node.child(0);
@@ -193,7 +215,7 @@ end
         ts::Tree tree = parser.parse_string(source_code);
 
         ts::Node root_node = tree.root_node();
-        INFO(root_node.as_string());
+        INFO(root_node.as_s_expr());
         CHECK(root_node.type() == "program"s);
 
         ts::Node if_stmt = root_node.child(0);
