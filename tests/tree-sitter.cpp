@@ -107,30 +107,34 @@ TEST_CASE("Tree-Sitter Edit", "[tree-sitter]") {
 
     INFO("Pre edit: " << tree.root_node().as_s_expr());
 
-    {
-        ts::Node one_node = tree.root_node().named_child(0).named_child(0).named_child(0);
-        CHECK(one_node.type() == "number"s);
-        CHECK(one_node.text() == "1"s);
+    // check pre-condition on tree
+    ts::Node one_node = tree.root_node().named_child(0).named_child(0).named_child(0);
+    CHECK(one_node.type() == "number"s);
+    CHECK(one_node.text() == "1"s);
 
-        ts::Range one_range = one_node.range();
-        ts::Edit edit{
-            .range = one_range,
-            .replacement = "15"s,
-        };
+    // create an edit
+    ts::Range one_range = one_node.range();
+    INFO("Range of old 'one_node' " << one_node.range());
+    ts::Edit edit{
+        .range = one_range,
+        .replacement = "15"s,
+    };
 
-        tree.edit(edit);
-        tree.sync();
-        // don't use one_node after this
-    }
+    // apply the edit
+    std::vector<ts::Range> changed_ranges = tree.edit({edit});
+    // NOTE: don't use one_node after this
 
     INFO("Post edit: " << tree.root_node().as_s_expr());
 
     CHECK(tree.source() == "15 + 2"s);
 
-    ts::Node one_node = tree.root_node().named_child(0).named_child(0).named_child(0);
-    CHECK(one_node.type() == "number"s);
-    INFO(one_node.range());
-    CHECK(one_node.text() == "15"s);
+    ts::Node new_one_node = tree.root_node().named_child(0).named_child(0).named_child(0);
+    CHECK(new_one_node.type() == "number"s);
+    INFO("Range of new 'one_node' " << new_one_node.range());
+    CHECK(new_one_node.text() == "15"s);
+
+    CHECK(!changed_ranges.empty());
+    CHECK_THAT(changed_ranges, Catch::Matchers::VectorContains(new_one_node.range()));
 }
 
 TEST_CASE("Tree-Sitter detects errors", "[tree-sitter][parse]") {

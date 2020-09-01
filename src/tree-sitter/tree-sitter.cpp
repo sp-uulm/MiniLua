@@ -1,9 +1,11 @@
 #include "tree-sitter/tree-sitter.hpp"
+#include <algorithm>
 #include <cstdio>
 #include <iostream>
 #include <optional>
 #include <string>
 #include <tree_sitter/api.h>
+#include <vector>
 
 namespace ts {
 
@@ -133,7 +135,7 @@ std::string Node::as_s_expr() const {
 
 bool operator==(const Node& lhs, const Node& rhs) {
     // was created from the same tree and nodes are equal
-    return &lhs.tree() == &rhs.tree() && ts_node_eq(lhs.raw(), rhs.raw());
+    return ts_node_eq(lhs.raw(), rhs.raw());
 }
 bool operator!=(const Node& lhs, const Node& rhs) { return !(lhs == rhs); }
 
@@ -178,10 +180,11 @@ const std::string& Tree::source() const { return this->source_; }
 
 Node Tree::root_node() const { return Node(ts_tree_root_node(this->tree.get()), *this); }
 
-void Tree::edit(const Edit& edit) {
+// helper function to apply one edit to the tree and source code
+void _apply_edit(const Edit& edit, TSTree* tree, std::string& source) {
     std::uint32_t old_size = edit.range.end.byte - edit.range.start.byte;
 
-    this->source_.replace(edit.range.start.byte, old_size, edit.replacement);
+    source.replace(edit.range.start.byte, old_size, edit.replacement);
 
     std::uint32_t size_diff = old_size - static_cast<std::uint32_t>(edit.replacement.size());
 
@@ -206,14 +209,75 @@ void Tree::edit(const Edit& edit) {
             },
     };
 
-    ts_tree_edit(this->tree.get(), &input_edit);
+    ts_tree_edit(tree, &input_edit);
 }
 
-void Tree::sync() {
-    TSTree* new_tree = ts_parser_parse_string(this->parser->raw(), this->tree.get(),
-                                              this->source().c_str(), this->source().size());
-    // delete old tree and insert new tree pointer
+std::vector<Range> get_changed_ranges(const TSTree* old_tree, const TSTree* new_tree) {
+    std::uint32_t length;
+
+    TSRange* begin = ts_tree_get_changed_ranges(old_tree, new_tree, &length);
+    TSRange* end = begin + static_cast<std::size_t>(length);
+
+    std::vector<Range> changed_ranges{length};
+
+    std::transform(begin, end, changed_ranges.begin(), [](const TSRange& range) {
+        return Range{
+            .start =
+                Location{
+                    .point =
+                        Point{
+                            .row = range.start_point.row,
+                            .column = range.start_point.column,
+                        },
+                    .byte = range.start_byte,
+                },
+            .end =
+                Location{
+                    .point =
+                        Point{
+                            .row = range.end_point.row,
+                            .column = range.end_point.column,
+                        },
+                    .byte = range.end_byte,
+                },
+        };
+    });
+
+    free(begin);
+
+    return changed_ranges;
+}
+
+std::vector<Range> Tree::edit(std::vector<Edit> edits) {
+    // save copies of the previous values so we can return the old syntax tree
+    const std::string old_source = this->source();
+    TSTree* old_tree = this->tree.release();
+
+    // Sort edits so the edits that are at the end of the source code are applied
+    // before the edits that are at the beginning.
+    // This prevents conflicts in (the common) case that the source locations
+    // has a different size after the edit (and therefore move everything
+    // after them in the string).
+    // Note: This assumes that the edits are not overlapping or duplicate
+    std::sort(edits.begin(), edits.end(), [](const Edit& edit1, const Edit& edit2) {
+        return edit1.range.start.byte > edit2.range.start.byte;
+    });
+
+    for (const auto& edit : edits) {
+        _apply_edit(edit, old_tree, this->source_);
+    }
+
+    // reparse the source code
+    TSTree* new_tree = ts_parser_parse_string(this->parser->raw(), old_tree, this->source().c_str(),
+                                              this->source().size());
+
     this->tree.reset(new_tree);
+
+    std::vector<Range> changed_ranges = get_changed_ranges(old_tree, new_tree);
+
+    ts_tree_delete(old_tree);
+
+    return changed_ranges;
 }
 
 void Tree::print_dot_graph(std::string path) const {

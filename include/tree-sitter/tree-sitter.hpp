@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <tree_sitter/api.h>
 #include <utility>
+#include <vector>
 
 extern "C" const TSLanguage* tree_sitter_lua();
 
@@ -329,6 +330,9 @@ public:
      */
     const TSTree* raw() const;
 
+    /**
+     * Get a reference to the source code.
+     */
     const std::string& source() const;
 
     /**
@@ -337,30 +341,49 @@ public:
     Node root_node() const;
 
     /**
-     * Edit the syntax tree and source code.
+     * Edit the syntax tree and source code and return the changed ranges.
      *
-     * You need to call 'sync' after applying all the edits to bring the tree
-     * back into a valid state.
+     * The returned ranges are not the ranges that were specified in the edits
+     * they are actual ranges of changed code and will likely contain not
+     * edited pieces of the source code (e.g. if it was moved by another edit).
      *
-     * WARNING: Applying multiple edits is difficult if the replacement is a
-     * different size than the original because the content after the edit will
-     * move and subsequent edits will not have correct locations and this is
+     * You need to specify all edits you want to apply to the syntax tree in one
+     * call. Because this method changes both the syntax tree and source code
+     * string any other 'Edit's will be invalid and trying to apply them is
      * undefined behaviour.
      *
-     * To avoid this you should apply the edits back to front. Meaning edits at
-     * the end of the source should be applied before edit at the beginning.
+     * Any previously retrieved nodes will become (silently) invalid.
      *
-     * WARNING: Take care not to apply overlapping edits.
+     * NOTE: This takes the edits by value because they should not be used after
+     * calling this function and we need to modify the vector internally.
      */
-    void edit(const Edit&);
+    std::vector<Range> edit(std::vector<Edit>);
 
-    /**
-     * Syncronizes the tree with the source code.
-     *
-     * You need to call this method after applying all the edits to bring the
-     * tree back into a valid state.
-     */
-    void sync();
+    // /**
+    //  * Edit the syntax tree and source code.
+    //  *
+    //  * You need to call 'sync' after applying all the edits to bring the tree
+    //  * back into a valid state.
+    //  *
+    //  * WARNING: Applying multiple edits is difficult if the replacement is a
+    //  * different size than the original because the content after the edit will
+    //  * move and subsequent edits will not have correct locations and this is
+    //  * undefined behaviour.
+    //  *
+    //  * To avoid this you should apply the edits back to front. Meaning edits at
+    //  * the end of the source should be applied before edit at the beginning.
+    //  *
+    //  * WARNING: Take care not to apply overlapping edits.
+    //  */
+    // void edit(const Edit&);
+    //
+    // /**
+    //  * Syncronizes the tree with the source code.
+    //  *
+    //  * You need to call this method after applying all the edits to bring the
+    //  * tree back into a valid state.
+    //  */
+    // std::unique_ptr<TSTree, void(*)(TSTree*)> sync();
 
     void print_dot_graph(std::string path) const;
 };
