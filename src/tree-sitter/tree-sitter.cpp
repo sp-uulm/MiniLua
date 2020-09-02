@@ -45,6 +45,57 @@ std::ostream& operator<<(std::ostream& o, const Edit& self) {
     return o << "Edit{ .range = " << self.range << ", .replacement = " << self.replacement << "}";
 }
 
+// class Language
+Language::Language(const TSLanguage* lang) noexcept : lang(lang) {}
+
+// copy constructor
+Language::Language(const Language& other) noexcept : lang(other.lang) {}
+// copy assignment
+Language& Language::operator=(const Language& other) noexcept {
+    // check self assignment
+    if (&other == this) {
+        return *this;
+    }
+
+    this->lang = other.lang;
+    return *this;
+}
+
+const TSLanguage* Language::raw() const { return this->lang; }
+
+std::uint32_t Language::node_type_count() const { return ts_language_symbol_count(this->raw()); }
+
+const char* Language::node_type_name(TypeId type_id) const {
+    return ts_language_symbol_name(this->raw(), type_id);
+}
+
+TypeId Language::node_type_id(std::string_view name, bool is_named) const {
+    return ts_language_symbol_for_name(this->raw(), name.data(), name.size(), is_named);
+}
+
+std::uint32_t Language::field_count() const { return ts_language_field_count(this->raw()); }
+
+const char* Language::field_name(FieldId field_id) const {
+    return ts_language_field_name_for_id(this->raw(), field_id);
+}
+
+FieldId Language::field_id(std::string_view name) const {
+    return ts_language_field_id_for_name(this->raw(), name.data(), name.size());
+}
+
+TypeKind Language::node_type_kind(TypeId type_id) const {
+    switch (ts_language_symbol_type(this->raw(), type_id)) {
+    case TSSymbolTypeRegular:
+        return TypeKind::Named;
+    case TSSymbolTypeAnonymous:
+        return TypeKind::Anonymous;
+    case TSSymbolTypeAuxiliary:
+        return TypeKind::Hidden;
+    }
+}
+
+std::uint32_t Language::version() const { return ts_language_version(this->raw()); }
+
 // class Node
 Node::Node(TSNode node, const Tree& tree) noexcept : node(node), tree_(tree) {}
 
@@ -335,7 +386,9 @@ Parser& Parser::operator=(Parser&& other) noexcept {
 }
 void swap(Parser& self, Parser& other) noexcept { std::swap(self.parser, other.parser); }
 
-TSParser* Parser::raw() { return this->parser.get(); }
+TSParser* Parser::raw() const { return this->parser.get(); }
+
+Language Parser::language() const { return Language(ts_parser_language(this->raw())); }
 
 Tree Parser::parse_string(const TSTree* old_tree, std::string& source) {
     TSTree* tree = ts_parser_parse_string(this->raw(), old_tree, source.c_str(), source.length());

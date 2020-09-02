@@ -88,6 +88,42 @@ TEST_CASE("Print", "[tree-sitter][!hide]") {
     FAIL();
 }
 
+TEST_CASE("language is compatible with tree-sitter", "[tree-sitter]") {
+    ts::Language lang = ts::LUA_LANGUAGE;
+    REQUIRE(TREE_SITTER_MIN_COMPATIBLE_LANGUAGE_VERSION <= lang.version());
+    REQUIRE(TREE_SITTER_LANGUAGE_VERSION >= lang.version());
+}
+
+TEST_CASE("language can list all fields", "[tree-sitter][!hide]") {
+    ts::Language lang = ts::LUA_LANGUAGE;
+
+    CAPTURE(lang.field_count());
+
+    for (auto field_id = 1; field_id < lang.field_count() + 1; ++field_id) {
+        const char* name = lang.field_name(field_id);
+        UNSCOPED_INFO(field_id << ": " << name);
+    }
+
+    // FAIL();
+}
+
+TEST_CASE("language can list all node types", "[tree-sitter][!hide]") {
+    ts::Language lang = ts::LUA_LANGUAGE;
+
+    CAPTURE(lang.node_type_count());
+
+    for (auto type_id = 0; type_id < lang.node_type_count(); ++type_id) {
+        bool is_named = lang.node_type_kind(type_id) == ts::TypeKind::Named;
+        const char* name = lang.node_type_name(type_id);
+        ts::TypeId id = lang.node_type_id(name, is_named);
+        if (is_named && type_id == id) {
+            UNSCOPED_INFO(type_id << ": " << name);
+        }
+    }
+
+    // FAIL();
+}
+
 TEST_CASE("tree can be copied", "[tree-sitter]") {
     ts::Parser parser;
     std::string source = "1 + 2";
@@ -99,42 +135,138 @@ TEST_CASE("tree can be copied", "[tree-sitter]") {
     CHECK(&tree.root_node().tree() != &tree_copy.root_node().tree());
 }
 
-TEST_CASE("Tree-Sitter Edit", "[tree-sitter]") {
+TEST_CASE("trees can be edited", "[tree-sitter]") {
     ts::Parser parser;
 
-    std::string source = "1 + 2";
-    ts::Tree tree = parser.parse_string(source);
+    SECTION("changing an integer literal") {
+        std::string source = "1 + 2";
+        ts::Tree tree = parser.parse_string(source);
 
-    INFO("Pre edit: " << tree.root_node().as_s_expr());
+        INFO("Pre edit: " << tree.root_node().as_s_expr());
 
-    // check pre-condition on tree
-    ts::Node one_node = tree.root_node().named_child(0).named_child(0).named_child(0);
-    CHECK(one_node.type() == "number"s);
-    CHECK(one_node.text() == "1"s);
+        // check pre-condition on tree
+        ts::Node one_node = tree.root_node().named_child(0).named_child(0).child(0);
+        CHECK(one_node.type() == "number"s);
+        CHECK(one_node.text() == "1"s);
 
-    // create an edit
-    ts::Range one_range = one_node.range();
-    INFO("Range of old 'one_node' " << one_node.range());
-    ts::Edit edit{
-        .range = one_range,
-        .replacement = "15"s,
-    };
+        // create an edit
+        ts::Range one_range = one_node.range();
+        INFO("Range of old 'one_node' " << one_node.range());
+        ts::Edit edit{
+            .range = one_range,
+            .replacement = "15"s,
+        };
 
-    // apply the edit
-    std::vector<ts::Range> changed_ranges = tree.edit({edit});
-    // NOTE: don't use one_node after this
+        // apply the edit
+        tree.edit({edit});
+        // NOTE: don't use one_node after this
 
-    INFO("Post edit: " << tree.root_node().as_s_expr());
+        INFO("Post edit: " << tree.root_node().as_s_expr());
 
-    CHECK(tree.source() == "15 + 2"s);
+        CHECK(tree.source() == "15 + 2"s);
 
-    ts::Node new_one_node = tree.root_node().named_child(0).named_child(0).named_child(0);
-    CHECK(new_one_node.type() == "number"s);
-    INFO("Range of new 'one_node' " << new_one_node.range());
-    CHECK(new_one_node.text() == "15"s);
+        ts::Node new_one_node = tree.root_node().named_child(0).named_child(0).child(0);
+        CHECK(new_one_node.type() == "number"s);
+        INFO("Range of new 'one_node' " << new_one_node.range());
+        CHECK(new_one_node.text() == "15"s);
+    }
 
-    CHECK(!changed_ranges.empty());
-    CHECK_THAT(changed_ranges, Catch::Matchers::VectorContains(new_one_node.range()));
+    SECTION("changing multiple integer literals") {
+        std::string source = "1 + 2";
+        ts::Tree tree = parser.parse_string(source);
+
+        INFO("Pre edit: " << tree.root_node().as_s_expr());
+
+        // check pre-condition on tree
+        ts::Node one_node = tree.root_node().named_child(0).named_child(0).child(0);
+        CHECK(one_node.type() == "number"s);
+        CHECK(one_node.text() == "1"s);
+        ts::Node two_node = tree.root_node().named_child(0).named_child(0).child(2);
+        CHECK(two_node.type() == "number"s);
+        CHECK(two_node.text() == "2"s);
+
+        // create an edit
+        ts::Range one_range = one_node.range();
+        INFO("Range of old 'one_node' " << one_node.range());
+        ts::Edit edit_one{
+            .range = one_range,
+            .replacement = "15"s,
+        };
+        ts::Range two_range = two_node.range();
+        INFO("Range of old 'two_node' " << two_node.range());
+        ts::Edit edit_two{
+            .range = two_range,
+            .replacement = "7"s,
+        };
+
+        // apply the edit
+        tree.edit({edit_one, edit_two});
+        // NOTE: don't use one_node or two_node after this
+
+        INFO("Post edit: " << tree.root_node().as_s_expr());
+
+        CHECK(tree.source() == "15 + 7"s);
+
+        ts::Node new_one_node = tree.root_node().named_child(0).named_child(0).child(0);
+        CHECK(new_one_node.type() == "number"s);
+        INFO("Range of new 'one_node' " << new_one_node.range());
+        CHECK(new_one_node.text() == "15"s);
+        ts::Node new_two_node = tree.root_node().named_child(0).named_child(0).child(2);
+        CHECK(new_two_node.type() == "number"s);
+        INFO("Range of new 'two_node' " << new_two_node.range());
+        CHECK(new_two_node.text() == "7"s);
+    }
+
+    SECTION("changing multiple integer literals over multiple lines") {
+        std::string source = R"#(local a = 1
+local b = 2
+return a + b)#";
+        ts::Tree tree = parser.parse_string(source);
+
+        INFO("Pre edit: " << tree.root_node().as_s_expr());
+
+        // check pre-condition on tree
+        ts::Node one_node = tree.root_node().named_child(0).named_child(1);
+        CHECK(one_node.type() == "number"s);
+        CHECK(one_node.text() == "1"s);
+        ts::Node two_node = tree.root_node().named_child(1).named_child(1);
+        CHECK(two_node.type() == "number"s);
+        CHECK(two_node.text() == "2"s);
+
+        // create an edit
+        ts::Range one_range = one_node.range();
+        INFO("Range of old 'one_node' " << one_node.range());
+        ts::Edit edit_one{
+            .range = one_range,
+            .replacement = "15"s,
+        };
+        ts::Range two_range = two_node.range();
+        INFO("Range of old 'two_node' " << two_node.range());
+        ts::Edit edit_two{
+            .range = two_range,
+            .replacement = "7"s,
+        };
+
+        // apply the edit
+        std::vector<ts::Range> changed_ranges = tree.edit({edit_two, edit_one});
+        // NOTE: don't use one_node or two_node after this
+
+        INFO("Post edit: " << tree.root_node().as_s_expr());
+
+        std::string expected = R"#(local a = 15
+local b = 7
+return a + b)#";
+        CHECK(tree.source() == expected);
+
+        ts::Node new_one_node = tree.root_node().named_child(0).named_child(1);
+        CHECK(new_one_node.type() == "number"s);
+        INFO("Range of new 'one_node' " << new_one_node.range());
+        CHECK(new_one_node.text() == "15"s);
+        ts::Node new_two_node = tree.root_node().named_child(1).named_child(1);
+        CHECK(new_two_node.type() == "number"s);
+        INFO("Range of new 'two_node' " << new_two_node.range());
+        CHECK(new_two_node.text() == "7"s);
+    }
 }
 
 TEST_CASE("Tree-Sitter detects errors", "[tree-sitter][parse]") {
