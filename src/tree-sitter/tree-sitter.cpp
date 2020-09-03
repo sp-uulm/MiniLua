@@ -345,12 +345,23 @@ Cursor::~Cursor() noexcept { ts_tree_cursor_delete(&this->cursor); }
 Cursor::Cursor(const Cursor& cursor) noexcept
     : cursor(ts_tree_cursor_copy(&cursor.cursor)), tree(cursor.tree) {}
 
+void Cursor::reset(Node node) { ts_tree_cursor_reset(&this->cursor, node.raw()); }
+void Cursor::reset(const Tree& tree) {
+    ts_tree_cursor_reset(&this->cursor, tree.root_node().raw());
+}
+
 Node Cursor::current_node() const {
     return Node(ts_tree_cursor_current_node(&this->cursor), this->tree);
 }
+const char* Cursor::current_field_name() const {
+    return ts_tree_cursor_current_field_name(&this->cursor);
+}
+FieldId Cursor::current_field_id() const { return ts_tree_cursor_current_field_id(&this->cursor); }
 
 bool Cursor::goto_parent() { return ts_tree_cursor_goto_parent(&this->cursor); }
-bool Cursor::goto_first_child() {
+bool Cursor::goto_first_child() { return ts_tree_cursor_goto_first_child(&this->cursor); }
+bool Cursor::goto_next_sibling() { return ts_tree_cursor_goto_next_sibling(&this->cursor); }
+bool Cursor::goto_first_named_child() {
     do {
         if (!ts_tree_cursor_goto_first_child(&this->cursor)) {
             return false;
@@ -358,7 +369,7 @@ bool Cursor::goto_first_child() {
     } while (!ts_node_is_named(ts_tree_cursor_current_node(&this->cursor)));
     return true;
 }
-bool Cursor::goto_next_sibling() {
+bool Cursor::goto_next_named_sibling() {
     do {
         if (!ts_tree_cursor_goto_next_sibling(&this->cursor)) {
             return false;

@@ -301,14 +301,14 @@ TEST_CASE("Cursor", "[tree-sitter]") {
     ts::Cursor cursor{tree};
 
     CHECK(cursor.current_node().type() == "program"s);
-    CHECK(cursor.goto_first_child());
+    CHECK(cursor.goto_first_named_child());
     CHECK(cursor.current_node().type() == "expression"s);
-    CHECK(cursor.goto_first_child());
+    CHECK(cursor.goto_first_named_child());
     CHECK(cursor.current_node().type() == "binary_operation"s);
-    CHECK(cursor.goto_first_child());
+    CHECK(cursor.goto_first_named_child());
     CHECK(cursor.current_node().type() == "number"s);
     CHECK(cursor.current_node().text() == "1"s);
-    CHECK(cursor.goto_next_sibling());
+    CHECK(cursor.goto_next_named_sibling());
     CHECK(cursor.current_node().type() == "number"s);
     CHECK(cursor.current_node().text() == "2"s);
 }

@@ -551,12 +551,53 @@ public:
     Cursor(Cursor&&) = delete;
     Cursor& operator=(Cursor&&) = delete;
 
-    [[nodiscard]] Node current_node() const;
+    void reset(Node);
+    void reset(const Tree&);
 
+    [[nodiscard]] Node current_node() const;
+    [[nodiscard]] const char* current_field_name() const;
+    [[nodiscard]] FieldId current_field_id() const;
+
+    /**
+     * Move the cursor to the parent of the current node.
+     *
+     * Returns only false if the cursor is already at the root node.
+     */
     bool goto_parent();
-    // TODO should these throw exceptions when there are no more named nodes?
-    bool goto_first_child();
+
+    /**
+     * Move the cursor to the next sibling of the current node.
+     *
+     * Returns false if there was no next sibling.
+     */
     bool goto_next_sibling();
+
+    /**
+     * Move the cursor to the first child of the current node.
+     *
+     * Returns false if there were no children.
+     */
+    bool goto_first_child();
+
+    /**
+     * Move the cursor to the next named sibling of the current node.
+     *
+     * Returns false if there was no next sibling.
+     *
+     * NOTE: This method might move the cursor to another unnamed node and then
+     * still return false if there is no named node.
+     */
+    bool goto_next_named_sibling();
+
+    /**
+     * Move the cursor to the next named sibling of the current node.
+     *
+     * Returns false if there was no next sibling.
+     *
+     * NOTE: This method might move the cursor to another unnamed node and then
+     * still return false if there is no named node.
+     */
+    bool goto_first_named_child();
 };
 
 } // namespace ts
