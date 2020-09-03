@@ -296,34 +296,139 @@ TEST_CASE("Tree-Sitter detects errors", "[tree-sitter][parse]") {
 TEST_CASE("Cursor", "[tree-sitter]") {
     static_assert(std::is_nothrow_copy_constructible_v<ts::Cursor>);
     static_assert(std::is_nothrow_copy_assignable_v<ts::Cursor>);
+    static_assert(!std::is_nothrow_move_constructible_v<ts::Cursor>);
+    static_assert(!std::is_nothrow_move_assignable_v<ts::Cursor>);
 
     ts::Parser parser;
 
     std::string source = "1 + 2";
     ts::Tree tree = parser.parse_string(source);
 
-    ts::Cursor cursor{tree};
+    SECTION("can walk a tree") {
+        ts::Cursor cursor{tree};
 
-    REQUIRE(cursor.current_node().type() == "program"s);
-    INFO(cursor.current_node().as_s_expr());
-    REQUIRE(cursor.goto_first_named_child());
-    CHECK(cursor.current_node().type() == "expression"s);
-    REQUIRE(cursor.goto_first_named_child());
-    CHECK(cursor.current_node().type() == "binary_operation"s);
-    REQUIRE(cursor.goto_first_named_child());
-    CHECK(cursor.current_node().type() == "number"s);
-    CHECK(cursor.current_node().text() == "1"s);
-    REQUIRE(cursor.goto_next_named_sibling());
-    CHECK(cursor.current_node().type() == "number"s);
-    CHECK(cursor.current_node().text() == "2"s);
+        REQUIRE(cursor.current_node().type() == "program"s);
+        REQUIRE(cursor.goto_first_named_child());
+        CHECK(cursor.current_node().type() == "expression"s);
+        REQUIRE(cursor.goto_first_named_child());
+        CHECK(cursor.current_node().type() == "binary_operation"s);
+        REQUIRE(cursor.goto_first_named_child());
+        CHECK(cursor.current_node().type() == "number"s);
+        CHECK(cursor.current_node().text() == "1"s);
+        REQUIRE(cursor.goto_next_named_sibling());
+        CHECK(cursor.current_node().type() == "number"s);
+        CHECK(cursor.current_node().text() == "2"s);
+    }
+
+    SECTION("can be copied") {
+        ts::Cursor cursor{tree};
+        ts::Cursor cursor_copy{cursor};   // NOLINT
+        ts::Cursor cursor_copy2 = cursor; // NOLINT
+    }
 }
 
 TEST_CASE("Node", "[tree-sitter]") {
     static_assert(std::is_nothrow_copy_constructible_v<ts::Node>);
     static_assert(std::is_nothrow_move_constructible_v<ts::Node>);
-    // these should work (and using Node in code this way does work)
-    // static_assert(std::is_nothrow_copy_assignable_v<ts::Node>);
-    // static_assert(std::is_nothrow_move_assignable_v<ts::Node>);
+    // this makes moves redundant
+    static_assert(std::is_trivially_copyable_v<ts::Node>);
+
+    ts::Parser parser;
+
+    std::string source = "1 + 2";
+    ts::Tree tree = parser.parse_string(source);
+    ts::Node root = tree.root_node();
+
+    SECTION("can be copied") {
+        ts::Node node_copy{root};   // NOLINT
+        ts::Node node_copy2 = root; // NOLINT
+    }
+
+    SECTION("can retrieve origin tree") { REQUIRE(&tree == &root.tree()); }
+
+    SECTION("type() returns a non-empty string") {
+        REQUIRE(root.type() != nullptr);
+        REQUIRE(std::strlen(root.type()) > 0);
+
+        ts::Node expr = root.named_child(0);
+        REQUIRE(expr.type() != nullptr);
+        REQUIRE(std::strlen(expr.type()) > 0);
+
+        ts::Node bin_op = expr.named_child(0);
+        REQUIRE(bin_op.type() != nullptr);
+        REQUIRE(std::strlen(bin_op.type()) > 0);
+
+        ts::Node number_1 = bin_op.child(0);
+        REQUIRE(number_1.type() != nullptr);
+        REQUIRE(std::strlen(number_1.type()) > 0);
+
+        ts::Node op = bin_op.child(1);
+        REQUIRE(op.type() != nullptr);
+        REQUIRE(std::strlen(op.type()) > 0);
+
+        ts::Node number_2 = bin_op.child(2);
+        REQUIRE(number_2.type() != nullptr);
+        REQUIRE(std::strlen(number_2.type()) > 0);
+    }
+
+    SECTION("type_id() returns a non-zero type id") {
+        REQUIRE(root.type_id() != 0);
+
+        ts::Node expr = root.named_child(0);
+        REQUIRE(expr.type_id() != 0);
+
+        ts::Node bin_op = expr.named_child(0);
+        REQUIRE(bin_op.type() != nullptr);
+
+        ts::Node number_1 = bin_op.child(0);
+        REQUIRE(number_1.type() != nullptr);
+
+        ts::Node op = bin_op.child(1);
+        REQUIRE(op.type() != nullptr);
+
+        ts::Node number_2 = bin_op.child(2);
+        REQUIRE(number_2.type() != nullptr);
+    }
+
+    SECTION("child methods return a null node only if there are no more children") {
+        REQUIRE(!root.is_null());
+
+        ts::Node expr = root.named_child(0);
+        REQUIRE(!expr.is_null());
+
+        ts::Node bin_op = expr.named_child(0);
+        REQUIRE(!bin_op.is_null());
+
+        ts::Node number_1 = bin_op.child(0);
+        REQUIRE(!number_1.is_null());
+
+        ts::Node op = bin_op.child(1);
+        REQUIRE(!op.is_null());
+
+        ts::Node number_2 = bin_op.child(2);
+        REQUIRE(!number_2.is_null());
+
+        REQUIRE(root.child(1).is_null());
+        REQUIRE(root.child(5).is_null());
+        REQUIRE(number_2.child(0).is_null());
+    }
+
+    SECTION("named_child only return named nodes") {
+        ts::Node expr = root.named_child(0);
+        REQUIRE(expr.is_named());
+
+        ts::Node bin_op = expr.named_child(0);
+        REQUIRE(bin_op.is_named());
+
+        ts::Node number_1 = bin_op.named_child(0);
+        REQUIRE(number_1.is_named());
+
+        ts::Node op = bin_op.child(1);
+        REQUIRE(!op.is_named());
+
+        ts::Node number_2 = bin_op.named_child(1);
+        REQUIRE(number_2.is_named());
+    }
 }
 
 TEST_CASE("Tree-Sitter-Wrapper", "[tree-sitter][parser]") {

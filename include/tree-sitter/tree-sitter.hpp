@@ -535,7 +535,7 @@ class Cursor {
     // TSTreeCursor internally allocates heap.
     // It can be copied with "ts_tree_cursor_copy" but it can not moved
     // because there is no easy way to clear the cursor. We can only reset the
-    // cursor using a different tree.
+    // cursor using a different node.
     TSTreeCursor cursor;
     const Tree& tree;
 
