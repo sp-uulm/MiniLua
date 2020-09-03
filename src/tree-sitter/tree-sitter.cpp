@@ -5,6 +5,7 @@
 #include <optional>
 #include <string>
 #include <tree_sitter/api.h>
+#include <utility>
 #include <vector>
 
 namespace ts {
@@ -49,7 +50,7 @@ std::ostream& operator<<(std::ostream& o, const Edit& self) {
 Language::Language(const TSLanguage* lang) noexcept : lang(lang) {}
 
 // copy constructor
-Language::Language(const Language& other) noexcept : lang(other.lang) {}
+Language::Language(const Language& other) noexcept = default;
 // copy assignment
 Language& Language::operator=(const Language& other) noexcept {
     // check self assignment
@@ -191,8 +192,8 @@ bool operator==(const Node& lhs, const Node& rhs) {
 bool operator!=(const Node& lhs, const Node& rhs) { return !(lhs == rhs); }
 
 // class Tree
-Tree::Tree(TSTree* tree, const std::string& source, Parser& parser)
-    : tree(tree, ts_tree_delete), source_(source), parser(&parser) {}
+Tree::Tree(TSTree* tree, std::string source, Parser& parser)
+    : tree(tree, ts_tree_delete), source_(std::move(source)), parser(&parser) {}
 
 Tree::Tree(const Tree& other)
     : tree(ts_tree_copy(other.raw()), ts_tree_delete), source_(other.source()),
@@ -232,7 +233,7 @@ const std::string& Tree::source() const { return this->source_; }
 Node Tree::root_node() const { return Node(ts_tree_root_node(this->tree.get()), *this); }
 
 // helper function to apply one edit to the tree and source code
-void _apply_edit(const Edit& edit, TSTree* tree, std::string& source) {
+static void _apply_edit(const Edit& edit, TSTree* tree, std::string& source) {
     std::uint32_t old_size = edit.range.end.byte - edit.range.start.byte;
 
     source.replace(edit.range.start.byte, old_size, edit.replacement);
@@ -263,7 +264,7 @@ void _apply_edit(const Edit& edit, TSTree* tree, std::string& source) {
     ts_tree_edit(tree, &input_edit);
 }
 
-std::vector<Range> get_changed_ranges(const TSTree* old_tree, const TSTree* new_tree) {
+static std::vector<Range> _get_changed_ranges(const TSTree* old_tree, const TSTree* new_tree) {
     std::uint32_t length;
 
     TSRange* begin = ts_tree_get_changed_ranges(old_tree, new_tree, &length);
@@ -324,17 +325,17 @@ std::vector<Range> Tree::edit(std::vector<Edit> edits) {
 
     this->tree.reset(new_tree);
 
-    std::vector<Range> changed_ranges = get_changed_ranges(old_tree, new_tree);
+    std::vector<Range> changed_ranges = _get_changed_ranges(old_tree, new_tree);
 
     ts_tree_delete(old_tree);
 
     return changed_ranges;
 }
 
-void Tree::print_dot_graph(std::string path) const {
-    std::FILE* file = std::fopen(path.c_str(), "w");
-    ts_tree_print_dot_graph(this->raw(), file);
-    fclose(file);
+void Tree::print_dot_graph(std::string_view file) const {
+    std::FILE* f = std::fopen(file.data(), "w");
+    ts_tree_print_dot_graph(this->raw(), f);
+    fclose(f);
 }
 
 // class Cursor
@@ -390,7 +391,7 @@ TSParser* Parser::raw() const { return this->parser.get(); }
 
 Language Parser::language() const { return Language(ts_parser_language(this->raw())); }
 
-Tree Parser::parse_string(const TSTree* old_tree, std::string& source) {
+Tree Parser::parse_string(const TSTree* old_tree, std::string source) {
     TSTree* tree = ts_parser_parse_string(this->raw(), old_tree, source.c_str(), source.length());
     if (tree == nullptr) {
         // This can occur when:
@@ -401,11 +402,11 @@ Tree Parser::parse_string(const TSTree* old_tree, std::string& source) {
         // with the same arguments.
         throw std::runtime_error("failed to parse");
     }
-    return Tree(tree, source, *this);
+    return Tree(tree, std::move(source), *this);
 }
 // Tree Parser::parse_string(Tree old_tree, std::string& str) {
 //     return parse_string(old_tree.raw(), str);
 // }
-Tree Parser::parse_string(std::string& str) { return parse_string(nullptr, str); }
+Tree Parser::parse_string(std::string str) { return parse_string(nullptr, std::move(str)); }
 
 } // namespace ts

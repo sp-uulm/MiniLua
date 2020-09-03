@@ -129,6 +129,7 @@ TEST_CASE("tree can be copied", "[tree-sitter]") {
     std::string source = "1 + 2";
     const ts::Tree tree = parser.parse_string(source);
 
+    // NOLINTNEXTLINE(performance-unnecessary-copy-initialization)
     ts::Tree tree_copy = tree;
     CHECK(tree.source() == tree_copy.source());
     // root node is not equal because the tree is different
@@ -513,7 +514,7 @@ TEST_CASE("Tree-Sitter", "[tree-sitter][parser]") {
     ts_parser_set_language(parser, tree_sitter_lua());
 
     const char* source_code = "1 + 2";
-    TSTree* tree = ts_parser_parse_string(parser, NULL, source_code, strlen(source_code));
+    TSTree* tree = ts_parser_parse_string(parser, nullptr, source_code, strlen(source_code));
 
     TSNode root_node = ts_tree_root_node(tree);
     TSNode expr_node = ts_node_named_child(root_node, 0);
