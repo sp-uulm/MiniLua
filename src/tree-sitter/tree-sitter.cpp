@@ -362,19 +362,25 @@ bool Cursor::goto_parent() { return ts_tree_cursor_goto_parent(&this->cursor); }
 bool Cursor::goto_first_child() { return ts_tree_cursor_goto_first_child(&this->cursor); }
 bool Cursor::goto_next_sibling() { return ts_tree_cursor_goto_next_sibling(&this->cursor); }
 bool Cursor::goto_first_named_child() {
-    do {
-        if (!ts_tree_cursor_goto_first_child(&this->cursor)) {
+    if (!this->goto_first_child()) {
+        return false;
+    }
+
+    // walk over siblings until we encounter a named node
+    while (!this->current_node().is_named()) {
+        if (!this->goto_next_sibling()) {
             return false;
         }
-    } while (!ts_node_is_named(ts_tree_cursor_current_node(&this->cursor)));
+    }
     return true;
 }
 bool Cursor::goto_next_named_sibling() {
+    // walk over siblings until we encounter a named node
     do {
-        if (!ts_tree_cursor_goto_next_sibling(&this->cursor)) {
+        if (!this->goto_next_sibling()) {
             return false;
         }
-    } while (!ts_node_is_named(ts_tree_cursor_current_node(&this->cursor)));
+    } while (!this->current_node().is_named());
     return true;
 }
 

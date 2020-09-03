@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
 #include <cstring>
 #include <tree_sitter/api.h>
+#include <type_traits>
 
 #include "tree-sitter/tree-sitter.hpp"
 
@@ -293,6 +294,9 @@ TEST_CASE("Tree-Sitter detects errors", "[tree-sitter][parse]") {
 }
 
 TEST_CASE("Cursor", "[tree-sitter]") {
+    static_assert(std::is_nothrow_copy_constructible_v<ts::Cursor>);
+    static_assert(std::is_nothrow_copy_assignable_v<ts::Cursor>);
+
     ts::Parser parser;
 
     std::string source = "1 + 2";
@@ -300,17 +304,26 @@ TEST_CASE("Cursor", "[tree-sitter]") {
 
     ts::Cursor cursor{tree};
 
-    CHECK(cursor.current_node().type() == "program"s);
-    CHECK(cursor.goto_first_named_child());
+    REQUIRE(cursor.current_node().type() == "program"s);
+    INFO(cursor.current_node().as_s_expr());
+    REQUIRE(cursor.goto_first_named_child());
     CHECK(cursor.current_node().type() == "expression"s);
-    CHECK(cursor.goto_first_named_child());
+    REQUIRE(cursor.goto_first_named_child());
     CHECK(cursor.current_node().type() == "binary_operation"s);
-    CHECK(cursor.goto_first_named_child());
+    REQUIRE(cursor.goto_first_named_child());
     CHECK(cursor.current_node().type() == "number"s);
     CHECK(cursor.current_node().text() == "1"s);
-    CHECK(cursor.goto_next_named_sibling());
+    REQUIRE(cursor.goto_next_named_sibling());
     CHECK(cursor.current_node().type() == "number"s);
     CHECK(cursor.current_node().text() == "2"s);
+}
+
+TEST_CASE("Node", "[tree-sitter]") {
+    static_assert(std::is_nothrow_copy_constructible_v<ts::Node>);
+    static_assert(std::is_nothrow_move_constructible_v<ts::Node>);
+    // these should work (and using Node in code this way does work)
+    // static_assert(std::is_nothrow_copy_assignable_v<ts::Node>);
+    // static_assert(std::is_nothrow_move_assignable_v<ts::Node>);
 }
 
 TEST_CASE("Tree-Sitter-Wrapper", "[tree-sitter][parser]") {
