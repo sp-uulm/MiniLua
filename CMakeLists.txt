@@ -45,4 +45,5 @@ add_subdirectory(examples)
 # tests
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     add_subdirectory(tests)
+    add_subdirectory(bench)
 endif()
