@@ -7,7 +7,9 @@ TEST_CASE("Tree-Sitter Node navigation") {
     print(1)
     print(2)
 else
-    print(3)
+    while true do
+        print(3)
+    end
     print(4)
 end)#";
 
@@ -16,11 +18,13 @@ end)#";
 
     {
         ts::Node root = tree.root_node();
-        ts::Node print1 = root.child(0).named_child(1);
-        REQUIRE(print1.text() == "print(1)");
+        ts::Node print3 = root.child(0).named_child(3).named_child(0).named_child(1);
+        REQUIRE(print3.text() == "print(3)");
 
-        ts::Node one = root.child(0).named_child(1).named_child(1).named_child(0);
-        REQUIRE(one.text() == "1");
+        ts::Node three =
+            root.child(0).named_child(3).named_child(0).named_child(1).named_child(1).named_child(
+                0);
+        REQUIRE(three.text() == "3");
     }
 
     BENCHMARK("get root node") {
@@ -35,21 +39,23 @@ end)#";
         return root_copy;
     };
 
-    BENCHMARK("navigate to print(1)") {
-        ts::Node print1 = root.child(0).named_child(1);
-        return print1;
+    BENCHMARK("navigate to print(3)") {
+        ts::Node print3 = root.child(0).named_child(3).named_child(0).named_child(1);
+        return print3;
     };
 
-    BENCHMARK("navigate to 1") {
-        ts::Node one = root.child(0).named_child(1).named_child(1).named_child(0);
-        return one;
+    BENCHMARK("navigate to 3") {
+        ts::Node three =
+            root.child(0).named_child(3).named_child(0).named_child(1).named_child(1).named_child(
+                0);
+        return three;
     };
 
-    ts::Node print1 = root.child(0).named_child(1);
+    ts::Node print3 = root.child(0).named_child(3).named_child(0).named_child(1);
 
-    BENCHMARK("navigate to 1 after visiting print(1)") {
-        ts::Node one = print1.named_child(1).named_child(0);
-        return one;
+    BENCHMARK("navigate to 3 after visiting print(3)") {
+        ts::Node three = print3.named_child(1).named_child(0);
+        return three;
     };
 }
 
@@ -58,7 +64,9 @@ TEST_CASE("Tree-Sitter Cursor navigation") {
     print(1)
     print(2)
 else
-    print(3)
+    while true do
+        print(3)
+    end
     print(4)
 end)#";
 
@@ -70,14 +78,19 @@ end)#";
         REQUIRE(cursor.goto_first_child());
         REQUIRE(cursor.goto_first_named_child());
         REQUIRE(cursor.goto_next_named_sibling());
-        ts::Node print1 = cursor.current_node();
-        REQUIRE(print1.text() == "print(1)");
+        REQUIRE(cursor.goto_next_named_sibling());
+        REQUIRE(cursor.goto_next_named_sibling());
+        REQUIRE(cursor.goto_first_named_child());
+        REQUIRE(cursor.goto_first_named_child());
+        REQUIRE(cursor.goto_next_named_sibling());
+        ts::Node print3 = cursor.current_node();
+        REQUIRE(print3.text() == "print(3)");
 
         REQUIRE(cursor.goto_first_named_child());
         REQUIRE(cursor.goto_next_named_sibling());
         REQUIRE(cursor.goto_first_named_child());
-        ts::Node one = cursor.current_node();
-        REQUIRE(one.text() == "1");
+        ts::Node three = cursor.current_node();
+        REQUIRE(three.text() == "3");
     }
 
     BENCHMARK("create ursor") { return ts::Cursor(tree); };
@@ -97,36 +110,50 @@ end)#";
 
     {
         ts::Cursor cursor = ts::Cursor(tree);
-        BENCHMARK("navigate to print(1)") {
+        BENCHMARK("navigate to print(3)") {
             cursor.goto_first_child();
             cursor.goto_first_named_child();
             cursor.goto_next_named_sibling();
-            ts::Node print1 = cursor.current_node();
-            return print1;
+            cursor.goto_next_named_sibling();
+            cursor.goto_next_named_sibling();
+            cursor.goto_first_named_child();
+            cursor.goto_first_named_child();
+            cursor.goto_next_named_sibling();
+            ts::Node print3 = cursor.current_node();
+            return print3;
         };
     }
 
     {
         ts::Cursor cursor = ts::Cursor(tree);
-        BENCHMARK("navigate to 1") {
-            cursor.goto_first_child();
+        BENCHMARK("navigate to 3") {
+            cursor.goto_first_named_child();
+            cursor.goto_next_named_sibling();
+            cursor.goto_next_named_sibling();
+            cursor.goto_next_named_sibling();
+            cursor.goto_first_named_child();
+            cursor.goto_first_named_child();
+            cursor.goto_next_named_sibling();
+
             cursor.goto_first_named_child();
             cursor.goto_next_named_sibling();
             cursor.goto_first_named_child();
-            cursor.goto_next_named_sibling();
-            cursor.goto_first_named_child();
-            ts::Node one = cursor.current_node();
-            return one;
+            ts::Node three = cursor.current_node();
+            return three;
         };
     }
 
     {
         ts::Cursor cursor = ts::Cursor(tree);
-        cursor.goto_first_child();
+        cursor.goto_first_named_child();
+        cursor.goto_next_named_sibling();
+        cursor.goto_next_named_sibling();
+        cursor.goto_next_named_sibling();
+        cursor.goto_first_named_child();
         cursor.goto_first_named_child();
         cursor.goto_next_named_sibling();
 
-        BENCHMARK("navigate to 1 after visiting print(1)") {
+        BENCHMARK("navigate to 3 after visiting print(3)") {
             cursor.goto_first_named_child();
             cursor.goto_next_named_sibling();
             cursor.goto_first_named_child();
