@@ -9,17 +9,61 @@ using namespace std;
 struct LuaToken {
     enum Type {
         NONE,
-        ADD, SUB, MUL, DIV, MOD, POW, LEN, STRIP, EVAL, //+, -, *, /, %, ^, #, $, "\"
-        EQ, NEQ, LEQ, GEQ, LT, GT, ASSIGN, //==, ~=, <=, >=, <, >, =
-        LCB, RCB, LRB, RRB, LSB, RSB, //{, }, (, ), [, ]
-        SEM, COLON, COMMA, DOT, CONCAT, ELLIPSE, //;, :, ,, ., .., ...
+        ADD,
+        SUB,
+        MUL,
+        DIV,
+        MOD,
+        POW,
+        LEN,
+        STRIP,
+        EVAL, //+, -, *, /, %, ^, #, $, "\"
+        EQ,
+        NEQ,
+        LEQ,
+        GEQ,
+        LT,
+        GT,
+        ASSIGN, //==, ~=, <=, >=, <, >, =
+        LCB,
+        RCB,
+        LRB,
+        RRB,
+        LSB,
+        RSB, //{, }, (, ), [, ]
+        SEM,
+        COLON,
+        COMMA,
+        DOT,
+        CONCAT,
+        ELLIPSE, //;, :, ,, ., .., ...
 
-        AND, BREAK, DO, ELSE, ELSEIF,
-        END, FALSE, FOR, FUNCTION, IF,
-        IN, LOCAL, NIL, NOT, OR,
-        REPEAT, RETURN, THEN, TRUE, UNTIL, WHILE,
+        AND,
+        BREAK,
+        DO,
+        ELSE,
+        ELSEIF,
+        END,
+        FALSE,
+        FOR,
+        FUNCTION,
+        IF,
+        IN,
+        LOCAL,
+        NIL,
+        NOT,
+        OR,
+        REPEAT,
+        RETURN,
+        THEN,
+        TRUE,
+        UNTIL,
+        WHILE,
 
-        NAME, STRINGLIT, NUMLIT, COMMENT
+        NAME,
+        STRINGLIT,
+        NUMLIT,
+        COMMENT
     } type;
     string match;
     long pos = string::npos;

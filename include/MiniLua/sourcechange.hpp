@@ -1,8 +1,8 @@
 #ifndef SOURCECHANGE_H
 #define SOURCECHANGE_H
 
-#include "val.hpp"
 #include "luatoken.hpp"
+#include "val.hpp"
 
 namespace lua {
 namespace rt {
@@ -45,9 +45,7 @@ struct SourceChangeOr : SourceChange {
 
     virtual string to_string() const override;
 
-    virtual void accept(SourceChangeVisitor& v) const override {
-        v.visit(*this);
-    }
+    virtual void accept(SourceChangeVisitor& v) const override { v.visit(*this); }
 };
 
 struct SourceChangeAnd : SourceChange {
@@ -55,9 +53,7 @@ struct SourceChangeAnd : SourceChange {
 
     virtual string to_string() const override;
 
-    virtual void accept(SourceChangeVisitor& v) const override {
-        v.visit(*this);
-    }
+    virtual void accept(SourceChangeVisitor& v) const override { v.visit(*this); }
 };
 
 struct SourceAssignment : SourceChange {
@@ -75,12 +71,10 @@ struct SourceAssignment : SourceChange {
         return token.to_string() + " -> " + replacement + " [" + hint + "]";
     }
 
-    virtual void accept(SourceChangeVisitor& v) const override {
-        v.visit(*this);
-    }
+    virtual void accept(SourceChangeVisitor& v) const override { v.visit(*this); }
 };
 
-inline source_change_t operator| (const source_change_t& lhs, const source_change_t& rhs) {
+inline source_change_t operator|(const source_change_t& lhs, const source_change_t& rhs) {
     if (lhs && rhs) {
         auto sc_or = make_shared<SourceChangeOr>();
         sc_or->alternatives = {*lhs, *rhs};
@@ -91,7 +85,7 @@ inline source_change_t operator| (const source_change_t& lhs, const source_chang
     return lhs ? lhs : rhs;
 }
 
-inline source_change_t operator& (const source_change_t& lhs, const source_change_t& rhs) {
+inline source_change_t operator&(const source_change_t& lhs, const source_change_t& rhs) {
     if (lhs && rhs) {
         auto sc_and = make_shared<SourceChangeAnd>();
         sc_and->changes = {*lhs, *rhs};
@@ -103,14 +97,14 @@ inline source_change_t operator& (const source_change_t& lhs, const source_chang
 }
 
 // adds a source change to an eval_result_t
-inline eval_result_t operator<< (const eval_result_t& lhs, const source_change_t& rhs) {
+inline eval_result_t operator<<(const eval_result_t& lhs, const source_change_t& rhs) {
     if (holds_alternative<string>(lhs))
         return lhs;
 
     return eval_success(get_val(lhs), get_sc(lhs) & rhs);
 }
 
-}
-}
+} // namespace rt
+} // namespace lua
 
 #endif

@@ -1,32 +1,33 @@
 #ifndef LUAAST_H
 #define LUAAST_H
 
-#include "val.hpp"
 #include "luatoken.hpp"
+#include "val.hpp"
 
+#include <functional>
 #include <memory>
 #include <vector>
-#include <functional>
 
 using namespace std;
 
-#define VISITABLE \
-virtual lua::rt::eval_result_t accept(const lua::rt::ASTEvaluator& visitor,\
-                                      const shared_ptr<lua::rt::Environment>& environment,\
-                                      const lua::rt::assign_t& assign = nullopt) const
+#define VISITABLE                                                                                  \
+    virtual lua::rt::eval_result_t accept(const lua::rt::ASTEvaluator& visitor,                    \
+                                          const shared_ptr<lua::rt::Environment>& environment,     \
+                                          const lua::rt::assign_t& assign = nullopt) const
 
-#define VISITABLE_IMPL(T) \
-lua::rt::eval_result_t T::accept(const lua::rt::ASTEvaluator& visitor,\
-                                 const shared_ptr<lua::rt::Environment>& environment,\
-                                 const lua::rt::assign_t& assign) const { \
-    \
-    unsigned count = static_cast<unsigned>(get<double>(environment->getvar(string{"__visit_count"})));\
-    if (count++ > get<double>(environment->getvar(string{"__visit_limit"})))\
-        return string{"visit limit reached, stopping"};\
-    environment->assign(string{"__visit_count"}, static_cast<double>(count), false);\
-    \
-    return visitor.visit(*this, environment, assign); \
-}
+#define VISITABLE_IMPL(T)                                                                          \
+    lua::rt::eval_result_t T::accept(const lua::rt::ASTEvaluator& visitor,                         \
+                                     const shared_ptr<lua::rt::Environment>& environment,          \
+                                     const lua::rt::assign_t& assign) const {                      \
+                                                                                                   \
+        unsigned count =                                                                           \
+            static_cast<unsigned>(get<double>(environment->getvar(string{"__visit_count"})));      \
+        if (count++ > get<double>(environment->getvar(string{"__visit_limit"})))                   \
+            return string{"visit limit reached, stopping"};                                        \
+        environment->assign(string{"__visit_count"}, static_cast<double>(count), false);           \
+                                                                                                   \
+        return visitor.visit(*this, environment, assign);                                          \
+    }
 
 struct _LuaAST {
     VISITABLE = 0;
@@ -39,7 +40,7 @@ struct _LuaExp : public _LuaAST {
 
 struct _LuaName : public _LuaExp {
     VISITABLE override;
-    _LuaName(const LuaToken& token) : token {token} {}
+    _LuaName(const LuaToken& token) : token{token} {}
 
     LuaToken token;
 };
@@ -73,19 +74,17 @@ struct _LuaExplist : public _LuaAST {
 struct _LuaValue : public _LuaExp {
     VISITABLE override;
 
-    _LuaValue(const LuaToken& token) : token {token} {}
+    _LuaValue(const LuaToken& token) : token{token} {}
 
-    static LuaValue Value(const LuaToken& token) {
-        return make_shared<_LuaValue>(token);
-    }
+    static LuaValue Value(const LuaToken& token) { return make_shared<_LuaValue>(token); }
 
     static LuaValue True() {
-        LuaToken tok {LuaToken::Type::TRUE, "true"};
+        LuaToken tok{LuaToken::Type::TRUE, "true"};
         return Value(tok);
     }
 
     static LuaValue Int(int num) {
-        LuaToken tok {LuaToken::Type::NUMLIT, to_string(num)};
+        LuaToken tok{LuaToken::Type::NUMLIT, to_string(num)};
         return Value(tok);
     }
 
@@ -98,7 +97,7 @@ struct _LuaVar : public _LuaExp {
 
 struct _LuaNameVar : public _LuaVar {
     VISITABLE override;
-    _LuaNameVar(const LuaName& name) : name {name} {}
+    _LuaNameVar(const LuaName& name) : name{name} {}
 
     LuaName name;
 };
@@ -138,14 +137,13 @@ struct _LuaFunctioncall : public _LuaExp, _LuaStmt {
 struct _LuaReturnStmt : public _LuaStmt {
     VISITABLE override;
     _LuaReturnStmt() = default;
-    _LuaReturnStmt(const LuaExplist& explist) : explist {explist} {}
+    _LuaReturnStmt(const LuaExplist& explist) : explist{explist} {}
 
     LuaExplist explist;
 };
 
 struct _LuaBreakStmt : public _LuaStmt {
     VISITABLE override;
-
 };
 
 struct _LuaForStmt : public _LuaStmt {

@@ -1,14 +1,14 @@
 #ifndef VAL_H
 #define VAL_H
 
-#include <optional>
-#include <string>
-#include <memory>
-#include <variant>
-#include <unordered_map>
-#include <type_traits>
 #include <functional>
+#include <memory>
+#include <optional>
 #include <stdexcept>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <variant>
 
 using namespace std;
 
@@ -57,25 +57,33 @@ struct val : _val_t {
 
     val& operator=(const val&) = default;
     val(const val&) = default;
-    val() : value_t {nil()} {}
+    val() : value_t{nil()} {}
 
-    val(nil v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
-    val(bool v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
-    val(double v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
-    val(int v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {static_cast<double>(v)}, source {source} {}
-    val(string v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
-    val(const char* v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {string{v}}, source {source} {}
-    val(cfunction_p v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
-    val(table_p v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
-    val(vallist_p v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
-    val(lfunction_p v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {v}, source {source} {}
+    val(nil v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t{v}, source{source} {}
+    val(bool v, const shared_ptr<struct sourceexp>& source = nullptr)
+        : value_t{v}, source{source} {}
+    val(double v, const shared_ptr<struct sourceexp>& source = nullptr)
+        : value_t{v}, source{source} {}
+    val(int v, const shared_ptr<struct sourceexp>& source = nullptr)
+        : value_t{static_cast<double>(v)}, source{source} {}
+    val(string v, const shared_ptr<struct sourceexp>& source = nullptr)
+        : value_t{v}, source{source} {}
+    val(const char* v, const shared_ptr<struct sourceexp>& source = nullptr)
+        : value_t{string{v}}, source{source} {}
+    val(cfunction_p v, const shared_ptr<struct sourceexp>& source = nullptr)
+        : value_t{v}, source{source} {}
+    val(table_p v, const shared_ptr<struct sourceexp>& source = nullptr)
+        : value_t{v}, source{source} {}
+    val(vallist_p v, const shared_ptr<struct sourceexp>& source = nullptr)
+        : value_t{v}, source{source} {}
+    val(lfunction_p v, const shared_ptr<struct sourceexp>& source = nullptr)
+        : value_t{v}, source{source} {}
 
     template <typename... T>
-    val(function<T...>&& v, const shared_ptr<struct sourceexp>& source = nullptr) : value_t {make_shared<cfunction>(v)}, source {source} {}
+    val(function<T...>&& v, const shared_ptr<struct sourceexp>& source = nullptr)
+        : value_t{make_shared<cfunction>(v)}, source{source} {}
 
-    bool to_bool() const {
-        return !isnil() && (!isbool() || get<bool>(*this));
-    }
+    bool to_bool() const { return !isnil() && (!isbool() || get<bool>(*this)); }
 
     // val("foo").to_string() -> foo
     // val("foo").literal() -> "foo"
@@ -84,38 +92,37 @@ struct val : _val_t {
     string literal() const;
 
     string type() const {
-        switch(index()) {
-        case 0: return "nil";
-        case 1: return "bool";
-        case 2: return "number";
-        case 3: return "string";
-        case 4: return "function";
-        case 5: return "table";
-        case 6: return "vallist";
-        case 7: return "function";
-        default: return "invalid";
+        switch (index()) {
+        case 0:
+            return "nil";
+        case 1:
+            return "bool";
+        case 2:
+            return "number";
+        case 3:
+            return "string";
+        case 4:
+            return "function";
+        case 5:
+            return "table";
+        case 6:
+            return "vallist";
+        case 7:
+            return "function";
+        default:
+            return "invalid";
         }
     }
 
-    bool isbool() const {
-        return index() == 1;
-    }
+    bool isbool() const { return index() == 1; }
 
-    bool isnumber() const {
-        return index() == 2;
-    }
+    bool isnumber() const { return index() == 2; }
 
-    bool isstring() const {
-        return index() == 3;
-    }
+    bool isstring() const { return index() == 3; }
 
-    bool istable() const {
-        return index() == 5;
-    }
+    bool istable() const { return index() == 5; }
 
-    bool isnil() const {
-        return index() == 0;
-    }
+    bool isnil() const { return index() == 0; }
 
     double def_number(double def = 0.0) const {
         if (isnumber())
@@ -132,15 +139,13 @@ struct val : _val_t {
     shared_ptr<struct sourceexp> source;
 };
 
-}}
+} // namespace rt
+} // namespace lua
 namespace std {
-template<>
-struct hash<lua::rt::val> {
-    size_t operator()(const lua::rt::val &v) const {
-        return hash<lua::rt::val::value_t>()(v);
-    }
+template <> struct hash<lua::rt::val> {
+    size_t operator()(const lua::rt::val& v) const { return hash<lua::rt::val::value_t>()(v); }
 };
-}
+} // namespace std
 
 namespace lua {
 namespace rt {
@@ -158,36 +163,39 @@ struct table : public unordered_map<val, val> {
 };
 
 struct vallist : public vector<val> {
-    template <typename... T>
-    vallist(T&&... v) : vector<val> {forward<T>(v)...} {}
+    template <typename... T> vallist(T&&... v) : vector<val>{forward<T>(v)...} {}
 };
 
 struct cfunction {
     // TODO make a helper class that holds the result
     using result = variant<vallist, string, std::shared_ptr<SourceChange>>;
 
-    template <typename T>
-    cfunction(T f) {
+    template <typename T> cfunction(T f) {
         /*
-        Two signatures for c functions are possible: result(const vallist& [, const _LuaFunctioncall&]).
-        The variant with the LuaFunctioncall is necessary, when the function wants
-        to replace or highlight the site of the call, e.g. to mark the currently executed statement.
+        Two signatures for c functions are possible: result(const vallist& [, const
+        _LuaFunctioncall&]). The variant with the LuaFunctioncall is necessary, when the function
+        wants to replace or highlight the site of the call, e.g. to mark the currently executed
+        statement.
         */
-    
-        if constexpr (is_convertible<T, function<result(const vallist&, const _LuaFunctioncall&)>>::value) {
+
+        if constexpr (is_convertible<
+                          T, function<result(const vallist&, const _LuaFunctioncall&)>>::value) {
             this->f = f;
         } else {
-            this->f = [f](const vallist& args, const _LuaFunctioncall&) mutable -> result {return f(args);};
+            this->f = [f](const vallist& args, const _LuaFunctioncall&) mutable -> result {
+                return f(args);
+            };
         }
     }
     function<result(const vallist&, const _LuaFunctioncall&)> f;
 };
 
 struct lfunction {
-    lfunction(const LuaChunk& f, const LuaExplist& params, const shared_ptr<Environment>& env) : f{f}, params{params}, env{env} {}
-    LuaChunk f;                    // function body
-    LuaExplist params;             // formal parameters that the arguments are assigned to
-    shared_ptr<Environment> env;   // closure environment
+    lfunction(const LuaChunk& f, const LuaExplist& params, const shared_ptr<Environment>& env)
+        : f{f}, params{params}, env{env} {}
+    LuaChunk f;                  // function body
+    LuaExplist params;           // formal parameters that the arguments are assigned to
+    shared_ptr<Environment> env; // closure environment
 };
 
 /*
@@ -217,9 +225,7 @@ inline eval_result_t eval_success(const val& v, optional<shared_ptr<SourceChange
 }
 
 // gets the value of the result (no error check!)
-inline val get_val(const eval_result_t& result) {
-    return get<eval_success_t>(result).first;
-}
+inline val get_val(const eval_result_t& result) { return get<eval_success_t>(result).first; }
 
 // gets the source change side effect of the result (no error check!)
 inline optional<shared_ptr<SourceChange>> get_sc(const eval_result_t& result) {
@@ -255,7 +261,7 @@ vallist flatten(const vallist& list);
 
 ostream& operator<<(ostream& os, const val& value);
 
-}
-}
+} // namespace rt
+} // namespace lua
 
 #endif

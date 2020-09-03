@@ -44,17 +44,14 @@ void ApplySCVisitor::visit(const SourceChangeAnd& sc_and) {
     }
 }
 
-void ApplySCVisitor::visit(const SourceAssignment& sc_ass) {
-    changes.push_back(sc_ass);
-}
+void ApplySCVisitor::visit(const SourceAssignment& sc_ass) { changes.push_back(sc_ass); }
 
 vector<LuaToken> ApplySCVisitor::apply_changes(const vector<LuaToken>& tokens) {
     auto new_tokens = tokens;
 
     // sort the collected changes according to their position
-    std::sort(changes.begin(), changes.end(), [](const auto& a, const auto& b){
-        return a.token.pos > b.token.pos;
-    });
+    std::sort(changes.begin(), changes.end(),
+              [](const auto& a, const auto& b) { return a.token.pos > b.token.pos; });
 
     // apply the changes from back to front
     for (const auto& sc : changes) {
@@ -72,5 +69,5 @@ vector<LuaToken> ApplySCVisitor::apply_changes(const vector<LuaToken>& tokens) {
     return new_tokens;
 }
 
-}
-}
+} // namespace rt
+} // namespace lua
