@@ -12,7 +12,12 @@
 
 extern "C" const TSLanguage* tree_sitter_lua();
 
-/// Wrapper types and helper functions for Tree-Sitter.
+/**
+ * Wrapper types and helper functions for Tree-Sitter.
+ *
+ * Some of the methods and types by default use the lua tree-sitter grammar but
+ * there are always also functions that accept a language as parameter.
+ */
 namespace ts {
 
 /**
@@ -400,6 +405,7 @@ public:
 
 bool operator==(const Node& lhs, const Node& rhs);
 bool operator!=(const Node& lhs, const Node& rhs);
+std::ostream& operator<<(std::ostream&, const Node&);
 
 /**
  * Parser for the Lua language.
@@ -598,6 +604,202 @@ public:
      * still return false if there is no named node.
      */
     bool goto_first_named_child();
+};
+
+/**
+ * A query is a "pre-compiled" string of S-expression patterns.
+ */
+class Query {
+    std::unique_ptr<TSQuery, void (*)(TSQuery*)> query;
+
+public:
+    Query(std::string_view);
+
+    // move constructor
+    Query(Query&&) noexcept;
+    // move assignment
+    Query& operator=(Query&&) noexcept;
+    friend void swap(Query& self, Query& other) noexcept;
+
+    // no copying because be handle pointers
+    Query(const Query&) = delete;
+    Query& operator=(const Query&) = delete;
+
+    [[nodiscard]] const TSQuery* raw() const;
+    [[nodiscard]] TSQuery* raw();
+
+    /**
+     * Get the number of patterns in the query.
+     */
+    [[nodiscard]] std::uint32_t pattern_count() const;
+
+    /**
+     * Get the number of captures in the query.
+     */
+    [[nodiscard]] std::uint32_t capture_count() const;
+
+    /**
+     * Get the number of string literals in the query.
+     */
+    [[nodiscard]] std::uint32_t string_count() const;
+
+    /**
+     * Get the byte offset where the pattern starts in the query'y source.
+     *
+     * Can be useful when combining queries.
+     */
+    [[nodiscard]] std::uint32_t start_byte_for_pattern(std::uint32_t) const;
+
+    // const TSQueryPredicateStep *ts_query_predicates_for_pattern(const TSQuery *self, uint32_t
+    // pattern_index, uint32_t *length);
+
+    /**
+     * Get the name of one of the query's captures.
+     *
+     * Each capture is associated with a numeric id based on the order
+     * that it appeared in the query's source.
+     *
+     * NOTE: The returned string_view is only valid as long the query is.
+     */
+    [[nodiscard]] std::string_view capture_name_for_id(std::uint32_t id) const;
+
+    /**
+     * Get one of the query's string literals.
+     *
+     * Each string literal is associated with a numeric id based on the order
+     * that it appeared in the query's source.
+     *
+     * NOTE: The returned string_view is only valid as long the query is.
+     */
+    [[nodiscard]] std::string_view string_value_for_id(std::uint32_t id) const;
+
+    /**
+     * Disable a capture within a query.
+     *
+     * This prevents the capture from being returned in matches and avoid
+     * ressource usage.
+     *
+     * This can not be undone.
+     */
+    void disable_capture(std::string_view);
+
+    /**
+     * Disable a pattern within a query.
+     *
+     * This prevents the pattern from matching and removes most of the overhead.
+     *
+     * This can not be undone.
+     */
+    void disable_pattern(std::uint32_t id);
+};
+
+class Capture {
+    Node node_;
+    std::uint32_t index_;
+    const Tree& tree;
+
+public:
+    Capture(TSQueryCapture, const Tree&) noexcept;
+
+    Capture(const Capture&) noexcept;
+
+    [[nodiscard]] Node node() const;
+    [[nodiscard]] std::uint32_t index() const;
+};
+std::ostream& operator<<(std::ostream&, const Capture&);
+std::ostream& operator<<(std::ostream& os, const std::vector<Capture>&);
+
+class Match {
+    uint32_t id_;
+    uint16_t pattern_index_;
+    std::vector<Capture> captures_;
+    const Tree& tree;
+
+public:
+    Match(TSQueryMatch, const Tree&) noexcept;
+
+    [[nodiscard]] std::uint32_t id() const;
+    [[nodiscard]] std::uint16_t pattern_index() const;
+    [[nodiscard]] std::size_t capture_count() const;
+
+    /**
+     * Get the first capture with the given index.
+     *
+     * Depending on the used query there can be multiple captures for the same
+     * `@capture`. E.g. when using repetition.
+     */
+    [[nodiscard]] const Capture& capture(std::size_t index) const;
+    [[nodiscard]] const std::vector<Capture>& captures() const;
+};
+std::ostream& operator<<(std::ostream&, const Match&);
+std::ostream& operator<<(std::ostream& os, const std::vector<Match>&);
+
+/**
+ * Stores the state needed to execute a query and iteratively search for matches.
+ *
+ * You first have to call 'exec' with the query and then you can retrieve matches
+ * with the other functions.
+ *
+ * You can iterate over the result matches by calling 'next_match'. This is only
+ * useful if you provided multiple patterns.
+ *
+ * You can also iterate over the captures if you don't care which patterns matched.
+ *
+ * At any point you can call 'exec' again and start using the cursor with another
+ * query.
+ */
+class QueryCursor {
+    std::unique_ptr<TSQueryCursor, void (*)(TSQueryCursor*)> cursor;
+    const Tree& tree;
+
+public:
+    explicit QueryCursor(const Tree&) noexcept;
+
+    // can't copy because we manage pointers
+    QueryCursor(const QueryCursor&) = delete;
+    QueryCursor& operator=(const QueryCursor&) = delete;
+    // can't move becaue of const Tree&
+    QueryCursor(QueryCursor&&) = delete;
+    QueryCursor& operator=(QueryCursor&&) = delete;
+
+    [[nodiscard]] const TSQueryCursor* raw() const;
+    [[nodiscard]] TSQueryCursor* raw();
+
+    /**
+     * Start running a given query on a given node.
+     */
+    void exec(const Query&, Node);
+
+    /**
+     * Start running a given query on the root of the tree.
+     */
+    void exec(const Query&);
+
+    // void set_byte_range(std::uint32_t start, std::uint32_t end);
+    // void set_point_range(Point start, Point end);
+
+    /**
+     * Advance to the next match of the currently running query if possible.
+     */
+    std::optional<Match> next_match();
+
+    // void ts_query_cursor_remove_match(TSQueryCursor *, uint32_t id);
+
+    /**
+     * Advance to the next capture of the currently running query if possible.
+     */
+    std::optional<Capture> next_capture();
+
+    /**
+     * Get all matches.
+     *
+     * This needs to internally advance over the matches so you can only call
+     * this once. Subsequent calls will return an empty vector.
+     *
+     * This will also omit matches that were already retrieved by calling
+     * 'next_match'.
+     */
+    std::vector<Match> matches();
 };
 
 } // namespace ts

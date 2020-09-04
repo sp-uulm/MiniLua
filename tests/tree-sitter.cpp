@@ -293,6 +293,38 @@ TEST_CASE("Tree-Sitter detects errors", "[tree-sitter][parse]") {
     }
 }
 
+TEST_CASE("Query", "[tree-sitter]") {
+    static_assert(std::is_nothrow_move_constructible_v<ts::Query>);
+    static_assert(std::is_nothrow_move_assignable_v<ts::Query>);
+
+    ts::Parser parser;
+    std::string source = "1 + 2";
+    ts::Tree tree = parser.parse_string(source);
+
+    ts::Node one_node = tree.root_node().named_child(0).named_child(0).named_child(0);
+    ts::Node two_node = tree.root_node().named_child(0).named_child(0).named_child(1);
+
+    INFO(tree.root_node());
+
+    SECTION("can match and get captured nodes") {
+        ts::Query query{R"#((binary_operation (number) @one "+" (number) @two))#"};
+        ts::QueryCursor cursor{tree};
+        cursor.exec(query);
+        ts::Match match = cursor.next_match().value();
+        CHECK(match.capture_count() == 2);
+
+        std::vector<ts::Capture> captures = match.captures();
+        CHECK(captures.size() == 2);
+
+        CHECK(captures[0].index() == 0);
+        CHECK(captures[0].node() == one_node);
+        CHECK(match.capture(0).node() == one_node);
+        CHECK(captures[1].index() == 1);
+        CHECK(captures[1].node() == two_node);
+        CHECK(match.capture(1).node() == two_node);
+    }
+}
+
 TEST_CASE("Cursor", "[tree-sitter]") {
     static_assert(std::is_nothrow_copy_constructible_v<ts::Cursor>);
     static_assert(std::is_nothrow_copy_assignable_v<ts::Cursor>);

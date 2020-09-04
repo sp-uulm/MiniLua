@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <iostream>
+#include <iterator>
 #include <optional>
 #include <string>
 #include <tree_sitter/api.h>
@@ -190,6 +191,10 @@ bool operator==(const Node& lhs, const Node& rhs) {
     return ts_node_eq(lhs.raw(), rhs.raw());
 }
 bool operator!=(const Node& lhs, const Node& rhs) { return !(lhs == rhs); }
+
+std::ostream& operator<<(std::ostream& os, const Node& node) {
+    return os << node.as_s_expr();
+}
 
 // class Tree
 Tree::Tree(TSTree* tree, std::string source, Parser& parser)
@@ -421,9 +426,181 @@ Tree Parser::parse_string(const TSTree* old_tree, std::string source) {
     }
     return Tree(tree, std::move(source), *this);
 }
-// Tree Parser::parse_string(Tree old_tree, std::string& str) {
-//     return parse_string(old_tree.raw(), str);
-// }
 Tree Parser::parse_string(std::string str) { return parse_string(nullptr, std::move(str)); }
+
+// class Query
+TSQuery* make_query(std::string_view source) {
+    std::uint32_t error_offset;
+    TSQueryError error_type;
+    TSQuery* query = ts_query_new(LUA_LANGUAGE.raw(), source.data(), source.length(), &error_offset,
+                                  &error_type);
+
+    if (query == nullptr) {
+        std::string error_type_str;
+        switch (error_type) {
+        case TSQueryErrorSyntax:
+            error_type_str = "syntax";
+            break;
+        case TSQueryErrorNodeType:
+            error_type_str = "node type";
+            break;
+        case TSQueryErrorField:
+            error_type_str = "field";
+            break;
+        case TSQueryErrorCapture:
+            error_type_str = "capture";
+            break;
+        case TSQueryErrorNone:
+        default:
+            error_type_str = "unknown";
+            break;
+        }
+        // TODO custom exception
+        throw std::runtime_error("failed to create query: " + error_type_str +
+                                 " error at position " + std::to_string(error_offset));
+    }
+
+    return query;
+}
+
+Query::Query(std::string_view source) : query(make_query(source), ts_query_delete) {}
+
+// move constructor
+// Query::Query(Query&&) noexcept = default;
+// move assignment
+Query& Query::operator=(Query&& other) noexcept = default;
+
+const TSQuery* Query::raw() const { return this->query.get(); }
+TSQuery* Query::raw() { return this->query.get(); }
+
+std::uint32_t Query::pattern_count() const { return ts_query_pattern_count(this->raw()); }
+std::uint32_t Query::capture_count() const { return ts_query_capture_count(this->raw()); }
+std::uint32_t Query::string_count() const { return ts_query_string_count(this->raw()); }
+
+std::uint32_t Query::start_byte_for_pattern(std::uint32_t id) const {
+    return ts_query_start_byte_for_pattern(this->raw(), id);
+}
+
+std::string_view Query::capture_name_for_id(std::uint32_t id) const {
+    std::uint32_t length;
+    const char* name = ts_query_capture_name_for_id(this->raw(), id, &length);
+    return std::string_view(name, length);
+}
+std::string_view Query::string_value_for_id(std::uint32_t id) const {
+    std::uint32_t length;
+    const char* value = ts_query_string_value_for_id(this->raw(), id, &length);
+    return std::string_view(value, length);
+}
+
+void Query::disable_capture(std::string_view name) {
+    ts_query_disable_capture(this->raw(), name.data(), name.length());
+}
+void Query::disable_pattern(std::uint32_t id) { ts_query_disable_pattern(this->raw(), id); }
+
+// class Capture
+Capture::Capture(TSQueryCapture capture, const Tree& tree) noexcept
+    : node_(Node(capture.node, tree)), index_(capture.index), tree(tree) {}
+Capture::Capture(const Capture&) noexcept = default;
+
+Node Capture::node() const { return this->node_; }
+std::uint32_t Capture::index() const { return this->index_; }
+
+std::ostream& operator<<(std::ostream& os, const Capture& capture) {
+    return os << "Capture { .node = " << capture.node() << ", .index = " << capture.index() << " }";
+}
+std::ostream& operator<<(std::ostream& os, const std::vector<Capture>& captures) {
+    os << "[ ";
+    const char* sep = "";
+    for (const auto& capture : captures) {
+        os << sep << capture;
+        sep = ", ";
+    }
+    os << " ]";
+    return os;
+}
+
+// class Match
+Match::Match(TSQueryMatch match, const Tree& tree) noexcept : id_(match.id), pattern_index_(match.pattern_index), tree(tree) {
+    const TSQueryCapture* start = match.captures;
+    const TSQueryCapture* end = start + match.capture_count;
+    const std::size_t size = end - start;
+
+    this->captures_.reserve(size);
+    std::transform(start, end, std::back_inserter(this->captures_),
+                   [this](const TSQueryCapture capture) { return Capture(capture, this->tree); });
+}
+
+std::uint32_t Match::id() const { return this->id_; }
+std::uint16_t Match::pattern_index() const { return this->pattern_index_; }
+std::size_t Match::capture_count() const { return this->captures_.size(); }
+
+const Capture& Match::capture(std::size_t index) const {
+    for (const auto& capture : this->captures()) {
+        if (capture.index() == index) {
+            return capture;
+        }
+    }
+    throw std::runtime_error("Could not find a capture with the given index");
+}
+const std::vector<Capture>& Match::captures() const {
+    return this->captures_;
+}
+
+std::ostream& operator<<(std::ostream& os, const Match& match) {
+    return os << "Match { .id = " << match.id() << ", .pattern_index = " << match.pattern_index() << ", .captures = " << match.capture_count() << " }";
+}
+std::ostream& operator<<(std::ostream& os, const std::vector<Match>& matches) {
+    os << "[ ";
+    const char* sep = "";
+    for (const auto& match : matches) {
+        os << sep << match;
+        sep = ", ";
+    }
+    os << " ]";
+    return os;
+}
+
+// class QueryCursor
+QueryCursor::QueryCursor(const Tree& tree) noexcept : cursor(ts_query_cursor_new(), ts_query_cursor_delete), tree(tree) {}
+
+const TSQueryCursor* QueryCursor::raw() const { return this->cursor.get(); }
+TSQueryCursor* QueryCursor::raw() { return this->cursor.get(); }
+
+void QueryCursor::exec(const Query& query, Node node) {
+    ts_query_cursor_exec(this->raw(), query.raw(), node.raw());
+}
+
+void QueryCursor::exec(const Query& query) {
+    ts_query_cursor_exec(this->raw(), query.raw(), this->tree.root_node().raw());
+}
+
+std::optional<Match> QueryCursor::next_match() {
+    TSQueryMatch match;
+    if (ts_query_cursor_next_match(this->raw(), &match)) {
+        return Match(match, this->tree);
+    } else {
+        return std::nullopt;
+    }
+}
+
+std::optional<Capture> QueryCursor::next_capture() {
+    TSQueryMatch match;
+    std::uint32_t index;
+    if (ts_query_cursor_next_capture(this->raw(), &match, &index)) {
+        return Match(match, this->tree).capture(index);
+    } else {
+        return std::nullopt;
+    }
+}
+
+std::vector<Match> QueryCursor::matches() {
+    std::vector<Match> matches;
+
+    while (std::optional<Match> match = this->next_match()) {
+        matches.push_back(*match);
+    }
+
+    return matches;
+}
 
 } // namespace ts
