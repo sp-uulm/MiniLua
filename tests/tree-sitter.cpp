@@ -308,17 +308,14 @@ TEST_CASE("Query", "[tree-sitter]") {
         ts::QueryCursor cursor{tree};
         cursor.exec(query);
         ts::Match match = cursor.next_match().value();
-        CHECK(match.capture_count() == 2);
 
-        std::vector<ts::Capture> captures = match.captures();
+        std::vector<ts::Capture> captures = match.captures;
         CHECK(captures.size() == 2);
 
-        CHECK(captures[0].index() == 0);
-        CHECK(captures[0].node() == one_node);
-        CHECK(match.capture(0).node() == one_node);
-        CHECK(captures[1].index() == 1);
-        CHECK(captures[1].node() == two_node);
-        CHECK(match.capture(1).node() == two_node);
+        CHECK(captures[0].index == 0);
+        CHECK(captures[0].node == one_node);
+        CHECK(captures[1].index == 1);
+        CHECK(captures[1].node == two_node);
     }
 }
 

@@ -226,7 +226,7 @@ end)#";
         std::vector<ts::Capture> captures;
 
         for (const auto& match : matches) {
-            const auto& new_captures = match.captures();
+            const auto& new_captures = match.captures;
             std::copy(new_captures.cbegin(), new_captures.cend(), std::back_inserter(captures));
         }
 
@@ -238,9 +238,9 @@ end)#";
         std::vector<ts::Match> matches = cursor.matches();
 
         for (const auto& match : matches) {
-            const auto& captures = match.captures();
-            if (captures[1].node().text() == "print" && captures[2].node().text() == "3") {
-                return std::make_optional<ts::Node>(captures[0].node());
+            const auto& captures = match.captures;
+            if (captures[1].node.text() == "print" && captures[2].node.text() == "3") {
+                return std::make_optional<ts::Node>(captures[0].node);
             }
         }
 
@@ -255,43 +255,43 @@ end)#";
     BENCHMARK("navigate to 3") {
         cursor.exec(query_if);
         ts::Match match_if = cursor.next_match().value();
-        const ts::Capture& capture_else = match_if.capture(2);
+        const ts::Capture capture_else = match_if.capture_with_index(2).value();
 
-        cursor.exec(query_while, capture_else.node());
+        cursor.exec(query_while, capture_else.node);
         ts::Match match_while = cursor.next_match().value();
-        const ts::Capture& capture_while_body = match_while.capture(1);
+        const ts::Capture capture_while_body = match_while.capture_with_index(1).value();
 
-        cursor.exec(query_call, capture_while_body.node());
+        cursor.exec(query_call, capture_while_body.node);
         ts::Match match_call = cursor.next_match().value();
-        const ts::Capture& capture_call_args = match_call.capture(1);
+        const ts::Capture capture_call_args = match_call.capture_with_index(1).value();
 
-        cursor.exec(query_number, capture_call_args.node());
+        cursor.exec(query_number, capture_call_args.node);
         ts::Match match_number = cursor.next_match().value();
-        const ts::Capture& capture_number = match_number.capture(0);
-        ts::Node number = capture_number.node();
+        const ts::Capture capture_number = match_number.capture_with_index(0).value();
+        ts::Node number = capture_number.node;
 
         return number;
     };
 
     cursor.exec(query_if);
     ts::Match match_if = cursor.next_match().value();
-    const ts::Capture& capture_else = match_if.capture(2);
+    const ts::Capture capture_else = match_if.capture_with_index(2).value();
 
-    cursor.exec(query_while, capture_else.node());
+    cursor.exec(query_while, capture_else.node);
     ts::Match match_while = cursor.next_match().value();
-    const ts::Capture& capture_while_body = match_while.capture(1);
-    ts::Node print3 = capture_while_body.node();
+    const ts::Capture capture_while_body = match_while.capture_with_index(1).value();
+    ts::Node print3 = capture_while_body.node;
     REQUIRE(print3.text() == "print(3)");
 
     BENCHMARK("navigate to 3 after visiting print(3)") {
         cursor.exec(query_call, print3);
         ts::Match match_call = cursor.next_match().value();
-        const ts::Capture& capture_call_args = match_call.capture(1);
+        const ts::Capture capture_call_args = match_call.capture_with_index(1).value();
 
-        cursor.exec(query_number, capture_call_args.node());
+        cursor.exec(query_number, capture_call_args.node);
         ts::Match match_number = cursor.next_match().value();
-        const ts::Capture& capture_number = match_number.capture(0);
-        ts::Node number = capture_number.node();
+        const ts::Capture capture_number = match_number.capture_with_index(0).value();
+        ts::Node number = capture_number.node;
 
         return number;
     };

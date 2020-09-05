@@ -20,13 +20,26 @@ extern "C" const TSLanguage* tree_sitter_lua();
  */
 namespace ts {
 
+/**
+ * Version for langauges created using the current tree-sitter version.
+ *
+ * Can be thought of as the max version for langauges.
+ */
 const std::size_t TREE_SITTER_VERSION = TREE_SITTER_LANGUAGE_VERSION;
+
+/**
+ * Minimum supported version of languages.
+ */
 const std::size_t TREE_SITTER_MIN_VERSION = TREE_SITTER_MIN_COMPATIBLE_LANGUAGE_VERSION;
 
 /**
  * Numeric representation of the type of a node.
  */
 using TypeId = TSSymbol;
+
+/**
+ * Numeric representation of a field.
+ */
 using FieldId = TSFieldId;
 
 /**
@@ -41,7 +54,7 @@ enum class TypeKind {
 };
 
 /**
- * Contains a source location.
+ * Represents a location in source code as row and column.
  */
 struct Point {
     std::uint32_t row;
@@ -52,6 +65,10 @@ bool operator==(const Point&, const Point&);
 bool operator!=(const Point&, const Point&);
 std::ostream& operator<<(std::ostream&, const Point&);
 
+/**
+ * Represents a location in source code as both a point (row and column)
+ * and a byte offset.
+ */
 struct Location {
     Point point;
     std::uint32_t byte;
@@ -61,6 +78,9 @@ bool operator==(const Location&, const Location&);
 bool operator!=(const Location&, const Location&);
 std::ostream& operator<<(std::ostream&, const Location&);
 
+/**
+ * Represents a range (start and end) in source code.
+ */
 struct Range {
     Location start;
     Location end;
@@ -70,6 +90,14 @@ bool operator==(const Range&, const Range&);
 bool operator!=(const Range&, const Range&);
 std::ostream& operator<<(std::ostream&, const Range&);
 
+/**
+ * Represents an edit of source code.
+ *
+ * Contains the range that should be replaced and the string it should be
+ * replaced with.
+ *
+ * Note that the range and replacement string don't need to have the same size.
+ */
 struct Edit {
     Range range;
     std::string replacement;
@@ -807,26 +835,11 @@ public:
 /**
  * Represents a capture of a node in a syntax tree.
  */
-class Capture {
-    Node node_;
-    std::uint32_t index_;
-    const Tree& tree;
+struct Capture {
+    Node node;
+    std::uint32_t index;
 
-public:
     Capture(TSQueryCapture, const Tree&) noexcept;
-
-    // copy constructor
-    Capture(const Capture&) noexcept;
-
-    /**
-     * Get the node that was captured.
-     */
-    [[nodiscard]] Node node() const;
-
-    /**
-     * Get the index of the capture as specified in the query.
-     */
-    [[nodiscard]] std::uint32_t index() const;
 };
 
 std::ostream& operator<<(std::ostream&, const Capture&);
@@ -835,44 +848,19 @@ std::ostream& operator<<(std::ostream& os, const std::vector<Capture>&);
 /**
  * Represents a match of a pattern in a syntax tree.
  */
-class Match {
-    uint32_t id_;
-    uint16_t pattern_index_;
-    std::vector<Capture> captures_;
-    const Tree& tree;
+struct Match {
+    uint32_t id;
+    uint16_t pattern_index;
+    std::vector<Capture> captures;
 
-public:
     Match(TSQueryMatch, const Tree&) noexcept;
 
     /**
-     * Get the id of the matched pattern in the syntax tree.
+     * Returns the first capture with the given index if any.
      *
-     * This is the n-th match of the pattern syntax tree.
+     * Note: This does a linear search for a capture with the given index.
      */
-    [[nodiscard]] std::uint32_t id() const;
-
-    /**
-     * Get the index of the matches pattern in the query.
-     */
-    [[nodiscard]] std::uint16_t pattern_index() const;
-
-    /**
-     * Get the count of all captures.
-     */
-    [[nodiscard]] std::size_t capture_count() const;
-
-    /**
-     * Get the first capture with the given index.
-     *
-     * Depending on the used query there can be multiple captures for the same
-     * `@capture`. E.g. when using repetition.
-     */
-    [[nodiscard]] const Capture& capture(std::size_t index) const;
-
-    /**
-     * Get all captures.
-     */
-    [[nodiscard]] const std::vector<Capture>& captures() const;
+    [[nodiscard]] std::optional<Capture> capture_with_index(std::uint32_t index) const;
 };
 
 std::ostream& operator<<(std::ostream&, const Match&);

@@ -508,16 +508,12 @@ void Query::disable_capture(std::string_view name) {
 }
 void Query::disable_pattern(std::uint32_t id) { ts_query_disable_pattern(this->raw(), id); }
 
-// class Capture
+// struct Capture
 Capture::Capture(TSQueryCapture capture, const Tree& tree) noexcept
-    : node_(Node(capture.node, tree)), index_(capture.index), tree(tree) {}
-Capture::Capture(const Capture&) noexcept = default;
-
-Node Capture::node() const { return this->node_; }
-std::uint32_t Capture::index() const { return this->index_; }
+    : node(Node(capture.node, tree)), index(capture.index) {}
 
 std::ostream& operator<<(std::ostream& os, const Capture& capture) {
-    return os << "Capture { .node = " << capture.node() << ", .index = " << capture.index() << " }";
+    return os << "Capture { .node = " << capture.node << ", .index = " << capture.index << " }";
 }
 std::ostream& operator<<(std::ostream& os, const std::vector<Capture>& captures) {
     os << "[ ";
@@ -530,35 +526,28 @@ std::ostream& operator<<(std::ostream& os, const std::vector<Capture>& captures)
     return os;
 }
 
-// class Match
-Match::Match(TSQueryMatch match, const Tree& tree) noexcept : id_(match.id), pattern_index_(match.pattern_index), tree(tree) {
+// struct Match
+Match::Match(TSQueryMatch match, const Tree& tree) noexcept : id(match.id), pattern_index(match.pattern_index) {
     const TSQueryCapture* start = match.captures;
     const TSQueryCapture* end = start + match.capture_count;
     const std::size_t size = end - start;
 
-    this->captures_.reserve(size);
-    std::transform(start, end, std::back_inserter(this->captures_),
-                   [this](const TSQueryCapture capture) { return Capture(capture, this->tree); });
+    this->captures.reserve(size);
+    std::transform(start, end, std::back_inserter(this->captures),
+                   [&tree](const TSQueryCapture capture) { return Capture(capture, tree); });
 }
 
-std::uint32_t Match::id() const { return this->id_; }
-std::uint16_t Match::pattern_index() const { return this->pattern_index_; }
-std::size_t Match::capture_count() const { return this->captures_.size(); }
-
-const Capture& Match::capture(std::size_t index) const {
-    for (const auto& capture : this->captures()) {
-        if (capture.index() == index) {
+std::optional<Capture> Match::capture_with_index(std::uint32_t index) const {
+    for (const auto& capture : this->captures) {
+        if (capture.index == index) {
             return capture;
         }
     }
-    throw std::runtime_error("Could not find a capture with the given index");
-}
-const std::vector<Capture>& Match::captures() const {
-    return this->captures_;
+    return std::nullopt;
 }
 
 std::ostream& operator<<(std::ostream& os, const Match& match) {
-    return os << "Match { .id = " << match.id() << ", .pattern_index = " << match.pattern_index() << ", .captures = " << match.capture_count() << " }";
+    return os << "Match { .id = " << match.id << ", .pattern_index = " << match.pattern_index << ", .captures = " << match.captures.size() << " }";
 }
 std::ostream& operator<<(std::ostream& os, const std::vector<Match>& matches) {
     os << "[ ";
@@ -595,10 +584,11 @@ std::optional<Match> QueryCursor::next_match() {
 }
 
 std::optional<Capture> QueryCursor::next_capture() {
-    TSQueryMatch match;
+    TSQueryMatch raw_match;
     std::uint32_t index;
-    if (ts_query_cursor_next_capture(this->raw(), &match, &index)) {
-        return Match(match, this->tree).capture(index);
+    if (ts_query_cursor_next_capture(this->raw(), &raw_match, &index)) {
+        Match match(raw_match, this->tree);
+        return match.capture_with_index(index);
     } else {
         return std::nullopt;
     }
