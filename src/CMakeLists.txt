@@ -16,7 +16,7 @@ set(LIB_SRC_LIST
 add_library(${PROJECT_NAME} SHARED ${LIB_SRC_LIST})
 target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:../include>
+    $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC Tree-Sitter)
 
