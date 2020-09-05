@@ -79,6 +79,11 @@ bool operator==(const Edit&, const Edit&);
 bool operator!=(const Edit&, const Edit&);
 std::ostream& operator<<(std::ostream&, const Edit&);
 
+/**
+ * Represents a language.
+ *
+ * This can be inspected (e.g. the nodes it can produce) and used for parsing.
+ */
 class Language {
     const TSLanguage* lang;
 
@@ -94,6 +99,11 @@ public:
     Language(Language&& other) = delete;
     Language& operator=(Language&& other) = delete;
 
+    /**
+     * Use with care. Only intended vor internal use in the wrapper types.
+     *
+     * WARNING: Never free or otherwise delete this pointer.
+     */
     [[nodiscard]] const TSLanguage* raw() const;
 
     /**
@@ -209,14 +219,31 @@ class Tree;
  * Wrapper for a 'TSNode'.
  *
  * Nodes can be named or anonymous (see [Named vs Anonymous
- * Nodes](https://tree-sitter.github.io/tree-sitter/using-parsers#named-vs-anonymous-nodes)). We are
- * mostly interested in named nodes.
+ * Nodes](https://tree-sitter.github.io/tree-sitter/using-parsers#named-vs-anonymous-nodes)).
+ * We are mostly interested in named nodes.
  *
  * Nodes can be null (check with is_null).
  *
  * Note: This object is only valid for as long as the 'Tree' it was created from.
  * If the tree was edited methods on the node might return wrong results. In this
  * case you should retrieve the node from the tree again.
+ *
+ * 'type_id' is called *symbol* in Tree-Sitter.
+ *
+ * Features not included (because we currently don't use them):
+ *
+ * - Get child by filed:
+ *   - `ts_node_child_by_field_name`
+ *   - `ts_node_child_by_field_id`
+ * - Get child/decendant for byte/point (range):
+ *   - `ts_node_first_child_for_byte`
+ *   - `ts_node_first_named_child_for_byte`
+ *   - `ts_node_descendant_for_byte_range`
+ *   - `ts_node_descendant_for_point_range`
+ *   - `ts_node_named_descendant_for_byte_range`
+ *   - `ts_node_named_descendant_for_point_range`
+ * - Editing nodes directly:
+ *   - `ts_node_edit`
  */
 class Node {
     TSNode node;
@@ -231,7 +258,9 @@ public:
     explicit Node(TSNode node, const Tree& tree) noexcept;
 
     /**
-     * Only for internal use.
+     * Use with care. Only intended vor internal use in the wrapper types.
+     *
+     * WARNING: Never free or otherwise delete this pointer.
      */
     [[nodiscard]] TSNode raw() const;
 
@@ -417,12 +446,39 @@ std::ostream& operator<<(std::ostream&, const Node&);
 
 /**
  * Parser for the Lua language.
+ *
+ * Features not included (because we currently don't use them):
+ *
+ * - Partial document parsing:
+ *   - `ts_parser_set_included_ranges`
+ *   - `ts_parser_included_ranges`
+ * - alternative parse sources (other than utf8 string)
+ *   - generalized `ts_parser_parse` (with TSInput)
+ *   - `ts_parser_parse_string_encoding`
+ * - parsing timeout/cancellation
+ *   - `ts_parser_reset`
+ *   - `ts_parser_set_timeout_micros`
+ *   - `ts_parser_timeout_micros`
+ *   - `ts_parser_set_cancellation_flag`
+ *   - `ts_parser_cancellation_flag`
+ * - Grammar debug features:
+ *   - `ts_parser_set_logger`
+ *   - `ts_parser_logger`
+ *   - `ts_parser_print_dot_graphs`
  */
 class Parser {
     std::unique_ptr<TSParser, void (*)(TSParser*)> parser;
 
 public:
+    /**
+     * Create a parser using the lua language.
+     */
     Parser();
+
+    /**
+     * Create a parser using the given language.
+     */
+    Parser(const Language&);
 
     // don't copy because we manage pointers
     Parser(const Parser&) = delete;
@@ -434,17 +490,35 @@ public:
     Parser& operator=(Parser&& other) noexcept;
     friend void swap(Parser& self, Parser& other) noexcept;
 
+    /**
+     * Use with care. Only intended vor internal use in the wrapper types.
+     *
+     * WARNING: Never free or otherwise delete this pointer.
+     */
     [[nodiscard]] TSParser* raw() const;
 
+    /**
+     * Get the parser language.
+     */
     [[nodiscard]] Language language() const;
 
+    /**
+     * Parse a string and return a syntax tree.
+     *
+     * This takes the source code by copy (or move) and stores it in the tree.
+     */
     Tree parse_string(std::string);
-    // TODO other methods
 
 private:
     Tree parse_string(const TSTree* old_tree, std::string);
 };
 
+/**
+ * Represents a syntax tree.
+ *
+ * This also contains a copy of the source code to allow the nodes to refer to
+ * the text they were created from.
+ */
 class Tree {
     std::unique_ptr<TSTree, void (*)(TSTree*)> tree;
     // maybe a separate Input type is better to be more flexible
@@ -470,7 +544,7 @@ public:
     friend void swap(Tree& self, Tree& other) noexcept;
 
     /**
-     * Use with care. Mostly intended vor internal use in the wrapper types.
+     * Use with care. Only intended vor internal use in the wrapper types.
      *
      * WARNING: Never free or otherwise delete this pointer.
      */
@@ -485,6 +559,11 @@ public:
      * The returned node is only valid as long as this tree is not destructed.
      */
     [[nodiscard]] Node root_node() const;
+
+    /**
+     * Get the language that was used to parse the syntax tree.
+     */
+    [[nodiscard]] Language language() const;
 
     /**
      * Edit the syntax tree and source code and return the changed ranges.
@@ -508,32 +587,6 @@ public:
      */
     std::vector<Range> edit(std::vector<Edit>);
 
-    // /**
-    //  * Edit the syntax tree and source code.
-    //  *
-    //  * You need to call 'sync' after applying all the edits to bring the tree
-    //  * back into a valid state.
-    //  *
-    //  * WARNING: Applying multiple edits is difficult if the replacement is a
-    //  * different size than the original because the content after the edit will
-    //  * move and subsequent edits will not have correct locations and this is
-    //  * undefined behaviour.
-    //  *
-    //  * To avoid this you should apply the edits back to front. Meaning edits at
-    //  * the end of the source should be applied before edit at the beginning.
-    //  *
-    //  * WARNING: Take care not to apply overlapping edits.
-    //  */
-    // void edit(const Edit&);
-    //
-    // /**
-    //  * Syncronizes the tree with the source code.
-    //  *
-    //  * You need to call this method after applying all the edits to bring the
-    //  * tree back into a valid state.
-    //  */
-    // std::unique_ptr<TSTree, void(*)(TSTree*)> sync();
-
     /**
      * Print a dot graph to the given file.
      *
@@ -544,6 +597,10 @@ public:
 
 /**
  * Allows more efficient walking of a 'Tree' than with the methods on 'Node'.
+ *
+ * Features not included (because we currently don't use them):
+ *
+ * - `ts_tree_cursor_goto_first_child_for_byte`
  */
 class Cursor {
     // TSTreeCursor internally allocates heap.
@@ -554,22 +611,49 @@ class Cursor {
     const Tree& tree;
 
 public:
+    /**
+     * Create a cursor starting at the given node.
+     */
     explicit Cursor(Node) noexcept;
+
+    /**
+     * Create a cursor starting at the root node of the given tree.
+     */
     explicit Cursor(const Tree&) noexcept;
     ~Cursor() noexcept;
+
     // copy constructor
     Cursor(const Cursor&) noexcept;
     // copy assignment
     Cursor& operator=(const Cursor&) noexcept;
+
     // delete move (see above)
     Cursor(Cursor&&) = delete;
     Cursor& operator=(Cursor&&) = delete;
 
+    /**
+     * Reset the cursor to the given node.
+     */
     void reset(Node);
+
+    /**
+     * Reset the cursor to the root node of the given tree.
+     */
     void reset(const Tree&);
 
+    /**
+     * Get the node the cursor is currently pointing at.
+     */
     [[nodiscard]] Node current_node() const;
+
+    /**
+     * Get the field name of the node the cursor is currently pointing at.
+     */
     [[nodiscard]] const char* current_field_name() const;
+
+    /**
+     * Get the field id of the node the cursor is currently pointing at.
+     */
     [[nodiscard]] FieldId current_field_id() const;
 
     /**
@@ -616,11 +700,22 @@ public:
 
 /**
  * A query is a "pre-compiled" string of S-expression patterns.
+ *
+ * Features not included (because we currently don't use them):
+ *
+ * - Predicates (evaluation is not handled by tree-sitter anyway):
+ *   - `ts_query_predicates_for_pattern`
+ *   - `ts_query_step_is_definite`
  */
 class Query {
     std::unique_ptr<TSQuery, void (*)(TSQuery*)> query;
 
 public:
+    /**
+     * Create query from the given query string.
+     *
+     * NOTE: The string_view does not need to be null terminated.
+     */
     Query(std::string_view);
 
     // move constructor
@@ -633,7 +728,18 @@ public:
     Query(const Query&) = delete;
     Query& operator=(const Query&) = delete;
 
+    /**
+     * Use with care. Only intended vor internal use in the wrapper types.
+     *
+     * WARNING: Never free or otherwise delete this pointer.
+     */
     [[nodiscard]] const TSQuery* raw() const;
+
+    /**
+     * Use with care. Only intended vor internal use in the wrapper types.
+     *
+     * WARNING: Never free or otherwise delete this pointer.
+     */
     [[nodiscard]] TSQuery* raw();
 
     /**
@@ -657,9 +763,6 @@ public:
      * Can be useful when combining queries.
      */
     [[nodiscard]] std::uint32_t start_byte_for_pattern(std::uint32_t) const;
-
-    // const TSQueryPredicateStep *ts_query_predicates_for_pattern(const TSQuery *self, uint32_t
-    // pattern_index, uint32_t *length);
 
     /**
      * Get the name of one of the query's captures.
@@ -701,6 +804,9 @@ public:
     void disable_pattern(std::uint32_t id);
 };
 
+/**
+ * Represents a capture of a node in a syntax tree.
+ */
 class Capture {
     Node node_;
     std::uint32_t index_;
@@ -709,14 +815,26 @@ class Capture {
 public:
     Capture(TSQueryCapture, const Tree&) noexcept;
 
+    // copy constructor
     Capture(const Capture&) noexcept;
 
+    /**
+     * Get the node that was captured.
+     */
     [[nodiscard]] Node node() const;
+
+    /**
+     * Get the index of the capture as specified in the query.
+     */
     [[nodiscard]] std::uint32_t index() const;
 };
+
 std::ostream& operator<<(std::ostream&, const Capture&);
 std::ostream& operator<<(std::ostream& os, const std::vector<Capture>&);
 
+/**
+ * Represents a match of a pattern in a syntax tree.
+ */
 class Match {
     uint32_t id_;
     uint16_t pattern_index_;
@@ -726,8 +844,21 @@ class Match {
 public:
     Match(TSQueryMatch, const Tree&) noexcept;
 
+    /**
+     * Get the id of the matched pattern in the syntax tree.
+     *
+     * This is the n-th match of the pattern syntax tree.
+     */
     [[nodiscard]] std::uint32_t id() const;
+
+    /**
+     * Get the index of the matches pattern in the query.
+     */
     [[nodiscard]] std::uint16_t pattern_index() const;
+
+    /**
+     * Get the count of all captures.
+     */
     [[nodiscard]] std::size_t capture_count() const;
 
     /**
@@ -737,8 +868,13 @@ public:
      * `@capture`. E.g. when using repetition.
      */
     [[nodiscard]] const Capture& capture(std::size_t index) const;
+
+    /**
+     * Get all captures.
+     */
     [[nodiscard]] const std::vector<Capture>& captures() const;
 };
+
 std::ostream& operator<<(std::ostream&, const Match&);
 std::ostream& operator<<(std::ostream& os, const std::vector<Match>&);
 
@@ -755,6 +891,12 @@ std::ostream& operator<<(std::ostream& os, const std::vector<Match>&);
  *
  * At any point you can call 'exec' again and start using the cursor with another
  * query.
+ *
+ * Features not include (because we currently don't use them):
+ *
+ * - setting byte/point range to search in:
+ *   - `ts_query_cursor_set_byte_range`
+ *   - `ts_query_cursor_set_point_range`
  */
 class QueryCursor {
     std::unique_ptr<TSQueryCursor, void (*)(TSQueryCursor*)> cursor;
@@ -770,7 +912,18 @@ public:
     QueryCursor(QueryCursor&&) = delete;
     QueryCursor& operator=(QueryCursor&&) = delete;
 
+    /**
+     * Use with care. Only intended vor internal use in the wrapper types.
+     *
+     * WARNING: Never free or otherwise delete this pointer.
+     */
     [[nodiscard]] const TSQueryCursor* raw() const;
+
+    /**
+     * Use with care. Only intended vor internal use in the wrapper types.
+     *
+     * WARNING: Never free or otherwise delete this pointer.
+     */
     [[nodiscard]] TSQueryCursor* raw();
 
     /**
@@ -782,9 +935,6 @@ public:
      * Start running a given query on the root of the tree.
      */
     void exec(const Query&);
-
-    // void set_byte_range(std::uint32_t start, std::uint32_t end);
-    // void set_point_range(Point start, Point end);
 
     /**
      * Advance to the next match of the currently running query if possible.

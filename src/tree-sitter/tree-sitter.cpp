@@ -239,7 +239,11 @@ const TSTree* Tree::raw() const { return this->tree.get(); }
 
 const std::string& Tree::source() const { return this->source_; }
 
-Node Tree::root_node() const { return Node(ts_tree_root_node(this->tree.get()), *this); }
+Node Tree::root_node() const { return Node(ts_tree_root_node(this->raw()), *this); }
+
+Language Tree::language() const {
+    return Language(ts_tree_language(this->raw()));
+}
 
 // helper function to apply one edit to the tree and source code
 static void _apply_edit(const Edit& edit, TSTree* tree, std::string& source) {
@@ -394,8 +398,10 @@ bool Cursor::goto_next_named_sibling() {
 }
 
 // class Parser
-Parser::Parser() : parser(ts_parser_new(), ts_parser_delete) {
-    if (!ts_parser_set_language(this->parser.get(), tree_sitter_lua())) {
+Parser::Parser() : Parser(LUA_LANGUAGE) {
+}
+Parser::Parser(const Language& lang) : parser(ts_parser_new(), ts_parser_delete) {
+    if (!ts_parser_set_language(this->parser.get(), lang.raw())) {
         // only occurs when version of lua parser and tree-sitter library
         // are incompatible
         // see: ts_language_version, TREE_SITTER_LANGUAGE_VERSION,
@@ -424,8 +430,9 @@ Tree Parser::parse_string(const TSTree* old_tree, std::string source) {
         // - there is no language set (should not happen because we manage that)
         // - or the timeout was reached (see ts_parser_set_timeout_micros)
         // - or the parsing was cancelled using ts_parser_set_cancellation_flag
-        // In the latter two cases the parser can be restarted by calling it
-        // with the same arguments.
+        // In the latter two cases the parser could be restarted by calling it
+        // with the same arguments. But these cases also can't happen because
+        // we don't allow setting those flags.
         throw std::runtime_error("failed to parse");
     }
     return Tree(tree, std::move(source), *this);
