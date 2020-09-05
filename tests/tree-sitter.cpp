@@ -91,8 +91,8 @@ TEST_CASE("Print", "[tree-sitter][!hide]") {
 
 TEST_CASE("language is compatible with tree-sitter", "[tree-sitter]") {
     ts::Language lang = ts::LUA_LANGUAGE;
-    REQUIRE(TREE_SITTER_MIN_COMPATIBLE_LANGUAGE_VERSION <= lang.version());
-    REQUIRE(TREE_SITTER_LANGUAGE_VERSION >= lang.version());
+    REQUIRE(ts::TREE_SITTER_VERSION <= lang.version());
+    REQUIRE(ts::TREE_SITTER_MIN_VERSION >= lang.version());
 }
 
 TEST_CASE("language can list all fields", "[tree-sitter][!hide]") {

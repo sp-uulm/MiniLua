@@ -20,6 +20,9 @@ extern "C" const TSLanguage* tree_sitter_lua();
  */
 namespace ts {
 
+const std::size_t TREE_SITTER_VERSION = TREE_SITTER_LANGUAGE_VERSION;
+const std::size_t TREE_SITTER_MIN_VERSION = TREE_SITTER_MIN_COMPATIBLE_LANGUAGE_VERSION;
+
 /**
  * Numeric representation of the type of a node.
  */
