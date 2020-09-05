@@ -98,6 +98,10 @@ TypeKind Language::node_type_kind(TypeId type_id) const {
 
 std::uint32_t Language::version() const { return ts_language_version(this->raw()); }
 
+bool language_compatible(const Language& lang) {
+    return lang.version() >= TREE_SITTER_MIN_VERSION && lang.version() <= TREE_SITTER_VERSION;
+}
+
 // class Node
 Node::Node(TSNode node, const Tree& tree) noexcept : node(node), tree_(tree) {}
 

@@ -141,6 +141,11 @@ public:
 };
 
 /**
+ * Check if a language is compatible with the linkes tree-sitter version.
+ */
+bool language_compatible(const Language&);
+
+/**
  * Global lua language and node type constants.
  */
 const Language LUA_LANGUAGE = Language(tree_sitter_lua());
