@@ -88,6 +88,148 @@ TEST_CASE("Print", "[tree-sitter][!hide]") {
     FAIL();
 }
 
+TEST_CASE("Point", "[tree-sitter]") {
+    SECTION("can be equality compared") {
+        ts::Point point1{ .row = 0, .column = 0 };
+        ts::Point point2{ .row = 1, .column = 3 };
+        ts::Point point3{ .row = 0, .column = 0 };
+
+        CHECK(point1 == point1);
+        CHECK(point2 == point2);
+        CHECK(point3 == point3);
+        CHECK(point1 == point3);
+
+        CHECK(point1 != point2);
+        CHECK(point2 != point3);
+    }
+}
+
+TEST_CASE("Location", "[tree-sitter]") {
+    SECTION("can be equality compared") {
+        ts::Location location1{ .point = { .row = 0, .column = 0 }, .byte = 0 };
+        ts::Location location2{ .point = { .row = 1, .column = 3 }, .byte = 5 };
+        ts::Location location3{ .point = { .row = 0, .column = 0 }, .byte = 0 };
+
+        CHECK(location1 == location1);
+        CHECK(location2 == location2);
+        CHECK(location3 == location3);
+        CHECK(location1 == location3);
+
+        CHECK(location1 != location2);
+        CHECK(location2 != location3);
+    }
+}
+
+TEST_CASE("Range", "[tree-sitter]") {
+    SECTION("can be equality compared") {
+        ts::Range range1{
+            .start = { .point = { .row = 0, .column = 0 }, .byte = 0 },
+            .end = { .point = { .row = 0, .column = 1 }, .byte = 1 }
+        };
+        ts::Range range2{
+            .start = { .point = { .row = 1, .column = 3 }, .byte = 7 },
+            .end = { .point = { .row = 2, .column = 2 }, .byte = 10 }
+        };
+        ts::Range range3{
+            .start = { .point = { .row = 0, .column = 0 }, .byte = 0 },
+            .end = { .point = { .row = 0, .column = 1 }, .byte = 1 }
+        };
+
+        CHECK(range1 == range1);
+        CHECK(range2 == range2);
+        CHECK(range3 == range3);
+        CHECK(range1 == range3);
+
+        CHECK(range1 != range2);
+        CHECK(range2 != range3);
+    }
+}
+
+TEST_CASE("Edit", "[tree-sitter]") {
+    SECTION("can be equality compared") {
+        ts::Edit edit1{
+            .range = {
+                .start = { .point = { .row = 0, .column = 0 }, .byte = 0 },
+                .end = { .point = { .row = 0, .column = 2 }, .byte = 2 }
+            },
+            .replacement = "42"
+        };
+        ts::Edit edit2{
+            .range = {
+                .start = { .point = { .row = 0, .column = 0 }, .byte = 0 },
+                .end = { .point = { .row = 0, .column = 2 }, .byte = 2 }
+            },
+            .replacement = "119"
+        };
+        ts::Edit edit3{
+            .range = {
+                // NOLINTNEXTLINE
+                .start = { .point = { .row = 1, .column = 0 }, .byte = 5 },
+                // NOLINTNEXTLINE
+                .end = { .point = { .row = 1, .column = 2 }, .byte = 7 }
+            },
+            .replacement = "42"
+        };
+        ts::Edit edit4{
+            .range = {
+                .start = { .point = { .row = 0, .column = 0 }, .byte = 0 },
+                .end = { .point = { .row = 0, .column = 2 }, .byte = 2 }
+            },
+            .replacement = "42"
+        };
+
+        CHECK(edit1 == edit1);
+        CHECK(edit2 == edit2);
+        CHECK(edit3 == edit3);
+        CHECK(edit4 == edit4);
+        CHECK(edit1 == edit4);
+
+        CHECK(edit1 != edit2);
+        CHECK(edit1 != edit3);
+        CHECK(edit2 != edit3);
+        CHECK(edit2 != edit4);
+        CHECK(edit3 != edit4);
+    }
+}
+
+TEST_CASE("Language", "[tree-sitter]") {
+    SECTION("can be copied") {
+        static_assert(std::is_nothrow_copy_constructible_v<ts::Language>);
+        static_assert(std::is_nothrow_copy_assignable_v<ts::Language>);
+        const ts::Language& lang = ts::LUA_LANGUAGE;
+        ts::Language lang_copy = lang; // NOLINT
+    }
+
+    SECTION("can query node types") {
+        const ts::Language& lang = ts::LUA_LANGUAGE;
+
+        CHECK(lang.node_type_count() > 0);
+
+        {
+            ts::TypeId number_type_id = lang.node_type_id("number", true);
+            CHECK(lang.node_type_name(number_type_id) == "number"s);
+            CHECK(lang.node_type_kind(number_type_id) == ts::TypeKind::Named);
+        }
+
+        {
+            ts::TypeId plus_type_id = lang.node_type_id("+", false);
+            CHECK(lang.node_type_name(plus_type_id) == "+"s);
+            CHECK(lang.node_type_kind(plus_type_id) == ts::TypeKind::Anonymous);
+        }
+    }
+
+    SECTION("can query fields") {
+        const ts::Language& lang = ts::LUA_LANGUAGE;
+
+        CHECK(lang.field_count() > 0);
+
+        {
+            ts::FieldId object_field_id = lang.field_id("object");
+            CHECK(lang.field_name(object_field_id) == "object"s);
+        }
+    }
+}
+
 TEST_CASE("language is compatible with tree-sitter", "[tree-sitter]") {
     REQUIRE(ts::language_compatible(ts::LUA_LANGUAGE));
 }
