@@ -127,6 +127,8 @@ public:
     Language(Language&& other) = delete;
     Language& operator=(Language&& other) = delete;
 
+    ~Language() = default;
+
     /**
      * Use with care. Only intended vor internal use in the wrapper types.
      *
@@ -518,6 +520,8 @@ public:
     Parser& operator=(Parser&& other) noexcept;
     friend void swap(Parser& self, Parser& other) noexcept;
 
+    ~Parser() = default;
+
     /**
      * Use with care. Only intended vor internal use in the wrapper types.
      *
@@ -570,6 +574,8 @@ public:
     // move assignment
     Tree& operator=(Tree&& other) noexcept;
     friend void swap(Tree& self, Tree& other) noexcept;
+
+    ~Tree() = default;
 
     /**
      * Use with care. Only intended vor internal use in the wrapper types.
@@ -756,6 +762,8 @@ public:
     Query(const Query&) = delete;
     Query& operator=(const Query&) = delete;
 
+    ~Query() = default;
+
     /**
      * Use with care. Only intended vor internal use in the wrapper types.
      *
@@ -899,6 +907,8 @@ public:
     // can't move becaue of const Tree&
     QueryCursor(QueryCursor&&) = delete;
     QueryCursor& operator=(QueryCursor&&) = delete;
+
+    ~QueryCursor() = default;
 
     /**
      * Use with care. Only intended vor internal use in the wrapper types.

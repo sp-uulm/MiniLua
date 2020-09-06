@@ -180,13 +180,11 @@ std::string Node::text() const {
 }
 
 std::string Node::as_s_expr() const {
-    char* raw_string = ts_node_string(this->node);
+    std::unique_ptr<char, decltype(&free)> raw_string{ts_node_string(this->node), free};
     if (raw_string == nullptr) {
         return std::string();
     } else {
-        std::string str = std::string(raw_string);
-        free(raw_string);
-        return str;
+        return std::string(raw_string.get());
     }
 }
 
@@ -280,8 +278,14 @@ static void _apply_edit(const Edit& edit, TSTree* tree, std::string& source) {
 static std::vector<Range> _get_changed_ranges(const TSTree* old_tree, const TSTree* new_tree) {
     std::uint32_t length;
 
-    TSRange* begin = ts_tree_get_changed_ranges(old_tree, new_tree, &length);
-    TSRange* end = begin + static_cast<std::size_t>(length);
+    std::unique_ptr<TSRange, decltype(&free)> ranges{ts_tree_get_changed_ranges(old_tree, new_tree, &length), free};
+
+    if (length == 0) {
+        return {};
+    }
+
+    const TSRange* begin = ranges.get();
+    const TSRange* end = begin + static_cast<std::size_t>(length);
 
     std::vector<Range> changed_ranges{length};
 
@@ -307,8 +311,6 @@ static std::vector<Range> _get_changed_ranges(const TSTree* old_tree, const TSTr
                 },
         };
     });
-
-    free(begin);
 
     return changed_ranges;
 }
@@ -346,9 +348,8 @@ std::vector<Range> Tree::edit(std::vector<Edit> edits) {
 }
 
 void Tree::print_dot_graph(std::string_view file) const {
-    std::FILE* f = std::fopen(file.data(), "w");
-    ts_tree_print_dot_graph(this->raw(), f);
-    fclose(f);
+    std::unique_ptr<std::FILE, decltype(&fclose)> f{std::fopen(file.data(), "w"), fclose};
+    ts_tree_print_dot_graph(this->raw(), f.get());
 }
 
 // class Cursor
@@ -493,7 +494,7 @@ std::uint32_t Query::start_byte_for_pattern(std::uint32_t id) const {
 }
 
 std::string_view Query::capture_name_for_id(std::uint32_t id) const {
-    std::uint32_t length;
+    std::uint32_t length = 0;
     const char* name = ts_query_capture_name_for_id(this->raw(), id, &length);
     return std::string_view(name, length);
 }
