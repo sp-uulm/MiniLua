@@ -50,19 +50,6 @@ std::ostream& operator<<(std::ostream& o, const Edit& self) {
 // class Language
 Language::Language(const TSLanguage* lang) noexcept : lang(lang) {}
 
-// copy constructor
-Language::Language(const Language& other) noexcept = default;
-// copy assignment
-Language& Language::operator=(const Language& other) noexcept {
-    // check self assignment
-    if (&other == this) {
-        return *this;
-    }
-
-    this->lang = other.lang;
-    return *this;
-}
-
 const TSLanguage* Language::raw() const { return this->lang; }
 
 std::uint32_t Language::node_type_count() const { return ts_language_symbol_count(this->raw()); }
@@ -103,10 +90,10 @@ bool language_compatible(const Language& lang) {
 }
 
 // class Node
-Node::Node(TSNode node, const Tree& tree) noexcept : node(node), tree_(tree) {}
+Node::Node(TSNode node, const Tree& tree) noexcept : node(node), tree_(&tree) {}
 
 TSNode Node::raw() const { return this->node; }
-const Tree& Node::tree() const { return this->tree_; }
+const Tree& Node::tree() const { return *this->tree_; }
 
 bool Node::is_null() const { return ts_node_is_null(this->node); }
 bool Node::is_named() const { return ts_node_is_named(this->node); }
@@ -194,9 +181,7 @@ bool operator==(const Node& lhs, const Node& rhs) {
 }
 bool operator!=(const Node& lhs, const Node& rhs) { return !(lhs == rhs); }
 
-std::ostream& operator<<(std::ostream& os, const Node& node) {
-    return os << node.as_s_expr();
-}
+std::ostream& operator<<(std::ostream& os, const Node& node) { return os << node.as_s_expr(); }
 
 // class Tree
 Tree::Tree(TSTree* tree, std::string source, Parser& parser)
@@ -206,26 +191,11 @@ Tree::Tree(const Tree& other)
     : tree(ts_tree_copy(other.raw()), ts_tree_delete), source_(other.source()),
       parser(other.parser) {}
 Tree& Tree::operator=(const Tree& other) {
-    // check self assignment
-    if (&other == this) {
-        return *this;
-    }
-
-    this->tree.reset(ts_tree_copy(other.raw()));
-    this->source_ = other.source();
-    this->parser = other.parser;
+    Tree copy{other};
+    swap(copy, *this);
     return *this;
 }
 
-// move constructor
-Tree::Tree(Tree&& other) noexcept
-    : tree(std::exchange(other.tree, nullptr)), source_(std::move(other.source_)),
-      parser(other.parser) {}
-// move assignment
-Tree& Tree::operator=(Tree&& other) noexcept {
-    swap(*this, other);
-    return *this;
-}
 void swap(Tree& self, Tree& other) noexcept {
     using std::swap;
     swap(self.tree, other.tree);
@@ -239,9 +209,7 @@ const std::string& Tree::source() const { return this->source_; }
 
 Node Tree::root_node() const { return Node(ts_tree_root_node(this->raw()), *this); }
 
-Language Tree::language() const {
-    return Language(ts_tree_language(this->raw()));
-}
+Language Tree::language() const { return Language(ts_tree_language(this->raw())); }
 
 // helper function to apply one edit to the tree and source code
 static void _apply_edit(const Edit& edit, TSTree* tree, std::string& source) {
@@ -278,7 +246,8 @@ static void _apply_edit(const Edit& edit, TSTree* tree, std::string& source) {
 static std::vector<Range> _get_changed_ranges(const TSTree* old_tree, const TSTree* new_tree) {
     std::uint32_t length;
 
-    std::unique_ptr<TSRange, decltype(&free)> ranges{ts_tree_get_changed_ranges(old_tree, new_tree, &length), free};
+    std::unique_ptr<TSRange, decltype(&free)> ranges{
+        ts_tree_get_changed_ranges(old_tree, new_tree, &length), free};
 
     if (length == 0) {
         return {};
@@ -318,7 +287,7 @@ static std::vector<Range> _get_changed_ranges(const TSTree* old_tree, const TSTr
 std::vector<Range> Tree::edit(std::vector<Edit> edits) {
     // save copies of the previous values so we can return the old syntax tree
     const std::string old_source = this->source();
-    TSTree* old_tree = this->tree.release();
+    std::unique_ptr<TSTree, void (*)(TSTree*)> old_tree = std::move(this->tree);
 
     // Sort edits so the edits that are at the end of the source code are applied
     // before the edits that are at the beginning.
@@ -331,18 +300,16 @@ std::vector<Range> Tree::edit(std::vector<Edit> edits) {
     });
 
     for (const auto& edit : edits) {
-        _apply_edit(edit, old_tree, this->source_);
+        _apply_edit(edit, old_tree.get(), this->source_);
     }
 
     // reparse the source code
-    TSTree* new_tree = ts_parser_parse_string(this->parser->raw(), old_tree, this->source().c_str(),
-                                              this->source().size());
+    TSTree* new_tree = ts_parser_parse_string(this->parser->raw(), old_tree.get(),
+                                              this->source().c_str(), this->source().size());
 
     this->tree.reset(new_tree);
 
-    std::vector<Range> changed_ranges = _get_changed_ranges(old_tree, new_tree);
-
-    ts_tree_delete(old_tree);
+    std::vector<Range> changed_ranges = _get_changed_ranges(old_tree.get(), new_tree);
 
     return changed_ranges;
 }
@@ -353,7 +320,7 @@ void Tree::print_dot_graph(std::string_view file) const {
 }
 
 // class Cursor
-Cursor::Cursor(Node node) noexcept : cursor(ts_tree_cursor_new(node.raw())), tree(node.tree()) {}
+Cursor::Cursor(Node node) noexcept : cursor(ts_tree_cursor_new(node.raw())), tree(&node.tree()) {}
 Cursor::Cursor(const Tree& tree) noexcept : Cursor(tree.root_node()) {}
 Cursor::~Cursor() noexcept { ts_tree_cursor_delete(&this->cursor); }
 Cursor::Cursor(const Cursor& cursor) noexcept
@@ -365,7 +332,7 @@ void Cursor::reset(const Tree& tree) {
 }
 
 Node Cursor::current_node() const {
-    return Node(ts_tree_cursor_current_node(&this->cursor), this->tree);
+    return Node(ts_tree_cursor_current_node(&this->cursor), *this->tree);
 }
 const char* Cursor::current_field_name() const {
     return ts_tree_cursor_current_field_name(&this->cursor);
@@ -399,8 +366,7 @@ bool Cursor::goto_next_named_sibling() {
 }
 
 // class Parser
-Parser::Parser() : Parser(LUA_LANGUAGE) {
-}
+Parser::Parser() : Parser(LUA_LANGUAGE) {}
 Parser::Parser(const Language& lang) : parser(ts_parser_new(), ts_parser_delete) {
     if (!ts_parser_set_language(this->parser.get(), lang.raw())) {
         // only occurs when version of lua parser and tree-sitter library
@@ -411,15 +377,6 @@ Parser::Parser(const Language& lang) : parser(ts_parser_new(), ts_parser_delete)
     }
 }
 
-// move constructor
-Parser::Parser(Parser&& other) noexcept : parser(std::exchange(other.parser, nullptr)) {}
-// move assignment
-Parser& Parser::operator=(Parser&& other) noexcept {
-    swap(*this, other);
-    return *this;
-}
-void swap(Parser& self, Parser& other) noexcept { std::swap(self.parser, other.parser); }
-
 TSParser* Parser::raw() const { return this->parser.get(); }
 
 Language Parser::language() const { return Language(ts_parser_language(this->raw())); }
@@ -427,6 +384,7 @@ Language Parser::language() const { return Language(ts_parser_language(this->raw
 Tree Parser::parse_string(const TSTree* old_tree, std::string source) {
     TSTree* tree = ts_parser_parse_string(this->raw(), old_tree, source.c_str(), source.length());
     if (tree == nullptr) {
+        // TL;DR this should never happen
         // This can occur when:
         // - there is no language set (should not happen because we manage that)
         // - or the timeout was reached (see ts_parser_set_timeout_micros)
@@ -441,7 +399,7 @@ Tree Parser::parse_string(const TSTree* old_tree, std::string source) {
 Tree Parser::parse_string(std::string str) { return parse_string(nullptr, std::move(str)); }
 
 // class Query
-TSQuery* make_query(std::string_view source) {
+TSQuery* _make_query(std::string_view source) {
     std::uint32_t error_offset;
     TSQueryError error_type;
     TSQuery* query = ts_query_new(LUA_LANGUAGE.raw(), source.data(), source.length(), &error_offset,
@@ -475,12 +433,9 @@ TSQuery* make_query(std::string_view source) {
     return query;
 }
 
-Query::Query(std::string_view source) : query(make_query(source), ts_query_delete) {}
+Query::Query(std::string_view source) : query(_make_query(source), ts_query_delete) {}
 
-// move constructor
-// Query::Query(Query&&) noexcept = default;
-// move assignment
-Query& Query::operator=(Query&& other) noexcept = default;
+void swap(Query& self, Query& other) noexcept { std::swap(self.query, other.query); }
 
 const TSQuery* Query::raw() const { return this->query.get(); }
 TSQuery* Query::raw() { return this->query.get(); }
@@ -528,7 +483,8 @@ std::ostream& operator<<(std::ostream& os, const std::vector<Capture>& captures)
 }
 
 // struct Match
-Match::Match(TSQueryMatch match, const Tree& tree) noexcept : id(match.id), pattern_index(match.pattern_index) {
+Match::Match(TSQueryMatch match, const Tree& tree) noexcept
+    : id(match.id), pattern_index(match.pattern_index) {
     const TSQueryCapture* start = match.captures;
     const TSQueryCapture* end = start + match.capture_count;
     const std::size_t size = end - start;
@@ -548,7 +504,8 @@ std::optional<Capture> Match::capture_with_index(std::uint32_t index) const {
 }
 
 std::ostream& operator<<(std::ostream& os, const Match& match) {
-    return os << "Match { .id = " << match.id << ", .pattern_index = " << match.pattern_index << ", .captures = " << match.captures.size() << " }";
+    return os << "Match { .id = " << match.id << ", .pattern_index = " << match.pattern_index
+              << ", .captures = " << match.captures.size() << " }";
 }
 std::ostream& operator<<(std::ostream& os, const std::vector<Match>& matches) {
     os << "[ ";
@@ -562,7 +519,8 @@ std::ostream& operator<<(std::ostream& os, const std::vector<Match>& matches) {
 }
 
 // class QueryCursor
-QueryCursor::QueryCursor(const Tree& tree) noexcept : cursor(ts_query_cursor_new(), ts_query_cursor_delete), tree(tree) {}
+QueryCursor::QueryCursor(const Tree& tree) noexcept
+    : cursor(ts_query_cursor_new(), ts_query_cursor_delete), tree(&tree) {}
 
 const TSQueryCursor* QueryCursor::raw() const { return this->cursor.get(); }
 TSQueryCursor* QueryCursor::raw() { return this->cursor.get(); }
@@ -572,13 +530,13 @@ void QueryCursor::exec(const Query& query, Node node) {
 }
 
 void QueryCursor::exec(const Query& query) {
-    ts_query_cursor_exec(this->raw(), query.raw(), this->tree.root_node().raw());
+    ts_query_cursor_exec(this->raw(), query.raw(), this->tree->root_node().raw());
 }
 
 std::optional<Match> QueryCursor::next_match() {
     TSQueryMatch match;
     if (ts_query_cursor_next_match(this->raw(), &match)) {
-        return Match(match, this->tree);
+        return Match(match, *this->tree);
     } else {
         return std::nullopt;
     }
@@ -588,7 +546,7 @@ std::optional<Capture> QueryCursor::next_capture() {
     TSQueryMatch raw_match;
     std::uint32_t index;
     if (ts_query_cursor_next_capture(this->raw(), &raw_match, &index)) {
-        Match match(raw_match, this->tree);
+        Match match(raw_match, *this->tree);
         return match.capture_with_index(index);
     } else {
         return std::nullopt;

@@ -118,17 +118,6 @@ class Language {
 public:
     Language(const TSLanguage*) noexcept;
 
-    // copy constructor
-    Language(const Language&) noexcept;
-    // copy assignment
-    Language& operator=(const Language&) noexcept;
-
-    // moves are not needed (or possible) also we only ever have one language
-    Language(Language&& other) = delete;
-    Language& operator=(Language&& other) = delete;
-
-    ~Language() = default;
-
     /**
      * Use with care. Only intended vor internal use in the wrapper types.
      *
@@ -277,7 +266,8 @@ class Tree;
  */
 class Node {
     TSNode node;
-    const Tree& tree_;
+    // not owned pointer
+    const Tree* tree_;
 
 public:
     /**
@@ -510,18 +500,6 @@ public:
      */
     Parser(const Language&);
 
-    // don't copy because we manage pointers
-    Parser(const Parser&) = delete;
-    Parser& operator=(const Parser&) = delete;
-
-    // move constructor
-    Parser(Parser&& other) noexcept;
-    // move assignment
-    Parser& operator=(Parser&& other) noexcept;
-    friend void swap(Parser& self, Parser& other) noexcept;
-
-    ~Parser() = default;
-
     /**
      * Use with care. Only intended vor internal use in the wrapper types.
      *
@@ -556,8 +534,7 @@ class Tree {
     // maybe a separate Input type is better to be more flexible
     std::string source_;
 
-    // use pointer instead of reference because we need to reassign in the copy
-    // constructor
+    // not owned pointer
     Parser* parser;
 
 public:
@@ -570,9 +547,9 @@ public:
     Tree& operator=(const Tree&);
 
     // move constructor
-    Tree(Tree&& other) noexcept;
+    Tree(Tree&& other) noexcept = default;
     // move assignment
-    Tree& operator=(Tree&& other) noexcept;
+    Tree& operator=(Tree&& other) noexcept = default;
     friend void swap(Tree& self, Tree& other) noexcept;
 
     ~Tree() = default;
@@ -638,11 +615,9 @@ public:
  */
 class Cursor {
     // TSTreeCursor internally allocates heap.
-    // It can be copied with "ts_tree_cursor_copy" but it can not moved
-    // because there is no easy way to clear the cursor. We can only reset the
-    // cursor using a different node.
+    // It can be copied with "ts_tree_cursor_copy"
     TSTreeCursor cursor;
-    const Tree& tree;
+    const Tree* tree;
 
 public:
     /**
@@ -662,8 +637,8 @@ public:
     Cursor& operator=(const Cursor&) noexcept;
 
     // delete move (see above)
-    Cursor(Cursor&&) = delete;
-    Cursor& operator=(Cursor&&) = delete;
+    Cursor(Cursor&&) = default;
+    Cursor& operator=(Cursor&&) = default;
 
     /**
      * Reset the cursor to the given node.
@@ -752,15 +727,15 @@ public:
      */
     Query(std::string_view);
 
-    // move constructor
-    Query(Query&&) noexcept;
-    // move assignment
-    Query& operator=(Query&&) noexcept;
-    friend void swap(Query& self, Query& other) noexcept;
-
-    // no copying because be handle pointers
+    // no copying because TSQuery can't be copied
     Query(const Query&) = delete;
     Query& operator=(const Query&) = delete;
+
+    // move constructor
+    Query(Query&&) noexcept = default;
+    // move assignment
+    Query& operator=(Query&&) noexcept = default;
+    friend void swap(Query& self, Query& other) noexcept;
 
     ~Query() = default;
 
@@ -896,17 +871,17 @@ std::ostream& operator<<(std::ostream& os, const std::vector<Match>&);
  */
 class QueryCursor {
     std::unique_ptr<TSQueryCursor, void (*)(TSQueryCursor*)> cursor;
-    const Tree& tree;
+    const Tree* tree;
 
 public:
     explicit QueryCursor(const Tree&) noexcept;
 
-    // can't copy because we manage pointers
+    // can't copy because TSQueryCursor can't be copied
     QueryCursor(const QueryCursor&) = delete;
     QueryCursor& operator=(const QueryCursor&) = delete;
-    // can't move becaue of const Tree&
-    QueryCursor(QueryCursor&&) = delete;
-    QueryCursor& operator=(QueryCursor&&) = delete;
+
+    QueryCursor(QueryCursor&&) = default;
+    QueryCursor& operator=(QueryCursor&&) = default;
 
     ~QueryCursor() = default;
 

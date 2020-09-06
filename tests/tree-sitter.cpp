@@ -90,9 +90,9 @@ TEST_CASE("Print", "[tree-sitter][!hide]") {
 
 TEST_CASE("Point", "[tree-sitter]") {
     SECTION("can be equality compared") {
-        ts::Point point1{ .row = 0, .column = 0 };
-        ts::Point point2{ .row = 1, .column = 3 };
-        ts::Point point3{ .row = 0, .column = 0 };
+        ts::Point point1{.row = 0, .column = 0};
+        ts::Point point2{.row = 1, .column = 3};
+        ts::Point point3{.row = 0, .column = 0};
 
         CHECK(point1 == point1);
         CHECK(point2 == point2);
@@ -106,9 +106,9 @@ TEST_CASE("Point", "[tree-sitter]") {
 
 TEST_CASE("Location", "[tree-sitter]") {
     SECTION("can be equality compared") {
-        ts::Location location1{ .point = { .row = 0, .column = 0 }, .byte = 0 };
-        ts::Location location2{ .point = { .row = 1, .column = 3 }, .byte = 5 };
-        ts::Location location3{ .point = { .row = 0, .column = 0 }, .byte = 0 };
+        ts::Location location1{.point = {.row = 0, .column = 0}, .byte = 0};
+        ts::Location location2{.point = {.row = 1, .column = 3}, .byte = 5};
+        ts::Location location3{.point = {.row = 0, .column = 0}, .byte = 0};
 
         CHECK(location1 == location1);
         CHECK(location2 == location2);
@@ -122,18 +122,12 @@ TEST_CASE("Location", "[tree-sitter]") {
 
 TEST_CASE("Range", "[tree-sitter]") {
     SECTION("can be equality compared") {
-        ts::Range range1{
-            .start = { .point = { .row = 0, .column = 0 }, .byte = 0 },
-            .end = { .point = { .row = 0, .column = 1 }, .byte = 1 }
-        };
-        ts::Range range2{
-            .start = { .point = { .row = 1, .column = 3 }, .byte = 7 },
-            .end = { .point = { .row = 2, .column = 2 }, .byte = 10 }
-        };
-        ts::Range range3{
-            .start = { .point = { .row = 0, .column = 0 }, .byte = 0 },
-            .end = { .point = { .row = 0, .column = 1 }, .byte = 1 }
-        };
+        ts::Range range1{.start = {.point = {.row = 0, .column = 0}, .byte = 0},
+                         .end = {.point = {.row = 0, .column = 1}, .byte = 1}};
+        ts::Range range2{.start = {.point = {.row = 1, .column = 3}, .byte = 7},
+                         .end = {.point = {.row = 2, .column = 2}, .byte = 10}};
+        ts::Range range3{.start = {.point = {.row = 0, .column = 0}, .byte = 0},
+                         .end = {.point = {.row = 0, .column = 1}, .byte = 1}};
 
         CHECK(range1 == range1);
         CHECK(range2 == range2);
@@ -147,36 +141,21 @@ TEST_CASE("Range", "[tree-sitter]") {
 
 TEST_CASE("Edit", "[tree-sitter]") {
     SECTION("can be equality compared") {
-        ts::Edit edit1{
-            .range = {
-                .start = { .point = { .row = 0, .column = 0 }, .byte = 0 },
-                .end = { .point = { .row = 0, .column = 2 }, .byte = 2 }
-            },
-            .replacement = "42"
-        };
-        ts::Edit edit2{
-            .range = {
-                .start = { .point = { .row = 0, .column = 0 }, .byte = 0 },
-                .end = { .point = { .row = 0, .column = 2 }, .byte = 2 }
-            },
-            .replacement = "119"
-        };
-        ts::Edit edit3{
-            .range = {
-                // NOLINTNEXTLINE
-                .start = { .point = { .row = 1, .column = 0 }, .byte = 5 },
-                // NOLINTNEXTLINE
-                .end = { .point = { .row = 1, .column = 2 }, .byte = 7 }
-            },
-            .replacement = "42"
-        };
-        ts::Edit edit4{
-            .range = {
-                .start = { .point = { .row = 0, .column = 0 }, .byte = 0 },
-                .end = { .point = { .row = 0, .column = 2 }, .byte = 2 }
-            },
-            .replacement = "42"
-        };
+        ts::Edit edit1{.range = {.start = {.point = {.row = 0, .column = 0}, .byte = 0},
+                                 .end = {.point = {.row = 0, .column = 2}, .byte = 2}},
+                       .replacement = "42"};
+        ts::Edit edit2{.range = {.start = {.point = {.row = 0, .column = 0}, .byte = 0},
+                                 .end = {.point = {.row = 0, .column = 2}, .byte = 2}},
+                       .replacement = "119"};
+        ts::Edit edit3{.range =
+                           {// NOLINTNEXTLINE
+                            .start = {.point = {.row = 1, .column = 0}, .byte = 5},
+                            // NOLINTNEXTLINE
+                            .end = {.point = {.row = 1, .column = 2}, .byte = 7}},
+                       .replacement = "42"};
+        ts::Edit edit4{.range = {.start = {.point = {.row = 0, .column = 0}, .byte = 0},
+                                 .end = {.point = {.row = 0, .column = 2}, .byte = 2}},
+                       .replacement = "42"};
 
         CHECK(edit1 == edit1);
         CHECK(edit2 == edit2);
@@ -464,8 +443,8 @@ TEST_CASE("Query", "[tree-sitter]") {
 TEST_CASE("Cursor", "[tree-sitter]") {
     static_assert(std::is_nothrow_copy_constructible_v<ts::Cursor>);
     static_assert(std::is_nothrow_copy_assignable_v<ts::Cursor>);
-    static_assert(!std::is_nothrow_move_constructible_v<ts::Cursor>);
-    static_assert(!std::is_nothrow_move_assignable_v<ts::Cursor>);
+    static_assert(std::is_nothrow_move_constructible_v<ts::Cursor>);
+    static_assert(std::is_nothrow_move_assignable_v<ts::Cursor>);
 
     ts::Parser parser;
 
