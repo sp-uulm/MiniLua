@@ -16,6 +16,18 @@ bool operator==(const Point& lhs, const Point& rhs) {
     return lhs.row == rhs.row && lhs.column == rhs.column;
 }
 bool operator!=(const Point& lhs, const Point& rhs) { return !(lhs == rhs); }
+bool operator<(const Point& lhs, const Point& rhs) {
+    return lhs.row < rhs.row || (lhs.row == rhs.row && lhs.column < rhs.column);
+}
+bool operator<=(const Point& lhs, const Point& rhs) {
+    return lhs.row < rhs.row || (lhs.row == rhs.row && lhs.column <= rhs.column);
+}
+bool operator>(const Point& lhs, const Point& rhs) {
+    return lhs.row > rhs.row || (lhs.row == rhs.row && lhs.column > rhs.column);
+}
+bool operator>=(const Point& lhs, const Point& rhs) {
+    return lhs.row > rhs.row || (lhs.row == rhs.row && lhs.column >= rhs.column);
+}
 std::ostream& operator<<(std::ostream& o, const Point& self) {
     return o << "Point{ .row = " << self.row << ", .column = " << self.column << "}";
 }
@@ -25,17 +37,60 @@ bool operator==(const Location& lhs, const Location& rhs) {
     return lhs.point == rhs.point && lhs.byte == rhs.byte;
 }
 bool operator!=(const Location& lhs, const Location& rhs) { return !(lhs == rhs); }
+bool operator<(const Location& lhs, const Location& rhs) { return lhs.byte < rhs.byte; }
+bool operator<=(const Location& lhs, const Location& rhs) { return lhs.byte < rhs.byte; }
+bool operator>(const Location& lhs, const Location& rhs) { return lhs.byte < rhs.byte; }
+bool operator>=(const Location& lhs, const Location& rhs) { return lhs.byte < rhs.byte; }
 std::ostream& operator<<(std::ostream& o, const Location& self) {
     return o << "Location{ .point = " << self.point << ", .byte = " << self.byte << "}";
 }
 
 // struct Range
+bool Range::overlaps(const Range& other) const {
+    if (this->start > other.start) {
+        return other.overlaps(*this);
+    }
+
+    // from here on: this->start <= other.start
+
+    // ranges can be arranged like this:
+    //
+    // 1)
+    // ----
+    //   ----
+    // 2)
+    // ------
+    //   ----
+    // 3)
+    // ------
+    //   ---
+    // 4)
+    // ------
+    // ---
+    // 5)
+    // ----
+    //       ----
+    return this->end > other.start;
+}
 bool operator==(const Range& lhs, const Range& rhs) {
     return lhs.start == rhs.start && lhs.end == rhs.end;
 }
 bool operator!=(const Range& lhs, const Range& rhs) { return !(lhs == rhs); }
 std::ostream& operator<<(std::ostream& o, const Range& self) {
     return o << "Range{ .start = " << self.start << ", .end = " << self.end << "}";
+}
+std::ostream& operator<<(std::ostream& o, const std::vector<Range>& ranges) {
+    o << "[ ";
+
+    const char* sep = "";
+
+    for (const auto& range : ranges) {
+        o << sep << range;
+        sep = ", ";
+    }
+
+    o << " ]";
+    return o;
 }
 
 // struct Edit
@@ -45,6 +100,19 @@ bool operator==(const Edit& lhs, const Edit& rhs) {
 bool operator!=(const Edit& lhs, const Edit& rhs) { return !(lhs == rhs); }
 std::ostream& operator<<(std::ostream& o, const Edit& self) {
     return o << "Edit{ .range = " << self.range << ", .replacement = " << self.replacement << "}";
+}
+std::ostream& operator<<(std::ostream& o, const std::vector<Edit>& edits) {
+    o << "[ ";
+
+    const char* sep = "";
+
+    for (const auto& edit : edits) {
+        o << sep << edit;
+        sep = ", ";
+    }
+
+    o << " ]";
+    return o;
 }
 
 // class Language
@@ -237,16 +305,16 @@ Language Tree::language() const { return Language(ts_tree_language(this->raw()))
 
 // helper function to apply one edit to the tree and source code
 static void _apply_edit(const Edit& edit, TSTree* tree, std::string& source) {
-    std::uint32_t old_size = edit.range.end.byte - edit.range.start.byte;
+    long old_size = edit.range.end.byte - edit.range.start.byte;
 
     source.replace(edit.range.start.byte, old_size, edit.replacement);
 
-    std::uint32_t size_diff = old_size - static_cast<std::uint32_t>(edit.replacement.size());
+    long end_byte_diff = old_size - static_cast<long>(edit.replacement.size());
 
     TSInputEdit input_edit{
         .start_byte = edit.range.start.byte,
         .old_end_byte = edit.range.end.byte,
-        .new_end_byte = edit.range.end.byte + size_diff,
+        .new_end_byte = static_cast<std::uint32_t>(edit.range.end.byte + end_byte_diff),
         .start_point =
             TSPoint{
                 .row = edit.range.start.point.row,
@@ -260,7 +328,7 @@ static void _apply_edit(const Edit& edit, TSTree* tree, std::string& source) {
         .new_end_point =
             TSPoint{
                 .row = edit.range.end.point.row,
-                .column = edit.range.end.point.column + size_diff,
+                .column = static_cast<std::uint32_t>(edit.range.end.point.column + end_byte_diff),
             },
     };
 
@@ -289,6 +357,8 @@ static inline Range _range(const TSRange& range) {
 }
 
 static std::vector<Range> _get_changed_ranges(const TSTree* old_tree, const TSTree* new_tree) {
+    // this will always be set by ts_tree_get_changed_ranges
+    // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
     std::uint32_t length;
 
     std::unique_ptr<TSRange, decltype(&free)> ranges{
@@ -299,6 +369,8 @@ static std::vector<Range> _get_changed_ranges(const TSTree* old_tree, const TSTr
     }
 
     const TSRange* begin = ranges.get();
+    // we have no other choise because we get the point + length from a c api
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     const TSRange* end = begin + static_cast<std::size_t>(length);
 
     std::vector<Range> changed_ranges{length};
@@ -309,8 +381,24 @@ static std::vector<Range> _get_changed_ranges(const TSTree* old_tree, const TSTr
     return changed_ranges;
 }
 
+void _check_edits(const std::vector<Edit>& edits) {
+    // NOTE: assumes that the ranges are already sorted by edit.range.start.byte
+
+    for (const auto& edit1 : edits) {
+        if (edit1.range.start.point.row != edit1.range.end.point.row) {
+            throw std::runtime_error("multiline edits are not supported");
+        }
+
+        for (const auto& edit2 : edits) {
+            if (edit1.range.overlaps(edit2.range)) {
+                throw std::runtime_error("overlapping edits are not allowed");
+            }
+        }
+    }
+}
+
 std::vector<Range> Tree::edit(std::vector<Edit> edits) {
-    // save copies of the previous values so we can return the old syntax tree
+    // save copies of the previous values so we can return the changed ranges
     std::string new_source = this->source();
     std::unique_ptr<TSTree, void (*)(TSTree*)> old_tree = std::move(this->tree);
 
@@ -323,6 +411,9 @@ std::vector<Range> Tree::edit(std::vector<Edit> edits) {
     std::sort(edits.begin(), edits.end(), [](const Edit& edit1, const Edit& edit2) {
         return edit1.range.start.byte > edit2.range.start.byte;
     });
+
+    // NOTE: this throws exceptions if there is something wrong with the edits
+    _check_edits(edits);
 
     for (const auto& edit : edits) {
         _apply_edit(edit, old_tree.get(), new_source);

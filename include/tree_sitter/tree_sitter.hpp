@@ -63,11 +63,18 @@ struct Point {
 
 bool operator==(const Point&, const Point&);
 bool operator!=(const Point&, const Point&);
+bool operator<(const Point&, const Point&);
+bool operator<=(const Point&, const Point&);
+bool operator>(const Point&, const Point&);
+bool operator>=(const Point&, const Point&);
 std::ostream& operator<<(std::ostream&, const Point&);
 
 /**
  * Represents a location in source code as both a point (row and column)
  * and a byte offset.
+ *
+ * Locations can be <, <=, >, >= and ==, != compared. But you should only compare
+ * locations created from the same source.
  */
 struct Location {
     Point point;
@@ -76,6 +83,10 @@ struct Location {
 
 bool operator==(const Location&, const Location&);
 bool operator!=(const Location&, const Location&);
+bool operator<(const Location&, const Location&);
+bool operator<=(const Location&, const Location&);
+bool operator>(const Location&, const Location&);
+bool operator>=(const Location&, const Location&);
 std::ostream& operator<<(std::ostream&, const Location&);
 
 /**
@@ -84,11 +95,14 @@ std::ostream& operator<<(std::ostream&, const Location&);
 struct Range {
     Location start;
     Location end;
+
+    bool overlaps(const Range&) const;
 };
 
 bool operator==(const Range&, const Range&);
 bool operator!=(const Range&, const Range&);
 std::ostream& operator<<(std::ostream&, const Range&);
+std::ostream& operator<<(std::ostream&, const std::vector<Range>&);
 
 /**
  * Represents an edit of source code.
@@ -106,6 +120,7 @@ struct Edit {
 bool operator==(const Edit&, const Edit&);
 bool operator!=(const Edit&, const Edit&);
 std::ostream& operator<<(std::ostream&, const Edit&);
+std::ostream& operator<<(std::ostream&, const std::vector<Edit>&);
 
 /**
  * Represents a language.
@@ -588,17 +603,20 @@ public:
     /**
      * Edit the syntax tree and source code and return the changed ranges.
      *
+     * You need to specify all edits you want to apply to the syntax tree in one
+     * call. Because this method changes both the syntax tree and source code
+     * string any other 'Edit's will be invalid and trying to apply them is
+     * undefined behaviour.
+     *
+     * The edits can't be duplicate or overlapping. Multiline edits are also
+     * currently not supported.
+     *
      * The returned ranges are not the ranges that were specified in the edits
      * they are the ranges of code where the old nodes and new nodes don't allign.
      * They will likely contain not edited pieces of the source code
      * (e.g. if it was moved by another edit). Also there might just be one big
      * changed range even for multiple edits. This is not useful for highlighting.
      * The only use might be to only update the changed ranges in an editor.
-     *
-     * You need to specify all edits you want to apply to the syntax tree in one
-     * call. Because this method changes both the syntax tree and source code
-     * string any other 'Edit's will be invalid and trying to apply them is
-     * undefined behaviour.
      *
      * Any previously retrieved nodes will become (silently) invalid.
      *
