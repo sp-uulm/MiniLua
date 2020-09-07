@@ -645,9 +645,10 @@ public:
     // copy assignment
     Cursor& operator=(const Cursor&) noexcept;
 
-    // delete move (see above)
     Cursor(Cursor&&) = default;
     Cursor& operator=(Cursor&&) = default;
+
+    friend void swap(Cursor&, Cursor&) noexcept;
 
     /**
      * Reset the cursor to the given node.

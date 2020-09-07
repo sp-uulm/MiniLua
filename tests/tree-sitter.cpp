@@ -448,6 +448,7 @@ TEST_CASE("Cursor", "[tree-sitter]") {
     static_assert(std::is_nothrow_copy_assignable_v<ts::Cursor>);
     static_assert(std::is_nothrow_move_constructible_v<ts::Cursor>);
     static_assert(std::is_nothrow_move_assignable_v<ts::Cursor>);
+    static_assert(std::is_nothrow_swappable_v<ts::Cursor>);
 
     ts::Parser parser;
 

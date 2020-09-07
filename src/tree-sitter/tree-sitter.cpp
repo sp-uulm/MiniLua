@@ -351,6 +351,18 @@ Cursor::~Cursor() noexcept { ts_tree_cursor_delete(&this->cursor); }
 Cursor::Cursor(const Cursor& cursor) noexcept
     : cursor(ts_tree_cursor_copy(&cursor.cursor)), tree(cursor.tree) {}
 
+Cursor& Cursor::operator=(const Cursor& other) noexcept {
+    Cursor copy{other};
+    swap(copy, *this);
+    return *this;
+}
+
+void swap(Cursor& self, Cursor& other) noexcept {
+    using std::swap;
+    swap(self.cursor, other.cursor);
+    swap(self.tree, other.tree);
+}
+
 void Cursor::reset(Node node) { ts_tree_cursor_reset(&this->cursor, node.raw()); }
 void Cursor::reset(const Tree& tree) {
     ts_tree_cursor_reset(&this->cursor, tree.root_node().raw());
