@@ -519,8 +519,7 @@ public:
      */
     Tree parse_string(std::string);
 
-private:
-    Tree parse_string(const TSTree* old_tree, std::string);
+    Tree parse_string(const TSTree* old_tree, std::string source);
 };
 
 /**

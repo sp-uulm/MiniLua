@@ -243,6 +243,27 @@ static void _apply_edit(const Edit& edit, TSTree* tree, std::string& source) {
     ts_tree_edit(tree, &input_edit);
 }
 
+static inline Point _point(const TSPoint& point) {
+    return Point{
+        .row = point.row,
+        .column = point.column,
+    };
+}
+
+static inline Location _location(const TSPoint& point, const std::uint32_t byte) {
+    return Location{
+        .point = _point(point),
+        .byte = byte,
+    };
+}
+
+static inline Range _range(const TSRange& range) {
+    return Range{
+        .start = _location(range.start_point, range.start_byte),
+        .end = _location(range.end_point, range.end_byte),
+    };
+}
+
 static std::vector<Range> _get_changed_ranges(const TSTree* old_tree, const TSTree* new_tree) {
     std::uint32_t length;
 
@@ -258,35 +279,15 @@ static std::vector<Range> _get_changed_ranges(const TSTree* old_tree, const TSTr
 
     std::vector<Range> changed_ranges{length};
 
-    std::transform(begin, end, changed_ranges.begin(), [](const TSRange& range) {
-        return Range{
-            .start =
-                Location{
-                    .point =
-                        Point{
-                            .row = range.start_point.row,
-                            .column = range.start_point.column,
-                        },
-                    .byte = range.start_byte,
-                },
-            .end =
-                Location{
-                    .point =
-                        Point{
-                            .row = range.end_point.row,
-                            .column = range.end_point.column,
-                        },
-                    .byte = range.end_byte,
-                },
-        };
-    });
+    std::transform(begin, end, changed_ranges.begin(),
+                   [](const TSRange& range) { return _range(range); });
 
     return changed_ranges;
 }
 
 std::vector<Range> Tree::edit(std::vector<Edit> edits) {
     // save copies of the previous values so we can return the old syntax tree
-    const std::string old_source = this->source();
+    std::string new_source = this->source();
     std::unique_ptr<TSTree, void (*)(TSTree*)> old_tree = std::move(this->tree);
 
     // Sort edits so the edits that are at the end of the source code are applied
@@ -300,16 +301,16 @@ std::vector<Range> Tree::edit(std::vector<Edit> edits) {
     });
 
     for (const auto& edit : edits) {
-        _apply_edit(edit, old_tree.get(), this->source_);
+        _apply_edit(edit, old_tree.get(), new_source);
     }
 
     // reparse the source code
-    TSTree* new_tree = ts_parser_parse_string(this->parser->raw(), old_tree.get(),
-                                              this->source().c_str(), this->source().size());
+    Tree new_tree = this->parser->parse_string(old_tree.get(), std::move(new_source));
 
-    this->tree.reset(new_tree);
+    // update this tree
+    swap(*this, new_tree);
 
-    std::vector<Range> changed_ranges = _get_changed_ranges(old_tree.get(), new_tree);
+    std::vector<Range> changed_ranges = _get_changed_ranges(old_tree.get(), this->raw());
 
     return changed_ranges;
 }
@@ -399,7 +400,7 @@ Tree Parser::parse_string(const TSTree* old_tree, std::string source) {
 Tree Parser::parse_string(std::string str) { return parse_string(nullptr, std::move(str)); }
 
 // class Query
-TSQuery* _make_query(std::string_view source) {
+static TSQuery* _make_query(std::string_view source) {
     std::uint32_t error_offset;
     TSQueryError error_type;
     TSQuery* query = ts_query_new(LUA_LANGUAGE.raw(), source.data(), source.length(), &error_offset,
