@@ -714,6 +714,24 @@ public:
      * still return false if there is no named node.
      */
     bool goto_first_named_child();
+
+    /**
+     * Returns a list of all child nodes of the current node.
+     *
+     * This will also move the cursor to the last child but you can 'reset' the
+     * cursor to point at any of the returned children or call 'parent' to get
+     * back to the current node.
+     */
+    std::vector<Node> children();
+
+    /**
+     * Returns a list of all named child nodes of the current node.
+     *
+     * This will also move the cursor to the last child but you can 'reset' the
+     * cursor to point at any of the returned children or call 'parent' to get
+     * back to the current node.
+     */
+    std::vector<Node> named_children();
 };
 
 /**

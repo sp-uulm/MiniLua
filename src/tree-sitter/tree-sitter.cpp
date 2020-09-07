@@ -390,6 +390,38 @@ bool Cursor::goto_next_named_sibling() {
     return true;
 }
 
+std::vector<Node> Cursor::children() {
+    std::vector<Node> children;
+
+    if (!this->goto_first_child()) {
+        return children;
+    }
+
+    children.push_back(this->current_node());
+
+    while (this->goto_next_sibling()) {
+        children.push_back(this->current_node());
+    }
+
+    return children;
+}
+
+std::vector<Node> Cursor::named_children() {
+    std::vector<Node> children;
+
+    if (!this->goto_first_named_child()) {
+        return children;
+    }
+
+    children.push_back(this->current_node());
+
+    while (this->goto_next_named_sibling()) {
+        children.push_back(this->current_node());
+    }
+
+    return children;
+}
+
 // class Parser
 Parser::Parser() : Parser(LUA_LANGUAGE) {}
 Parser::Parser(const Language& lang) : parser(ts_parser_new(), ts_parser_delete) {

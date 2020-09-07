@@ -221,7 +221,7 @@ TEST_CASE("language can list all fields", "[tree-sitter][!hide]") {
 
     CAPTURE(lang.field_count());
 
-    for (auto field_id = 1; field_id < lang.field_count() + 1; ++field_id) {
+    for (std::uint32_t field_id = 1; field_id < lang.field_count() + 1; ++field_id) {
         const char* name = lang.field_name(field_id);
         UNSCOPED_INFO(field_id << ": " << name);
     }
@@ -234,7 +234,7 @@ TEST_CASE("language can list all node types", "[tree-sitter][!hide]") {
 
     CAPTURE(lang.node_type_count());
 
-    for (auto type_id = 0; type_id < lang.node_type_count(); ++type_id) {
+    for (std::uint32_t type_id = 0; type_id < lang.node_type_count(); ++type_id) {
         bool is_named = lang.node_type_kind(type_id) == ts::TypeKind::Named;
         const char* name = lang.node_type_name(type_id);
         ts::TypeId id = lang.node_type_id(name, is_named);
@@ -474,6 +474,37 @@ TEST_CASE("Cursor", "[tree-sitter]") {
         ts::Cursor cursor{tree};
         ts::Cursor cursor_copy{cursor};   // NOLINT
         ts::Cursor cursor_copy2 = cursor; // NOLINT
+    }
+
+    SECTION("can get all children at once") {
+        ts::Cursor cursor{tree};
+
+        REQUIRE(cursor.goto_first_named_child());
+        REQUIRE(cursor.goto_first_named_child());
+        ts::Node bin_op = cursor.current_node();
+        REQUIRE(bin_op.type() == "binary_operation"s);
+
+        {
+            auto children = cursor.children();
+            CHECK(children.size() == 3);
+            CHECK(children[0].type() == "number"s);
+            CHECK(children[0].text() == "1");
+            CHECK(children[1].type() == "+"s);
+            CHECK(children[1].text() == "+");
+            CHECK(children[2].type() == "number"s);
+            CHECK(children[2].text() == "2");
+        }
+
+        cursor.reset(bin_op);
+
+        {
+            auto named_children = cursor.named_children();
+            CHECK(named_children.size() == 2);
+            CHECK(named_children[0].type() == "number"s);
+            CHECK(named_children[0].text() == "1");
+            CHECK(named_children[1].type() == "number"s);
+            CHECK(named_children[1].text() == "2");
+        }
     }
 }
 
