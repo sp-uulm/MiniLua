@@ -2,7 +2,7 @@
 #include <cstring>
 #include <type_traits>
 
-#include "tree-sitter/tree-sitter.hpp"
+#include "tree_sitter/tree_sitter.hpp"
 
 using namespace std::string_literals;
 

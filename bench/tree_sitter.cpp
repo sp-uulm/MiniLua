@@ -1,6 +1,6 @@
 #include <iostream>
 #define CATCH_CONFIG_ENABLE_BENCHMARKING
-#include "tree-sitter/tree-sitter.hpp"
+#include "tree_sitter/tree_sitter.hpp"
 #include <catch2/catch.hpp>
 
 TEST_CASE("Tree-Sitter Node navigation") {
@@ -183,7 +183,8 @@ end)#";
 
     {
         ts::Node root = tree.root_node();
-        ts::Query print3_query{"(function_call (identifier) @function (arguments (number) @number)) @call"};
+        ts::Query print3_query{
+            "(function_call (identifier) @function (arguments (number) @number)) @call"};
         ts::QueryCursor cursor{tree};
         cursor.exec(print3_query);
         auto matches = cursor.matches();
@@ -199,20 +200,18 @@ end)#";
     }
 
     BENCHMARK("create query") {
-        ts::Query function_query{"(function_call (identifier) @function (arguments (number) @number)) @call"};
+        ts::Query function_query{
+            "(function_call (identifier) @function (arguments (number) @number)) @call"};
         return function_query;
     };
 
-    BENCHMARK("create query cursor") {
-        return ts::QueryCursor{tree};
-    };
+    BENCHMARK("create query cursor") { return ts::QueryCursor{tree}; };
 
-    ts::Query function_query{"(function_call (identifier) @function (arguments (number) @number)) @call"};
+    ts::Query function_query{
+        "(function_call (identifier) @function (arguments (number) @number)) @call"};
     ts::QueryCursor cursor{tree};
 
-    BENCHMARK("execute query") {
-        cursor.exec(function_query);
-    };
+    BENCHMARK("execute query") { cursor.exec(function_query); };
 
     BENCHMARK("exec and retrieve all matches") {
         cursor.exec(function_query);
@@ -247,7 +246,8 @@ end)#";
         throw std::runtime_error("should not reach here");
     };
 
-    ts::Query query_if{"(program (if_statement (condition_expression) @cond (_)* @body (else) @else_body))"};
+    ts::Query query_if{
+        "(program (if_statement (condition_expression) @cond (_)* @body (else) @else_body))"};
     ts::Query query_while{"(while_statement (condition_expression) @cond (_)* @body)"};
     ts::Query query_call{"(function_call (identifier) @function (arguments) @args)"};
     ts::Query query_number{"(number) @num"};

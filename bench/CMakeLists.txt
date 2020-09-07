@@ -7,6 +7,6 @@ FetchContent_MakeAvailable(Catch2)
 
 add_executable(MiniLua-bench
     main.cpp
-    tree-sitter.cpp)
+    tree_sitter.cpp)
 target_link_libraries(MiniLua-bench
     PRIVATE Catch2::Catch2 MiniLua)

@@ -9,7 +9,7 @@ add_executable(MiniLua-tests
     main.cpp
     unit_tests.cpp
     integration_tests.cpp
-    tree-sitter.cpp)
+    tree_sitter.cpp)
 target_link_libraries(MiniLua-tests
     PRIVATE Catch2::Catch2 MiniLua
     INTERFACE Tree-Sitter)

@@ -6,7 +6,7 @@ setup_tree_sitter_lua(TREE_SITTER_LUA_SOURCES)
 
 # core
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/core CORE_SRC_LIST)
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/tree-sitter TREE_SITTER_WRAPPER_SRC_LIST)
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/tree_sitter TREE_SITTER_WRAPPER_SRC_LIST)
 
 set(LIB_SRC_LIST
     ${CORE_SRC_LIST}
