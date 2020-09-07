@@ -113,10 +113,34 @@ Node Node::child(std::uint32_t index) const {
     return Node(ts_node_child(this->node, index), this->tree());
 }
 
+std::vector<Node> Node::children() const {
+    std::uint32_t num_children = this->child_count();
+
+    std::vector<Node> children;
+    children.reserve(num_children);
+    for (std::uint32_t index = 0; index < num_children; ++index) {
+        children.push_back(this->child(index));
+    }
+
+    return children;
+}
+
 std::uint32_t Node::named_child_count() const { return ts_node_named_child_count(this->node); }
 
 Node Node::named_child(std::uint32_t index) const {
     return Node(ts_node_named_child(this->node, index), this->tree());
+}
+
+std::vector<Node> Node::named_children() const {
+    std::uint32_t num_children = this->named_child_count();
+
+    std::vector<Node> children;
+    children.reserve(num_children);
+    for (std::uint32_t index = 0; index < num_children; ++index) {
+        children.push_back(this->named_child(index));
+    }
+
+    return children;
 }
 
 Node Node::next_sibling() const { return Node(ts_node_next_sibling(this->node), this->tree()); }

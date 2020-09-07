@@ -89,6 +89,7 @@ TEST_CASE("Print", "[tree-sitter][!hide]") {
 }
 
 TEST_CASE("Point", "[tree-sitter]") {
+    static_assert(std::is_trivially_copyable<ts::Point>());
     SECTION("can be equality compared") {
         ts::Point point1{.row = 0, .column = 0};
         ts::Point point2{.row = 1, .column = 3};
@@ -105,6 +106,7 @@ TEST_CASE("Point", "[tree-sitter]") {
 }
 
 TEST_CASE("Location", "[tree-sitter]") {
+    static_assert(std::is_trivially_copyable<ts::Location>());
     SECTION("can be equality compared") {
         ts::Location location1{.point = {.row = 0, .column = 0}, .byte = 0};
         ts::Location location2{.point = {.row = 1, .column = 3}, .byte = 5};
@@ -121,6 +123,7 @@ TEST_CASE("Location", "[tree-sitter]") {
 }
 
 TEST_CASE("Range", "[tree-sitter]") {
+    static_assert(std::is_trivially_copyable<ts::Range>());
     SECTION("can be equality compared") {
         ts::Range range1{.start = {.point = {.row = 0, .column = 0}, .byte = 0},
                          .end = {.point = {.row = 0, .column = 1}, .byte = 1}};
@@ -576,9 +579,23 @@ TEST_CASE("Node", "[tree-sitter]") {
         ts::Node number_2 = bin_op.named_child(1);
         REQUIRE(number_2.is_named());
     }
+
+    SECTION("children returns at least as many as named_children") {
+        ts::Node expr = root.named_child(0);
+        ts::Node bin_op = expr.named_child(0);
+
+        auto children = bin_op.children();
+        auto named_children = bin_op.named_children();
+
+        CHECK(children.size() == bin_op.child_count());
+        CHECK(named_children.size() == bin_op.named_child_count());
+
+        CHECK(bin_op.child_count() >= bin_op.named_child_count());
+        CHECK(children.size() >= named_children.size());
+    }
 }
 
-TEST_CASE("Tree-Sitter-Wrapper", "[tree-sitter][parser]") {
+TEST_CASE("tree-sitter parses lua programs", "[tree-sitter][parser]") {
     SECTION("Simple addition") {
         ts::Parser parser;
 

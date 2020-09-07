@@ -275,12 +275,12 @@ public:
      *
      * NOTE: Should only be used internally.
      */
-    explicit Node(TSNode node, const Tree& tree) noexcept;
+    Node(TSNode node, const Tree& tree) noexcept;
 
     /**
      * Use with care. Only intended vor internal use in the wrapper types.
      *
-     * WARNING: Never free or otherwise delete this pointer.
+     * WARNING: Don't modify this by calling.
      */
     [[nodiscard]] TSNode raw() const;
 
@@ -343,7 +343,7 @@ public:
     /**
      * Gets the nodes parent.
      *
-     * Can return a null node.
+     * Can return a null node if the current node is the root node of a tree.
      */
     [[nodiscard]] Node parent() const;
 
@@ -362,6 +362,11 @@ public:
     [[nodiscard]] std::uint32_t child_count() const;
 
     /**
+     * Get a list of all children.
+     */
+    [[nodiscard]] std::vector<Node> children() const;
+
+    /**
      * Get the n-th named child (0 indexed).
      *
      * This will not return anonymous nodes and the index only considers named
@@ -375,6 +380,11 @@ public:
      * Get the count of named children.
      */
     [[nodiscard]] std::uint32_t named_child_count() const;
+
+    /**
+     * Get a list of all named children.
+     */
+    [[nodiscard]] std::vector<Node> named_children() const;
 
     /**
      * Get the node's next sibling.
