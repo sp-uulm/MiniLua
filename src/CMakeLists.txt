@@ -23,7 +23,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE Tree-Sitter)
 install(TARGETS ${PROJECT_NAME}
         EXPORT ${PROJECT_NAME}
         LIBRARY DESTINATION lib)
-        
+
 # install includes separately (and not as PUBLIC_HEADERs) to preserver directory structure
 # trailing / is important
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/
