@@ -2,6 +2,7 @@
 #define TREE_SITTER_HPP
 
 #include <cstdint>
+#include <exception>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -19,6 +20,86 @@ extern "C" const TSLanguage* tree_sitter_lua();
  * there are always also functions that accept a language as parameter.
  */
 namespace ts {
+
+/**
+ * Base exception class for errors in the Tree-Sitter wrapper.
+ */
+class TreeSitterException {};
+
+/*+
+ * Thrown in the constructor of 'Parser' if the version of Tree-Sitter and
+ * the Language are not compatible.
+ *
+ * Check the version with 'TREE_SITTER_VERSION', 'TREE_SITTER_MIN_VERSION' and
+ * 'Language::version()'.
+ */
+class ParserLanguageException : public TreeSitterException {
+public:
+    [[nodiscard]] const char* what() const noexcept;
+};
+
+/**
+ * Thrown by 'Parser::parse_string'.
+ *
+ * This should never actually be thrown because we:
+ *
+ * - always set a language
+ * - never set a timeout
+ * - never set the cancellation flag
+ */
+class ParseFailureException : public TreeSitterException {
+public:
+    [[nodiscard]] const char* what() const noexcept;
+};
+
+/**
+ * Thrown by the constructor of 'Query' if there is an error in the syntax of
+ * the query string.
+ *
+ * Contains the raw error type from Tree-Sitter and the position of the error
+ * in the query string.
+ */
+class QueryException : public TreeSitterException, public std::runtime_error {
+    const TSQueryError error_;
+    const std::uint32_t error_offset_;
+
+public:
+    QueryException(TSQueryError error, std::uint32_t error_offset);
+
+    [[nodiscard]] TSQueryError query_error() const;
+    [[nodiscard]] std::uint32_t error_offset() const;
+};
+
+/**
+ * Base class for exceptions related to applying edits to the tree.
+ *
+ * Subclasses of this are thrown by 'Tree::edit'.
+ */
+class EditException : public TreeSitterException {};
+
+/**
+ * Thrown by 'Tree::edit' if any of the edits contain newlines.
+ */
+class MultilineEditException : public EditException, public std::runtime_error {
+public:
+    MultilineEditException();
+};
+
+/**
+ * Thrown by 'Tree::edit' if any of the edits overlap.
+ */
+class OverlappingEditException : public EditException, public std::runtime_error {
+public:
+    OverlappingEditException();
+};
+
+/**
+ * Thrown by 'Tree::edit' if any of the edits have size zero.
+ */
+class ZeroSizedEditException : public EditException, public std::runtime_error {
+public:
+    ZeroSizedEditException();
+};
 
 /**
  * Version for langauges created using the current tree-sitter version.

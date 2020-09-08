@@ -90,6 +90,7 @@ TEST_CASE("Print", "[tree-sitter][!hide]") {
 
 TEST_CASE("Point", "[tree-sitter]") {
     static_assert(std::is_trivially_copyable<ts::Point>());
+
     SECTION("can be equality compared") {
         ts::Point point1{.row = 0, .column = 0};
         ts::Point point2{.row = 1, .column = 3};
@@ -103,10 +104,37 @@ TEST_CASE("Point", "[tree-sitter]") {
         CHECK(point1 != point2);
         CHECK(point2 != point3);
     }
+
+    SECTION("can be order compared") {
+        ts::Point point1{.row = 0, .column = 0};
+        ts::Point point2{.row = 1, .column = 3};
+        ts::Point point3{.row = 5, .column = 2};
+
+        CHECK(point1 <= point1);
+        CHECK(point1 >= point1);
+        CHECK(point2 <= point2);
+        CHECK(point2 >= point2);
+        CHECK(point3 <= point3);
+        CHECK(point3 >= point3);
+
+        CHECK(point1 < point2);
+        CHECK(point1 <= point2);
+        CHECK(point2 > point1);
+        CHECK(point2 >= point1);
+        CHECK(point2 < point3);
+        CHECK(point2 <= point3);
+        CHECK(point3 > point2);
+        CHECK(point3 >= point2);
+        CHECK(point1 < point3);
+        CHECK(point1 <= point3);
+        CHECK(point3 > point1);
+        CHECK(point3 >= point1);
+    }
 }
 
 TEST_CASE("Location", "[tree-sitter]") {
     static_assert(std::is_trivially_copyable<ts::Location>());
+
     SECTION("can be equality compared") {
         ts::Location location1{.point = {.row = 0, .column = 0}, .byte = 0};
         ts::Location location2{.point = {.row = 1, .column = 3}, .byte = 5};
@@ -119,6 +147,32 @@ TEST_CASE("Location", "[tree-sitter]") {
 
         CHECK(location1 != location2);
         CHECK(location2 != location3);
+    }
+
+    SECTION("can be order compared") {
+        ts::Location location1{.point = {.row = 0, .column = 0}, .byte = 0};
+        ts::Location location2{.point = {.row = 1, .column = 3}, .byte = 5};
+        ts::Location location3{.point = {.row = 2, .column = 2}, .byte = 9};
+
+        CHECK(location1 <= location1);
+        CHECK(location1 >= location1);
+        CHECK(location2 <= location2);
+        CHECK(location2 >= location2);
+        CHECK(location3 <= location3);
+        CHECK(location3 >= location3);
+
+        CHECK(location1 < location2);
+        CHECK(location1 <= location2);
+        CHECK(location2 > location1);
+        CHECK(location2 >= location1);
+        CHECK(location2 < location3);
+        CHECK(location2 <= location3);
+        CHECK(location3 > location2);
+        CHECK(location3 >= location2);
+        CHECK(location1 < location3);
+        CHECK(location1 <= location3);
+        CHECK(location3 > location1);
+        CHECK(location3 >= location1);
     }
 }
 
@@ -281,7 +335,7 @@ TEST_CASE("trees can be edited", "[tree-sitter]") {
         };
 
         // apply the edit
-        tree.edit({edit});
+        REQUIRE_NOTHROW(tree.edit({edit}));
         // NOTE: don't use one_node after this
 
         INFO("Post edit: " << tree.root_node().as_s_expr());
@@ -323,7 +377,7 @@ TEST_CASE("trees can be edited", "[tree-sitter]") {
         };
 
         // apply the edit
-        tree.edit({edit_one, edit_two});
+        REQUIRE_NOTHROW(tree.edit({edit_one, edit_two}));
         // NOTE: don't use one_node or two_node after this
 
         INFO("Post edit: " << tree.root_node().as_s_expr());
@@ -390,6 +444,63 @@ return a + b)#";
         INFO("Range of new 'two_node' " << new_two_node.range());
         CHECK(new_two_node.text() == "7"s);
     }
+
+    SECTION("trying to apply a multiline edit") {
+        std::string source = "1 + 2";
+        ts::Tree tree = parser.parse_string(source);
+
+        ts::Node one_node = tree.root_node().named_child(0).named_child(0).child(0);
+        CHECK(one_node.type() == "number"s);
+        CHECK(one_node.text() == "1"s);
+
+        ts::Range one_range = one_node.range();
+
+        ts::Edit edit{
+            .range = one_range,
+            .replacement = "3 +\n 4"s,
+        };
+
+        REQUIRE_THROWS_AS(tree.edit({edit}), ts::MultilineEditException);
+    }
+
+    SECTION("trying to apply overlapping edits") {
+        std::string source = "11 + 2";
+        ts::Tree tree = parser.parse_string(source);
+
+        ts::Node one_node = tree.root_node().named_child(0).named_child(0).child(0);
+        CHECK(one_node.type() == "number"s);
+        CHECK(one_node.text() == "11"s);
+
+        ts::Range one_range = one_node.range();
+
+        ts::Edit edit{
+            .range = one_range,
+            .replacement = "33"s,
+        };
+
+        CAPTURE(edit);
+
+        REQUIRE_THROWS_AS(tree.edit({edit, edit}), ts::OverlappingEditException);
+
+        ts::Edit edit2{
+            .range =
+                {
+                    .start =
+                        {
+                            .point =
+                                {
+                                    .row = one_range.start.point.row,
+                                    .column = one_range.start.point.column + 1,
+                                },
+                            .byte = one_range.start.byte + 1,
+                        },
+                    .end = one_range.end,
+                },
+            .replacement = "44"s,
+        };
+
+        REQUIRE_THROWS_AS(tree.edit({edit, edit2}), ts::OverlappingEditException);
+    }
 }
 
 TEST_CASE("Tree-Sitter detects errors", "[tree-sitter][parse]") {
@@ -440,6 +551,10 @@ TEST_CASE("Query", "[tree-sitter]") {
         CHECK(captures[0].node == one_node);
         CHECK(captures[1].index == 1);
         CHECK(captures[1].node == two_node);
+    }
+
+    SECTION("illegal queries throw exceptions") {
+        REQUIRE_THROWS_AS(ts::Query{R"#((@)#"}, ts::QueryException);
     }
 }
 

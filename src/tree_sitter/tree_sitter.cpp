@@ -4,12 +4,57 @@
 #include <iostream>
 #include <iterator>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <tree_sitter/api.h>
 #include <utility>
 #include <vector>
 
 namespace ts {
+
+static std::string _query_error(TSQueryError error) {
+    switch (error) {
+    case TSQueryErrorSyntax:
+        return "syntax";
+    case TSQueryErrorNodeType:
+        return "node type";
+    case TSQueryErrorField:
+        return "field";
+    case TSQueryErrorCapture:
+        return "capture";
+    case TSQueryErrorNone:
+    default:
+        return "unknown";
+    }
+}
+
+// class ParserLanguageException
+const char* ParserLanguageException::what() const noexcept {
+    return "failed to set language on tree-sitter parser";
+}
+
+const char* ParseFailureException::what() const noexcept { return "failed to parse"; }
+
+// class QueryError
+QueryException::QueryException(TSQueryError error, std::uint32_t error_offset)
+    : std::runtime_error("failed to create query: " + _query_error(error) + " error at position " +
+                         std::to_string(error_offset)),
+      error_(error), error_offset_(error_offset) {}
+
+TSQueryError QueryException::query_error() const { return this->error_; }
+std::uint32_t QueryException::error_offset() const { return this->error_offset_; }
+
+// class MultilineEditException
+MultilineEditException::MultilineEditException()
+    : std::runtime_error("multiline edits are not supported") {}
+
+// class OverlppingEditException
+OverlappingEditException::OverlappingEditException()
+    : std::runtime_error("overlapping edits are not allowed") {}
+
+// class ZeroSizedEditException
+ZeroSizedEditException::ZeroSizedEditException()
+    : std::runtime_error("zero-sized edits are not allowed") {}
 
 // struct Point
 bool operator==(const Point& lhs, const Point& rhs) {
@@ -38,9 +83,9 @@ bool operator==(const Location& lhs, const Location& rhs) {
 }
 bool operator!=(const Location& lhs, const Location& rhs) { return !(lhs == rhs); }
 bool operator<(const Location& lhs, const Location& rhs) { return lhs.byte < rhs.byte; }
-bool operator<=(const Location& lhs, const Location& rhs) { return lhs.byte < rhs.byte; }
-bool operator>(const Location& lhs, const Location& rhs) { return lhs.byte < rhs.byte; }
-bool operator>=(const Location& lhs, const Location& rhs) { return lhs.byte < rhs.byte; }
+bool operator<=(const Location& lhs, const Location& rhs) { return lhs.byte <= rhs.byte; }
+bool operator>(const Location& lhs, const Location& rhs) { return lhs.byte > rhs.byte; }
+bool operator>=(const Location& lhs, const Location& rhs) { return lhs.byte >= rhs.byte; }
 std::ostream& operator<<(std::ostream& o, const Location& self) {
     return o << "Location{ .point = " << self.point << ", .byte = " << self.byte << "}";
 }
@@ -70,6 +115,7 @@ bool Range::overlaps(const Range& other) const {
     // 5)
     // ----
     //       ----
+
     return this->end > other.start;
 }
 bool operator==(const Range& lhs, const Range& rhs) {
@@ -384,14 +430,27 @@ static std::vector<Range> _get_changed_ranges(const TSTree* old_tree, const TSTr
 void _check_edits(const std::vector<Edit>& edits) {
     // NOTE: assumes that the ranges are already sorted by edit.range.start.byte
 
-    for (const auto& edit1 : edits) {
-        if (edit1.range.start.point.row != edit1.range.end.point.row) {
-            throw std::runtime_error("multiline edits are not supported");
+    for (int i = 0; i < edits.size(); ++i) {
+        const auto& edit1 = edits[i];
+
+        if (edit1.range.start == edit1.range.end) {
+            throw ZeroSizedEditException();
         }
 
-        for (const auto& edit2 : edits) {
+        if (edit1.range.start.point.row != edit1.range.end.point.row ||
+            edit1.replacement.find('\n') != std::string::npos) {
+            throw MultilineEditException();
+        }
+
+        for (int j = 0; j < edits.size(); ++j) {
+            if (i == j) {
+                continue;
+            }
+
+            const auto& edit2 = edits[j];
+
             if (edit1.range.overlaps(edit2.range)) {
-                throw std::runtime_error("overlapping edits are not allowed");
+                throw OverlappingEditException();
             }
         }
     }
@@ -533,7 +592,7 @@ Parser::Parser(const Language& lang) : parser(ts_parser_new(), ts_parser_delete)
         // are incompatible
         // see: ts_language_version, TREE_SITTER_LANGUAGE_VERSION,
         // TREE_SITTER_MIN_COMPATIBLE_LANGUAGE_VERSION
-        throw std::runtime_error("failed to set language on tree-sitter parser");
+        throw ParserLanguageException();
     }
 }
 
@@ -552,7 +611,7 @@ Tree Parser::parse_string(const TSTree* old_tree, std::string source) {
         // In the latter two cases the parser could be restarted by calling it
         // with the same arguments. But these cases also can't happen because
         // we don't allow setting those flags.
-        throw std::runtime_error("failed to parse");
+        throw ParseFailureException();
     }
     return Tree(tree, std::move(source), *this);
 }
@@ -566,28 +625,7 @@ static TSQuery* _make_query(std::string_view source) {
                                   &error_type);
 
     if (query == nullptr) {
-        std::string error_type_str;
-        switch (error_type) {
-        case TSQueryErrorSyntax:
-            error_type_str = "syntax";
-            break;
-        case TSQueryErrorNodeType:
-            error_type_str = "node type";
-            break;
-        case TSQueryErrorField:
-            error_type_str = "field";
-            break;
-        case TSQueryErrorCapture:
-            error_type_str = "capture";
-            break;
-        case TSQueryErrorNone:
-        default:
-            error_type_str = "unknown";
-            break;
-        }
-        // TODO custom exception
-        throw std::runtime_error("failed to create query: " + error_type_str +
-                                 " error at position " + std::to_string(error_offset));
+        throw QueryException(error_type, error_offset);
     }
 
     return query;
