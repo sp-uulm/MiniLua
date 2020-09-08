@@ -1,4 +1,4 @@
-#include "sourcechange.h"
+#include "MiniLua/sourcechange.hpp"
 
 #include <sstream>
 

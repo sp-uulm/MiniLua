@@ -1,6 +1,6 @@
-#include "environment.h"
-#include "sourceexp.h"
-#include "operators.h"
+#include "MiniLua/environment.hpp"
+#include "MiniLua/sourceexp.hpp"
+#include "MiniLua/operators.hpp"
 
 #include <cmath>
 

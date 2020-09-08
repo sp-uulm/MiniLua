@@ -1,5 +1,5 @@
-#include "luaast.h"
-#include "luainterpreter.h"
+#include "MiniLua/luaast.hpp"
+#include "MiniLua/luainterpreter.hpp"
 
 VISITABLE_IMPL(_LuaName)
 VISITABLE_IMPL(_LuaExplist)

@@ -1,0 +1,8 @@
+---
+Checks:          'clang-diagnostic-*,clang-analyzer-*,boost-*,readability-*,performance-*,modernize-*,misc-*,-readability-else-after-return'
+WarningsAsErrors: ''
+HeaderFilterRegex: ''
+FormatStyle:     file
+CheckOptions:
+...
+

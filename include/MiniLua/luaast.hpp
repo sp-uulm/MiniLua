@@ -1,8 +1,8 @@
 #ifndef LUAAST_H
 #define LUAAST_H
 
-#include "val.h"
-#include "luatoken.h"
+#include "val.hpp"
+#include "luatoken.hpp"
 
 #include <memory>
 #include <vector>

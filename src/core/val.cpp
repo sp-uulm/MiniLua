@@ -1,5 +1,5 @@
-#include "val.h"
-#include "sourceexp.h"
+#include "MiniLua/val.hpp"
+#include "MiniLua/sourceexp.hpp"
 
 #include <sstream>
 

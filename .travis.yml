@@ -1,0 +1,34 @@
+language: cpp
+os: linux
+dist: bionic
+
+addons:
+  apt:
+    packages:
+      - qt5-default
+      - libboost-all-dev
+      - lcov
+      - gcovr
+
+jobs:
+  include:
+    - compiler: gcc
+      before_script: ./scripts/setup_build.sh -DCMAKE_BUILD_TYPE=Debug -DCOVERAGE=ON
+      script:
+        - ./scripts/build.sh
+        - ./scripts/test_coverage.sh
+      after_success: ./scripts/upload_coverage.sh
+      # coverage generation with clang does not work because of version missmatch
+    - compiler: clang
+      before_script: ./scripts/setup_build.sh -DCMAKE_BUILD_TYPE=Debug
+      script:
+        - ./scripts/build.sh
+        - ./scripts/test.sh
+    - name: Linting
+      before_script: ./scripts/setup_build.sh
+      script: ./scripts/lint.sh
+      allow_failure: true
+    - name: Check code format
+      before_script: ./scripts/setup_build.sh
+      script: ./scripts/check_format.sh
+      allow_failure: true

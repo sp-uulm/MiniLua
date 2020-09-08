@@ -1,45 +1,48 @@
-project(MiniLua)
-cmake_minimum_required(VERSION 3.0)
+# set minimum version of CMake
+# (this is compatible with all version of CMake but versions before 3.12 ignore
+# the range and only use the first version)
+cmake_minimum_required(VERSION 3.11...3.18)
+# fallback to provide the same functionallity as in CMake 3.12+
+if(${CMAKE_VERSION} VERSION_LESS 3.12)
+    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
+endif()
 
-#set(CMAKE_VERBOSE_MAKEFILE ON)
+# project definition
+project(MiniLua VERSION 1.0
+                DESCRIPTION "Value tracing lua interpreter"
+                LANGUAGES CXX C)
 
-aux_source_directory(src/core CORE_SRC_LIST)
-aux_source_directory(src/gui GUI_SRC_LIST)
-aux_source_directory(src/cli CLI_SRC_LIST)
-
-find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
-find_package(Boost REQUIRED)
-
-#set(CMAKE_AUTOMOC ON)
-
-add_compile_options(-std=c++17 -Wall)
+# global settings
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+add_compile_options(-Wall)
 
-include_directories(include)
+# generates compile_commands.json that can be used by clang tooling
+# (e.g. language server)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_library(${PROJECT_NAME} SHARED ${CORE_SRC_LIST})
-set_target_properties(${PROJECT_NAME} PROPERTIES
-  PUBLIC_HEADER "include/luaparser.h;include/luainterpreter.h;include/luaast.h;include/luatoken.h;include/val.h;include/sourceexp.h;include/environment.h;include/sourcechange.h;include/operators.h"
-)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
 
-qt5_wrap_cpp(gui_SRC include/gui.h)
-add_executable(${PROJECT_NAME}-gui ${GUI_SRC_LIST} ${gui_SRC})
+include(FetchContent)
+include(add_FetchContent_MakeAvailable)
 
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-                                                  "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>")
+set(COVERAGE OFF CACHE BOOL "Turns on code coverage generation for tests")
+if(COVERAGE)
+    include(CodeCoverage)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_COVERAGE}")
+    # remove tests and dependencies from coverage report
+    set(LCOV_REMOVE_EXTRA "'${CMAKE_SOURCE_DIR}/tests/*'" "'${CMAKE_BINARY_DIR}/*'")
+endif()
 
-target_link_libraries(${PROJECT_NAME}-gui ${PROJECT_NAME})
-target_link_libraries(${PROJECT_NAME}-gui Qt5::Widgets Qt5::Core)
+# library
+add_subdirectory(src)
 
-add_executable(${PROJECT_NAME}-cli ${CLI_SRC_LIST})
-target_link_libraries(${PROJECT_NAME}-cli ${PROJECT_NAME})
+# example applications
+# (get compiled in ci but not run like tests)
+add_subdirectory(examples)
 
-install(TARGETS ${PROJECT_NAME}
-        EXPORT ${PROJECT_NAME}
-        LIBRARY DESTINATION lib
-        PUBLIC_HEADER DESTINATION include)
-install(TARGETS ${PROJECT_NAME}-gui ${PROJECT_NAME}-cli RUNTIME DESTINATION bin)
-install(EXPORT ${PROJECT_NAME}
-        FILE ${PROJECT_NAME}Config.cmake        
-        DESTINATION lib/cmake/${PROJECT_NAME})
-
+# tests
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    add_subdirectory(tests)
+endif()

@@ -1,4 +1,4 @@
-#include "luainterpreter.h"
+#include "MiniLua/luainterpreter.hpp"
 
 namespace lua {
 namespace rt {
@@ -117,9 +117,14 @@ eval_result_t ASTEvaluator::visit(const _LuaFunctioncall& exp, const shared_ptr<
 
     // call builtin function
     if (holds_alternative<cfunction_p>(func)) {
-        if (auto result = get<cfunction_p>(func)->f(args, exp); holds_alternative<vallist>(result))
+        auto result = get<cfunction_p>(func)->f(args, exp);
+
+        if (holds_alternative<std::shared_ptr<SourceChange>>(result)) {
+            auto change = get<std::shared_ptr<SourceChange>>(result);
+            return eval_success(make_shared<vallist>(), func_sc & _args_sc & change);
+        } else  if (holds_alternative<vallist>(result)) {
             return eval_success(make_shared<vallist>(get<vallist>(result)), func_sc & _args_sc);
-        else {
+        } else {
             return get<string>(result);
         }
     }
