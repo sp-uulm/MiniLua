@@ -177,23 +177,6 @@ static bool remove_alternative(shared_ptr<SourceChange>& changes) {
     return false;
 }
 
-/*
- * get the source change, so that modifications to v cause a change of the
- * source identified by hint. This is done by inserting $ operator to direct the
- * changes to the desired source and not other alternatives.
- *
- * Example:
- * a = 5
- * b = 3
- * x = a+b
- *
- * get_sc_for_hint(x, "b") => change 5 -> $5
- *
- * The hint is an attempt to enumerate the
- * different alternatives for source changes. A more sophisticated structure
- * than a string is probably necessary in the future.
- */
-
 optional<shared_ptr<SourceChange>> get_sc_for_hint(const val& v, const string& hint) {
     if (!v.source)
         return nullopt;

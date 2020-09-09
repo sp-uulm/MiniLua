@@ -111,8 +111,46 @@ inline eval_result_t operator<< (const eval_result_t& lhs, const source_change_t
 }
 
 // helper functions to name and choose the source change variants
+
+/*
+ * returns a label for the source change that is automatically chosen when v is
+ * changed. This can be used e.g. for a mouseover to show the user, what will be
+ * changed if the value is manipulated. As an additional hint, the name of the
+ * first variable binding of the source value is also encoded. The actual output
+ * format might be subject to change.
+ *
+ * Example (not the exact output):
+ *
+ * radius = 7.3
+ * v = radius + 7
+ * default_source_change_label(v) => "location 10,3 [hint: radius]"
+ */
 optional<string> default_source_change_label(const val& v);
+
+/*
+ * returns a list of labels of all possible variants of source changes. The
+ * alternatives are named after the location, that is changed when the changes
+ * are applied. As an additional hint, the name of the first variable binding of
+ * the source value is also encoded.
+ */
 vector<string> source_change_labels(const val& v);
+
+/*
+ * get the source change, so that modifications to v cause a change of the
+ * source identified by hint. This is done by inserting $ operator to direct the
+ * changes to the desired source and not other alternatives.
+ *
+ * Example:
+ * a = 5
+ * b = 3
+ * x = a+b
+ *
+ * get_sc_for_hint(x, "b") => change 5 -> $5
+ *
+ * The hint is an attempt to enumerate the
+ * different alternatives for source changes. A more sophisticated structure
+ * than a string is probably necessary in the future.
+ */
 optional<shared_ptr<SourceChange>> get_sc_for_hint(const val& v, const string& hint);
 
 }
