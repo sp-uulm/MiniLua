@@ -12,6 +12,22 @@
 
 namespace ts {
 
+// helper function to print a vector of printable objects
+template <typename T>
+static std::ostream& _print_vector(std::ostream& o, const std::vector<T>& items) {
+    o << "[ ";
+
+    const char* sep = "";
+
+    for (const auto& item : items) {
+        o << sep << item;
+        sep = ", ";
+    }
+
+    o << " ]";
+    return o;
+}
+
 static std::string _query_error(TSQueryError error) {
     switch (error) {
     case TSQueryErrorSyntax:
@@ -126,17 +142,7 @@ std::ostream& operator<<(std::ostream& o, const Range& self) {
     return o << "Range{ .start = " << self.start << ", .end = " << self.end << "}";
 }
 std::ostream& operator<<(std::ostream& o, const std::vector<Range>& ranges) {
-    o << "[ ";
-
-    const char* sep = "";
-
-    for (const auto& range : ranges) {
-        o << sep << range;
-        sep = ", ";
-    }
-
-    o << " ]";
-    return o;
+    return _print_vector(o, ranges);
 }
 
 // struct Edit
@@ -148,17 +154,7 @@ std::ostream& operator<<(std::ostream& o, const Edit& self) {
     return o << "Edit{ .range = " << self.range << ", .replacement = " << self.replacement << "}";
 }
 std::ostream& operator<<(std::ostream& o, const std::vector<Edit>& edits) {
-    o << "[ ";
-
-    const char* sep = "";
-
-    for (const auto& edit : edits) {
-        o << sep << edit;
-        sep = ", ";
-    }
-
-    o << " ]";
-    return o;
+    return _print_vector(o, edits);
 }
 
 // class Language
@@ -321,6 +317,31 @@ bool operator!=(const Node& lhs, const Node& rhs) { return !(lhs == rhs); }
 
 std::ostream& operator<<(std::ostream& os, const Node& node) { return os << node.as_s_expr(); }
 
+// struct AppliedEdit
+bool operator==(const AppliedEdit& self, const AppliedEdit& other) {
+    return self.before == other.before && self.after == other.after &&
+           self.old_source == other.old_source && self.replacement == other.replacement;
+}
+bool operator!=(const AppliedEdit& self, const AppliedEdit& other) { return !(self == other); }
+std::ostream& operator<<(std::ostream& o, const AppliedEdit& self) {
+    return o << "AppliedEdit { .before = " << self.before << ", .after = " << self.after
+             << ", .old_source = \"" << self.old_source << "\", .replacement = \""
+             << self.replacement << "\" }";
+}
+std::ostream& operator<<(std::ostream& o, const std::vector<AppliedEdit>& items) {
+    return _print_vector(o, items);
+}
+
+// struct EditResult
+bool operator==(const EditResult& self, const EditResult& other) {
+    return self.applied_edits == other.applied_edits && self.changed_ranges == other.changed_ranges;
+}
+bool operator!=(const EditResult& self, const EditResult& other) { return !(self == other); }
+std::ostream& operator<<(std::ostream& o, const EditResult& self) {
+    return o << "EditResult { .applied_edits = " << self.applied_edits
+             << ", .changed_ranges = " << self.changed_ranges << " }";
+}
+
 // class Tree
 Tree::Tree(TSTree* tree, std::string source, Parser& parser)
     : tree(tree, ts_tree_delete), source_(std::move(source)), parser(&parser) {}
@@ -350,35 +371,53 @@ Node Tree::root_node() const { return Node(ts_tree_root_node(this->raw()), *this
 Language Tree::language() const { return Language(ts_tree_language(this->raw())); }
 
 // helper function to apply one edit to the tree and source code
-static void _apply_edit(const Edit& edit, TSTree* tree, std::string& source) {
+static AppliedEdit _apply_edit(const Edit& edit, TSTree* tree, std::string& source) {
     long old_size = edit.range.end.byte - edit.range.start.byte;
+
+    std::string old_source = source.substr(edit.range.start.byte, old_size);
 
     source.replace(edit.range.start.byte, old_size, edit.replacement);
 
-    long end_byte_diff = old_size - static_cast<long>(edit.replacement.size());
+    long end_byte_diff = static_cast<long>(edit.replacement.size()) - old_size;
+
+    Range before = edit.range;
+    Range after{.start = edit.range.start,
+                .end = {
+                    .point = {.row = edit.range.end.point.row,
+                              .column = static_cast<std::uint32_t>(before.end.point.column +
+                                                                   end_byte_diff)},
+                    .byte = static_cast<std::uint32_t>(before.end.byte + end_byte_diff),
+                }};
 
     TSInputEdit input_edit{
-        .start_byte = edit.range.start.byte,
-        .old_end_byte = edit.range.end.byte,
-        .new_end_byte = static_cast<std::uint32_t>(edit.range.end.byte + end_byte_diff),
+        .start_byte = before.start.byte,
+        .old_end_byte = before.end.byte,
+        .new_end_byte = after.end.byte,
         .start_point =
             TSPoint{
-                .row = edit.range.start.point.row,
-                .column = edit.range.start.point.column,
+                .row = before.start.point.row,
+                .column = before.start.point.column,
             },
         .old_end_point =
             TSPoint{
-                .row = edit.range.end.point.row,
-                .column = edit.range.end.point.column,
+                .row = before.end.point.row,
+                .column = before.end.point.column,
             },
         .new_end_point =
             TSPoint{
-                .row = edit.range.end.point.row,
-                .column = static_cast<std::uint32_t>(edit.range.end.point.column + end_byte_diff),
+                .row = after.end.point.row,
+                .column = after.end.point.column,
             },
     };
 
     ts_tree_edit(tree, &input_edit);
+
+    return AppliedEdit{
+        .before = before,
+        .after = after,
+        .old_source = old_source,
+        .replacement = edit.replacement,
+    };
 }
 
 static inline Point _point(const TSPoint& point) {
@@ -456,26 +495,55 @@ void _check_edits(const std::vector<Edit>& edits) {
     }
 }
 
-std::vector<Range> Tree::edit(std::vector<Edit> edits) {
+EditResult Tree::edit(std::vector<Edit> edits) {
     // save copies of the previous values so we can return the changed ranges
     std::string new_source = this->source();
     std::unique_ptr<TSTree, void (*)(TSTree*)> old_tree = std::move(this->tree);
 
-    // Sort edits so the edits that are at the end of the source code are applied
-    // before the edits that are at the beginning.
-    // This prevents conflicts in (the common) case that the source locations
-    // has a different size after the edit (and therefore move everything
-    // after them in the string).
-    // Note: This assumes that the edits are not overlapping or duplicate
+    // sorts the from the earliest in the source code to the latest in the source
+    // code.
+    // this is done so the locations for edits in the same line can be adjusted
+    // so we can return the ranges of the edit before and after
     std::sort(edits.begin(), edits.end(), [](const Edit& edit1, const Edit& edit2) {
-        return edit1.range.start.byte > edit2.range.start.byte;
+        return edit1.range.start.byte <= edit2.range.start.byte;
     });
 
     // NOTE: this throws exceptions if there is something wrong with the edits
     _check_edits(edits);
 
-    for (const auto& edit : edits) {
-        _apply_edit(edit, old_tree.get(), new_source);
+    std::vector<AppliedEdit> applied_edits;
+    applied_edits.reserve(edits.size());
+
+    // used to adjust subsequent edits
+    Point last_point{};
+    int last_width_change = 0;
+    int comulative_byte_change = 0;
+
+    for (auto& edit : edits) {
+        Range range_before_adjustments = edit.range;
+        // if the last edit was in the current line we need to adjust the
+        // location of the next edit
+        if (last_width_change != 0 && last_point.row == edit.range.start.point.row) {
+            edit.range.start.point.column += last_width_change;
+            edit.range.end.point.column += last_width_change;
+        }
+
+        edit.range.start.byte += comulative_byte_change;
+        edit.range.end.byte += comulative_byte_change;
+
+        AppliedEdit applied_edit = _apply_edit(edit, old_tree.get(), new_source);
+        applied_edit.before = range_before_adjustments;
+        applied_edits.push_back(applied_edit);
+
+        int before_width =
+            applied_edit.before.end.point.column - applied_edit.before.start.point.column;
+        int after_width =
+            applied_edit.after.end.point.column - applied_edit.after.start.point.column;
+        last_width_change = after_width - before_width;
+
+        int byte_change = applied_edit.after.end.byte - applied_edit.before.end.byte;
+        comulative_byte_change += byte_change;
+        last_point = edit.range.end.point;
     }
 
     // reparse the source code
@@ -486,7 +554,10 @@ std::vector<Range> Tree::edit(std::vector<Edit> edits) {
 
     std::vector<Range> changed_ranges = _get_changed_ranges(old_tree.get(), this->raw());
 
-    return changed_ranges;
+    return EditResult{
+        .changed_ranges = changed_ranges,
+        .applied_edits = applied_edits,
+    };
 }
 
 void Tree::print_dot_graph(std::string_view file) const {

@@ -1,5 +1,6 @@
 #include <catch2/catch.hpp>
 #include <cstring>
+#include <iostream>
 #include <type_traits>
 
 #include "tree_sitter/tree_sitter.hpp"
@@ -179,12 +180,15 @@ TEST_CASE("Location", "[tree-sitter]") {
 TEST_CASE("Range", "[tree-sitter]") {
     static_assert(std::is_trivially_copyable<ts::Range>());
     SECTION("can be equality compared") {
-        ts::Range range1{.start = {.point = {.row = 0, .column = 0}, .byte = 0},
-                         .end = {.point = {.row = 0, .column = 1}, .byte = 1}};
-        ts::Range range2{.start = {.point = {.row = 1, .column = 3}, .byte = 7},
-                         .end = {.point = {.row = 2, .column = 2}, .byte = 10}};
-        ts::Range range3{.start = {.point = {.row = 0, .column = 0}, .byte = 0},
-                         .end = {.point = {.row = 0, .column = 1}, .byte = 1}};
+        ts::Range range1{
+            .start = {.point = {.row = 0, .column = 0}, .byte = 0},
+            .end = {.point = {.row = 0, .column = 1}, .byte = 1}};
+        ts::Range range2{
+            .start = {.point = {.row = 1, .column = 3}, .byte = 7},
+            .end = {.point = {.row = 2, .column = 2}, .byte = 10}};
+        ts::Range range3{
+            .start = {.point = {.row = 0, .column = 0}, .byte = 0},
+            .end = {.point = {.row = 0, .column = 1}, .byte = 1}};
 
         CHECK(range1 == range1);
         CHECK(range2 == range2);
@@ -198,21 +202,28 @@ TEST_CASE("Range", "[tree-sitter]") {
 
 TEST_CASE("Edit", "[tree-sitter]") {
     SECTION("can be equality compared") {
-        ts::Edit edit1{.range = {.start = {.point = {.row = 0, .column = 0}, .byte = 0},
-                                 .end = {.point = {.row = 0, .column = 2}, .byte = 2}},
-                       .replacement = "42"};
-        ts::Edit edit2{.range = {.start = {.point = {.row = 0, .column = 0}, .byte = 0},
-                                 .end = {.point = {.row = 0, .column = 2}, .byte = 2}},
-                       .replacement = "119"};
-        ts::Edit edit3{.range =
-                           {// NOLINTNEXTLINE
-                            .start = {.point = {.row = 1, .column = 0}, .byte = 5},
-                            // NOLINTNEXTLINE
-                            .end = {.point = {.row = 1, .column = 2}, .byte = 7}},
-                       .replacement = "42"};
-        ts::Edit edit4{.range = {.start = {.point = {.row = 0, .column = 0}, .byte = 0},
-                                 .end = {.point = {.row = 0, .column = 2}, .byte = 2}},
-                       .replacement = "42"};
+        ts::Edit edit1{
+            .range =
+                {.start = {.point = {.row = 0, .column = 0}, .byte = 0},
+                 .end = {.point = {.row = 0, .column = 2}, .byte = 2}},
+            .replacement = "42"};
+        ts::Edit edit2{
+            .range =
+                {.start = {.point = {.row = 0, .column = 0}, .byte = 0},
+                 .end = {.point = {.row = 0, .column = 2}, .byte = 2}},
+            .replacement = "119"};
+        ts::Edit edit3{
+            .range =
+                {// NOLINTNEXTLINE
+                 .start = {.point = {.row = 1, .column = 0}, .byte = 5},
+                 // NOLINTNEXTLINE
+                 .end = {.point = {.row = 1, .column = 2}, .byte = 7}},
+            .replacement = "42"};
+        ts::Edit edit4{
+            .range =
+                {.start = {.point = {.row = 0, .column = 0}, .byte = 0},
+                 .end = {.point = {.row = 0, .column = 2}, .byte = 2}},
+            .replacement = "42"};
 
         CHECK(edit1 == edit1);
         CHECK(edit2 == edit2);
@@ -425,8 +436,50 @@ return a + b)#";
         };
 
         // apply the edit
-        std::vector<ts::Range> changed_ranges = tree.edit({edit_two, edit_one});
+        ts::EditResult result = tree.edit({edit_two, edit_one});
         // NOTE: don't use one_node or two_node after this
+
+        CAPTURE(result);
+
+        CHECK(result.applied_edits.size() == 2);
+        CHECK(
+            result.applied_edits[0] ==
+            ts::AppliedEdit{
+                .before = one_range,
+                .after =
+                    ts::Range{
+                        .start = {.point = {.row = 0, .column = 10}, .byte = 10},
+                        .end = {.point = {.row = 0, .column = 12}, .byte = 12}},
+                .old_source = "1",
+                .replacement = "15",
+            });
+
+        ts::Range new_two_range{
+            .start =
+                {
+                    .point =
+                        {
+                            .row = 1,
+                            .column = 10 // NOLINT
+                        },
+                    .byte = 23 // NOLINT
+                },
+            .end = {
+                .point =
+                    {
+                        .row = 1,
+                        .column = 11 // NOLINT
+                    },
+                .byte = 24 // NOLINT
+            }};
+
+        CHECK(
+            result.applied_edits[1] == ts::AppliedEdit{
+                                           .before = two_range,
+                                           .after = new_two_range,
+                                           .old_source = "2",
+                                           .replacement = "7",
+                                       });
 
         INFO("Post edit: " << tree.root_node().as_s_expr());
 

@@ -629,6 +629,45 @@ public:
 };
 
 /**
+ * Hold information about an applied edit.
+ *
+ * - 'before' is the range in the old source code string
+ * - 'after' is the range in the new source code string
+ * - 'old_source' is the string in the source code that was replaced
+ * - 'replacement' is the string it was replaced with
+ *
+ * 'after' could for example be used to highlight changed locations in an editor.
+ */
+struct AppliedEdit {
+    Range before;
+    Range after;
+    std::string old_source;
+    std::string replacement;
+};
+
+bool operator==(const AppliedEdit&, const AppliedEdit&);
+bool operator!=(const AppliedEdit&, const AppliedEdit&);
+std::ostream& operator<<(std::ostream&, const AppliedEdit&);
+std::ostream& operator<<(std::ostream&, const std::vector<AppliedEdit>&);
+
+/**
+ * Holds information about all applied edits. Returned by 'Tree::edit'.
+ *
+ * - 'changed_ranges' are the raw ranges of string that were changed (this does
+ *   not directly correspond to the edits)
+ * - 'applied_edits' the adjusted and applied edits (holds more information
+ *   about the actually applied edits, including adjusted locations)
+ */
+struct EditResult {
+    std::vector<Range> changed_ranges;
+    std::vector<AppliedEdit> applied_edits;
+};
+
+bool operator==(const EditResult&, const EditResult&);
+bool operator!=(const EditResult&, const EditResult&);
+std::ostream& operator<<(std::ostream&, const EditResult&);
+
+/**
  * Represents a syntax tree.
  *
  * This also contains a copy of the source code to allow the nodes to refer to
@@ -692,19 +731,16 @@ public:
      * The edits can't be duplicate or overlapping. Multiline edits are also
      * currently not supported.
      *
-     * The returned ranges are not the ranges that were specified in the edits
-     * they are the ranges of code where the old nodes and new nodes don't allign.
-     * They will likely contain not edited pieces of the source code
-     * (e.g. if it was moved by another edit). Also there might just be one big
-     * changed range even for multiple edits. This is not useful for highlighting.
-     * The only use might be to only update the changed ranges in an editor.
+     * The returned result contains information about the raw string ranges
+     * that changed and it also contains the adjusted location of the edits that
+     * can e.g. be used for highlighting in an editor.
      *
      * Any previously retrieved nodes will become (silently) invalid.
      *
      * NOTE: This takes the edits by value because they should not be used after
      * calling this function and we need to modify the vector internally.
      */
-    std::vector<Range> edit(std::vector<Edit>);
+    EditResult edit(std::vector<Edit>);
 
     /**
      * Print a dot graph to the given file.
