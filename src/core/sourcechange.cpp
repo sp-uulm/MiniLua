@@ -137,7 +137,7 @@ vector<string> source_change_labels(const val& v) {
  * It returns true if a matching assignment was found, false otherwise.
  */
 
-bool remove_alternative(shared_ptr<SourceChange>& changes) {
+static bool remove_alternative(shared_ptr<SourceChange>& changes) {
     if (auto node = dynamic_pointer_cast<SourceAssignment>(changes)) {
         if (node->token.match == node->replacement) {
             // the node is a possibility to change the source -> return true
