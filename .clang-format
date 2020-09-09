@@ -13,5 +13,8 @@ AccessModifierOffset: -4
 
 # Don't break up string literals
 BreakStringLiterals: false
+
+# don't align after open bracket (this would sometimes push the code a lot to the right)
+AlignAfterOpenBracket: AlwaysBreak
 ...
 
