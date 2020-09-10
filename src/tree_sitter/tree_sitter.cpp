@@ -49,12 +49,17 @@ const char* ParserLanguageException::what() const noexcept {
     return "failed to set language on tree-sitter parser";
 }
 
+// class ParseFailureException
 const char* ParseFailureException::what() const noexcept { return "failed to parse"; }
+
+// class NullNodeException
+const char* NullNodeException::what() const noexcept { return "can't create a null node"; }
 
 // class QueryError
 QueryException::QueryException(TSQueryError error, std::uint32_t error_offset)
-    : std::runtime_error("failed to create query: " + _query_error(error) + " error at position " +
-                         std::to_string(error_offset)),
+    : std::runtime_error(
+          "failed to create query: " + _query_error(error) + " error at position " +
+          std::to_string(error_offset)),
       error_(error), error_offset_(error_offset) {}
 
 TSQueryError QueryException::query_error() const { return this->error_; }
@@ -200,12 +205,24 @@ bool language_compatible(const Language& lang) {
 }
 
 // class Node
-Node::Node(TSNode node, const Tree& tree) noexcept : node(node), tree_(&tree) {}
+Node::Node(Node::unsafe_t, TSNode node, const Tree& tree) noexcept : node(node), tree_(&tree) {}
+Node::Node(TSNode node, const Tree& tree) : Node(Node::unsafe, node, tree) {
+    if (ts_node_is_null(node)) {
+        throw NullNodeException();
+    }
+}
+
+std::optional<Node> Node::or_null(TSNode node, const Tree& tree) noexcept {
+    if (ts_node_is_null(node)) {
+        return std::nullopt;
+    } else {
+        return Node(Node::unsafe, node, tree);
+    }
+}
 
 TSNode Node::raw() const { return this->node; }
 const Tree& Node::tree() const { return *this->tree_; }
 
-bool Node::is_null() const { return ts_node_is_null(this->node); }
 bool Node::is_named() const { return ts_node_is_named(this->node); }
 bool Node::is_missing() const { return ts_node_is_missing(this->node); }
 bool Node::is_extra() const { return ts_node_is_extra(this->node); }
@@ -215,12 +232,14 @@ bool Node::has_error() const { return ts_node_has_error(this->node); }
 const char* Node::type() const { return ts_node_type(this->node); }
 TypeId Node::type_id() const { return ts_node_symbol(this->node); }
 
-Node Node::parent() const { return Node(ts_node_parent(this->node), this->tree()); }
+std::optional<Node> Node::parent() const {
+    return Node::or_null(ts_node_parent(this->node), this->tree());
+}
 
 std::uint32_t Node::child_count() const { return ts_node_child_count(this->node); }
 
-Node Node::child(std::uint32_t index) const {
-    return Node(ts_node_child(this->node, index), this->tree());
+std::optional<Node> Node::child(std::uint32_t index) const {
+    return Node::or_null(ts_node_child(this->node, index), this->tree());
 }
 
 std::vector<Node> Node::children() const {
@@ -229,7 +248,8 @@ std::vector<Node> Node::children() const {
     std::vector<Node> children;
     children.reserve(num_children);
     for (std::uint32_t index = 0; index < num_children; ++index) {
-        children.push_back(this->child(index));
+        // we know how many children there are so dereferencing the optional is fine
+        children.push_back(*this->child(index));
     }
 
     return children;
@@ -237,8 +257,8 @@ std::vector<Node> Node::children() const {
 
 std::uint32_t Node::named_child_count() const { return ts_node_named_child_count(this->node); }
 
-Node Node::named_child(std::uint32_t index) const {
-    return Node(ts_node_named_child(this->node, index), this->tree());
+std::optional<Node> Node::named_child(std::uint32_t index) const {
+    return Node::or_null(ts_node_named_child(this->node, index), this->tree());
 }
 
 std::vector<Node> Node::named_children() const {
@@ -247,19 +267,24 @@ std::vector<Node> Node::named_children() const {
     std::vector<Node> children;
     children.reserve(num_children);
     for (std::uint32_t index = 0; index < num_children; ++index) {
-        children.push_back(this->named_child(index));
+        // we know how many children there are so dereferencing the optional is fine
+        children.push_back(*this->named_child(index));
     }
 
     return children;
 }
 
-Node Node::next_sibling() const { return Node(ts_node_next_sibling(this->node), this->tree()); }
-Node Node::prev_sibling() const { return Node(ts_node_prev_sibling(this->node), this->tree()); }
-Node Node::next_named_sibling() const {
-    return Node(ts_node_next_named_sibling(this->node), this->tree());
+std::optional<Node> Node::next_sibling() const {
+    return Node::or_null(ts_node_next_sibling(this->node), this->tree());
 }
-Node Node::prev_named_sibling() const {
-    return Node(ts_node_prev_named_sibling(this->node), this->tree());
+std::optional<Node> Node::prev_sibling() const {
+    return Node::or_null(ts_node_prev_sibling(this->node), this->tree());
+}
+std::optional<Node> Node::next_named_sibling() const {
+    return Node::or_null(ts_node_next_named_sibling(this->node), this->tree());
+}
+std::optional<Node> Node::prev_named_sibling() const {
+    return Node::or_null(ts_node_prev_named_sibling(this->node), this->tree());
 }
 
 std::uint32_t Node::start_byte() const { return ts_node_start_byte(this->node); }
@@ -317,6 +342,14 @@ bool operator!=(const Node& lhs, const Node& rhs) { return !(lhs == rhs); }
 
 std::ostream& operator<<(std::ostream& os, const Node& node) { return os << node.as_s_expr(); }
 
+std::ostream& operator<<(std::ostream& o, const std::optional<Node>& node) {
+    o << "optional<";
+    if (node) {
+        o << *node;
+    }
+    return o << ">";
+}
+
 // struct AppliedEdit
 bool operator==(const AppliedEdit& self, const AppliedEdit& other) {
     return self.before == other.before && self.after == other.after &&
@@ -366,7 +399,7 @@ const TSTree* Tree::raw() const { return this->tree.get(); }
 
 const std::string& Tree::source() const { return this->source_; }
 
-Node Tree::root_node() const { return Node(ts_tree_root_node(this->raw()), *this); }
+Node Tree::root_node() const { return Node(Node::unsafe, ts_tree_root_node(this->raw()), *this); }
 
 Language Tree::language() const { return Language(ts_tree_language(this->raw())); }
 
@@ -381,13 +414,14 @@ static AppliedEdit _apply_edit(const Edit& edit, TSTree* tree, std::string& sour
     long end_byte_diff = static_cast<long>(edit.replacement.size()) - old_size;
 
     Range before = edit.range;
-    Range after{.start = edit.range.start,
-                .end = {
-                    .point = {.row = edit.range.end.point.row,
-                              .column = static_cast<std::uint32_t>(before.end.point.column +
-                                                                   end_byte_diff)},
-                    .byte = static_cast<std::uint32_t>(before.end.byte + end_byte_diff),
-                }};
+    Range after{
+        .start = edit.range.start,
+        .end = {
+            .point =
+                {.row = edit.range.end.point.row,
+                 .column = static_cast<std::uint32_t>(before.end.point.column + end_byte_diff)},
+            .byte = static_cast<std::uint32_t>(before.end.byte + end_byte_diff),
+        }};
 
     TSInputEdit input_edit{
         .start_byte = before.start.byte,
@@ -460,8 +494,8 @@ static std::vector<Range> _get_changed_ranges(const TSTree* old_tree, const TSTr
 
     std::vector<Range> changed_ranges{length};
 
-    std::transform(begin, end, changed_ranges.begin(),
-                   [](const TSRange& range) { return _range(range); });
+    std::transform(
+        begin, end, changed_ranges.begin(), [](const TSRange& range) { return _range(range); });
 
     return changed_ranges;
 }
@@ -692,8 +726,8 @@ Tree Parser::parse_string(std::string str) { return parse_string(nullptr, std::m
 static TSQuery* _make_query(std::string_view source) {
     std::uint32_t error_offset;
     TSQueryError error_type;
-    TSQuery* query = ts_query_new(LUA_LANGUAGE.raw(), source.data(), source.length(), &error_offset,
-                                  &error_type);
+    TSQuery* query = ts_query_new(
+        LUA_LANGUAGE.raw(), source.data(), source.length(), &error_offset, &error_type);
 
     if (query == nullptr) {
         throw QueryException(error_type, error_offset);
@@ -759,8 +793,9 @@ Match::Match(TSQueryMatch match, const Tree& tree) noexcept
     const std::size_t size = end - start;
 
     this->captures.reserve(size);
-    std::transform(start, end, std::back_inserter(this->captures),
-                   [&tree](const TSQueryCapture capture) { return Capture(capture, tree); });
+    std::transform(
+        start, end, std::back_inserter(this->captures),
+        [&tree](const TSQueryCapture capture) { return Capture(capture, tree); });
 }
 
 std::optional<Capture> Match::capture_with_index(std::uint32_t index) const {

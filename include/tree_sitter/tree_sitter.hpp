@@ -53,6 +53,16 @@ public:
 };
 
 /**
+ * Thrown by the constructor of 'Node' if you try to create a null node.
+ *
+ * This should rarely be thrown.
+ */
+class NullNodeException : public TreeSitterException {
+public:
+    [[nodiscard]] const char* what() const noexcept;
+};
+
+/**
  * Thrown by the constructor of 'Query' if there is an error in the syntax of
  * the query string.
  *
@@ -337,7 +347,8 @@ class Tree;
  * Nodes](https://tree-sitter.github.io/tree-sitter/using-parsers#named-vs-anonymous-nodes)).
  * We are mostly interested in named nodes.
  *
- * Nodes can be null (check with is_null).
+ * Nodes can't be null. If you try to create a null node the constructor will
+ * throw a 'NullNodeException'. (But this should only be used internally.)
  *
  * Note: This object is only valid for as long as the 'Tree' it was created from.
  * If the tree was edited methods on the node might return wrong results. In this
@@ -366,12 +377,31 @@ class Node {
     const Tree* tree_;
 
 public:
+    struct unsafe_t {};
+    // used as a token for the unsafe constructor
+    const static unsafe_t unsafe;
+
     /**
      * Creates a new node from the given tree-sitter node and the tree.
      *
+     * Will throw 'NullNodeException' if the node is null.
+     *
      * NOTE: Should only be used internally.
      */
-    Node(TSNode node, const Tree& tree) noexcept;
+    Node(TSNode node, const Tree& tree);
+
+    /**
+     * Unsafe constructor that does not check for null nodes.
+     *
+     * Only call this if you know the node is not null.
+     * This might make other node methods segfault if the node was null.
+     */
+    Node(unsafe_t, TSNode node, const Tree& tree) noexcept;
+
+    /**
+     * Return a Node or `std::nullopt` if the node is null.
+     */
+    static std::optional<Node> or_null(TSNode node, const Tree& tree) noexcept;
 
     /**
      * Use with care. Only intended vor internal use in the wrapper types.
@@ -399,13 +429,6 @@ public:
      * constants available to compare to.
      */
     [[nodiscard]] TypeId type_id() const;
-
-    /**
-     * Check if the node is null.
-     *
-     * Methods like 'child' or 'next_sibling' can return null nodes.
-     */
-    [[nodiscard]] bool is_null() const;
 
     /**
      * Check if the node is named.
@@ -441,7 +464,7 @@ public:
      *
      * Can return a null node if the current node is the root node of a tree.
      */
-    [[nodiscard]] Node parent() const;
+    [[nodiscard]] std::optional<Node> parent() const;
 
     /**
      * Get the n-th child (0 indexed).
@@ -450,7 +473,7 @@ public:
      *
      * Can return a null node.
      */
-    [[nodiscard]] Node child(std::uint32_t index) const;
+    [[nodiscard]] std::optional<Node> child(std::uint32_t index) const;
 
     /**
      * Get the count of all children.
@@ -470,7 +493,7 @@ public:
      *
      * Can return a null node.
      */
-    [[nodiscard]] Node named_child(std::uint32_t index) const;
+    [[nodiscard]] std::optional<Node> named_child(std::uint32_t index) const;
 
     /**
      * Get the count of named children.
@@ -489,7 +512,7 @@ public:
      *
      * Can return a null node.
      */
-    [[nodiscard]] Node next_sibling() const;
+    [[nodiscard]] std::optional<Node> next_sibling() const;
 
     /**
      * Get the node's previous sibling.
@@ -498,7 +521,7 @@ public:
      *
      * Can return a null node.
      */
-    [[nodiscard]] Node prev_sibling() const;
+    [[nodiscard]] std::optional<Node> prev_sibling() const;
 
     /**
      * Get the node's next *named* sibling.
@@ -507,7 +530,7 @@ public:
      *
      * Can return a null node.
      */
-    [[nodiscard]] Node next_named_sibling() const;
+    [[nodiscard]] std::optional<Node> next_named_sibling() const;
 
     /**
      * Get the node's previous *named* sibling.
@@ -516,7 +539,7 @@ public:
      *
      * Can return a null node.
      */
-    [[nodiscard]] Node prev_named_sibling() const;
+    [[nodiscard]] std::optional<Node> prev_named_sibling() const;
 
     /**
      * Get the start position as a byte offset.
@@ -569,6 +592,7 @@ public:
 bool operator==(const Node& lhs, const Node& rhs);
 bool operator!=(const Node& lhs, const Node& rhs);
 std::ostream& operator<<(std::ostream&, const Node&);
+std::ostream& operator<<(std::ostream&, const std::optional<Node>&);
 
 /**
  * Parser for the Lua language.
