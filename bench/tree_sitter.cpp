@@ -19,12 +19,28 @@ end)#";
 
     {
         ts::Node root = tree.root_node();
-        ts::Node print3 = root.child(0).named_child(3).named_child(0).named_child(1);
+        ts::Node print3 = root.child(0)
+                              .value()
+                              .named_child(3)
+                              .value()
+                              .named_child(0)
+                              .value()
+                              .named_child(1)
+                              .value();
         REQUIRE(print3.text() == "print(3)");
 
-        ts::Node three =
-            root.child(0).named_child(3).named_child(0).named_child(1).named_child(1).named_child(
-                0);
+        ts::Node three = root.child(0)
+                             .value()
+                             .named_child(3)
+                             .value()
+                             .named_child(0)
+                             .value()
+                             .named_child(1)
+                             .value()
+                             .named_child(1)
+                             .value()
+                             .named_child(0)
+                             .value();
         REQUIRE(three.text() == "3");
     }
 
@@ -41,21 +57,38 @@ end)#";
     };
 
     BENCHMARK("navigate to print(3)") {
-        ts::Node print3 = root.child(0).named_child(3).named_child(0).named_child(1);
+        ts::Node print3 = root.child(0)
+                              .value()
+                              .named_child(3)
+                              .value()
+                              .named_child(0)
+                              .value()
+                              .named_child(1)
+                              .value();
         return print3;
     };
 
     BENCHMARK("navigate to 3") {
-        ts::Node three =
-            root.child(0).named_child(3).named_child(0).named_child(1).named_child(1).named_child(
-                0);
+        ts::Node three = root.child(0)
+                             .value()
+                             .named_child(3)
+                             .value()
+                             .named_child(0)
+                             .value()
+                             .named_child(1)
+                             .value()
+                             .named_child(1)
+                             .value()
+                             .named_child(0)
+                             .value();
         return three;
     };
 
-    ts::Node print3 = root.child(0).named_child(3).named_child(0).named_child(1);
+    ts::Node print3 =
+        root.child(0).value().named_child(3).value().named_child(0).value().named_child(1).value();
 
     BENCHMARK("navigate to 3 after visiting print(3)") {
-        ts::Node three = print3.named_child(1).named_child(0);
+        ts::Node three = print3.named_child(1).value().named_child(0).value();
         return three;
     };
 }
@@ -94,7 +127,7 @@ end)#";
         REQUIRE(three.text() == "3");
     }
 
-    BENCHMARK("create ursor") { return ts::Cursor(tree); };
+    BENCHMARK("create cursor") { return ts::Cursor(tree); };
 
     {
         ts::Cursor cursor = ts::Cursor(tree);
@@ -190,12 +223,28 @@ end)#";
         auto matches = cursor.matches();
         INFO(matches);
         // FAIL();
-        ts::Node print3 = root.child(0).named_child(3).named_child(0).named_child(1);
+        ts::Node print3 = root.child(0)
+                              .value()
+                              .named_child(3)
+                              .value()
+                              .named_child(0)
+                              .value()
+                              .named_child(1)
+                              .value();
         REQUIRE(print3.text() == "print(3)");
 
-        ts::Node three =
-            root.child(0).named_child(3).named_child(0).named_child(1).named_child(1).named_child(
-                0);
+        ts::Node three = root.child(0)
+                             .value()
+                             .named_child(3)
+                             .value()
+                             .named_child(0)
+                             .value()
+                             .named_child(1)
+                             .value()
+                             .named_child(1)
+                             .value()
+                             .named_child(0)
+                             .value();
         REQUIRE(three.text() == "3");
     }
 
