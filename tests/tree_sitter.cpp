@@ -314,13 +314,21 @@ TEST_CASE("language can list all node types", "[tree-sitter][!hide]") {
 
 TEST_CASE("tree can be copied", "[tree-sitter]") {
     ts::Parser parser;
-    std::string source = "1 + 2";
+    const std::string source = "1 + 2";
+    const std::string source2 = "3 + 5";
+
     const ts::Tree tree = parser.parse_string(source);
+    ts::Tree tree2 = parser.parse_string(source2);
+
+    CHECK(tree.source() != tree2.source());
 
     // NOLINTNEXTLINE(performance-unnecessary-copy-initialization)
-    ts::Tree tree_copy = tree;
+    ts::Tree tree_copy{tree};
+    tree2 = tree;
+
     CHECK(tree.source() == tree_copy.source());
-    // root node is not equal because the tree is different
+    CHECK(tree.source() == tree2.source());
+
     CHECK(&tree.root_node().tree() != &tree_copy.root_node().tree());
 }
 
@@ -648,12 +656,19 @@ TEST_CASE("Cursor", "[tree-sitter]") {
         REQUIRE(cursor.goto_next_named_sibling());
         CHECK(cursor.current_node().type() == "number"s);
         CHECK(cursor.current_node().text() == "2"s);
+
+        REQUIRE(!cursor.goto_first_child());
+        REQUIRE(!cursor.goto_first_named_child());
+
+        REQUIRE(cursor.goto_parent());
+        CHECK(cursor.current_node().type() == "binary_operation"s);
     }
 
     SECTION("can be copied") {
-        ts::Cursor cursor{tree};
-        ts::Cursor cursor_copy{cursor};   // NOLINT
-        ts::Cursor cursor_copy2 = cursor; // NOLINT
+        const ts::Cursor cursor{tree};
+        ts::Cursor cursor2{tree};
+        const ts::Cursor cursor_copy{cursor}; // NOLINT
+        cursor2 = cursor;
     }
 
     SECTION("can get all children at once") {
@@ -703,6 +718,20 @@ TEST_CASE("Node", "[tree-sitter]") {
     SECTION("can be copied") {
         ts::Node node_copy{root};   // NOLINT
         ts::Node node_copy2 = root; // NOLINT
+    }
+
+    SECTION("can be equality compares") {
+        CHECK(root == root);
+        CHECK(!(root != root));
+
+        ts::Node expr = root.named_child(0).value();
+        CHECK(expr == expr);
+        CHECK(root != expr);
+
+        ts::Node bin_op = expr.named_child(0).value();
+        CHECK(bin_op == bin_op);
+        CHECK(root != bin_op);
+        CHECK(expr != bin_op);
     }
 
     SECTION("can retrieve origin tree") { REQUIRE(&tree == &root.tree()); }
@@ -801,6 +830,43 @@ TEST_CASE("Node", "[tree-sitter]") {
 
         CHECK(bin_op.child_count() >= bin_op.named_child_count());
         CHECK(children.size() >= named_children.size());
+    }
+
+    SECTION("nodes know their parents") {
+        CHECK(!root.parent());
+
+        ts::Node expr = root.named_child(0).value();
+        CHECK(expr.parent() == root);
+
+        ts::Node bin_op = expr.named_child(0).value();
+        CHECK(bin_op.parent() == expr);
+
+        ts::Node number_1 = bin_op.named_child(0).value();
+        CHECK(number_1.parent() == bin_op);
+
+        ts::Node number_2 = bin_op.named_child(1).value();
+        CHECK(number_2.parent() == bin_op);
+    }
+
+    SECTION("nodes know their siblings") {
+        ts::Node expr = root.named_child(0).value();
+        ts::Node bin_op = expr.named_child(0).value();
+
+        ts::Node number_1 = bin_op.named_child(0).value();
+        ts::Node plus_op = bin_op.child(1).value();
+        ts::Node number_2 = bin_op.named_child(1).value();
+
+        CHECK(number_1.next_sibling() == plus_op);
+        CHECK(number_1.next_named_sibling() == number_2);
+        CHECK(plus_op.next_sibling() == number_2);
+        CHECK(plus_op.next_named_sibling() == number_2);
+        CHECK(!number_2.next_sibling());
+
+        CHECK(number_2.prev_sibling() == plus_op);
+        CHECK(number_2.prev_named_sibling() == number_1);
+        CHECK(plus_op.prev_sibling() == number_1);
+        CHECK(plus_op.prev_named_sibling() == number_1);
+        CHECK(!number_1.prev_sibling());
     }
 }
 
