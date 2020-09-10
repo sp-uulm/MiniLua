@@ -32,6 +32,16 @@ jobs:
       script:
         - ./scripts/build.sh
         - ./scripts/test.sh
+    - name: bench
+      compiler: clang
+      before_script: ./scripts/setup_build.sh -DCMAKE_BUILD_TYPE=Release
+      script:
+        - ./scripts/build.sh
+        - |
+          ./scripts/bench.sh \
+            --benchmark-samples=10 \
+            --benchmark-warmup-time=0 \
+          && echo "DON'T RELY ON THESE PERFORMANCE NUMBERS"
     - name: Linting
       env:
       - CC=clang-10
