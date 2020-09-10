@@ -647,9 +647,9 @@ public:
      *
      * This takes the source code by copy (or move) and stores it in the tree.
      */
-    Tree parse_string(std::string);
+    Tree parse_string(std::string) const;
 
-    Tree parse_string(const TSTree* old_tree, std::string source);
+    Tree parse_string(const TSTree* old_tree, std::string source) const;
 };
 
 /**
@@ -703,12 +703,12 @@ class Tree {
     std::string source_;
 
     // not owned pointer
-    Parser* parser;
+    const Parser* parser_;
 
 public:
     // explicit because this class handles the pointer as a ressource
     // automatic conversion from pointer to this type is dangerous
-    explicit Tree(TSTree* tree, std::string source, Parser& parser);
+    explicit Tree(TSTree* tree, std::string source, const Parser& parser);
 
     // TSTree* can be safely (and fast) copied using ts_tree_copy
     Tree(const Tree&);
@@ -733,6 +733,11 @@ public:
      * Get a reference to the source code.
      */
     [[nodiscard]] const std::string& source() const;
+
+    /**
+     * Get a reference to the used parser.
+     */
+    [[nodiscard]] const Parser& parser() const;
 
     /**
      * The returned node is only valid as long as this tree is not destructed.
@@ -773,6 +778,8 @@ public:
      */
     void print_dot_graph(std::string_view file) const;
 };
+
+EditResult edit_tree(std::vector<Edit> edits, Tree& tree, TSTree* old_tree);
 
 /**
  * Allows more efficient walking of a 'Tree' than with the methods on 'Node'.
