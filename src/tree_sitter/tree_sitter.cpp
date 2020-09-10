@@ -403,27 +403,29 @@ Node Tree::root_node() const { return Node(Node::unsafe, ts_tree_root_node(this-
 
 Language Tree::language() const { return Language(ts_tree_language(this->raw())); }
 
+// helper functions for Tree::edit
+namespace {
 // helper function to apply one edit to the tree and source code
 static AppliedEdit _apply_edit(const Edit& edit, TSTree* tree, std::string& source) {
-    long old_size = edit.range.end.byte - edit.range.start.byte;
+    const long old_size = edit.range.end.byte - edit.range.start.byte;
 
-    std::string old_source = source.substr(edit.range.start.byte, old_size);
+    const std::string old_source = source.substr(edit.range.start.byte, old_size);
 
     source.replace(edit.range.start.byte, old_size, edit.replacement);
 
-    long end_byte_diff = static_cast<long>(edit.replacement.size()) - old_size;
+    const long end_byte_diff = static_cast<long>(edit.replacement.size()) - old_size;
 
-    Range before = edit.range;
-    Range after{
+    const Range before = edit.range;
+    const auto column = static_cast<std::uint32_t>(before.end.point.column + end_byte_diff);
+    const auto byte = static_cast<std::uint32_t>(before.end.byte + end_byte_diff);
+    const Range after{
         .start = edit.range.start,
         .end = {
-            .point =
-                {.row = edit.range.end.point.row,
-                 .column = static_cast<std::uint32_t>(before.end.point.column + end_byte_diff)},
-            .byte = static_cast<std::uint32_t>(before.end.byte + end_byte_diff),
+            .point = {.row = edit.range.end.point.row, .column = column},
+            .byte = byte,
         }};
 
-    TSInputEdit input_edit{
+    const TSInputEdit input_edit{
         .start_byte = before.start.byte,
         .old_end_byte = before.end.byte,
         .new_end_byte = after.end.byte,
@@ -480,7 +482,7 @@ static std::vector<Range> _get_changed_ranges(const TSTree* old_tree, const TSTr
     // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
     std::uint32_t length;
 
-    std::unique_ptr<TSRange, decltype(&free)> ranges{
+    const std::unique_ptr<TSRange, decltype(&free)> ranges{
         ts_tree_get_changed_ranges(old_tree, new_tree, &length), free};
 
     if (length == 0) {
@@ -500,21 +502,28 @@ static std::vector<Range> _get_changed_ranges(const TSTree* old_tree, const TSTr
     return changed_ranges;
 }
 
-void _check_edits(const std::vector<Edit>& edits) {
+static inline void _forbid_zero_sized_edit(const Edit& edit) {
+    if (edit.range.start == edit.range.end) {
+        throw ZeroSizedEditException();
+    }
+}
+static inline void _forbid_multiline_edit(const Edit& edit) {
+    if (edit.range.start.point.row != edit.range.end.point.row ||
+        edit.replacement.find('\n') != std::string::npos) {
+        throw MultilineEditException();
+    }
+}
+
+static inline void _check_edits(const std::vector<Edit>& edits) {
     // NOTE: assumes that the ranges are already sorted by edit.range.start.byte
 
     for (int i = 0; i < edits.size(); ++i) {
         const auto& edit1 = edits[i];
 
-        if (edit1.range.start == edit1.range.end) {
-            throw ZeroSizedEditException();
-        }
+        _forbid_zero_sized_edit(edit1);
+        _forbid_multiline_edit(edit1);
 
-        if (edit1.range.start.point.row != edit1.range.end.point.row ||
-            edit1.replacement.find('\n') != std::string::npos) {
-            throw MultilineEditException();
-        }
-
+        // forbid overlapping edits
         for (int j = 0; j < edits.size(); ++j) {
             if (i == j) {
                 continue;
@@ -529,13 +538,63 @@ void _check_edits(const std::vector<Edit>& edits) {
     }
 }
 
-EditResult Tree::edit(std::vector<Edit> edits) {
-    // save copies of the previous values so we can return the changed ranges
-    std::string new_source = this->source();
-    std::unique_ptr<TSTree, void (*)(TSTree*)> old_tree = std::move(this->tree);
+struct Adjustment {
+    Point last_point;
+    int last_width_change;
+    int cumulative_byte_change;
+};
+static inline void _adjust_edit(Edit& edit, const Adjustment& adjustment) {
+    // if the last edit was in the current line we need to adjust the
+    // location of the next edit
+    if (adjustment.last_width_change != 0 &&
+        adjustment.last_point.row == edit.range.start.point.row) {
+        edit.range.start.point.column += adjustment.last_width_change;
+        edit.range.end.point.column += adjustment.last_width_change;
+    }
 
-    // sorts the from the earliest in the source code to the latest in the source
-    // code.
+    edit.range.start.byte += adjustment.cumulative_byte_change;
+    edit.range.end.byte += adjustment.cumulative_byte_change;
+}
+static inline void _update_adjustment(
+    Adjustment& adjustment, const AppliedEdit& applied_edit, const Point last_point) {
+    const int before_width =
+        applied_edit.before.end.point.column - applied_edit.before.start.point.column;
+    const int after_width =
+        applied_edit.after.end.point.column - applied_edit.after.start.point.column;
+    adjustment.last_width_change = after_width - before_width;
+
+    const int byte_change = applied_edit.after.end.byte - applied_edit.before.end.byte;
+    adjustment.cumulative_byte_change += byte_change;
+    adjustment.last_point = last_point;
+}
+
+static inline std::vector<AppliedEdit>
+_apply_all_edits(std::vector<Edit>& edits, std::string& new_source, TSTree* old_tree) {
+    std::vector<AppliedEdit> applied_edits;
+    applied_edits.reserve(edits.size());
+
+    Adjustment adjustment{};
+
+    for (auto& edit : edits) {
+        const Range range_before_adjustments = edit.range;
+        _adjust_edit(edit, adjustment);
+
+        AppliedEdit applied_edit = _apply_edit(edit, old_tree, new_source);
+        applied_edit.before = range_before_adjustments;
+        applied_edits.push_back(applied_edit);
+
+        _update_adjustment(adjustment, applied_edit, edit.range.end.point);
+    }
+
+    return applied_edits;
+}
+} // namespace
+
+EditResult Tree::edit(std::vector<Edit> edits) {
+    std::string new_source = this->source();
+    const std::unique_ptr<TSTree, void (*)(TSTree*)> old_tree = std::move(this->tree);
+
+    // sorts the edits from the earliest in the source code to the latest in the source code.
     // this is done so the locations for edits in the same line can be adjusted
     // so we can return the ranges of the edit before and after
     std::sort(edits.begin(), edits.end(), [](const Edit& edit1, const Edit& edit2) {
@@ -545,40 +604,7 @@ EditResult Tree::edit(std::vector<Edit> edits) {
     // NOTE: this throws exceptions if there is something wrong with the edits
     _check_edits(edits);
 
-    std::vector<AppliedEdit> applied_edits;
-    applied_edits.reserve(edits.size());
-
-    // used to adjust subsequent edits
-    Point last_point{};
-    int last_width_change = 0;
-    int comulative_byte_change = 0;
-
-    for (auto& edit : edits) {
-        Range range_before_adjustments = edit.range;
-        // if the last edit was in the current line we need to adjust the
-        // location of the next edit
-        if (last_width_change != 0 && last_point.row == edit.range.start.point.row) {
-            edit.range.start.point.column += last_width_change;
-            edit.range.end.point.column += last_width_change;
-        }
-
-        edit.range.start.byte += comulative_byte_change;
-        edit.range.end.byte += comulative_byte_change;
-
-        AppliedEdit applied_edit = _apply_edit(edit, old_tree.get(), new_source);
-        applied_edit.before = range_before_adjustments;
-        applied_edits.push_back(applied_edit);
-
-        int before_width =
-            applied_edit.before.end.point.column - applied_edit.before.start.point.column;
-        int after_width =
-            applied_edit.after.end.point.column - applied_edit.after.start.point.column;
-        last_width_change = after_width - before_width;
-
-        int byte_change = applied_edit.after.end.byte - applied_edit.before.end.byte;
-        comulative_byte_change += byte_change;
-        last_point = edit.range.end.point;
-    }
+    std::vector<AppliedEdit> applied_edits = _apply_all_edits(edits, new_source, old_tree.get());
 
     // reparse the source code
     Tree new_tree = this->parser->parse_string(old_tree.get(), std::move(new_source));
@@ -641,15 +667,20 @@ bool Cursor::goto_first_named_child() {
 
     // walk over siblings until we encounter a named node
     while (!this->current_node().is_named()) {
+        // return false if there are no more siblings
+        // and therefore no more named nodes
         if (!this->goto_next_sibling()) {
             return false;
         }
     }
+
     return true;
 }
 bool Cursor::goto_next_named_sibling() {
     // walk over siblings until we encounter a named node
     do {
+        // return false if there are no more siblings
+        // and therefore no more named nodes
         if (!this->goto_next_sibling()) {
             return false;
         }
