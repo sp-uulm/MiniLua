@@ -24,8 +24,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
 
+message(INFO ${CMAKE_MODULE_PATH})
+
 include(FetchContent)
 include(add_FetchContent_MakeAvailable)
+find_package(Sanitizers)
 
 set(COVERAGE OFF CACHE BOOL "Turns on code coverage generation for tests")
 if(COVERAGE)

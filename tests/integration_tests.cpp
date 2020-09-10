@@ -2,24 +2,28 @@
 #include <string>
 #include <variant>
 
-#include "MiniLua/luaparser.hpp"
 #include "MiniLua/luainterpreter.hpp"
+#include "MiniLua/luaparser.hpp"
 
 void add_force_function_to_env(const std::shared_ptr<lua::rt::Environment>& env) {
-    env->assign(string {"force"}, make_shared<lua::rt::cfunction>([](const lua::rt::vallist& args) -> lua::rt::cfunction::result {
-        if (args.size() != 2) {
-            return lua::rt::vallist{lua::rt::nil(), string {"wrong number of arguments (expected 2)"}};
-        }
+    env->assign(
+        string{"force"},
+        make_shared<lua::rt::cfunction>(
+            [](const lua::rt::vallist& args) -> lua::rt::cfunction::result {
+                if (args.size() != 2) {
+                    return lua::rt::vallist{
+                        lua::rt::nil(), string{"wrong number of arguments (expected 2)"}};
+                }
 
-        auto source_changes = args[0].forceValue(args[1]);
+                auto source_changes = args[0].forceValue(args[1]);
 
-        if (source_changes.has_value()) {
-            return {source_changes.value()};
-        }
+                if (source_changes.has_value()) {
+                    return {source_changes.value()};
+                }
 
-        return {};
-    }), false);
-
+                return {};
+            }),
+        false);
 }
 
 std::string parse_eval_update(std::string program) {
@@ -59,7 +63,8 @@ std::string parse_eval_update(std::string program) {
     return program;
 }
 
-TEST_CASE("parse, eval, update", "[parse]") {
+// TODO fix the memory leaks
+TEST_CASE("parse, eval, update", "[parse][leaks]") {
     SECTION("simple for") {
         const std::string program = "for i=1, 10, 1 do \n    print('hello world ', i)\nend";
         const auto result = parse_eval_update(program);
@@ -72,4 +77,3 @@ TEST_CASE("parse, eval, update", "[parse]") {
         REQUIRE(result == "force(3, 3)");
     }
 }
-

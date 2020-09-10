@@ -17,6 +17,7 @@ addons:
       - clang-format-10
       - clang-tidy-10
       - cmake
+      - llvm-10
 
 jobs:
   include:
@@ -32,6 +33,30 @@ jobs:
       script:
         - ./scripts/build.sh
         - ./scripts/test.sh
+    - name: AddressSanitizer
+      env:
+      - CC=clang-10
+      - CXX=clang++-10
+      - ASAN_SYMBOLIZER_PATH=/usr/lib/llvm-10/bin/llvm-symbolizer
+      before_script: ./scripts/setup_build.sh -DCMAKE_BUILD_TYPE=asan
+      script:
+        - ./scripts/test.sh "~[leaks]~[hide]"
+    - name: UndefinedBehaviourSanitizer
+      env:
+      - CC=clang-10
+      - CXX=clang++-10
+      before_script: ./scripts/setup_build.sh -DCMAKE_BUILD_TYPE=ubsan
+      script:
+        - ./scripts/test.sh
+    - name: MemorySanitizer
+      env:
+      - CC=clang-10
+      - CXX=clang++-10
+      before_script: ./scripts/setup_build.sh -DCMAKE_BUILD_TYPE=msan
+      script:
+        - ./scripts/test.sh
+      # has some false positives in catch2
+      allow_failure: true
     - name: bench
       compiler: clang
       before_script: ./scripts/setup_build.sh -DCMAKE_BUILD_TYPE=Release

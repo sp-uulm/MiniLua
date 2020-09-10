@@ -7,7 +7,7 @@
 
 using namespace std::string_literals;
 
-TEST_CASE("Navigation", "[tree-sitter][!hide]") {
+TEST_CASE("Navigation", "[tree-sitter][.hide]") {
     // This is a possible design of how to use tree-sitter in the interpreter.
     // But of course this would be split up over multiple functions
     // and could use better variable names because of that.
@@ -78,7 +78,7 @@ TEST_CASE("Navigation", "[tree-sitter][!hide]") {
     }
 }
 
-TEST_CASE("Print", "[tree-sitter][!hide]") {
+TEST_CASE("Print", "[tree-sitter][.hide]") {
     ts::Parser parser;
 
     std::string source = "print(1+2)";
@@ -281,7 +281,7 @@ TEST_CASE("language is compatible with tree-sitter", "[tree-sitter]") {
     REQUIRE(ts::language_compatible(ts::LUA_LANGUAGE));
 }
 
-TEST_CASE("language can list all fields", "[tree-sitter][!hide]") {
+TEST_CASE("language can list all fields", "[tree-sitter][.hide]") {
     ts::Language lang = ts::LUA_LANGUAGE;
 
     CAPTURE(lang.field_count());
@@ -294,7 +294,7 @@ TEST_CASE("language can list all fields", "[tree-sitter][!hide]") {
     // FAIL();
 }
 
-TEST_CASE("language can list all node types", "[tree-sitter][!hide]") {
+TEST_CASE("language can list all node types", "[tree-sitter][.hide]") {
     ts::Language lang = ts::LUA_LANGUAGE;
 
     CAPTURE(lang.node_type_count());
