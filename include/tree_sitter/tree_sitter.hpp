@@ -379,7 +379,7 @@ class Node {
 public:
     struct unsafe_t {};
     // used as a token for the unsafe constructor
-    const static unsafe_t unsafe;
+    constexpr static unsafe_t unsafe{};
 
     /**
      * Creates a new node from the given tree-sitter node and the tree.
