@@ -28,15 +28,6 @@ message(INFO ${CMAKE_MODULE_PATH})
 
 include(FetchContent)
 include(add_FetchContent_MakeAvailable)
-find_package(Sanitizers)
-
-set(COVERAGE OFF CACHE BOOL "Turns on code coverage generation for tests")
-if(COVERAGE)
-    include(CodeCoverage)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_COVERAGE}")
-    # remove tests and dependencies from coverage report
-    set(LCOV_REMOVE_EXTRA "'${CMAKE_SOURCE_DIR}/tests/*'" "'${CMAKE_BINARY_DIR}/*'")
-endif()
 
 # library
 add_subdirectory(src)
@@ -45,8 +36,18 @@ add_subdirectory(src)
 # (get compiled in ci but not run like tests)
 add_subdirectory(examples)
 
-# tests
+# only do this if we are the main project
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    find_package(Sanitizers)
+
+    set(COVERAGE OFF CACHE BOOL "Turns on code coverage generation for tests")
+    if(COVERAGE)
+        include(CodeCoverage)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_COVERAGE}")
+        # remove tests and dependencies from coverage report
+        set(LCOV_REMOVE_EXTRA "'${CMAKE_SOURCE_DIR}/tests/*'" "'${CMAKE_BINARY_DIR}/*'")
+    endif()
+
     add_subdirectory(tests)
     add_subdirectory(bench)
 endif()
