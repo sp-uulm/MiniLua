@@ -1,5 +1,6 @@
 #include <catch2/catch.hpp>
 #include <string>
+#include <type_traits>
 #include <variant>
 
 #include "MiniLua/luainterpreter.hpp"
@@ -76,4 +77,12 @@ TEST_CASE("parse, eval, update", "[parse][leaks]") {
         const auto result = parse_eval_update(program);
         REQUIRE(result == "force(3, 3)");
     }
+}
+
+TEST_CASE("Environment", "[interpreter][leaks]") {
+    static_assert(std::is_move_constructible<lua::rt::Environment>());
+
+    auto env = std::make_shared<lua::rt::Environment>(nullptr);
+
+    env->populate_stdlib();
 }
