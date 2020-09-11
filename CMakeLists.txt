@@ -22,10 +22,7 @@ add_compile_options(-Wall)
 # (e.g. language server)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
-
-include(FetchContent)
-include(add_FetchContent_MakeAvailable)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 set(COVERAGE OFF CACHE BOOL "Turns on code coverage generation for tests")
 if(COVERAGE)
@@ -35,15 +32,21 @@ if(COVERAGE)
     set(LCOV_REMOVE_EXTRA "'${CMAKE_SOURCE_DIR}/tests/*'" "'${CMAKE_BINARY_DIR}/*'")
 endif()
 
+# dependencies
+find_package(TreeSitter)
+find_package(TreeSitterLua)
+
 # library
 add_subdirectory(src)
 
-# example applications
-# (get compiled in ci but not run like tests)
-add_subdirectory(examples)
-
 # tests
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    add_subdirectory(extern/catch2)
+
     add_subdirectory(tests)
     add_subdirectory(bench)
+
+    # example applications
+    # (get compiled in ci but not run like tests)
+    add_subdirectory(examples)
 endif()
