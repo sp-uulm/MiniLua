@@ -1,10 +1,12 @@
 find_package(Boost REQUIRED)
 
 # core
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} PUBLIC_INTERFACE_IMPL)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/core CORE_SRC_LIST)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/tree_sitter TREE_SITTER_WRAPPER_SRC_LIST)
 
 set(LIB_SRC_LIST
+    ${PUBLIC_INTERFACE_IMPL}
     ${CORE_SRC_LIST}
     ${TREE_SITTER_WRAPPER_SRC_LIST})
 
