@@ -2,6 +2,6 @@
 set -ev
 
 pushd build
-make all
+make $@
 popd
 

@@ -22,7 +22,7 @@ addons:
 jobs:
   include:
     - compiler: gcc
-      before_script: ./scripts/setup_build.sh -DCMAKE_BUILD_TYPE=Debug -DCOVERAGE=ON
+      before_script: ./scripts/setup_build.sh -DCMAKE_BUILD_TYPE=Coverage
       script:
         - ./scripts/build.sh
         - ./scripts/test_coverage.sh

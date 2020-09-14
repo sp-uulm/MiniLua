@@ -1,0 +1,9 @@
+[submodule "extern/tree-sitter"]
+	path = extern/tree-sitter
+	url = ../../tree-sitter/tree-sitter.git
+[submodule "extern/tree-sitter-lua"]
+	path = extern/tree-sitter-lua
+	url = ../../Azganoth/tree-sitter-lua.git
+[submodule "extern/catch2"]
+	path = extern/catch2
+	url = ../../catchorg/Catch2.git
