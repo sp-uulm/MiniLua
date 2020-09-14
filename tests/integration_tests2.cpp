@@ -7,15 +7,15 @@
 minilua::Vallist native_function(minilua::CallContext ctx) { return {1, 2, "hi"}; }
 
 TEST_CASE("Interpreter") {
-    minilua::owning_ptr<minilua::Value> x{std::string("hi")};
+    minilua::owning_ptr<minilua::Value> x{minilua::make_owning<minilua::Value>(std::string("hi"))};
     minilua::owning_ptr<minilua::Value> y = x;
 
-    std::cout << x << ", " << y << "\n";
+    std::cout << *x << ", " << *y << "\n";
 
-    minilua::owning_ptr<minilua::Value> z{std::string("y")};
+    minilua::owning_ptr<minilua::Value> z{minilua::make_owning<minilua::Value>(std::string("y"))};
     x = z;
 
-    std::cout << x << ", " << y << "\n";
+    std::cout << *x << ", " << *y << "\n";
 
     minilua::Interpreter interpreter;
 
@@ -41,8 +41,8 @@ TEST_CASE("Interpreter") {
               return {1, std::string{"hi"}};
           }},
          {"tabl", minilua::Table({
-                      {"key1", 25.0},
-                      {"key2", std::string("value")},
+                      {std::string("key1"), 25.0},
+                      {std::string("key2"), std::string("value")},
                   })}});
 
     std::cout << minilua::Value() << "\n";

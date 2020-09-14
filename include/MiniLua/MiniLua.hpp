@@ -34,38 +34,23 @@ namespace minilua {
  *
  * If this type is copied it will make a new heap allocation and copy the value.
  */
-template <typename T> class owning_ptr {
-    std::unique_ptr<T> value;
-
+template <typename T> class owning_ptr : public std::unique_ptr<T> {
 public:
-    owning_ptr(T value) : value(std::make_unique<T>(std::move(value))) {}
-    owning_ptr(const owning_ptr<T>& other) : value(std::make_unique<T>(*other.value)) {}
-    owning_ptr(owning_ptr<T>&& other) noexcept : value(std::move(other.value)) {}
+    using std::unique_ptr<T>::unique_ptr;
+
+    owning_ptr() { this->reset(new T()); }
+
+    owning_ptr(const owning_ptr<T>& other) { this->reset(new T(*other.get())); }
+
     owning_ptr<T>& operator=(const owning_ptr<T>& other) {
-        this->value = std::make_unique<T>(*other.value);
+        this->reset(new T(*other.get()));
         return *this;
-    }
-    owning_ptr<T>& operator=(owning_ptr<T>&& other) {
-        swap(*this, other);
-        return *this;
-    }
-    friend void swap(owning_ptr<T>& self, owning_ptr<T>& other) {
-        std::swap(self.value, other.value);
-    }
-
-    [[nodiscard]] const T& get() const { return *value.get(); }
-    T& get() { return *value.get(); }
-
-    friend constexpr bool operator==(const owning_ptr<T>& a, const owning_ptr<T>& b) noexcept {
-        return a.value == b.value;
-    }
-    friend constexpr bool operator!=(const owning_ptr<T>& a, const owning_ptr<T>& b) noexcept {
-        return !(a == b);
-    }
-    friend std::ostream& operator<<(std::ostream& o, const owning_ptr<T>& self) {
-        return o << self.get();
     }
 };
+
+template <typename T, typename... Args> owning_ptr<T> make_owning(Args... args) {
+    return owning_ptr<T>(new T(std::forward<Args>(args)...));
+}
 
 // forward declaration
 class Vallist;
@@ -140,18 +125,38 @@ bool operator==(const String& a, const String& b) noexcept;
 bool operator!=(const String& a, const String& b) noexcept;
 std::ostream& operator<<(std::ostream&, const String&);
 
-struct Table {
-    // TODO shared_ptr is unnecessary but can't use incomplete type in map
-    // (and my owning_ptr is broken somewhere)
-    std::unordered_map<std::string, owning_ptr<Value>> value;
+class Table {
+    struct Impl;
+    owning_ptr<Impl> impl;
 
+public:
     Table();
-    Table(std::unordered_map<std::string, owning_ptr<Value>>);
-    Table(std::initializer_list<std::pair<const std::string, Value>> values);
+    Table(std::unordered_map<Value, Value>);
+    Table(std::initializer_list<std::pair<const Value, Value>> values);
+
+    Table(const Table& other);
+    Table(Table&& other) noexcept;
+    ~Table() noexcept;
+    Table& operator=(const Table& other);
+    Table& operator=(Table&& other);
+    friend void swap(Table& self, Table& other);
+
+    friend bool operator==(const Table&, const Table&) noexcept;
+    friend bool operator!=(const Table&, const Table&) noexcept;
+    friend std::ostream& operator<<(std::ostream&, const Table&);
 };
-bool operator==(const Table&, const Table&) noexcept;
-bool operator!=(const Table&, const Table&) noexcept;
-std::ostream& operator<<(std::ostream&, const Table&);
+
+} // namespace minilua
+
+namespace std {
+
+template <> struct hash<minilua::Value> {
+    size_t operator()(const minilua::Value& value) const { return 0; }
+};
+
+} // namespace std
+
+namespace minilua {
 
 class NativeFunction {
     using FnType = CallResult(CallContext);
@@ -166,7 +171,7 @@ public:
         } else if constexpr (std::is_convertible_v<std::invoke_result_t<Fn, CallContext>, Value>) {
             // easy use of functions that return a type that is convertible to Value (e.g. string)
             std::cout << "std::function -> into Value\n";
-            this->func = [fn](CallContext ctx) -> CallResult { return CallResult(fn(ctx)); };
+            this->func = [fn](CallContext ctx) -> CallResult { return CallResult({fn(ctx)}); };
         } else if constexpr (std::is_void_v<std::invoke_result_t<Fn, CallContext>>) {
             std::cout << "lambda wrapper -> void\n";
             // support void functions by returning an empty Vallist
@@ -190,10 +195,13 @@ std::ostream& operator<<(std::ostream&, const NativeFunction&);
 // could maybe share a type with NativeFunction (not sure)
 
 class Value {
-    using Type = std::variant<Nil, Bool, Number, String, Table, NativeFunction>;
-    Type val;
+    struct Impl;
+    owning_ptr<Impl> impl;
+    // Type val;
 
 public:
+    using Type = std::variant<Nil, Bool, Number, String, Table, NativeFunction>;
+
     Value();
     Value(Type val);
     Value(Nil val);
@@ -204,8 +212,15 @@ public:
     Value(double val);
     Value(String val);
     Value(std::string val);
+    Value(const char* val);
     Value(Table val);
     Value(NativeFunction val);
+
+    Value(const Value&);
+    Value(Value&&) noexcept;
+    Value& operator=(const Value& other);
+    Value& operator=(Value&& other);
+    friend void swap(Value& self, Value& other);
 
     template <typename Fn, typename = std::enable_if_t<std::is_invocable_v<Fn, CallContext>>>
     Value(Fn val) : Value(NativeFunction(std::forward<Fn>(val))) {}
@@ -222,11 +237,12 @@ std::ostream& operator<<(std::ostream&, const Value&);
 
 class Vallist {
 public:
-    Vallist() = default;
-    Vallist(std::vector<Value>) {}
+    Vallist();
+    Vallist(std::vector<Value>);
+    Vallist(std::initializer_list<Value>);
 
-    template <typename... T>
-    Vallist(T... val) : Vallist(std::vector{Value(std::forward<T>(val))...}) {}
+    // template <typename... T>
+    // Vallist(T... val) : Vallist(std::vector{Value(std::forward<T>(val))...}) {}
 };
 
 /**
@@ -244,12 +260,6 @@ public:
 
     void add(std::string name, Value value);
 
-    template <typename It> void add_all(It begin, It end) {
-        std::cout << "add_all(being, end)\n";
-        std::for_each(
-            begin, end, [](auto item) { std::cout << "[" << item.first << "] = Value\n"; });
-        global.insert(begin, end);
-    }
     void add_all(std::unordered_map<std::string, Value> values);
     void add_all(std::initializer_list<std::pair<const std::string, Value>> values);
 

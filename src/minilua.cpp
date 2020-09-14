@@ -48,23 +48,40 @@ std::ostream& operator<<(std::ostream& o, const String& self) {
 }
 
 // struct Table
+struct Table::Impl {
+    std::unordered_map<Value, Value> value;
+};
 Table::Table() = default;
-Table::Table(std::unordered_map<std::string, owning_ptr<Value>> value) : value(std::move(value)) {}
-Table::Table(std::initializer_list<std::pair<const std::string, Value>> values) {
+Table::Table(std::unordered_map<Value, Value> value)
+    : impl(make_owning<Impl>(Impl{.value = std::move(value)})) {}
+Table::Table(std::initializer_list<std::pair<const Value, Value>> values) {
     for (const auto& [key, value] : values) {
-        this->value.insert_or_assign(key, owning_ptr(value));
+        this->impl->value.insert_or_assign(key, value);
         std::cout << "\t" << key << " = " << value << "\n";
     }
-    std::cout << "new Table: " << value << "\n";
+    std::cout << "new Table: " << *this << "\n";
 }
 
-bool operator==(const Table& a, const Table& b) noexcept { return a.value == b.value; }
+Table::Table(const Table& other) : impl(other.impl) {}
+Table::Table(Table&& other) noexcept : impl(other.impl) {}
+Table::~Table() noexcept = default;
+Table& Table::operator=(const Table& other) {
+    impl = other.impl;
+    return *this;
+}
+Table& Table::operator=(Table&& other) {
+    swap(*this, other);
+    return *this;
+}
+void swap(Table& self, Table& other) { std::swap(self.impl, other.impl); }
+
+bool operator==(const Table& a, const Table& b) noexcept { return a.impl->value == b.impl->value; }
 bool operator!=(const Table& a, const Table& b) noexcept { return !(a == b); }
 std::ostream& operator<<(std::ostream& o, const Table& self) {
     o << "{";
 
-    for (const auto& [key, value] : self.value) {
-        o << "[\"" << key << "\"] = " << value.get() << ", ";
+    for (const auto& [key, value] : self.impl->value) {
+        o << "[" << key << "] = " << value << ", ";
     }
 
     return o << "}";
@@ -74,23 +91,47 @@ std::ostream& operator<<(std::ostream& o, const Table& self) {
 std::ostream& operator<<(std::ostream& o, const NativeFunction&) { return o << "<NativeFunction>"; }
 
 // class Value
-Value::Value() {}
-Value::Value(Value::Type val) : val(std::move(val)) { std::cout << "Value(std::variant)\n"; }
-Value::Value(Nil val) : val(val) { std::cout << "Value(Nil)\n"; }
-Value::Value(Bool val) : val(val) { std::cout << "Value(Bool)\n"; }
-Value::Value(bool val) : val(Bool(val)) { std::cout << "Value(bool)\n"; }
-Value::Value(Number val) : val(val) { std::cout << "Value(Number)\n"; }
-Value::Value(int val) : Value(static_cast<double>(val)) { std::cout << "Value(int)\n"; }
-Value::Value(double val) : val(Number(val)) { std::cout << "Value(double)\n"; }
-Value::Value(String val) : val(val) { std::cout << "Value(String)\n"; }
-Value::Value(std::string val) : val(String(std::move(val))) { std::cout << "Value(std::string)\n"; }
-Value::Value(Table val) : val(val) { std::cout << "Value(Table)\n"; }
-Value::Value(NativeFunction val) : val(val) { std::cout << "Value(NativeFunction)\n"; }
+struct Value::Impl {
+    Type val;
+};
 
+Value::Value() = default;
+Value::Value(Value::Type val) : impl(make_owning<Impl>(Impl{.val = std::move(val)})) {
+    std::cout << "Value(std::variant)\n";
+}
+Value::Value(Nil val) : impl(make_owning<Impl>(Impl{.val = val})) { std::cout << "Value(Nil)\n"; }
+Value::Value(Bool val) : impl(make_owning<Impl>(Impl{.val = val})) {
+    std::cout << "Value(Bool: " << val << ")\n";
+}
+Value::Value(bool val) : Value(Bool(val)) { std::cout << "Value(bool)\n"; }
+Value::Value(Number val) : impl(make_owning<Impl>(Impl{.val = val})) {
+    std::cout << "Value(Number: " << val << ")\n";
+}
+Value::Value(int val) : Value(Number(val)) { std::cout << "Value(int)\n"; }
+Value::Value(double val) : Value(Number(val)) { std::cout << "Value(double)\n"; }
+Value::Value(String val) : impl(make_owning<Impl>(Impl{.val = val})) {
+    std::cout << "Value(String)\n";
+}
+Value::Value(std::string val) : Value(String(std::move(val))) {
+    std::cout << "Value(std::string)\n";
+}
+Value::Value(const char* val) : Value(String(val)) { std::cout << "Value(const char*)\n"; }
+Value::Value(Table val) : impl(make_owning<Impl>(Impl{.val = val})) {
+    std::cout << "Value(Table)\n";
+}
+Value::Value(NativeFunction val) : impl(make_owning<Impl>(Impl{.val = val})) {
+    std::cout << "Value(NativeFunction)\n";
+}
+
+Value::Value(const Value& other) = default;
+Value::Value(Value&& other) noexcept = default;
 Value::~Value() = default;
+Value& Value::operator=(const Value& other) = default;
+Value& Value::operator=(Value&& other) = default;
+void swap(Value& self, Value& other) { std::swap(self.impl, other.impl); }
 
-Value::Type& Value::get() { return val; }
-const Value::Type& Value::get() const { return val; }
+Value::Type& Value::get() { return impl->val; }
+const Value::Type& Value::get() const { return impl->val; }
 
 bool operator==(const Value& a, const Value& b) noexcept { return a.get() == b.get(); }
 bool operator!=(const Value& a, const Value& b) noexcept { return !(a == b); }
@@ -108,10 +149,10 @@ void Environment::add_default_stdlib() {}
 void Environment::add(std::string name, Value value) { global.insert_or_assign(name, value); }
 
 void Environment::add_all(std::unordered_map<std::string, Value> values) {
-    add_all(values.begin(), values.end());
+    global.insert(values.begin(), values.end());
 }
 void Environment::add_all(std::initializer_list<std::pair<const std::string, Value>> values) {
-    add_all(values.begin(), values.end());
+    global.insert(values.begin(), values.end());
 }
 
 Value& Environment::get(const std::string& name) { return this->global.at(name); }
@@ -184,5 +225,10 @@ CallResult::CallResult(SourceChange) { std::cout << "CallResult(SourceChange)\n"
 CallResult::CallResult(Vallist, SourceChange) {
     std::cout << "CallResult(Vallist, SourceChange)\n";
 }
+
+// class Vallist
+Vallist::Vallist() { std::cout << "Vallist()\n"; }
+Vallist::Vallist(std::vector<Value>) { std::cout << "Vallist(vector)\n"; }
+Vallist::Vallist(std::initializer_list<Value>) { std::cout << "Vallist(<init-list>)\n"; }
 
 } // namespace minilua
