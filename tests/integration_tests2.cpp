@@ -1,10 +1,25 @@
 #include <MiniLua/MiniLua.hpp>
+#include <algorithm>
 #include <catch2/catch.hpp>
 #include <functional>
 #include <iostream>
+#include <sstream>
 #include <type_traits>
 
-minilua::Vallist native_function(minilua::CallContext ctx) { return {1, 2, "hi"}; }
+minilua::CallResult debug_values(minilua::CallContext ctx) {
+    std::vector<minilua::Value> values;
+    values.reserve(ctx.arguments().size());
+
+    std::transform(
+        ctx.arguments().begin(), ctx.arguments().end(), values.begin(),
+        [](const minilua::Value& value) {
+            std::stringstream ss;
+            ss << value;
+            return ss.str();
+        });
+
+    return values;
+}
 
 TEST_CASE("Interpreter") {
     minilua::owning_ptr<minilua::Value> x{minilua::make_owning<minilua::Value>(std::string("hi"))};
@@ -24,6 +39,7 @@ TEST_CASE("Interpreter") {
 
     auto lambda = [](minilua::CallContext ctx) { return std::string{"force something"}; };
 
+    std::cout << "as_native_function: ";
     minilua::NativeFunction as_native_function = lambda;
 
     // add a single variable to the environment
@@ -34,7 +50,7 @@ TEST_CASE("Interpreter") {
     interpreter.environment().add_all(
         {{"num2", 128},
          {"num3", 1.31},
-         {"func2", native_function},
+         {"func2", debug_values},
          {"func3", [](minilua::CallContext ctx) { std::cout << "func3 -> void\n"; }},
          {"func4",
           [](minilua::CallContext ctx) -> minilua::Vallist {

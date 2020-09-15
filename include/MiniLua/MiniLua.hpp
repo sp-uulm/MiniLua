@@ -17,28 +17,94 @@
 /**
  * This header defines the public api of the MiniLua library.
  *
- * We use the PImpl technique to hide implementation details
- * (https://en.cppreference.com/w/cpp/language/pimpl).
- * This has two benefits:
+ * We use the PImpl technique to hide implementation details (see below).
  *
- * 1. If we change some implementation details the user of the library does not need to recompile
- * 2. We can hide implementation details from the user of the library (e.g. Tree-Sitter)
+ * TODO some more documentation on where to start and design desitions
+ *
+ * ---
+ *
+ * PImpl technique:
+ *
+ * Also see: https://en.cppreference.com/w/cpp/language/pimpl
+ *
+ * With the PImpl technique we hide all behaviour using a private nested forward
+ * declaration of a struct or class. This has two important uses:
+ *
+ * 1. hiding the implementation details from the user
+ * 2. breaking up cycles of incomplete types
+ *    (this works because the cyclic reference are now in the cpp instead of the header)
+ *
+ * For this to work classes using the PImpl technique have to declare but not
+ * define all methods in the header. This includes special members like
+ * copy-constructor and destructor. Then these methods have to be implemented in
+ * the cpp file and the only difference is basically instead of using `this->`
+ * they have to use `this->impl->` or just `impl->`.
+ *
+ * A class with the PImpl technique usually looks like this:
+ *
+ * ```
+ * // in the header
+ * class Something {
+ *   struct Impl;
+ *   owning_ptr<Impl> impl; // any pointer type is ok here
+ *
+ * public:
+ *   // normal constructor declarations
+ *   Something(const Something&);
+ *   Something(Something&&) noexcept;
+ *   Something& operator=(const Something& other);
+ *   Something& operator=(Something&& other);
+ *   friend void swap(Something& self, Something& other);
+ * };
+ *
+ * // in the cpp
+ * struct Something::Impl {
+ *   // fields you would have put in class Something
+ * };
+ * Something::Something(const Something&) = default;
+ * Something(Something&&) noexcept = default;
+ * Something& operator=(const Something& other) = default;
+ * Something& operator=(Something&& other) = default;
+ * void swap(Something& self, Something& other) {
+ *   std::swap(self.impl, other.impl);
+ * }
+ * ```
+ *
+ * If the nested `struct Impl` is not default constructible you have to provide
+ * the implementation of the copy-/move-constructors and -operators manually and
+ * can't use `= default`.
+ *
+ * `owning_ptr<T>` was chosen for the pointer type because it behaves like a
+ * normal `T` (but lives on the heap). It's move, copy and lifetime semantics
+ * are identical to the one of `T`.
+ *
+ * Is is also possible to choose another pointer type like `std::unique_ptr` or
+ * `std::shared_ptr`. You should probably avoid using raw pointer `T*` because
+ * lifetime management is harder with raw pointers.
  */
-
-// TODO do we need integrated performance statistics?
-// - it's easy to just meassure how long parse/apply_source_changes and run takes yourself
 namespace minilua {
 
 /**
- * This is basically a std::unique_ptr that also support copying.
+ * This type behaves exactly like the type `T` it wraps but `T` is allocated on
+ * the heap.
+ *
+ * In other words this is a `std::unique_ptr` that also support copying.
  *
  * If this type is copied it will make a new heap allocation and copy the value.
+ *
+ * The default constructor of this class will call the default constructor of
+ * `T` instead of using a nullptr (like `std::unique_ptr` does).
  */
 template <typename T> class owning_ptr : public std::unique_ptr<T> {
 public:
     using std::unique_ptr<T>::unique_ptr;
 
-    owning_ptr() { this->reset(new T()); }
+    owning_ptr() {
+        static_assert(
+            std::is_default_constructible_v<T>,
+            "owning_ptr only has a default constructor if T has one");
+        this->reset(new T());
+    }
 
     owning_ptr(const owning_ptr<T>& other) { this->reset(new T(*other.get())); }
 
@@ -53,18 +119,41 @@ template <typename T, typename... Args> owning_ptr<T> make_owning(Args... args) 
 }
 
 // forward declaration
-class Vallist;
 class Value;
 class Environment;
 
 class Range {};
 
-class CallContext {
-    Range location;
-    Environment& env;
+class Vallist {
+    struct Impl;
+    owning_ptr<Impl> impl;
 
 public:
-    CallContext(Environment& env) : env(env) {}
+    Vallist();
+    Vallist(std::vector<Value>);
+    Vallist(std::initializer_list<Value>);
+    // concatenate vallists
+    Vallist(std::vector<Vallist>);
+
+    Vallist(const Vallist&);
+    Vallist(Vallist&&) noexcept;
+    ~Vallist();
+
+    [[nodiscard]] size_t size() const;
+    [[nodiscard]] const Value& get(size_t index) const;
+    [[nodiscard]] std::vector<Value>::const_iterator begin() const;
+    [[nodiscard]] std::vector<Value>::const_iterator end() const;
+};
+
+class CallContext {
+    struct Impl;
+    owning_ptr<Impl> impl;
+
+public:
+    CallContext(Environment& env);
+    CallContext(const CallContext&);
+    CallContext(CallContext&&) noexcept;
+    ~CallContext();
 
     [[nodiscard]] Range call_location() const;
 
@@ -77,6 +166,11 @@ public:
      * Returns the value of a variable accessible from the function.
      */
     [[nodiscard]] Value& get(std::string name) const;
+
+    /**
+     * Returns the arguments given to this function.
+     */
+    [[nodiscard]] const Vallist& arguments() const;
 };
 
 class SourceChange;
@@ -84,6 +178,8 @@ class CallResult {
 public:
     CallResult();
     CallResult(Vallist);
+    CallResult(std::vector<Value>);
+    CallResult(std::initializer_list<Value>);
     CallResult(SourceChange);
     CallResult(Vallist, SourceChange);
 };
@@ -166,7 +262,7 @@ public:
     template <typename Fn, typename = std::enable_if_t<std::is_invocable_v<Fn, CallContext>>>
     NativeFunction(Fn fn) {
         if constexpr (std::is_convertible_v<Fn, std::function<FnType>>) {
-            std::cout << "std::function -> Vallist\n";
+            std::cout << "std::function -> CallResult\n";
             this->func = fn;
         } else if constexpr (std::is_convertible_v<std::invoke_result_t<Fn, CallContext>, Value>) {
             // easy use of functions that return a type that is convertible to Value (e.g. string)
@@ -216,14 +312,14 @@ public:
     Value(Table val);
     Value(NativeFunction val);
 
+    template <typename Fn, typename = std::enable_if_t<std::is_invocable_v<Fn, CallContext>>>
+    Value(Fn val) : Value(NativeFunction(std::forward<Fn>(val))) {}
+
     Value(const Value&);
     Value(Value&&) noexcept;
     Value& operator=(const Value& other);
     Value& operator=(Value&& other);
     friend void swap(Value& self, Value& other);
-
-    template <typename Fn, typename = std::enable_if_t<std::is_invocable_v<Fn, CallContext>>>
-    Value(Fn val) : Value(NativeFunction(std::forward<Fn>(val))) {}
 
     ~Value();
 
@@ -234,16 +330,6 @@ public:
 bool operator==(const Value&, const Value&) noexcept;
 bool operator!=(const Value&, const Value&) noexcept;
 std::ostream& operator<<(std::ostream&, const Value&);
-
-class Vallist {
-public:
-    Vallist();
-    Vallist(std::vector<Value>);
-    Vallist(std::initializer_list<Value>);
-
-    // template <typename... T>
-    // Vallist(T... val) : Vallist(std::vector{Value(std::forward<T>(val))...}) {}
-};
 
 /**
  * Represents the global environment/configuration for the 'Interpreter'.

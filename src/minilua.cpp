@@ -141,9 +141,20 @@ std::ostream& operator<<(std::ostream& o, const Value& self) {
     return o;
 }
 
-Range CallContext::call_location() const { return this->location; }
-Environment& CallContext::environment() const { return this->env; }
-Value& CallContext::get(std::string name) const { return this->env.get(name); }
+struct CallContext::Impl {
+    Range location;
+    Environment& env;
+    Vallist args;
+};
+CallContext::CallContext(Environment& env) : impl(make_owning<Impl>(Impl{.env = env})) {}
+CallContext::CallContext(const CallContext& other) = default;
+CallContext::CallContext(CallContext&& other) noexcept = default;
+CallContext::~CallContext() = default;
+
+Range CallContext::call_location() const { return impl->location; }
+Environment& CallContext::environment() const { return impl->env; }
+Value& CallContext::get(std::string name) const { return impl->env.get(name); }
+const Vallist& CallContext::arguments() const { return impl->args; }
 
 void Environment::add_default_stdlib() {}
 void Environment::add(std::string name, Value value) { global.insert_or_assign(name, value); }
@@ -221,14 +232,28 @@ EvalResult Interpreter::run() { return impl->run(); }
 
 CallResult::CallResult() { std::cout << "CallResult\n"; }
 CallResult::CallResult(Vallist) { std::cout << "CallResult(Vallist)\n"; }
+CallResult::CallResult(std::vector<Value> values) : CallResult(Vallist(values)) {}
+CallResult::CallResult(std::initializer_list<Value> values) : CallResult(Vallist(values)) {}
 CallResult::CallResult(SourceChange) { std::cout << "CallResult(SourceChange)\n"; }
 CallResult::CallResult(Vallist, SourceChange) {
     std::cout << "CallResult(Vallist, SourceChange)\n";
 }
 
 // class Vallist
+struct Vallist::Impl {
+    std::vector<Value> values;
+};
 Vallist::Vallist() { std::cout << "Vallist()\n"; }
 Vallist::Vallist(std::vector<Value>) { std::cout << "Vallist(vector)\n"; }
 Vallist::Vallist(std::initializer_list<Value>) { std::cout << "Vallist(<init-list>)\n"; }
+
+Vallist::Vallist(const Vallist&) = default;
+Vallist::Vallist(Vallist&&) noexcept = default;
+Vallist::~Vallist() = default;
+
+size_t Vallist::size() const { return impl->values.size(); }
+const Value& Vallist::get(size_t index) const { return impl->values.at(index); }
+std::vector<Value>::const_iterator Vallist::begin() const { return impl->values.cbegin(); }
+std::vector<Value>::const_iterator Vallist::end() const { return impl->values.cend(); }
 
 } // namespace minilua
