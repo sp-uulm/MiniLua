@@ -6,7 +6,7 @@
 #include <sstream>
 #include <type_traits>
 
-minilua::CallResult debug_values(minilua::CallContext ctx) {
+auto debug_values(minilua::CallContext ctx) -> minilua::CallResult {
     std::vector<minilua::Value> values;
     values.reserve(ctx.arguments().size());
 

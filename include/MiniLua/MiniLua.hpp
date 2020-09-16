@@ -34,11 +34,12 @@
  * 2. breaking up cycles of incomplete types
  *    (this works because the cyclic reference are now in the cpp instead of the header)
  *
- * For this to work classes using the PImpl technique have to declare but not
- * define all methods in the header. This includes special members like
- * copy-constructor and destructor. Then these methods have to be implemented in
- * the cpp file and the only difference is basically instead of using `this->`
- * they have to use `this->impl->` or just `impl->`.
+ * For this to work classes using the PImpl technique can't *use* the private nested
+ * forward declaration. This means we have to declare but not define the methods
+ * in the header. This includes special member functions like copy-constructor and
+ * destructor. Then these methods have to be implemented in the cpp file and the
+ * only difference is basically instead of using `this->` they have to use
+ * `this->impl->` or just `impl->`.
  *
  * A class with the PImpl technique usually looks like this:
  *
@@ -108,13 +109,13 @@ public:
 
     owning_ptr(const owning_ptr<T>& other) { this->reset(new T(*other.get())); }
 
-    owning_ptr<T>& operator=(const owning_ptr<T>& other) {
+    auto operator=(const owning_ptr<T>& other) -> owning_ptr<T>& {
         this->reset(new T(*other.get()));
         return *this;
     }
 };
 
-template <typename T, typename... Args> owning_ptr<T> make_owning(Args... args) {
+template <typename T, typename... Args> auto make_owning(Args... args) -> owning_ptr<T> {
     return owning_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
@@ -139,10 +140,10 @@ public:
     Vallist(Vallist&&) noexcept;
     ~Vallist();
 
-    [[nodiscard]] size_t size() const;
-    [[nodiscard]] const Value& get(size_t index) const;
-    [[nodiscard]] std::vector<Value>::const_iterator begin() const;
-    [[nodiscard]] std::vector<Value>::const_iterator end() const;
+    [[nodiscard]] auto size() const -> size_t;
+    [[nodiscard]] auto get(size_t index) const -> const Value&;
+    [[nodiscard]] auto begin() const -> std::vector<Value>::const_iterator;
+    [[nodiscard]] auto end() const -> std::vector<Value>::const_iterator;
 };
 
 class CallContext {
@@ -155,22 +156,22 @@ public:
     CallContext(CallContext&&) noexcept;
     ~CallContext();
 
-    [[nodiscard]] Range call_location() const;
+    [[nodiscard]] auto call_location() const -> Range;
 
     /**
      * Returns a reference to the global environment.
      */
-    [[nodiscard]] Environment& environment() const;
+    [[nodiscard]] auto environment() const -> Environment&;
 
     /**
      * Returns the value of a variable accessible from the function.
      */
-    [[nodiscard]] Value& get(std::string name) const;
+    [[nodiscard]] auto get(std::string name) const -> Value&;
 
     /**
      * Returns the arguments given to this function.
      */
-    [[nodiscard]] const Vallist& arguments() const;
+    [[nodiscard]] auto arguments() const -> const Vallist&;
 };
 
 class SourceChange;
@@ -185,18 +186,18 @@ public:
 };
 
 struct Nil {};
-constexpr bool operator==(Nil, Nil) noexcept;
-constexpr bool operator!=(Nil, Nil) noexcept;
-std::ostream& operator<<(std::ostream&, Nil);
+constexpr auto operator==(Nil, Nil) noexcept -> bool;
+constexpr auto operator!=(Nil, Nil) noexcept -> bool;
+auto operator<<(std::ostream&, Nil) -> std::ostream&;
 
 struct Bool {
     bool value;
 
     constexpr Bool(bool);
 };
-constexpr bool operator==(Bool, Bool) noexcept;
-constexpr bool operator!=(Bool, Bool) noexcept;
-std::ostream& operator<<(std::ostream&, Bool);
+constexpr auto operator==(Bool, Bool) noexcept -> bool;
+constexpr auto operator!=(Bool, Bool) noexcept -> bool;
+auto operator<<(std::ostream&, Bool) -> std::ostream&;
 
 struct Number {
     double value;
@@ -204,22 +205,22 @@ struct Number {
     constexpr Number(int value) : value(value) {}
     constexpr Number(double);
 };
-constexpr bool operator==(Number, Number) noexcept;
-constexpr bool operator!=(Number, Number) noexcept;
-constexpr bool operator<(Number, Number) noexcept;
-constexpr bool operator>(Number, Number) noexcept;
-constexpr bool operator<=(Number, Number) noexcept;
-constexpr bool operator>=(Number, Number) noexcept;
-std::ostream& operator<<(std::ostream&, Number);
+constexpr auto operator==(Number, Number) noexcept -> bool;
+constexpr auto operator!=(Number, Number) noexcept -> bool;
+constexpr auto operator<(Number, Number) noexcept -> bool;
+constexpr auto operator>(Number, Number) noexcept -> bool;
+constexpr auto operator<=(Number, Number) noexcept -> bool;
+constexpr auto operator>=(Number, Number) noexcept -> bool;
+auto operator<<(std::ostream&, Number) -> std::ostream&;
 
 struct String {
     std::string value;
 
     String(std::string value);
 };
-bool operator==(const String& a, const String& b) noexcept;
-bool operator!=(const String& a, const String& b) noexcept;
-std::ostream& operator<<(std::ostream&, const String&);
+auto operator==(const String& a, const String& b) noexcept -> bool;
+auto operator!=(const String& a, const String& b) noexcept -> bool;
+auto operator<<(std::ostream&, const String&) -> std::ostream&;
 
 class Table {
     struct Impl;
@@ -233,13 +234,13 @@ public:
     Table(const Table& other);
     Table(Table&& other) noexcept;
     ~Table() noexcept;
-    Table& operator=(const Table& other);
-    Table& operator=(Table&& other);
+    auto operator=(const Table& other) -> Table&;
+    auto operator=(Table&& other) -> Table&;
     friend void swap(Table& self, Table& other);
 
-    friend bool operator==(const Table&, const Table&) noexcept;
-    friend bool operator!=(const Table&, const Table&) noexcept;
-    friend std::ostream& operator<<(std::ostream&, const Table&);
+    friend auto operator==(const Table&, const Table&) noexcept -> bool;
+    friend auto operator!=(const Table&, const Table&) noexcept -> bool;
+    friend auto operator<<(std::ostream&, const Table&) -> std::ostream&;
 };
 
 } // namespace minilua
@@ -247,7 +248,7 @@ public:
 namespace std {
 
 template <> struct hash<minilua::Value> {
-    size_t operator()(const minilua::Value& value) const { return 0; }
+    auto operator()(const minilua::Value& value) const -> size_t { return 0; }
 };
 
 } // namespace std
@@ -285,7 +286,7 @@ public:
     }
 };
 
-std::ostream& operator<<(std::ostream&, const NativeFunction&);
+auto operator<<(std::ostream&, const NativeFunction&) -> std::ostream&;
 
 // TODO LuaFunction
 // could maybe share a type with NativeFunction (not sure)
@@ -317,19 +318,19 @@ public:
 
     Value(const Value&);
     Value(Value&&) noexcept;
-    Value& operator=(const Value& other);
-    Value& operator=(Value&& other);
+    auto operator=(const Value& other) -> Value&;
+    auto operator=(Value&& other) -> Value&;
     friend void swap(Value& self, Value& other);
 
     ~Value();
 
-    Type& get();
-    const Type& get() const;
+    auto get() -> Type&;
+    auto get() const -> const Type&;
 };
 
-bool operator==(const Value&, const Value&) noexcept;
-bool operator!=(const Value&, const Value&) noexcept;
-std::ostream& operator<<(std::ostream&, const Value&);
+auto operator==(const Value&, const Value&) noexcept -> bool;
+auto operator!=(const Value&, const Value&) noexcept -> bool;
+auto operator<<(std::ostream&, const Value&) -> std::ostream&;
 
 /**
  * Represents the global environment/configuration for the 'Interpreter'.
@@ -349,11 +350,11 @@ public:
     void add_all(std::unordered_map<std::string, Value> values);
     void add_all(std::initializer_list<std::pair<const std::string, Value>> values);
 
-    Value& get(const std::string& name);
+    auto get(const std::string& name) -> Value&;
 
-    friend bool operator==(const Environment&, const Environment&) noexcept;
-    friend bool operator!=(const Environment&, const Environment&) noexcept;
-    friend std::ostream& operator<<(std::ostream&, const Environment&);
+    friend auto operator==(const Environment&, const Environment&) noexcept -> bool;
+    friend auto operator!=(const Environment&, const Environment&) noexcept -> bool;
+    friend auto operator<<(std::ostream&, const Environment&) -> std::ostream&;
 };
 
 class SourceChange {};
@@ -384,7 +385,7 @@ public:
     /**
      * Returns the environment for modification.
      */
-    [[nodiscard]] Environment& environment();
+    [[nodiscard]] auto environment() -> Environment&;
 
     /**
      * Parse fresh source code.
@@ -408,7 +409,7 @@ public:
      * TODO should the user be able to provide parameters?
      * - not sure how you would provide them to lua
      */
-    EvalResult run();
+    auto run() -> EvalResult;
 };
 
 } // namespace minilua
