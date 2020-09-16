@@ -85,3 +85,37 @@ TEST_CASE("Interpreter") {
         }
     }
 }
+
+TEST_CASE("table") {
+    minilua::Table table;
+
+    table.set(5, "value1");
+    CHECK(table.get(5) == "value1");
+
+    minilua::Value val1 = table.get(5);
+
+    table.set(5, "value2");
+    table.set("hi", "value1");
+
+    CHECK(table.get(5) == "value2");
+    CHECK(table.get("hi") == "value1");
+    CHECK(val1 == "value1");
+
+    table.set("table", minilua::Table());
+    CAPTURE(table);
+
+    auto table2 = std::get<minilua::Table>(table.get("table").get());
+    table2.set("x", 22);
+
+    CAPTURE(table);
+
+    minilua::Table table3;
+    table3.set("y", 23);
+
+    CHECK(table.get("table") == table2);
+
+    table.set("table", table3);
+
+    CAPTURE(table);
+    FAIL();
+}

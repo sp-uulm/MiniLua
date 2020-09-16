@@ -224,7 +224,7 @@ auto operator<<(std::ostream&, const String&) -> std::ostream&;
 
 class Table {
     struct Impl;
-    owning_ptr<Impl> impl;
+    std::shared_ptr<Impl> impl;
 
 public:
     Table();
@@ -238,41 +238,37 @@ public:
     auto operator=(Table&& other) -> Table&;
     friend void swap(Table& self, Table& other);
 
+    auto get(const Value& key) -> Value;
+    void set(const Value& key, Value value);
+    void set(Value&& key, Value value);
+
     friend auto operator==(const Table&, const Table&) noexcept -> bool;
     friend auto operator!=(const Table&, const Table&) noexcept -> bool;
     friend auto operator<<(std::ostream&, const Table&) -> std::ostream&;
+
+    friend struct std::hash<Table>;
 };
-
-} // namespace minilua
-
-namespace std {
-
-template <> struct hash<minilua::Value> {
-    auto operator()(const minilua::Value& value) const -> size_t { return 0; }
-};
-
-} // namespace std
-
-namespace minilua {
 
 class NativeFunction {
     using FnType = CallResult(CallContext);
-    std::function<FnType> func;
+    std::shared_ptr<std::function<FnType>> func;
 
 public:
     template <typename Fn, typename = std::enable_if_t<std::is_invocable_v<Fn, CallContext>>>
     NativeFunction(Fn fn) {
+        this->func = std::make_shared<std::function<FnType>>();
+
         if constexpr (std::is_convertible_v<Fn, std::function<FnType>>) {
             std::cout << "std::function -> CallResult\n";
-            this->func = fn;
+            *this->func = fn;
         } else if constexpr (std::is_convertible_v<std::invoke_result_t<Fn, CallContext>, Value>) {
             // easy use of functions that return a type that is convertible to Value (e.g. string)
             std::cout << "std::function -> into Value\n";
-            this->func = [fn](CallContext ctx) -> CallResult { return CallResult({fn(ctx)}); };
+            *this->func = [fn](CallContext ctx) -> CallResult { return CallResult({fn(ctx)}); };
         } else if constexpr (std::is_void_v<std::invoke_result_t<Fn, CallContext>>) {
             std::cout << "lambda wrapper -> void\n";
             // support void functions by returning an empty Vallist
-            this->func = [fn](CallContext ctx) -> CallResult {
+            *this->func = [fn](CallContext ctx) -> CallResult {
                 fn(ctx);
                 return CallResult();
             };
@@ -284,12 +280,46 @@ public:
                 "can only use function likes that take a CallContext as parameter");
         }
     }
+
+    friend struct std::hash<NativeFunction>;
 };
 
 auto operator<<(std::ostream&, const NativeFunction&) -> std::ostream&;
 
 // TODO LuaFunction
 // could maybe share a type with NativeFunction (not sure)
+
+} // namespace minilua
+
+namespace std {
+
+// NOTE: has to come before definition of Value
+template <> struct hash<minilua::Value> {
+    auto operator()(const minilua::Value& value) const -> size_t;
+};
+template <> struct hash<minilua::Nil> {
+    auto operator()(const minilua::Nil& value) const -> size_t;
+};
+template <> struct hash<minilua::Bool> {
+    auto operator()(const minilua::Bool& value) const -> size_t;
+};
+template <> struct hash<minilua::Number> {
+    auto operator()(const minilua::Number& value) const -> size_t;
+};
+template <> struct hash<minilua::String> {
+    auto operator()(const minilua::String& value) const -> size_t;
+};
+template <> struct hash<minilua::Table> {
+    auto operator()(const minilua::Table& value) const -> size_t;
+};
+// TODO should we allow this?
+template <> struct hash<minilua::NativeFunction> {
+    auto operator()(const minilua::NativeFunction& value) const -> size_t;
+};
+
+} // namespace std
+
+namespace minilua {
 
 class Value {
     struct Impl;

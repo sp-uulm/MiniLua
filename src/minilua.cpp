@@ -1,6 +1,8 @@
 #include "MiniLua/MiniLua.hpp"
+#include <cmath>
 #include <ios>
 #include <iostream>
+#include <stdexcept>
 #include <utility>
 #include <variant>
 
@@ -39,7 +41,7 @@ constexpr auto operator>=(Number a, Number b) noexcept -> bool { return a.value 
 auto operator<<(std::ostream& o, Number self) -> std::ostream& { return o << self.value; }
 
 // struct String
-String::String(std::string value) : value(value) {}
+String::String(std::string value) : value(std::move(value)) {}
 
 auto operator==(const String& a, const String& b) noexcept -> bool { return a.value == b.value; }
 auto operator!=(const String& a, const String& b) noexcept -> bool { return !(a == b); }
@@ -51,10 +53,10 @@ auto operator<<(std::ostream& o, const String& self) -> std::ostream& {
 struct Table::Impl {
     std::unordered_map<Value, Value> value;
 };
-Table::Table() = default;
+Table::Table() : impl(std::make_shared<Impl>()){};
 Table::Table(std::unordered_map<Value, Value> value)
-    : impl(make_owning<Impl>(Impl{.value = std::move(value)})) {}
-Table::Table(std::initializer_list<std::pair<const Value, Value>> values) {
+    : impl(std::make_shared<Impl>(Impl{.value = std::move(value)})) {}
+Table::Table(std::initializer_list<std::pair<const Value, Value>> values) : Table() {
     for (const auto& [key, value] : values) {
         this->impl->value.insert_or_assign(key, value);
         std::cout << "\t" << key << " = " << value << "\n";
@@ -75,9 +77,11 @@ auto Table::operator=(Table&& other) -> Table& {
 }
 void swap(Table& self, Table& other) { std::swap(self.impl, other.impl); }
 
-auto operator==(const Table& a, const Table& b) noexcept -> bool {
-    return a.impl->value == b.impl->value;
-}
+auto Table::get(const Value& key) -> Value { return impl->value.at(key); }
+void Table::set(const Value& key, Value value) { impl->value[key] = std::move(value); }
+void Table::set(Value&& key, Value value) { impl->value[key] = std::move(value); }
+
+auto operator==(const Table& a, const Table& b) noexcept -> bool { return a.impl == b.impl; }
 auto operator!=(const Table& a, const Table& b) noexcept -> bool { return !(a == b); }
 auto operator<<(std::ostream& o, const Table& self) -> std::ostream& {
     o << "{";
@@ -144,6 +148,40 @@ auto operator<<(std::ostream& o, const Value& self) -> std::ostream& {
 
     return o;
 }
+
+} // namespace minilua
+
+namespace std {
+auto std::hash<minilua::Value>::operator()(const minilua::Value& value) const -> size_t {
+    return std::hash<minilua::Value::Type>()(value.get());
+}
+auto std::hash<minilua::Nil>::operator()(const minilua::Nil& /*value*/) const -> size_t {
+    // lua does not allow using nil as a table key
+    // but we are not allowed to throw inside of std::hash
+    return 0;
+}
+auto std::hash<minilua::Bool>::operator()(const minilua::Bool& value) const -> size_t { return 0; }
+auto std::hash<minilua::Number>::operator()(const minilua::Number& value) const -> size_t {
+    // lua does not allow using NaN as a table key
+    // but we are not allowed to throw inside of std::hash
+    if (std::isnan(value.value)) {
+        return 0;
+    }
+    return std::hash<double>()(value.value);
+}
+auto std::hash<minilua::String>::operator()(const minilua::String& value) const -> size_t {
+    return std::hash<std::string>()(value.value);
+}
+auto std::hash<minilua::Table>::operator()(const minilua::Table& value) const -> size_t {
+    return std::hash<decltype(value.impl)>()(value.impl);
+}
+auto std::hash<minilua::NativeFunction>::operator()(const minilua::NativeFunction& value) const
+    -> size_t {
+    return std::hash<decltype(value.func)>()(value.func);
+}
+} // namespace std
+
+namespace minilua {
 
 struct CallContext::Impl {
     Range location;
