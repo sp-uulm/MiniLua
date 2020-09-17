@@ -107,7 +107,9 @@ public:
         this->reset(new T());
     }
 
-    owning_ptr(const owning_ptr<T>& other) { this->reset(new T(*other.get())); }
+    owning_ptr(const owning_ptr<T>& other) {
+        this->reset(new T(*other.get()));
+    }
 
     auto operator=(const owning_ptr<T>& other) -> owning_ptr<T>& {
         this->reset(new T(*other.get()));
@@ -119,11 +121,64 @@ template <typename T, typename... Args> auto make_owning(Args... args) -> owning
     return owning_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
+/**
+ * Represents a location in source code.
+ *
+ * NOTE: The comparison operators only consider the byte field. If you want
+ * correct results you should only compare locations that were generated from
+ * the same source code.
+ */
+struct Location {
+    uint32_t line;
+    uint32_t column;
+    uint32_t byte;
+};
+
+constexpr auto operator==(Location lhs, Location rhs) noexcept -> bool {
+    return lhs.byte == rhs.byte;
+}
+constexpr auto operator!=(Location lhs, Location rhs) noexcept -> bool {
+    return !(lhs == rhs);
+}
+constexpr auto operator<(Location lhs, Location rhs) noexcept -> bool {
+    return lhs.byte < rhs.byte;
+}
+constexpr auto operator<=(Location lhs, Location rhs) noexcept -> bool {
+    return lhs.byte <= rhs.byte;
+}
+constexpr auto operator>(Location lhs, Location rhs) noexcept -> bool {
+    return lhs.byte > rhs.byte;
+}
+constexpr auto operator>=(Location lhs, Location rhs) noexcept -> bool {
+    return lhs.byte >= rhs.byte;
+}
+auto operator<<(std::ostream&, const Location&) -> std::ostream&;
+
+struct Range {
+    Location start;
+    Location end;
+};
+
+constexpr auto operator==(Range lhs, Range rhs) noexcept -> bool {
+    return lhs.start == rhs.start && lhs.end == rhs.end;
+}
+constexpr auto operator!=(Range lhs, Range rhs) noexcept -> bool {
+    return !(lhs == rhs);
+}
+auto operator<<(std::ostream&, const Range&) -> std::ostream&;
+
+struct SourceChange {
+    Range range;
+    std::string replacement;
+};
+
+auto operator==(const SourceChange& lhs, const SourceChange& rhs) noexcept -> bool;
+auto operator!=(const SourceChange& lhs, const SourceChange& rhs) noexcept -> bool;
+auto operator<<(std::ostream&, const SourceChange&) -> std::ostream&;
+
 // forward declaration
 class Value;
 class Environment;
-
-class Range {};
 
 class Vallist {
     struct Impl;
@@ -144,6 +199,8 @@ public:
     [[nodiscard]] auto get(size_t index) const -> const Value&;
     [[nodiscard]] auto begin() const -> std::vector<Value>::const_iterator;
     [[nodiscard]] auto end() const -> std::vector<Value>::const_iterator;
+
+    friend auto operator<<(std::ostream&, const Vallist&) -> std::ostream&;
 };
 
 class CallContext {
@@ -172,9 +229,10 @@ public:
      * Returns the arguments given to this function.
      */
     [[nodiscard]] auto arguments() const -> const Vallist&;
+
+    friend auto operator<<(std::ostream&, const CallContext&) -> std::ostream&;
 };
 
-class SourceChange;
 class CallResult {
 public:
     CallResult();
@@ -183,11 +241,17 @@ public:
     CallResult(std::initializer_list<Value>);
     CallResult(SourceChange);
     CallResult(Vallist, SourceChange);
+
+    // friend auto operator<<(std::ostream&, const CallResult&) -> std::ostream&;
 };
 
 struct Nil {};
-constexpr auto operator==(Nil, Nil) noexcept -> bool { return true; }
-constexpr auto operator!=(Nil, Nil) noexcept -> bool { return false; }
+constexpr auto operator==(Nil, Nil) noexcept -> bool {
+    return true;
+}
+constexpr auto operator!=(Nil, Nil) noexcept -> bool {
+    return false;
+}
 auto operator<<(std::ostream&, Nil) -> std::ostream&;
 
 struct Bool {
@@ -195,8 +259,12 @@ struct Bool {
 
     constexpr Bool(bool value) : value(value) {}
 };
-constexpr auto operator==(Bool lhs, Bool rhs) noexcept -> bool { return lhs.value == rhs.value; }
-constexpr auto operator!=(Bool lhs, Bool rhs) noexcept -> bool { return !(lhs == rhs); }
+constexpr auto operator==(Bool lhs, Bool rhs) noexcept -> bool {
+    return lhs.value == rhs.value;
+}
+constexpr auto operator!=(Bool lhs, Bool rhs) noexcept -> bool {
+    return !(lhs == rhs);
+}
 auto operator<<(std::ostream&, Bool) -> std::ostream&;
 
 struct Number {
@@ -208,9 +276,15 @@ struct Number {
 constexpr auto operator==(Number lhs, Number rhs) noexcept -> bool {
     return lhs.value == rhs.value;
 }
-constexpr auto operator!=(Number lhs, Number rhs) noexcept -> bool { return !(lhs == rhs); }
-constexpr auto operator<(Number lhs, Number rhs) noexcept -> bool { return lhs.value < rhs.value; }
-constexpr auto operator>(Number lhs, Number rhs) noexcept -> bool { return lhs.value > rhs.value; }
+constexpr auto operator!=(Number lhs, Number rhs) noexcept -> bool {
+    return !(lhs == rhs);
+}
+constexpr auto operator<(Number lhs, Number rhs) noexcept -> bool {
+    return lhs.value < rhs.value;
+}
+constexpr auto operator>(Number lhs, Number rhs) noexcept -> bool {
+    return lhs.value > rhs.value;
+}
 constexpr auto operator<=(Number lhs, Number rhs) noexcept -> bool {
     return lhs.value <= rhs.value;
 }
@@ -241,7 +315,7 @@ public:
     Table(Table&& other) noexcept;
     ~Table() noexcept;
     auto operator=(const Table& other) -> Table&;
-    auto operator=(Table&& other) -> Table&;
+    auto operator=(Table&& other) noexcept -> Table&;
     friend void swap(Table& self, Table& other);
 
     auto get(const Value& key) -> Value;
@@ -270,7 +344,9 @@ public:
         } else if constexpr (std::is_convertible_v<std::invoke_result_t<Fn, CallContext>, Value>) {
             // easy use of functions that return a type that is convertible to Value (e.g. string)
             std::cout << "std::function -> into Value\n";
-            *this->func = [fn](CallContext ctx) -> CallResult { return CallResult({fn(ctx)}); };
+            *this->func = [fn](CallContext ctx) -> CallResult {
+                return CallResult({fn(ctx)});
+            };
         } else if constexpr (std::is_void_v<std::invoke_result_t<Fn, CallContext>>) {
             std::cout << "lambda wrapper -> void\n";
             // support void functions by returning an empty Vallist
@@ -395,8 +471,6 @@ public:
     friend auto operator!=(const Environment&, const Environment&) noexcept -> bool;
     friend auto operator<<(std::ostream&, const Environment&) -> std::ostream&;
 };
-
-class SourceChange {};
 
 struct SuggestedSourceChange {
     // can be filled in by the function creating the suggestion

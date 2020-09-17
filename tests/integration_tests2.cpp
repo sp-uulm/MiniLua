@@ -22,17 +22,33 @@ auto debug_values(minilua::CallContext ctx) -> minilua::CallResult {
     return values;
 }
 
-auto fn(minilua::CallContext) -> minilua::CallResult { return minilua::CallResult(); }
-auto fn_ref(const minilua::CallContext&) -> minilua::CallResult { return minilua::CallResult(); }
+auto fn(minilua::CallContext) -> minilua::CallResult {
+    return minilua::CallResult();
+}
+auto fn_ref(const minilua::CallContext&) -> minilua::CallResult {
+    return minilua::CallResult();
+}
 
-auto fn_vallist(minilua::CallContext) -> minilua::Vallist { return minilua::Vallist(); }
-auto fn_ref_vallist(const minilua::CallContext&) -> minilua::Vallist { return minilua::Vallist(); }
+auto fn_vallist(minilua::CallContext) -> minilua::Vallist {
+    return minilua::Vallist();
+}
+auto fn_ref_vallist(const minilua::CallContext&) -> minilua::Vallist {
+    return minilua::Vallist();
+}
 
-auto fn_value(minilua::CallContext) -> minilua::Value { return minilua::Value(); }
-auto fn_ref_value(const minilua::CallContext&) -> minilua::Value { return minilua::Value(); }
+auto fn_value(minilua::CallContext) -> minilua::Value {
+    return minilua::Value();
+}
+auto fn_ref_value(const minilua::CallContext&) -> minilua::Value {
+    return minilua::Value();
+}
 
-auto fn_string(minilua::CallContext) -> std::string { return std::string(); }
-auto fn_ref_string(const minilua::CallContext&) -> std::string { return std::string(); }
+auto fn_string(minilua::CallContext) -> std::string {
+    return std::string();
+}
+auto fn_ref_string(const minilua::CallContext&) -> std::string {
+    return std::string();
+}
 
 void fn_void(minilua::CallContext) {}
 void fn_ref_void(const minilua::CallContext&) {}
@@ -203,7 +219,9 @@ TEST_CASE("Lua Values") {
             minilua::Value value1{fn_value};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
 
-            auto lambda = [](minilua::CallContext) -> minilua::Value { return minilua::Value(); };
+            auto lambda = [](minilua::CallContext) -> minilua::Value {
+                return minilua::Value();
+            };
             minilua::Value value2{lambda};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value2.get()));
         }
@@ -222,7 +240,9 @@ TEST_CASE("Lua Values") {
             minilua::Value value1{fn_string};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
 
-            auto lambda = [](minilua::CallContext) -> std::string { return std::string(); };
+            auto lambda = [](minilua::CallContext) -> std::string {
+                return std::string();
+            };
             minilua::Value value2{lambda};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value2.get()));
         }
@@ -230,7 +250,9 @@ TEST_CASE("Lua Values") {
             minilua::Value value1{fn_ref_string};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
 
-            auto lambda = [](const minilua::CallContext&) -> std::string { return std::string(); };
+            auto lambda = [](const minilua::CallContext&) -> std::string {
+                return std::string();
+            };
             minilua::Value value2{lambda};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value2.get()));
         }
@@ -239,7 +261,8 @@ TEST_CASE("Lua Values") {
             minilua::Value value1{fn_void};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
 
-            auto lambda = [](minilua::CallContext) {};
+            auto lambda = [](minilua::CallContext) {
+            };
             minilua::Value value2{lambda};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value2.get()));
         }
@@ -247,7 +270,8 @@ TEST_CASE("Lua Values") {
             minilua::Value value1{fn_ref_void};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
 
-            auto lambda = [](const minilua::CallContext&) {};
+            auto lambda = [](const minilua::CallContext&) {
+            };
             minilua::Value value2{lambda};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value2.get()));
         }
@@ -270,7 +294,9 @@ TEST_CASE("Interpreter") {
     // populate the environment
     interpreter.environment().add_default_stdlib();
 
-    auto lambda = [](minilua::CallContext ctx) { return std::string{"force something"}; };
+    auto lambda = [](minilua::CallContext ctx) {
+        return std::string{"force something"};
+    };
 
     std::cout << "as_native_function: ";
     minilua::NativeFunction as_native_function = lambda;
@@ -284,7 +310,10 @@ TEST_CASE("Interpreter") {
         {{"num2", 128},
          {"num3", 1.31},
          {"func2", debug_values},
-         {"func3", [](minilua::CallContext ctx) { std::cout << "func3 -> void\n"; }},
+         {"func3",
+          [](minilua::CallContext ctx) {
+              std::cout << "func3 -> void\n";
+          }},
          {"func4",
           [](minilua::CallContext ctx) -> minilua::Vallist {
               return {1, std::string{"hi"}};
