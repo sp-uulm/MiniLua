@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <type_traits>
+#include <variant>
 
 auto debug_values(minilua::CallContext ctx) -> minilua::CallResult {
     std::vector<minilua::Value> values;
@@ -19,6 +20,238 @@ auto debug_values(minilua::CallContext ctx) -> minilua::CallResult {
         });
 
     return values;
+}
+
+auto fn(minilua::CallContext) -> minilua::CallResult { return minilua::CallResult(); }
+auto fn_ref(const minilua::CallContext&) -> minilua::CallResult { return minilua::CallResult(); }
+
+auto fn_vallist(minilua::CallContext) -> minilua::Vallist { return minilua::Vallist(); }
+auto fn_ref_vallist(const minilua::CallContext&) -> minilua::Vallist { return minilua::Vallist(); }
+
+auto fn_value(minilua::CallContext) -> minilua::Value { return minilua::Value(); }
+auto fn_ref_value(const minilua::CallContext&) -> minilua::Value { return minilua::Value(); }
+
+auto fn_string(minilua::CallContext) -> std::string { return std::string(); }
+auto fn_ref_string(const minilua::CallContext&) -> std::string { return std::string(); }
+
+void fn_void(minilua::CallContext) {}
+void fn_ref_void(const minilua::CallContext&) {}
+
+TEST_CASE("Lua Values") {
+    SECTION("nil") {
+        SECTION("via default constructor of Value") {
+            const minilua::Value value{};
+            CHECK(std::holds_alternative<minilua::Nil>(value.get()));
+        }
+        SECTION("via explicit construction of Nil") {
+            const minilua::Value value{minilua::Nil()};
+            CHECK(std::holds_alternative<minilua::Nil>(value.get()));
+        }
+    }
+
+    SECTION("bool") {
+        SECTION("true") {
+            const minilua::Value value{true};
+            CHECK(std::holds_alternative<minilua::Bool>(value.get()));
+            CHECK(std::get<minilua::Bool>(value.get()) == true);
+            CHECK(std::get<minilua::Bool>(value.get()).value == true);
+        }
+        SECTION("false") {
+            const minilua::Value value{false};
+            CHECK(std::holds_alternative<minilua::Bool>(value.get()));
+            CHECK(std::get<minilua::Bool>(value.get()) == false);
+            CHECK(std::get<minilua::Bool>(value.get()).value == false);
+        }
+    }
+
+    SECTION("number") {
+        SECTION("2") {
+            const minilua::Value value{2};
+            CHECK(std::holds_alternative<minilua::Number>(value.get()));
+            CHECK(std::get<minilua::Number>(value.get()) == 2);
+            CHECK(std::get<minilua::Number>(value.get()).value == 2);
+        }
+        SECTION("-5e27") {
+            const double expected_value = -5e27;
+            const minilua::Value value{expected_value};
+            CHECK(std::holds_alternative<minilua::Number>(value.get()));
+            CHECK(std::get<minilua::Number>(value.get()) == expected_value);
+            CHECK(std::get<minilua::Number>(value.get()).value == expected_value);
+        }
+    }
+
+    SECTION("string") {
+        SECTION("empty") {
+            const minilua::Value value{""};
+            CHECK(std::holds_alternative<minilua::String>(value.get()));
+            CHECK(std::get<minilua::String>(value.get()) == "");
+            CHECK(std::get<minilua::String>(value.get()).value == ""); // NOLINT
+        }
+        SECTION("small") {
+            const minilua::Value value{"string"};
+            CHECK(std::holds_alternative<minilua::String>(value.get()));
+            CHECK(std::get<minilua::String>(value.get()) == "string");
+            CHECK(std::get<minilua::String>(value.get()).value == "string");
+        }
+        SECTION("big") {
+            const auto* const expected_value =
+                "string string string string string string string string string";
+            const minilua::Value value{expected_value};
+            CHECK(std::holds_alternative<minilua::String>(value.get()));
+            CHECK(std::get<minilua::String>(value.get()) == expected_value);
+            CHECK(std::get<minilua::String>(value.get()).value == expected_value);
+        }
+    }
+
+    SECTION("table") {
+        SECTION("empty") {
+            minilua::Value value{minilua::Table()};
+            SECTION("different tables are not equal") {
+                CHECK(std::holds_alternative<minilua::Table>(value.get()));
+                CHECK(std::get<minilua::Table>(value.get()) != minilua::Table());
+            }
+
+            minilua::Value value_copy = value; // NOLINT
+            SECTION("copies of tables are equal") {
+                CHECK(std::holds_alternative<minilua::Table>(value_copy.get()));
+                CHECK(
+                    std::get<minilua::Table>(value_copy.get()) ==
+                    std::get<minilua::Table>(value.get()));
+            }
+
+            SECTION("changes apply to all copies of a table") {
+                auto& table = std::get<minilua::Table>(value.get());
+                auto& table_copy = std::get<minilua::Table>(value_copy.get());
+
+                table.set("key2", 7.5);
+
+                CHECK(table == table_copy);
+            }
+        }
+
+        SECTION("small") {
+            minilua::Value value{minilua::Table{{"key1", 22}}};
+            SECTION("different tables are not equal") {
+                CHECK(std::holds_alternative<minilua::Table>(value.get()));
+                CHECK(std::get<minilua::Table>(value.get()) != minilua::Table());
+            }
+
+            minilua::Value value_copy = value; // NOLINT
+            SECTION("copies of tables are equal") {
+                CHECK(std::holds_alternative<minilua::Table>(value_copy.get()));
+                CHECK(
+                    std::get<minilua::Table>(value_copy.get()) ==
+                    std::get<minilua::Table>(value.get()));
+            }
+
+            SECTION("changes apply to all copies of a table") {
+                auto& table = std::get<minilua::Table>(value.get());
+                auto& table_copy = std::get<minilua::Table>(value_copy.get());
+
+                table.set(1, "hello");
+
+                CHECK(table == table_copy);
+                CHECK(table_copy.get(1) == "hello");
+            }
+        }
+    }
+
+    SECTION("native function") {
+        SECTION("lambda: (CallContext) -> CallResult") {
+            minilua::Value value1{fn};
+            CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
+
+            auto lambda = [](minilua::CallContext) -> minilua::CallResult {
+                return minilua::CallResult();
+            };
+            minilua::Value value2{lambda};
+            CHECK(std::holds_alternative<minilua::NativeFunction>(value2.get()));
+        }
+        SECTION("lambda: (const CallContext&) -> CallResult") {
+            minilua::Value value1{fn_ref};
+            CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
+
+            auto lambda = [](const minilua::CallContext&) -> minilua::CallResult {
+                return minilua::CallResult();
+            };
+            minilua::Value value2{lambda};
+            CHECK(std::holds_alternative<minilua::NativeFunction>(value2.get()));
+        }
+
+        SECTION("lambda: (CallContext) -> Vallist") {
+            minilua::Value value1{fn_vallist};
+            CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
+
+            auto lambda = [](minilua::CallContext) -> minilua::Vallist {
+                return minilua::Vallist();
+            };
+            minilua::Value value2{lambda};
+            CHECK(std::holds_alternative<minilua::NativeFunction>(value2.get()));
+        }
+        SECTION("lambda: (const CallContext&) -> Vallist") {
+            minilua::Value value1{fn_ref_vallist};
+            CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
+
+            auto lambda = [](const minilua::CallContext&) -> minilua::Vallist {
+                return minilua::Vallist();
+            };
+            minilua::Value value2{lambda};
+            CHECK(std::holds_alternative<minilua::NativeFunction>(value2.get()));
+        }
+
+        SECTION("lambda: (CallContext) -> Value") {
+            minilua::Value value1{fn_value};
+            CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
+
+            auto lambda = [](minilua::CallContext) -> minilua::Value { return minilua::Value(); };
+            minilua::Value value2{lambda};
+            CHECK(std::holds_alternative<minilua::NativeFunction>(value2.get()));
+        }
+        SECTION("lambda: (const CallContext&) -> Value") {
+            minilua::Value value1{fn_ref_value};
+            CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
+
+            auto lambda = [](const minilua::CallContext&) -> minilua::Value {
+                return minilua::Value();
+            };
+            minilua::Value value2{lambda};
+            CHECK(std::holds_alternative<minilua::NativeFunction>(value2.get()));
+        }
+
+        SECTION("lambda: (CallContext) -> into Value") {
+            minilua::Value value1{fn_string};
+            CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
+
+            auto lambda = [](minilua::CallContext) -> std::string { return std::string(); };
+            minilua::Value value2{lambda};
+            CHECK(std::holds_alternative<minilua::NativeFunction>(value2.get()));
+        }
+        SECTION("lambda: (const CallContext&) -> into Value") {
+            minilua::Value value1{fn_ref_string};
+            CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
+
+            auto lambda = [](const minilua::CallContext&) -> std::string { return std::string(); };
+            minilua::Value value2{lambda};
+            CHECK(std::holds_alternative<minilua::NativeFunction>(value2.get()));
+        }
+
+        SECTION("lambda: (CallContext) -> void") {
+            minilua::Value value1{fn_void};
+            CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
+
+            auto lambda = [](minilua::CallContext) {};
+            minilua::Value value2{lambda};
+            CHECK(std::holds_alternative<minilua::NativeFunction>(value2.get()));
+        }
+        SECTION("lambda: (const CallContext&) -> void") {
+            minilua::Value value1{fn_ref_void};
+            CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
+
+            auto lambda = [](const minilua::CallContext&) {};
+            minilua::Value value2{lambda};
+            CHECK(std::holds_alternative<minilua::NativeFunction>(value2.get()));
+        }
+    }
 }
 
 TEST_CASE("Interpreter") {
@@ -117,5 +350,5 @@ TEST_CASE("table") {
     table.set("table", table3);
 
     CAPTURE(table);
-    FAIL();
+    // FAIL();
 }

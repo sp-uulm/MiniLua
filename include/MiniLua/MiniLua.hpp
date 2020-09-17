@@ -186,35 +186,41 @@ public:
 };
 
 struct Nil {};
-constexpr auto operator==(Nil, Nil) noexcept -> bool;
-constexpr auto operator!=(Nil, Nil) noexcept -> bool;
+constexpr auto operator==(Nil, Nil) noexcept -> bool { return true; }
+constexpr auto operator!=(Nil, Nil) noexcept -> bool { return false; }
 auto operator<<(std::ostream&, Nil) -> std::ostream&;
 
 struct Bool {
     bool value;
 
-    constexpr Bool(bool);
+    constexpr Bool(bool value) : value(value) {}
 };
-constexpr auto operator==(Bool, Bool) noexcept -> bool;
-constexpr auto operator!=(Bool, Bool) noexcept -> bool;
+constexpr auto operator==(Bool lhs, Bool rhs) noexcept -> bool { return lhs.value == rhs.value; }
+constexpr auto operator!=(Bool lhs, Bool rhs) noexcept -> bool { return !(lhs == rhs); }
 auto operator<<(std::ostream&, Bool) -> std::ostream&;
 
 struct Number {
     double value;
 
     constexpr Number(int value) : value(value) {}
-    constexpr Number(double);
+    constexpr Number(double value) : value(value) {}
 };
-constexpr auto operator==(Number, Number) noexcept -> bool;
-constexpr auto operator!=(Number, Number) noexcept -> bool;
-constexpr auto operator<(Number, Number) noexcept -> bool;
-constexpr auto operator>(Number, Number) noexcept -> bool;
-constexpr auto operator<=(Number, Number) noexcept -> bool;
-constexpr auto operator>=(Number, Number) noexcept -> bool;
+constexpr auto operator==(Number lhs, Number rhs) noexcept -> bool {
+    return lhs.value == rhs.value;
+}
+constexpr auto operator!=(Number lhs, Number rhs) noexcept -> bool { return !(lhs == rhs); }
+constexpr auto operator<(Number lhs, Number rhs) noexcept -> bool { return lhs.value < rhs.value; }
+constexpr auto operator>(Number lhs, Number rhs) noexcept -> bool { return lhs.value > rhs.value; }
+constexpr auto operator<=(Number lhs, Number rhs) noexcept -> bool {
+    return lhs.value <= rhs.value;
+}
+constexpr auto operator>=(Number lhs, Number rhs) noexcept -> bool {
+    return lhs.value >= rhs.value;
+}
 auto operator<<(std::ostream&, Number) -> std::ostream&;
 
 struct String {
-    std::string value;
+    const std::string value;
 
     String(std::string value);
 };
@@ -343,6 +349,9 @@ public:
     Value(Table val);
     Value(NativeFunction val);
 
+    /**
+     * NOTE: Functions with a parameter of CallContext& does not work.
+     */
     template <typename Fn, typename = std::enable_if_t<std::is_invocable_v<Fn, CallContext>>>
     Value(Fn val) : Value(NativeFunction(std::forward<Fn>(val))) {}
 

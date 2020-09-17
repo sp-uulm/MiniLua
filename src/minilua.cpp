@@ -15,29 +15,15 @@ namespace minilua {
 // value types
 //
 // struct Nil
-constexpr auto operator==(Nil, Nil) noexcept -> bool { return true; }
-constexpr auto operator!=(Nil, Nil) noexcept -> bool { return false; }
 auto operator<<(std::ostream& o, Nil) -> std::ostream& { return o << "nil"; }
 
 // struct Bool
-constexpr Bool::Bool(bool value) : value(value) {}
 
-constexpr auto operator==(Bool a, Bool b) noexcept -> bool { return a.value == b.value; }
-constexpr auto operator!=(Bool a, Bool b) noexcept -> bool { return !(a == b); }
 auto operator<<(std::ostream& o, Bool self) -> std::ostream& {
     return o << std::boolalpha << self.value << std::noboolalpha;
 }
 
 // struct Number
-// constexpr Number::Number(int value) : value(value) {}
-constexpr Number::Number(double value) : value(value) {}
-
-constexpr auto operator==(Number a, Number b) noexcept -> bool { return a.value == b.value; }
-constexpr auto operator!=(Number a, Number b) noexcept -> bool { return !(a == b); }
-constexpr auto operator<(Number a, Number b) noexcept -> bool { return a.value < b.value; }
-constexpr auto operator>(Number a, Number b) noexcept -> bool { return a.value > b.value; }
-constexpr auto operator<=(Number a, Number b) noexcept -> bool { return a.value <= b.value; }
-constexpr auto operator>=(Number a, Number b) noexcept -> bool { return a.value >= b.value; }
 auto operator<<(std::ostream& o, Number self) -> std::ostream& { return o << self.value; }
 
 // struct String
