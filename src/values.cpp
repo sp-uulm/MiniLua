@@ -1,43 +1,10 @@
-#include "MiniLua/MiniLua.hpp"
+#include "MiniLua/values.hpp"
+
 #include <cmath>
-#include <ios>
 #include <iostream>
-#include <stdexcept>
-#include <string>
-#include <utility>
-#include <variant>
 
 namespace minilua {
 
-// TODO should be in utility header
-// template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-// template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
-
-// struct Location
-auto operator<<(std::ostream& os, const Location& self) -> std::ostream& {
-    return os << "Location{ line = " << self.line << ", column = " << self.column
-              << ", byte = " << self.byte << " }";
-}
-
-// struct Range
-auto operator<<(std::ostream& os, const Range& self) -> std::ostream& {
-    return os << "Range{ start = " << self.start << ", end = " << self.end << " }";
-}
-
-// struct SourceChange
-auto operator==(const SourceChange& lhs, const SourceChange& rhs) noexcept -> bool {
-    return lhs.range == rhs.range && lhs.replacement == rhs.replacement;
-}
-auto operator!=(const SourceChange& lhs, const SourceChange& rhs) noexcept -> bool {
-    return !(lhs == rhs);
-}
-auto operator<<(std::ostream& os, const SourceChange& self) -> std::ostream& {
-    return os << "SourceChange{ range = " << self.range << ", replacement = \"" << self.replacement
-              << "\" }";
-}
-
-// value types
-//
 // struct Nil
 auto operator<<(std::ostream& os, Nil /*unused*/) -> std::ostream& {
     return os << "Nil";
@@ -115,6 +82,57 @@ auto operator<<(std::ostream& os, const Table& self) -> std::ostream& {
         os << "[" << key << "] = " << value << ", ";
     }
     return os << " }";
+}
+
+// class CallContext
+struct CallContext::Impl {
+    Range location;
+    Environment& env;
+    Vallist args;
+};
+CallContext::CallContext(Environment& env)
+    : impl(make_owning<Impl>(Impl{Range(), env, Vallist()})) {}
+CallContext::CallContext(const CallContext& other) = default;
+// NOLINTNEXTLINE
+CallContext::CallContext(CallContext&& other) = default;
+auto CallContext::operator=(const CallContext&) -> CallContext& = default;
+// NOLINTNEXTLINE
+auto CallContext::operator=(CallContext &&) -> CallContext& = default;
+CallContext::~CallContext() = default;
+
+auto CallContext::call_location() const -> Range {
+    return impl->location;
+}
+auto CallContext::environment() const -> Environment& {
+    return impl->env;
+}
+auto CallContext::get(const std::string& name) const -> Value& {
+    return impl->env.get(name);
+}
+auto CallContext::arguments() const -> const Vallist& {
+    return impl->args;
+}
+
+auto operator<<(std::ostream& os, const CallContext& self) -> std::ostream& {
+    return os << "CallContext{ location = " << self.impl->location
+              << ", environment = " << self.impl->env << ", arguments = " << self.impl->args
+              << " }";
+}
+
+// class CallResult
+CallResult::CallResult() {
+    std::cout << "CallResult\n";
+}
+CallResult::CallResult(Vallist) {
+    std::cout << "CallResult(Vallist)\n";
+}
+CallResult::CallResult(std::vector<Value> values) : CallResult(Vallist(values)) {}
+CallResult::CallResult(std::initializer_list<Value> values) : CallResult(Vallist(values)) {}
+CallResult::CallResult(SourceChange) {
+    std::cout << "CallResult(SourceChange)\n";
+}
+CallResult::CallResult(Vallist, SourceChange) {
+    std::cout << "CallResult(Vallist, SourceChange)\n";
 }
 
 // struct NativeFunction
@@ -208,146 +226,6 @@ auto std::hash<minilua::NativeFunction>::operator()(const minilua::NativeFunctio
 } // namespace std
 
 namespace minilua {
-
-struct CallContext::Impl {
-    Range location;
-    Environment& env;
-    Vallist args;
-};
-CallContext::CallContext(Environment& env)
-    : impl(make_owning<Impl>(Impl{Range(), env, Vallist()})) {}
-CallContext::CallContext(const CallContext& other) = default;
-// NOLINTNEXTLINE
-CallContext::CallContext(CallContext&& other) = default;
-auto CallContext::operator=(const CallContext&) -> CallContext& = default;
-// NOLINTNEXTLINE
-auto CallContext::operator=(CallContext &&) -> CallContext& = default;
-CallContext::~CallContext() = default;
-
-auto CallContext::call_location() const -> Range {
-    return impl->location;
-}
-auto CallContext::environment() const -> Environment& {
-    return impl->env;
-}
-auto CallContext::get(const std::string& name) const -> Value& {
-    return impl->env.get(name);
-}
-auto CallContext::arguments() const -> const Vallist& {
-    return impl->args;
-}
-
-auto operator<<(std::ostream& os, const CallContext& self) -> std::ostream& {
-    return os << "CallContext{ location = " << self.impl->location
-              << ", environment = " << self.impl->env << ", arguments = " << self.impl->args
-              << " }";
-}
-
-void Environment::add_default_stdlib() {}
-void Environment::add(const std::string& name, Value value) {
-    global.insert_or_assign(name, value);
-}
-void Environment::add(std::string&& name, Value value) {
-    global.insert_or_assign(std::move(name), value);
-}
-
-void Environment::add_all(std::unordered_map<std::string, Value> values) {
-    global.insert(values.begin(), values.end());
-}
-void Environment::add_all(std::initializer_list<std::pair<const std::string, Value>> values) {
-    global.insert(values);
-}
-
-auto Environment::get(const std::string& name) -> Value& {
-    return this->global.at(name);
-}
-
-auto Environment::size() const -> size_t {
-    return this->global.size();
-}
-
-auto operator==(const Environment& a, const Environment& b) noexcept -> bool {
-    return a.global == b.global;
-}
-auto operator!=(const Environment& a, const Environment& b) noexcept -> bool {
-    return !(a == b);
-}
-auto operator<<(std::ostream& os, const Environment& self) -> std::ostream& {
-    os << "Environment{";
-    for (const auto& [key, value] : self.global) {
-        os << "[\"" << key << "\"] = " << value << ", ";
-    }
-    return os << "}";
-}
-
-class Parser {
-    std::string source;
-
-public:
-    Parser(std::string source) : source(std::move(source)) {}
-};
-
-class Tree {};
-
-struct Interpreter::Impl {
-    Parser parser;
-    Tree tree;
-    Environment env;
-
-    Impl(Parser parser, Environment env) : parser(parser), env(std::move(env)) {}
-
-    void parse(std::string source) {
-        // TODO
-        std::cout << "parse\n";
-    }
-
-    void apply_source_changes(std::vector<SourceChange> changes) {
-        // TODO
-        std::cout << "apply_source_changes\n";
-    }
-
-    auto run() -> EvalResult {
-        std::cout << "run\n";
-        // TODO
-        return EvalResult();
-    }
-};
-
-Interpreter::Interpreter() : Interpreter("") {}
-Interpreter::Interpreter(std::string initial_source_code)
-    : impl(std::make_unique<Interpreter::Impl>(
-          Parser(std::move(initial_source_code)), Environment())) {
-    // TODO initialize parser with source code
-}
-Interpreter::~Interpreter() = default;
-
-auto Interpreter::environment() -> Environment& {
-    return impl->env;
-}
-void Interpreter::parse(std::string source_code) {
-    impl->parse(std::move(source_code));
-}
-void Interpreter::apply_source_changes(std::vector<SourceChange> changes) {
-    impl->apply_source_changes(std::move(changes));
-}
-auto Interpreter::run() -> EvalResult {
-    return impl->run();
-}
-
-CallResult::CallResult() {
-    std::cout << "CallResult\n";
-}
-CallResult::CallResult(Vallist) {
-    std::cout << "CallResult(Vallist)\n";
-}
-CallResult::CallResult(std::vector<Value> values) : CallResult(Vallist(values)) {}
-CallResult::CallResult(std::initializer_list<Value> values) : CallResult(Vallist(values)) {}
-CallResult::CallResult(SourceChange) {
-    std::cout << "CallResult(SourceChange)\n";
-}
-CallResult::CallResult(Vallist, SourceChange) {
-    std::cout << "CallResult(Vallist, SourceChange)\n";
-}
 
 // class Vallist
 struct Vallist::Impl {

@@ -1,3 +1,6 @@
+#ifndef MINILUA_UTILS_HPP
+#define MINILUA_UTILS_HPP
+
 #include <memory>
 #include <type_traits>
 
@@ -39,4 +42,9 @@ template <typename T, typename... Args> auto make_owning(Args... args) -> owning
     return owning_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
+// template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+// template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
 } // namespace minilua
+
+#endif
