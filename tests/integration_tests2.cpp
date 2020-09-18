@@ -55,6 +55,8 @@ void fn_ref_void(const minilua::CallContext& /*unused*/) {}
 
 TEST_CASE("Lua Values") {
     SECTION("nil") {
+        static_assert(std::is_nothrow_move_constructible<minilua::Nil>());
+        static_assert(std::is_nothrow_move_assignable<minilua::Nil>());
         SECTION("via default constructor of Value") {
             const minilua::Value value{};
             CHECK(std::holds_alternative<minilua::Nil>(value.get()));
@@ -66,6 +68,8 @@ TEST_CASE("Lua Values") {
     }
 
     SECTION("bool") {
+        static_assert(std::is_nothrow_move_constructible<minilua::Bool>());
+        static_assert(std::is_nothrow_move_assignable<minilua::Bool>());
         SECTION("true") {
             const minilua::Value value{true};
             CHECK(std::holds_alternative<minilua::Bool>(value.get()));
@@ -81,6 +85,8 @@ TEST_CASE("Lua Values") {
     }
 
     SECTION("number") {
+        static_assert(std::is_nothrow_move_constructible<minilua::Number>());
+        static_assert(std::is_nothrow_move_assignable<minilua::Number>());
         SECTION("2") {
             const minilua::Value value{2};
             CHECK(std::holds_alternative<minilua::Number>(value.get()));
@@ -97,6 +103,8 @@ TEST_CASE("Lua Values") {
     }
 
     SECTION("string") {
+        static_assert(std::is_nothrow_move_constructible<minilua::String>());
+        static_assert(std::is_nothrow_move_assignable<minilua::String>());
         SECTION("empty") {
             const minilua::Value value{""};
             CHECK(std::holds_alternative<minilua::String>(value.get()));
@@ -120,6 +128,8 @@ TEST_CASE("Lua Values") {
     }
 
     SECTION("table") {
+        static_assert(std::is_nothrow_move_constructible<minilua::Table>());
+        static_assert(std::is_nothrow_move_assignable<minilua::Table>());
         SECTION("empty") {
             minilua::Value value{minilua::Table()};
             SECTION("different tables are not equal") {
@@ -173,6 +183,8 @@ TEST_CASE("Lua Values") {
     }
 
     SECTION("native function") {
+        static_assert(std::is_nothrow_move_constructible<minilua::NativeFunction>());
+        static_assert(std::is_nothrow_move_assignable<minilua::NativeFunction>());
         SECTION("lambda: (CallContext) -> CallResult") {
             minilua::Value value1{fn};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
@@ -278,7 +290,7 @@ TEST_CASE("Lua Values") {
     }
 }
 
-TEST_CASE("Environment") {
+TEST_CASE("new Environment") {
     SECTION("new environment is empty") {
         minilua::Environment env;
         REQUIRE(env.size() == 0);

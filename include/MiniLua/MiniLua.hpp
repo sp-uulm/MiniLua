@@ -158,7 +158,13 @@ public:
     Vallist(std::vector<Vallist>);
 
     Vallist(const Vallist&);
-    Vallist(Vallist&&) noexcept;
+    // can't use noexcept = default in older compilers (pre c++20 compilers)
+    // NOLINTNEXTLINE
+    Vallist(Vallist&&);
+    auto operator=(const Vallist&) -> Vallist&;
+    // can't use noexcept = default in older compilers (pre c++20 compilers)
+    // NOLINTNEXTLINE
+    auto operator=(Vallist &&) -> Vallist&;
     ~Vallist();
 
     [[nodiscard]] auto size() const -> size_t;
@@ -176,7 +182,13 @@ class CallContext {
 public:
     CallContext(Environment& env);
     CallContext(const CallContext&);
-    CallContext(CallContext&&) noexcept;
+    // can't use noexcept = default in older compilers (pre c++20 compilers)
+    // NOLINTNEXTLINE
+    CallContext(CallContext&&);
+    auto operator=(const CallContext&) -> CallContext&;
+    // can't use noexcept = default in older compilers (pre c++20 compilers)
+    // NOLINTNEXTLINE
+    auto operator=(CallContext &&) -> CallContext&;
     ~CallContext();
 
     [[nodiscard]] auto call_location() const -> Range;
@@ -260,9 +272,11 @@ constexpr auto operator>=(Number lhs, Number rhs) noexcept -> bool {
 auto operator<<(std::ostream&, Number) -> std::ostream&;
 
 struct String {
-    const std::string value;
+    std::string value;
 
     String(std::string value);
+
+    friend void swap(String& self, String& other);
 };
 auto operator==(const String& a, const String& b) noexcept -> bool;
 auto operator!=(const String& a, const String& b) noexcept -> bool;
@@ -325,6 +339,8 @@ public:
                 "can only use function likes that take a CallContext as parameter");
         }
     }
+
+    friend void swap(NativeFunction& self, NativeFunction& other);
 
     friend struct std::hash<NativeFunction>;
 };
@@ -395,9 +411,13 @@ public:
     Value(Fn val) : Value(NativeFunction(std::forward<Fn>(val))) {}
 
     Value(const Value&);
-    Value(Value&&) noexcept;
+    // can't use noexcept = default in older compilers (pre c++20 compilers)
+    // NOLINTNEXTLINE
+    Value(Value&&);
     auto operator=(const Value& other) -> Value&;
-    auto operator=(Value&& other) noexcept -> Value&;
+    // can't use noexcept = default in older compilers (pre c++20 compilers)
+    // NOLINTNEXTLINE
+    auto operator=(Value&& other) -> Value&;
     friend void swap(Value& self, Value& other);
 
     ~Value();

@@ -3,6 +3,7 @@
 #include <ios>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 #include <utility>
 #include <variant>
 
@@ -55,6 +56,10 @@ auto operator<<(std::ostream& os, Number self) -> std::ostream& {
 
 // struct String
 String::String(std::string value) : value(std::move(value)) {}
+
+void swap(String& self, String& other) {
+    std::swap(self.value, other.value);
+}
 
 auto operator==(const String& a, const String& b) noexcept -> bool {
     return a.value == b.value;
@@ -116,6 +121,9 @@ auto operator<<(std::ostream& os, const Table& self) -> std::ostream& {
 auto operator<<(std::ostream& os, const NativeFunction & /*unused*/) -> std::ostream& {
     return os << "NativeFunction";
 }
+void swap(NativeFunction& self, NativeFunction& other) {
+    std::swap(self.func, other.func);
+}
 
 // class Value
 struct Value::Impl {
@@ -137,10 +145,12 @@ Value::Value(Table val) : impl(make_owning<Impl>(Impl{.val = val})) {}
 Value::Value(NativeFunction val) : impl(make_owning<Impl>(Impl{.val = val})) {}
 
 Value::Value(const Value& other) = default;
-Value::Value(Value&& other) noexcept = default;
+// NOLINTNEXTLINE
+Value::Value(Value&& other) = default;
 Value::~Value() = default;
 auto Value::operator=(const Value& other) -> Value& = default;
-auto Value::operator=(Value&& other) noexcept -> Value& = default;
+// NOLINTNEXTLINE
+auto Value::operator=(Value&& other) -> Value& = default;
 void swap(Value& self, Value& other) {
     std::swap(self.impl, other.impl);
 }
@@ -204,9 +214,14 @@ struct CallContext::Impl {
     Environment& env;
     Vallist args;
 };
-CallContext::CallContext(Environment& env) : impl(make_owning<Impl>(Impl{.env = env})) {}
+CallContext::CallContext(Environment& env)
+    : impl(make_owning<Impl>(Impl{Range(), env, Vallist()})) {}
 CallContext::CallContext(const CallContext& other) = default;
-CallContext::CallContext(CallContext&& other) noexcept = default;
+// NOLINTNEXTLINE
+CallContext::CallContext(CallContext&& other) = default;
+auto CallContext::operator=(const CallContext&) -> CallContext& = default;
+// NOLINTNEXTLINE
+auto CallContext::operator=(CallContext &&) -> CallContext& = default;
 CallContext::~CallContext() = default;
 
 auto CallContext::call_location() const -> Range {
@@ -349,7 +364,11 @@ Vallist::Vallist(std::initializer_list<Value>) {
 }
 
 Vallist::Vallist(const Vallist&) = default;
-Vallist::Vallist(Vallist&&) noexcept = default;
+// NOLINTNEXTLINE
+Vallist::Vallist(Vallist&&) = default;
+auto Vallist::operator=(const Vallist&) -> Vallist& = default;
+// NOLINTNEXTLINE
+auto Vallist::operator=(Vallist &&) -> Vallist& = default;
 Vallist::~Vallist() = default;
 
 auto Vallist::size() const -> size_t {
