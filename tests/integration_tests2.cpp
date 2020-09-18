@@ -7,7 +7,7 @@
 #include <type_traits>
 #include <variant>
 
-auto debug_values(minilua::CallContext ctx) -> minilua::CallResult {
+auto debug_values(const minilua::CallContext& ctx) -> minilua::CallResult {
     std::vector<minilua::Value> values;
     values.reserve(ctx.arguments().size());
 
@@ -22,36 +22,36 @@ auto debug_values(minilua::CallContext ctx) -> minilua::CallResult {
     return values;
 }
 
-auto fn(minilua::CallContext) -> minilua::CallResult {
+auto fn(minilua::CallContext /*unused*/) -> minilua::CallResult { // NOLINT
     return minilua::CallResult();
 }
-auto fn_ref(const minilua::CallContext&) -> minilua::CallResult {
+auto fn_ref(const minilua::CallContext & /*unused*/) -> minilua::CallResult {
     return minilua::CallResult();
 }
 
-auto fn_vallist(minilua::CallContext) -> minilua::Vallist {
+auto fn_vallist(minilua::CallContext /*unused*/) -> minilua::Vallist { // NOLINT
     return minilua::Vallist();
 }
-auto fn_ref_vallist(const minilua::CallContext&) -> minilua::Vallist {
+auto fn_ref_vallist(const minilua::CallContext & /*unused*/) -> minilua::Vallist {
     return minilua::Vallist();
 }
 
-auto fn_value(minilua::CallContext) -> minilua::Value {
+auto fn_value(minilua::CallContext /*unused*/) -> minilua::Value { // NOLINT
     return minilua::Value();
 }
-auto fn_ref_value(const minilua::CallContext&) -> minilua::Value {
+auto fn_ref_value(const minilua::CallContext & /*unused*/) -> minilua::Value {
     return minilua::Value();
 }
 
-auto fn_string(minilua::CallContext) -> std::string {
+auto fn_string(minilua::CallContext /*unused*/) -> std::string { // NOLINT
     return std::string();
 }
-auto fn_ref_string(const minilua::CallContext&) -> std::string {
+auto fn_ref_string(const minilua::CallContext & /*unused*/) -> std::string {
     return std::string();
 }
 
-void fn_void(minilua::CallContext) {}
-void fn_ref_void(const minilua::CallContext&) {}
+void fn_void(minilua::CallContext /*unused*/) {} // NOLINT
+void fn_ref_void(const minilua::CallContext& /*unused*/) {}
 
 TEST_CASE("Lua Values") {
     SECTION("nil") {
@@ -139,14 +139,14 @@ TEST_CASE("Lua Values") {
                 auto& table = std::get<minilua::Table>(value.get());
                 auto& table_copy = std::get<minilua::Table>(value_copy.get());
 
-                table.set("key2", 7.5);
+                table.set("key2", 7.5); // NOLINT
 
                 CHECK(table == table_copy);
             }
         }
 
         SECTION("small") {
-            minilua::Value value{minilua::Table{{"key1", 22}}};
+            minilua::Value value{minilua::Table{{"key1", 22}}}; // NOLINT
             SECTION("different tables are not equal") {
                 CHECK(std::holds_alternative<minilua::Table>(value.get()));
                 CHECK(std::get<minilua::Table>(value.get()) != minilua::Table());
@@ -177,7 +177,7 @@ TEST_CASE("Lua Values") {
             minilua::Value value1{fn};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
 
-            auto lambda = [](minilua::CallContext) -> minilua::CallResult {
+            auto lambda = [](minilua::CallContext /*unused*/) -> minilua::CallResult { // NOLINT
                 return minilua::CallResult();
             };
             minilua::Value value2{lambda};
@@ -187,7 +187,7 @@ TEST_CASE("Lua Values") {
             minilua::Value value1{fn_ref};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
 
-            auto lambda = [](const minilua::CallContext&) -> minilua::CallResult {
+            auto lambda = [](const minilua::CallContext & /*unused*/) -> minilua::CallResult {
                 return minilua::CallResult();
             };
             minilua::Value value2{lambda};
@@ -198,7 +198,7 @@ TEST_CASE("Lua Values") {
             minilua::Value value1{fn_vallist};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
 
-            auto lambda = [](minilua::CallContext) -> minilua::Vallist {
+            auto lambda = [](minilua::CallContext /*unused*/) -> minilua::Vallist { // NOLINT
                 return minilua::Vallist();
             };
             minilua::Value value2{lambda};
@@ -208,7 +208,7 @@ TEST_CASE("Lua Values") {
             minilua::Value value1{fn_ref_vallist};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
 
-            auto lambda = [](const minilua::CallContext&) -> minilua::Vallist {
+            auto lambda = [](const minilua::CallContext & /*unused*/) -> minilua::Vallist {
                 return minilua::Vallist();
             };
             minilua::Value value2{lambda};
@@ -219,7 +219,7 @@ TEST_CASE("Lua Values") {
             minilua::Value value1{fn_value};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
 
-            auto lambda = [](minilua::CallContext) -> minilua::Value {
+            auto lambda = [](minilua::CallContext /*unused*/) -> minilua::Value { // NOLINT
                 return minilua::Value();
             };
             minilua::Value value2{lambda};
@@ -229,7 +229,7 @@ TEST_CASE("Lua Values") {
             minilua::Value value1{fn_ref_value};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
 
-            auto lambda = [](const minilua::CallContext&) -> minilua::Value {
+            auto lambda = [](const minilua::CallContext & /*unused*/) -> minilua::Value {
                 return minilua::Value();
             };
             minilua::Value value2{lambda};
@@ -240,7 +240,7 @@ TEST_CASE("Lua Values") {
             minilua::Value value1{fn_string};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
 
-            auto lambda = [](minilua::CallContext) -> std::string {
+            auto lambda = [](minilua::CallContext /*unused*/) -> std::string { // NOLINT
                 return std::string();
             };
             minilua::Value value2{lambda};
@@ -250,7 +250,7 @@ TEST_CASE("Lua Values") {
             minilua::Value value1{fn_ref_string};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
 
-            auto lambda = [](const minilua::CallContext&) -> std::string {
+            auto lambda = [](const minilua::CallContext & /*unused*/) -> std::string {
                 return std::string();
             };
             minilua::Value value2{lambda};
@@ -261,7 +261,7 @@ TEST_CASE("Lua Values") {
             minilua::Value value1{fn_void};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
 
-            auto lambda = [](minilua::CallContext) {
+            auto lambda = [](minilua::CallContext /*unused*/) { // NOLINT
             };
             minilua::Value value2{lambda};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value2.get()));
@@ -270,7 +270,7 @@ TEST_CASE("Lua Values") {
             minilua::Value value1{fn_ref_void};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
 
-            auto lambda = [](const minilua::CallContext&) {
+            auto lambda = [](const minilua::CallContext& /*unused*/) {
             };
             minilua::Value value2{lambda};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value2.get()));
@@ -278,54 +278,78 @@ TEST_CASE("Lua Values") {
     }
 }
 
+TEST_CASE("Environment") {
+    SECTION("new environment is empty") {
+        minilua::Environment env;
+        REQUIRE(env.size() == 0);
+    }
+    SECTION("environment contains the inserted value") {
+        minilua::Environment env;
+
+        env.add("val1", 24); // NOLINT
+        REQUIRE(env.size() == 1);
+        REQUIRE(env.get("val1") == 24);
+
+        std::string key = "val2";
+        env.add(key, 35); // NOLINT
+        REQUIRE(env.size() == 2);
+        REQUIRE(env.get("val2") == 35);
+    }
+    SECTION("environment contains the mass inserted value") {
+        minilua::Environment env;
+
+        env.add_all({
+            {"val1", 24}, // NOLINT
+            {"val2", 35}, // NOLINT
+        });
+        REQUIRE(env.size() == 2);
+        REQUIRE(env.get("val1") == 24);
+        REQUIRE(env.get("val2") == 35);
+
+        std::unordered_map<std::string, minilua::Value> map{
+            {"val3", 66}, // NOLINT
+            {"val4", 17}, // NOLINT
+        };
+        env.add_all(map);
+        REQUIRE(env.size() == 4);
+        REQUIRE(env.get("val3") == 66);
+        REQUIRE(env.get("val4") == 17);
+    }
+}
+
 TEST_CASE("Interpreter") {
-    minilua::owning_ptr<minilua::Value> x{minilua::make_owning<minilua::Value>(std::string("hi"))};
-    minilua::owning_ptr<minilua::Value> y = x;
-
-    std::cout << *x << ", " << *y << "\n";
-
-    minilua::owning_ptr<minilua::Value> z{minilua::make_owning<minilua::Value>(std::string("y"))};
-    x = z;
-
-    std::cout << *x << ", " << *y << "\n";
-
     minilua::Interpreter interpreter;
 
     // populate the environment
     interpreter.environment().add_default_stdlib();
 
-    auto lambda = [](minilua::CallContext ctx) {
+    auto lambda = [](minilua::CallContext /*unused*/) { // NOLINT
         return std::string{"force something"};
     };
 
-    std::cout << "as_native_function: ";
     minilua::NativeFunction as_native_function = lambda;
 
     // add a single variable to the environment
     interpreter.environment().add("func1", lambda);
-    interpreter.environment().add("num1", 5);
+    interpreter.environment().add("num1", 5); // NOLINT
 
     // add multiple variables to the environment
     interpreter.environment().add_all(
-        {{"num2", 128},
-         {"num3", 1.31},
+        {{"num2", 128},  // NOLINT
+         {"num3", 1.31}, // NOLINT
          {"func2", debug_values},
          {"func3",
-          [](minilua::CallContext ctx) {
+          [](const minilua::CallContext& /*unused*/) {
               std::cout << "func3 -> void\n";
           }},
          {"func4",
-          [](minilua::CallContext ctx) -> minilua::Vallist {
+          [](minilua::CallContext /*unused*/) -> minilua::Vallist { // NOLINT
               return {1, std::string{"hi"}};
           }},
          {"tabl", minilua::Table({
-                      {std::string("key1"), 25.0},
+                      {std::string("key1"), 25.0}, // NOLINT
                       {std::string("key2"), std::string("value")},
                   })}});
-
-    std::cout << minilua::Value() << "\n";
-    std::cout << minilua::Value(minilua::Number(25)) << "\n";
-    std::cout << minilua::Value(minilua::String("hi")) << "\n";
 
     std::cout << interpreter.environment() << "\n";
 
@@ -351,12 +375,12 @@ TEST_CASE("Interpreter") {
 TEST_CASE("table") {
     minilua::Table table;
 
-    table.set(5, "value1");
+    table.set(5, "value1"); // NOLINT
     CHECK(table.get(5) == "value1");
 
-    minilua::Value val1 = table.get(5);
+    minilua::Value val1 = table.get(5); // NOLINT
 
-    table.set(5, "value2");
+    table.set(5, "value2"); // NOLINT
     table.set("hi", "value1");
 
     CHECK(table.get(5) == "value2");
@@ -367,12 +391,12 @@ TEST_CASE("table") {
     CAPTURE(table);
 
     auto table2 = std::get<minilua::Table>(table.get("table").get());
-    table2.set("x", 22);
+    table2.set("x", 22); // NOLINT
 
     CAPTURE(table);
 
     minilua::Table table3;
-    table3.set("y", 23);
+    table3.set("y", 23); // NOLINT
 
     CHECK(table.get("table") == table2);
 

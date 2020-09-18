@@ -113,7 +113,7 @@ auto operator<<(std::ostream& os, const Table& self) -> std::ostream& {
 }
 
 // struct NativeFunction
-auto operator<<(std::ostream& os, const NativeFunction&) -> std::ostream& {
+auto operator<<(std::ostream& os, const NativeFunction & /*unused*/) -> std::ostream& {
     return os << "NativeFunction";
 }
 
@@ -140,7 +140,7 @@ Value::Value(const Value& other) = default;
 Value::Value(Value&& other) noexcept = default;
 Value::~Value() = default;
 auto Value::operator=(const Value& other) -> Value& = default;
-auto Value::operator=(Value&& other) -> Value& = default;
+auto Value::operator=(Value&& other) noexcept -> Value& = default;
 void swap(Value& self, Value& other) {
     std::swap(self.impl, other.impl);
 }
@@ -174,7 +174,7 @@ auto std::hash<minilua::Nil>::operator()(const minilua::Nil& /*value*/) const ->
     // but we are not allowed to throw inside of std::hash
     return 0;
 }
-auto std::hash<minilua::Bool>::operator()(const minilua::Bool& value) const -> size_t {
+auto std::hash<minilua::Bool>::operator()(const minilua::Bool& /*value*/) const -> size_t {
     return 0;
 }
 auto std::hash<minilua::Number>::operator()(const minilua::Number& value) const -> size_t {
@@ -215,7 +215,7 @@ auto CallContext::call_location() const -> Range {
 auto CallContext::environment() const -> Environment& {
     return impl->env;
 }
-auto CallContext::get(std::string name) const -> Value& {
+auto CallContext::get(const std::string& name) const -> Value& {
     return impl->env.get(name);
 }
 auto CallContext::arguments() const -> const Vallist& {
@@ -229,19 +229,26 @@ auto operator<<(std::ostream& os, const CallContext& self) -> std::ostream& {
 }
 
 void Environment::add_default_stdlib() {}
-void Environment::add(std::string name, Value value) {
+void Environment::add(const std::string& name, Value value) {
     global.insert_or_assign(name, value);
+}
+void Environment::add(std::string&& name, Value value) {
+    global.insert_or_assign(std::move(name), value);
 }
 
 void Environment::add_all(std::unordered_map<std::string, Value> values) {
     global.insert(values.begin(), values.end());
 }
 void Environment::add_all(std::initializer_list<std::pair<const std::string, Value>> values) {
-    global.insert(values.begin(), values.end());
+    global.insert(values);
 }
 
 auto Environment::get(const std::string& name) -> Value& {
     return this->global.at(name);
+}
+
+auto Environment::size() const -> size_t {
+    return this->global.size();
 }
 
 auto operator==(const Environment& a, const Environment& b) noexcept -> bool {

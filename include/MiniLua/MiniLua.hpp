@@ -223,7 +223,7 @@ public:
     /**
      * Returns the value of a variable accessible from the function.
      */
-    [[nodiscard]] auto get(std::string name) const -> Value&;
+    [[nodiscard]] auto get(const std::string& name) const -> Value&;
 
     /**
      * Returns the arguments given to this function.
@@ -339,16 +339,13 @@ public:
         this->func = std::make_shared<std::function<FnType>>();
 
         if constexpr (std::is_convertible_v<Fn, std::function<FnType>>) {
-            std::cout << "std::function -> CallResult\n";
             *this->func = fn;
         } else if constexpr (std::is_convertible_v<std::invoke_result_t<Fn, CallContext>, Value>) {
             // easy use of functions that return a type that is convertible to Value (e.g. string)
-            std::cout << "std::function -> into Value\n";
             *this->func = [fn](CallContext ctx) -> CallResult {
                 return CallResult({fn(ctx)});
             };
         } else if constexpr (std::is_void_v<std::invoke_result_t<Fn, CallContext>>) {
-            std::cout << "lambda wrapper -> void\n";
             // support void functions by returning an empty Vallist
             *this->func = [fn](CallContext ctx) -> CallResult {
                 fn(ctx);
@@ -434,7 +431,7 @@ public:
     Value(const Value&);
     Value(Value&&) noexcept;
     auto operator=(const Value& other) -> Value&;
-    auto operator=(Value&& other) -> Value&;
+    auto operator=(Value&& other) noexcept -> Value&;
     friend void swap(Value& self, Value& other);
 
     ~Value();
@@ -460,12 +457,15 @@ public:
     // equivalent to the old env->populate_stdlib()
     void add_default_stdlib();
 
-    void add(std::string name, Value value);
+    void add(const std::string& name, Value value);
+    void add(std::string&& name, Value value);
 
     void add_all(std::unordered_map<std::string, Value> values);
     void add_all(std::initializer_list<std::pair<const std::string, Value>> values);
 
     auto get(const std::string& name) -> Value&;
+
+    auto size() const -> size_t;
 
     friend auto operator==(const Environment&, const Environment&) noexcept -> bool;
     friend auto operator!=(const Environment&, const Environment&) noexcept -> bool;
