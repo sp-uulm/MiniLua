@@ -87,10 +87,10 @@ auto operator<<(std::ostream& os, const Table& self) -> std::ostream& {
 // class CallContext
 struct CallContext::Impl {
     Range location;
-    Environment& env;
+    Environment* env; // need to use pointer so we have move assignment operator
     Vallist args;
 };
-CallContext::CallContext(Environment& env)
+CallContext::CallContext(Environment* env)
     : impl(make_owning<Impl>(Impl{Range(), env, Vallist()})) {}
 CallContext::CallContext(const CallContext& other) = default;
 // NOLINTNEXTLINE
@@ -104,10 +104,10 @@ auto CallContext::call_location() const -> Range {
     return impl->location;
 }
 auto CallContext::environment() const -> Environment& {
-    return impl->env;
+    return *impl->env;
 }
 auto CallContext::get(const std::string& name) const -> Value& {
-    return impl->env.get(name);
+    return impl->env->get(name);
 }
 auto CallContext::arguments() const -> const Vallist& {
     return impl->args;

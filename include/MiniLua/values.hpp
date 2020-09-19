@@ -136,7 +136,7 @@ class CallContext {
     owning_ptr<Impl> impl;
 
 public:
-    CallContext(Environment& env);
+    CallContext(Environment* env);
     CallContext(const CallContext&);
     // can't use noexcept = default in older compilers (pre c++20 compilers)
     // NOLINTNEXTLINE

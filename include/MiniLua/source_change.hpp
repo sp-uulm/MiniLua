@@ -1,5 +1,5 @@
-#ifndef MINILUA_LOCATION_HPP
-#define MINILUA_LOCATION_HPP
+#ifndef MINILUA_SOURCE_CHANGE_HPP
+#define MINILUA_SOURCE_CHANGE_HPP
 
 #include <cstdint>
 #include <iostream>

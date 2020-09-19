@@ -1,11 +1,35 @@
+#include "MiniLua/environment.hpp"
 #include <MiniLua/MiniLua.hpp>
 #include <algorithm>
 #include <catch2/catch.hpp>
 #include <functional>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <type_traits>
 #include <variant>
+
+TEST_CASE("owning_ptr") {
+    SECTION("creating a new object") {
+        minilua::owning_ptr<std::string> x = minilua::make_owning<std::string>("hi"); // NOLINT
+        REQUIRE(*x.get() == "hi");
+        REQUIRE(*x == "hi");
+    }
+
+    SECTION("owning_ptr can be copied") {
+        const minilua::owning_ptr<std::string> x =
+            minilua::make_owning<std::string>("hi"); // NOLINT
+        const minilua::owning_ptr<std::string> y{x}; // NOLINT
+        REQUIRE(x == y);
+        REQUIRE(*x == *y);
+    }
+    SECTION("owning_ptr can be moved") {
+        minilua::owning_ptr<std::string> x = minilua::make_owning<std::string>("hi"); // NOLINT
+        const minilua::owning_ptr<std::string> y{std::move(x)};                       // NOLINT
+        REQUIRE(x != y);
+        REQUIRE(*x != *y);
+    }
+}
 
 auto debug_values(const minilua::CallContext& ctx) -> minilua::CallResult {
     std::vector<minilua::Value> values;
@@ -64,6 +88,10 @@ TEST_CASE("Lua Values") {
         SECTION("via explicit construction of Nil") {
             const minilua::Value value{minilua::Nil()};
             CHECK(std::holds_alternative<minilua::Nil>(value.get()));
+        }
+        SECTION("nils are equal") {
+            const minilua::Value value{};
+            CHECK(value == minilua::Nil());
         }
     }
 
@@ -291,6 +319,57 @@ TEST_CASE("Lua Values") {
 }
 
 TEST_CASE("new Environment") {
+    SECTION("unordered_map") {
+        std::unordered_map<std::string, int> map;
+        map.insert_or_assign("hi", 25); // NOLINT
+        std::unordered_map<std::string, int> map2{std::move(map)};
+        REQUIRE_THROWS_AS(map.at("hi"), std::out_of_range);
+        REQUIRE(map.empty());
+        REQUIRE(map2.at("hi") == 25);
+    }
+    SECTION("environment can be copied") {
+        static_assert(std::is_copy_constructible<minilua::Environment>());
+        static_assert(std::is_copy_assignable<minilua::Environment>());
+
+        minilua::Environment env;
+        env.add("val1", 24); // NOLINT
+
+        minilua::Environment env_copy{static_cast<const minilua::Environment&>(env)}; // NOLINT
+        REQUIRE(env == env_copy);
+
+        minilua::Environment env_copy2; // NOLINT
+        env_copy2 = static_cast<const minilua::Environment&>(env);
+        REQUIRE(env == env_copy2);
+    }
+    SECTION("environment can be moved") {
+        static_assert(std::is_move_constructible<minilua::Environment>());
+        static_assert(std::is_move_assignable<minilua::Environment>());
+
+        minilua::Environment env;
+        env.add("val1", 24); // NOLINT
+
+        minilua::Environment env2{std::move(env)}; // NOLINT
+        REQUIRE_THROWS_AS(env.get("val1"), std::out_of_range);
+        REQUIRE(env2.get("val1") == 24);
+        REQUIRE(env != env2);
+
+        minilua::Environment env3;
+        env3 = std::move(env2);
+        REQUIRE_THROWS_AS(env2.get("val1"), std::out_of_range);
+        REQUIRE(env3.get("val1") == 24);
+        REQUIRE(env2 != env3);
+    }
+    SECTION("environments can be swapped") {
+        static_assert(std::is_swappable<minilua::Environment>());
+        minilua::Environment env;
+        env.add("val1", 24); // NOLINT
+        minilua::Environment env2;
+
+        swap(env, env2);
+        REQUIRE_THROWS_AS(env.get("val1"), std::out_of_range);
+        REQUIRE(env2.get("val1") == 24);
+        REQUIRE(env != env2);
+    }
     SECTION("new environment is empty") {
         minilua::Environment env;
         REQUIRE(env.size() == 0);
@@ -327,6 +406,45 @@ TEST_CASE("new Environment") {
         REQUIRE(env.get("val3") == 66);
         REQUIRE(env.get("val4") == 17);
     }
+}
+
+TEST_CASE("new Location") {
+    minilua::Location loc1{
+        .line = 5, // NOLINT
+        .column = 0,
+        .byte = 25 // NOLINT
+    };
+    CHECK(loc1 == minilua::Location{.line = 5, .column = 0, .byte = 25});
+}
+
+TEST_CASE("new Range") {
+    minilua::Location loc1{
+        .line = 5, // NOLINT
+        .column = 0,
+        .byte = 25 // NOLINT
+    };
+    minilua::Location loc2{
+        .line = 5, // NOLINT
+        .column = 7,
+        .byte = 32 // NOLINT
+    };
+    minilua::Range range{
+        .start = loc1,
+        .end = loc2,
+    };
+    CHECK(
+        range == minilua::Range{
+                     .start =
+                         {
+                             .line = 5,
+                             .column = 0,
+                             .byte = 25,
+                         },
+                     .end = {
+                         .line = 5,
+                         .column = 7,
+                         .byte = 32,
+                     }});
 }
 
 TEST_CASE("Interpreter") {
