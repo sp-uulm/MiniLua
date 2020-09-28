@@ -38,17 +38,19 @@ template <typename _Tp> inline constexpr bool is_printable_v = is_printable<_Tp>
  * In case any of the copy/move/swap functions throw an exception you should
  * expect the owning_ptr to be in an invalid state and to possibly contain a
  * nullptr.
+ *
+ * owning_ptr is only default constructible, move/copy constructible/assignable
+ * and equality comparable if the type T is. These special member functions are
+ * always defined but can only be used if the type T also has them.
  */
 template <typename T> class owning_ptr {
     std::unique_ptr<T> value;
 
 public:
-    // TODO disable methods of they are not available for type T (e.g. type can't be moved)
-
     owning_ptr() : value(new T()) {
         static_assert(
             std::is_default_constructible_v<T>,
-            "owning_ptr only has a default constructor if T has one");
+            "no default constructor for owning_ptr because T does not have one");
     }
 
     explicit owning_ptr(T* value) : value(value) {
@@ -81,7 +83,7 @@ public:
         return value.get();
     }
 
-    auto operator*() const -> typename std::add_lvalue_reference<T>::type {
+    auto operator*() const -> T& {
         return value.operator*();
     }
     auto operator->() const noexcept -> typename std::unique_ptr<T>::pointer {

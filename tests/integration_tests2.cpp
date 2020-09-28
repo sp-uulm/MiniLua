@@ -44,6 +44,14 @@ TEST_CASE("owning_ptr") {
         REQUIRE(x != y);
         REQUIRE(*x != *y);
     }
+    SECTION("without default constructor") {
+        struct X {
+            X() = delete;
+        };
+
+        minilua::owning_ptr<X> x = minilua::make_owning<X>(X{});
+        REQUIRE(x.get() != nullptr);
+    }
 }
 
 auto debug_values(const minilua::CallContext& ctx) -> minilua::CallResult {
