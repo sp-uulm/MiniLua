@@ -16,16 +16,31 @@ TEST_CASE("owning_ptr") {
         REQUIRE(*x == "hi");
     }
 
-    SECTION("owning_ptr can be copied") {
+    SECTION("owning_ptr can be copy constructed") {
         const minilua::owning_ptr<std::string> x =
             minilua::make_owning<std::string>("hi"); // NOLINT
         const minilua::owning_ptr<std::string> y{x}; // NOLINT
         REQUIRE(x == y);
         REQUIRE(*x == *y);
     }
-    SECTION("owning_ptr can be moved") {
+    SECTION("owning_ptr can be copy assigned") {
+        const minilua::owning_ptr<std::string> x =
+            minilua::make_owning<std::string>("hi"); // NOLINT
+        minilua::owning_ptr<std::string> y;
+        y = x;
+        REQUIRE(x == y);
+        REQUIRE(*x == *y);
+    }
+    SECTION("owning_ptr can be move constructed") {
         minilua::owning_ptr<std::string> x = minilua::make_owning<std::string>("hi"); // NOLINT
         const minilua::owning_ptr<std::string> y{std::move(x)};                       // NOLINT
+        REQUIRE(x != y);
+        REQUIRE(*x != *y);
+    }
+    SECTION("owning_ptr can be move assigned") {
+        minilua::owning_ptr<std::string> x = minilua::make_owning<std::string>("hi"); // NOLINT
+        minilua::owning_ptr<std::string> y;
+        y = std::move(x);
         REQUIRE(x != y);
         REQUIRE(*x != *y);
     }
@@ -318,8 +333,8 @@ TEST_CASE("Lua Values") {
     }
 }
 
-TEST_CASE("new Environment") {
-    SECTION("unordered_map") {
+TEST_CASE("Environment") {
+    SECTION("from unordered_map") {
         std::unordered_map<std::string, int> map;
         map.insert_or_assign("hi", 25); // NOLINT
         std::unordered_map<std::string, int> map2{std::move(map)};
@@ -405,6 +420,21 @@ TEST_CASE("new Environment") {
         REQUIRE(env.size() == 4);
         REQUIRE(env.get("val3") == 66);
         REQUIRE(env.get("val4") == 17);
+    }
+    SECTION("setting I/O") {
+        minilua::Environment env;
+
+        std::stringstream in;
+        env.set_stdin(&in);
+        REQUIRE(&in == env.get_stdin());
+
+        std::stringstream out;
+        env.set_stdout(&out);
+        REQUIRE(&out == env.get_stdout());
+
+        std::stringstream err;
+        env.set_stderr(&err);
+        REQUIRE(&err == env.get_stderr());
     }
 }
 

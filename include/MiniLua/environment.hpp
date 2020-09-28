@@ -15,6 +15,9 @@ class Value;
  * Represents the global environment/configuration for the 'Interpreter'.
  *
  * This contains things like global variables (including functions), etc.
+ *
+ * The default constructor initializes an empty environment with the standard
+ * c++ I/O streams (std::cin, etc).
  */
 class Environment {
     struct Impl;
@@ -33,7 +36,9 @@ public:
     auto operator=(Environment &&) -> Environment&;
     friend void swap(Environment&, Environment&);
 
-    // equivalent to the old env->populate_stdlib()
+    /**
+     * Similar to the old env->populate_stdlib().
+     */
     void add_default_stdlib();
 
     void add(const std::string& name, Value value);
@@ -43,6 +48,14 @@ public:
     void add_all(std::initializer_list<std::pair<const std::string, Value>> values);
 
     auto get(const std::string& name) -> Value&;
+
+    void set_stdin(std::istream*);
+    void set_stdout(std::ostream*);
+    void set_stderr(std::ostream*);
+
+    auto get_stdin() -> std::istream*;
+    auto get_stdout() -> std::ostream*;
+    auto get_stderr() -> std::ostream*;
 
     [[nodiscard]] auto size() const -> size_t;
 
