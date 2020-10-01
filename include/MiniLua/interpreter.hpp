@@ -33,7 +33,15 @@ public:
     /**
      * Returns the environment for modification.
      */
-    [[nodiscard]] auto environment() -> Environment&;
+    [[nodiscard]] auto environment() const -> Environment&;
+
+    /**
+     * Returns a view into the current source code.
+     *
+     * The returned value will become invalid if the source code is changed
+     * (by calling parse or apply_source_changes).
+     */
+    [[nodiscard]] auto source_code() const -> std::string_view;
 
     /**
      * Parse fresh source code.
