@@ -4,6 +4,7 @@
 
 #include "environment.hpp"
 #include "source_change.hpp"
+#include "values.hpp"
 
 namespace minilua {
 
@@ -18,6 +19,7 @@ struct SuggestedSourceChange {
 };
 
 struct EvalResult {
+    Value value;
     std::vector<SuggestedSourceChange> source_change_suggestions;
 };
 
@@ -45,6 +47,8 @@ public:
 
     /**
      * Parse fresh source code.
+     *
+     * Throws an exception if there was an error parsing the source code.
      */
     void parse(std::string source_code);
 
@@ -57,10 +61,6 @@ public:
 
     /**
      * Run the parsed program.
-     *
-     * TODO should the user be able to return a result from lua?
-     * - we would need to make the actual syntax tree part of the public interface
-     * - OR we need to serialize it in some way (e.g. json)
      *
      * TODO should the user be able to provide parameters?
      * - not sure how you would provide them to lua

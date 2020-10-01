@@ -24,22 +24,6 @@ struct Interpreter::Impl {
     Environment env;
 
     Impl(Parser parser, Environment env) : parser(parser), env(std::move(env)) {}
-
-    void parse(std::string source) {
-        // TODO
-        std::cout << "parse\n";
-    }
-
-    void apply_source_changes(std::vector<SourceChange> changes) {
-        // TODO
-        std::cout << "apply_source_changes\n";
-    }
-
-    auto run() -> EvalResult {
-        std::cout << "run\n";
-        // TODO
-        return EvalResult();
-    }
 };
 
 Interpreter::Interpreter() : Interpreter("") {}
@@ -57,13 +41,17 @@ auto Interpreter::source_code() const -> std::string_view {
     return impl->parser.source();
 }
 void Interpreter::parse(std::string source_code) {
-    impl->parse(std::move(source_code));
+    // TODO
+    std::cout << "parse\n";
 }
 void Interpreter::apply_source_changes(std::vector<SourceChange> changes) {
-    impl->apply_source_changes(std::move(changes));
+    // TODO
+    std::cout << "apply_source_changes\n";
 }
 auto Interpreter::run() -> EvalResult {
-    return impl->run();
+    std::cout << "run\n";
+    // TODO
+    return EvalResult();
 }
 
 } // namespace minilua
