@@ -52,7 +52,7 @@ void Interpreter::apply_source_changes(std::vector<SourceChange> changes) {
     // TODO
     std::cout << "apply_source_changes\n";
 }
-auto Interpreter::run() -> EvalResult {
+auto Interpreter::evaluate() -> EvalResult {
     std::cout << "run\n";
     // TODO
     return EvalResult();

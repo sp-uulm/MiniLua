@@ -523,7 +523,7 @@ TEST_CASE("Interpreter") {
 
     // parse and run a program
     interpreter.parse("print(120)");
-    minilua::EvalResult result = interpreter.run();
+    minilua::EvalResult result = interpreter.evaluate();
 
     // chose source changes to apply
     // TODO do we need a vector here or is is ok to assume that one run of the

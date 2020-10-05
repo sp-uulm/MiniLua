@@ -71,7 +71,7 @@ public:
      * TODO should the user be able to provide parameters?
      * - not sure how you would provide them to lua
      */
-    auto run() -> EvalResult;
+    auto evaluate() -> EvalResult;
 };
 
 }; // namespace minilua
