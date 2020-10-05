@@ -18,6 +18,12 @@ struct SuggestedSourceChange {
     SourceChange change;
 };
 
+struct ParseResult {
+    std::vector<std::string> errors;
+
+    operator bool() const;
+};
+
 struct EvalResult {
     Value value;
     std::vector<SuggestedSourceChange> source_change_suggestions;
@@ -50,7 +56,7 @@ public:
      *
      * Throws an exception if there was an error parsing the source code.
      */
-    void parse(std::string source_code);
+    auto parse(std::string source_code) -> ParseResult;
 
     /**
      * Applies source changes.

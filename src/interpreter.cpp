@@ -5,6 +5,10 @@
 
 namespace minilua {
 
+ParseResult::operator bool() const {
+    return !this->errors.empty();
+}
+
 class Parser {
     std::string _source;
 
@@ -40,9 +44,9 @@ auto Interpreter::environment() const -> Environment& {
 auto Interpreter::source_code() const -> std::string_view {
     return impl->parser.source();
 }
-void Interpreter::parse(std::string source_code) {
-    // TODO
+auto Interpreter::parse(std::string source_code) -> ParseResult {
     std::cout << "parse\n";
+    return ParseResult();
 }
 void Interpreter::apply_source_changes(std::vector<SourceChange> changes) {
     // TODO
