@@ -11,6 +11,11 @@
 #include "source_change.hpp"
 #include "utils.hpp"
 
+#define DELEGATE_OP(TYPE, OP)                                                                      \
+    constexpr auto operator OP(const TYPE& lhs, const TYPE& rhs)->TYPE {                           \
+        return TYPE(lhs.value OP rhs.value);                                                       \
+    }
+
 namespace minilua {
 
 // forward declaration
@@ -67,6 +72,11 @@ constexpr auto operator!=(Bool lhs, Bool rhs) noexcept -> bool {
 }
 auto operator<<(std::ostream&, Bool) -> std::ostream&;
 
+// normal c++ operators
+DELEGATE_OP(Bool, &&);
+DELEGATE_OP(Bool, ||);
+DELEGATE_OP(Bool, ^);
+
 struct Number {
     double value;
 
@@ -92,6 +102,12 @@ constexpr auto operator>=(Number lhs, Number rhs) noexcept -> bool {
     return lhs.value >= rhs.value;
 }
 auto operator<<(std::ostream&, Number) -> std::ostream&;
+
+// normal c++ operators
+DELEGATE_OP(Number, +);
+DELEGATE_OP(Number, -);
+DELEGATE_OP(Number, *);
+DELEGATE_OP(Number, /);
 
 struct String {
     std::string value;
@@ -129,6 +145,10 @@ public:
     friend auto operator<<(std::ostream&, const Table&) -> std::ostream&;
 
     friend struct std::hash<Table>;
+
+    // TODO maybe return proxy "entry" type
+    auto operator[](const Value&) -> Value&;
+    auto operator[](const Value&) const -> const Value&;
 };
 
 class CallContext {
@@ -252,10 +272,15 @@ template <> struct hash<minilua::NativeFunction> {
 
 namespace minilua {
 
+/**
+ * Represents a value in lua.
+ *
+ * You can use most normal c++ operators on these value (+, -, *, /, []). If the
+ * operation can't be performed on the actual value type an exception will be thrown.
+ */
 class Value {
     struct Impl;
     owning_ptr<Impl> impl;
-    // Type val;
 
 public:
     using Type = std::variant<Nil, Bool, Number, String, Table, NativeFunction>;
@@ -294,11 +319,24 @@ public:
 
     auto get() -> Type&;
     [[nodiscard]] auto get() const -> const Type&;
+
+    auto operator[](const Value&) -> Value&;
+    auto operator[](const Value&) const -> const Value&;
 };
 
 auto operator==(const Value&, const Value&) noexcept -> bool;
 auto operator!=(const Value&, const Value&) noexcept -> bool;
 auto operator<<(std::ostream&, const Value&) -> std::ostream&;
+
+auto operator+(const Value&, const Value&) -> Value;
+auto operator-(const Value&, const Value&) -> Value;
+auto operator*(const Value&, const Value&) -> Value;
+auto operator/(const Value&, const Value&) -> Value;
+auto operator&(const Value&, const Value&) -> Value;
+auto operator|(const Value&, const Value&) -> Value;
+auto operator^(const Value&, const Value&) -> Value;
+auto operator&&(const Value&, const Value&) -> Value;
+auto operator||(const Value&, const Value&) -> Value;
 
 } // namespace minilua
 

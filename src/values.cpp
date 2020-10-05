@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <stdexcept>
 
 namespace minilua {
 
@@ -68,6 +69,13 @@ void Table::set(const Value& key, Value value) {
 }
 void Table::set(Value&& key, Value value) {
     impl->value[key] = std::move(value);
+}
+
+auto Table::operator[](const Value& index) -> Value& {
+    return impl->value[index];
+}
+auto Table::operator[](const Value& index) const -> const Value& {
+    return impl->value[index];
 }
 
 auto operator==(const Table& a, const Table& b) noexcept -> bool {
@@ -189,6 +197,51 @@ auto operator!=(const Value& a, const Value& b) noexcept -> bool {
 auto operator<<(std::ostream& os, const Value& self) -> std::ostream& {
     std::visit([&](const auto& value) { os << "Value(" << value << ")"; }, self.get());
     return os;
+}
+
+auto Value::operator[](const Value&) -> Value& {
+    // TODO
+    throw std::runtime_error("unimplemented");
+}
+auto Value::operator[](const Value&) const -> const Value& {
+    // TODO
+    throw std::runtime_error("unimplemented");
+}
+auto operator+(const Value&, const Value&) -> Value {
+    // TODO
+    return Value();
+}
+auto operator-(const Value&, const Value&) -> Value {
+    // TODO
+    return Value();
+}
+auto operator*(const Value&, const Value&) -> Value {
+    // TODO
+    return Value();
+}
+auto operator/(const Value&, const Value&) -> Value {
+    // TODO
+    return Value();
+}
+auto operator&(const Value&, const Value&) -> Value {
+    // TODO
+    return Value();
+}
+auto operator|(const Value&, const Value&) -> Value {
+    // TODO
+    return Value();
+}
+auto operator^(const Value&, const Value&) -> Value {
+    // TODO
+    return Value();
+}
+auto operator&&(const Value&, const Value&) -> Value {
+    // TODO
+    return Value();
+}
+auto operator||(const Value&, const Value&) -> Value {
+    // TODO
+    return Value();
 }
 
 } // namespace minilua

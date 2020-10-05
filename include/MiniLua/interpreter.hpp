@@ -61,7 +61,9 @@ public:
     /**
      * Applies source changes.
      *
-     * These can be created inside or outside the interpreter.
+     * These can be created inside or outside the interpreter but they should
+     * all be applied at once because they will move parts of the source code
+     * around.
      */
     void apply_source_changes(std::vector<SourceChange>);
 
