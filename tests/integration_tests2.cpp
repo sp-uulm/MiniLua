@@ -93,9 +93,7 @@ auto fn_ref_value(const minilua::CallContext & /*unused*/) -> minilua::Value {
 auto fn_string(minilua::CallContext /*unused*/) -> std::string { // NOLINT
     return std::string();
 }
-auto fn_ref_string(const minilua::CallContext & /*unused*/) -> std::string {
-    return std::string();
-}
+auto fn_ref_string(const minilua::CallContext & /*unused*/) -> std::string { return std::string(); }
 
 void fn_void(minilua::CallContext /*unused*/) {} // NOLINT
 void fn_ref_void(const minilua::CallContext& /*unused*/) {}
@@ -333,15 +331,14 @@ TEST_CASE("Lua Values") {
             minilua::Value value1{fn_ref_void};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
 
-            auto lambda = [](const minilua::CallContext& /*unused*/) {
-            };
+            auto lambda = [](const minilua::CallContext& /*unused*/) {};
             minilua::Value value2{lambda};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value2.get()));
         }
     }
 }
 
-TEST_CASE("Environment") {
+TEST_CASE("new Environment") {
     SECTION("from unordered_map") {
         std::unordered_map<std::string, int> map;
         map.insert_or_assign("hi", 25); // NOLINT
@@ -506,10 +503,7 @@ TEST_CASE("Interpreter") {
         {{"num2", 128},  // NOLINT
          {"num3", 1.31}, // NOLINT
          {"func2", debug_values},
-         {"func3",
-          [](const minilua::CallContext& /*unused*/) {
-              std::cout << "func3 -> void\n";
-          }},
+         {"func3", [](const minilua::CallContext& /*unused*/) { std::cout << "func3 -> void\n"; }},
          {"func4",
           [](minilua::CallContext /*unused*/) -> minilua::Vallist { // NOLINT
               return {1, std::string{"hi"}};
