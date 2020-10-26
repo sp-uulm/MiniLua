@@ -37,6 +37,7 @@ using LuaChunk = shared_ptr<struct _LuaChunk>;
 using LuaTableconstructor = shared_ptr<struct _LuaTableconstructor>;
 using LuaField = shared_ptr<struct _LuaField>;
 using LuaFunction = shared_ptr<struct _LuaFunction>;
+using LuaComment = shared_ptr<struct _LuaComment>;
 
 namespace lua {
 namespace rt {
