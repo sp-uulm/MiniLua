@@ -442,5 +442,13 @@ eval_result_t ASTEvaluator::visit(const _LuaIfStmt& stmt, const shared_ptr<Envir
     return eval_success(nil(), sc);
 }
 
+eval_result_t ASTEvaluator::visit(const _LuaComment& comment, const shared_ptr<Environment>& env,
+                                  const assign_t& assign) const {
+    //    cout << "visit function" << endl;
+
+    source_change_t sc;
+    return eval_success(nil(), sc);
+}
+
 } // namespace rt
 } // namespace lua
