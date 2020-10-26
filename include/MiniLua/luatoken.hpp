@@ -20,7 +20,7 @@ struct LuaToken {
         IN, LOCAL, NIL, NOT, OR,
         REPEAT, RETURN, THEN, TRUE, UNTIL, WHILE,
 
-        NAME, STRINGLIT, NUMLIT, COMMENT
+        NAME, STRINGLIT, NUMLIT, COMMENT, BLOCKCOMMENT
     } type;
     //clang-format on
     string match;
