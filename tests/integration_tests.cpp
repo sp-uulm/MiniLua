@@ -1,9 +1,14 @@
 #include <catch2/catch.hpp>
 #include <string>
 #include <variant>
+#include <filesystem>
+#include <iostream>
+#include <fstream>
 
 #include "MiniLua/luainterpreter.hpp"
 #include "MiniLua/luaparser.hpp"
+
+namespace fs = std::filesystem;
 
 void add_force_function_to_env(const std::shared_ptr<lua::rt::Environment>& env) {
     env->assign(string{"force"},
@@ -62,6 +67,13 @@ std::string parse_eval_update(std::string program) {
     return program;
 }
 
+std::string read_input_from_file(std::string path){
+    std::ifstream ifs;
+    ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    ifs.open(path);
+    return std::string(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
+}
+
 TEST_CASE("parse, eval, update", "[parse]") {
     SECTION("simple for") {
         const std::string program = "for i=1, 10, 1 do \n    print('hello world ', i)\nend";
@@ -73,5 +85,36 @@ TEST_CASE("parse, eval, update", "[parse]") {
         const std::string program = "force(2, 3)";
         const auto result = parse_eval_update(program);
         REQUIRE(result == "force(3, 3)");
+    }
+
+    SECTION("COMMENTS"){
+        const std::string program = "print('test')\n --print('normal comment')\nprint('hello')";
+        const auto result = parse_eval_update(program);
+        REQUIRE(result == program);
+    }
+}
+
+TEST_CASE("whole lua-programs") {
+    SECTION("programs with function calls"){
+        /*
+        const std::vector<std::string> files;
+
+        //Find all Files in directory
+        for (const auto& entry : fs::directory_iterator("../luaprograms")){
+            //cout << typeid(entry.path()).name() << "\n";
+            //files.push_back(entry.path());
+            DYNAMIC_SECTION("File: " << entry.path()){
+                const std::string program = read_input_from_file(entry.path());
+                const auto result = parse_eval_update(program);
+                REQUIRE(result == program);
+            }
+        }
+        */
+    }
+
+    SECTION("Lua-program without functions"){
+        const std::string program = read_input_from_file("../luaprograms/FragmentedFurniture_withoutMethods.lua");
+        const auto result = parse_eval_update(program);
+        REQUIRE(result == program);
     }
 }
