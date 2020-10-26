@@ -22,7 +22,7 @@ template <typename Lexer> struct lua_tokens : bs::lex::lexer<Lexer> {
     lua_tokens() {
         // define tokens (the regular expression to match and the corresponding
         // token id) and add them to the lexer
-        this->self.add("\\s+", WS)("--\\[\\[[^]*?\\]\\]", LuaToken::Type::BLOCKCOMMENT)("--[^\n]*", LuaToken::Type::COMMENT)
+        this->self.add("\\s+", WS)("--\\[\\[[^\\]]*\\]\\]", LuaToken::Type::BLOCKCOMMENT)("--[^\n]*", LuaToken::Type::COMMENT)
                 ("(\\\"[^\\\"]*\\\")|('[^']*')", LuaToken::Type::STRINGLIT)
                 ("((\\d+\\.?\\d*)|(\\d*\\.?\\d+))(e-?\\d+)?", LuaToken::Type::NUMLIT)("\\+", LuaToken::Type::ADD)(
             "-", LuaToken::Type::SUB)("\\*", LuaToken::Type::MUL)("\\/", LuaToken::Type::DIV)(
