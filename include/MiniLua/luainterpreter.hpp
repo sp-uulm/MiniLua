@@ -49,7 +49,7 @@ namespace rt {
 
 struct ASTEvaluator {
     eval_result_t visit(const _LuaAST&, const shared_ptr<Environment>&, const assign_t&) const {
-        return string{"unimplemented"};
+        return string{"unimplemented10"};
     }
 
     eval_result_t visit(const _LuaName& chunk, const shared_ptr<Environment>& env,
@@ -87,6 +87,8 @@ struct ASTEvaluator {
     eval_result_t visit(const _LuaFunction& exp, const shared_ptr<Environment>& env,
                         const assign_t& assign) const;
     eval_result_t visit(const _LuaIfStmt& stmt, const shared_ptr<Environment>& env,
+                        const assign_t& assign) const;
+    eval_result_t visit(const _LuaComment& stmt, const shared_ptr<Environment>& env,
                         const assign_t& assign) const;
 };
 
