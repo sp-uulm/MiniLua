@@ -199,4 +199,8 @@ struct _LuaFunction : public _LuaExp {
     LuaChunk body;
 };
 
+struct _LuaComment : public _LuaStmt {
+    VISITABLE override;
+};
+
 #endif // LUAAST_H
