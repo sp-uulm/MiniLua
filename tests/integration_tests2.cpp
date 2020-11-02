@@ -511,12 +511,20 @@ TEST_CASE("Interpreter") {
          {"tabl", minilua::Table({
                       {std::string("key1"), 25.0}, // NOLINT
                       {std::string("key2"), std::string("value")},
-                  })}});
+                  })},
+         {"forceValue", [](minilua::CallContext ctx) -> minilua::CallResult {
+              // auto [arg1, arg2] = ctx.arguments();
+              auto arg1 = ctx.arguments().get(0);
+              auto arg2 = ctx.arguments().get(1);
+              auto change = ctx.force_value(arg1, arg2);
+              change.origin = "forceValue";
+              return change;
+          }}});
 
     std::cout << interpreter.environment() << "\n";
 
     // parse and run a program
-    interpreter.parse("print(120)");
+    interpreter.parse("x_coord = 10; forceValue(x_coord, 25)");
     minilua::EvalResult result = interpreter.evaluate();
 
     // chose source changes to apply

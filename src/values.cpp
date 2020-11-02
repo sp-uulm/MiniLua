@@ -7,9 +7,7 @@
 namespace minilua {
 
 // struct Nil
-auto operator<<(std::ostream& os, Nil /*unused*/) -> std::ostream& {
-    return os << "Nil";
-}
+auto operator<<(std::ostream& os, Nil /*unused*/) -> std::ostream& { return os << "Nil"; }
 
 // struct Bool
 
@@ -25,16 +23,10 @@ auto operator<<(std::ostream& os, Number self) -> std::ostream& {
 // struct String
 String::String(std::string value) : value(std::move(value)) {}
 
-void swap(String& self, String& other) {
-    std::swap(self.value, other.value);
-}
+void swap(String& self, String& other) { std::swap(self.value, other.value); }
 
-auto operator==(const String& a, const String& b) noexcept -> bool {
-    return a.value == b.value;
-}
-auto operator!=(const String& a, const String& b) noexcept -> bool {
-    return !(a == b);
-}
+auto operator==(const String& a, const String& b) noexcept -> bool { return a.value == b.value; }
+auto operator!=(const String& a, const String& b) noexcept -> bool { return !(a == b); }
 auto operator<<(std::ostream& os, const String& self) -> std::ostream& {
     return os << "String(\"" << self.value << "\")";
 }
@@ -57,33 +49,17 @@ Table::Table(Table&& other) noexcept = default;
 Table::~Table() noexcept = default;
 auto Table::operator=(const Table& other) -> Table& = default;
 auto Table::operator=(Table&& other) noexcept -> Table& = default;
-void swap(Table& self, Table& other) {
-    std::swap(self.impl, other.impl);
-}
+void swap(Table& self, Table& other) { std::swap(self.impl, other.impl); }
 
-auto Table::get(const Value& key) -> Value {
-    return impl->value.at(key);
-}
-void Table::set(const Value& key, Value value) {
-    impl->value[key] = std::move(value);
-}
-void Table::set(Value&& key, Value value) {
-    impl->value[key] = std::move(value);
-}
+auto Table::get(const Value& key) -> Value { return impl->value.at(key); }
+void Table::set(const Value& key, Value value) { impl->value[key] = std::move(value); }
+void Table::set(Value&& key, Value value) { impl->value[key] = std::move(value); }
 
-auto Table::operator[](const Value& index) -> Value& {
-    return impl->value[index];
-}
-auto Table::operator[](const Value& index) const -> const Value& {
-    return impl->value[index];
-}
+auto Table::operator[](const Value& index) -> Value& { return impl->value[index]; }
+auto Table::operator[](const Value& index) const -> const Value& { return impl->value[index]; }
 
-auto operator==(const Table& a, const Table& b) noexcept -> bool {
-    return a.impl == b.impl;
-}
-auto operator!=(const Table& a, const Table& b) noexcept -> bool {
-    return !(a == b);
-}
+auto operator==(const Table& a, const Table& b) noexcept -> bool { return a.impl == b.impl; }
+auto operator!=(const Table& a, const Table& b) noexcept -> bool { return !(a == b); }
 auto operator<<(std::ostream& os, const Table& self) -> std::ostream& {
     os << "Table { ";
     for (const auto& [key, value] : self.impl->value) {
@@ -108,17 +84,14 @@ auto CallContext::operator=(const CallContext&) -> CallContext& = default;
 auto CallContext::operator=(CallContext &&) -> CallContext& = default;
 CallContext::~CallContext() = default;
 
-auto CallContext::call_location() const -> Range {
-    return impl->location;
-}
-auto CallContext::environment() const -> Environment& {
-    return *impl->env;
-}
-auto CallContext::get(const std::string& name) const -> Value& {
-    return impl->env->get(name);
-}
-auto CallContext::arguments() const -> const Vallist& {
-    return impl->args;
+auto CallContext::call_location() const -> Range { return impl->location; }
+auto CallContext::environment() const -> Environment& { return *impl->env; }
+auto CallContext::get(const std::string& name) const -> Value& { return impl->env->get(name); }
+auto CallContext::arguments() const -> const Vallist& { return impl->args; }
+auto CallContext::force_value(Value target, Value new_value) -> SuggestedSourceChange {
+    // TODO
+    // needs some place to store source changes
+    return {};
 }
 
 auto operator<<(std::ostream& os, const CallContext& self) -> std::ostream& {
@@ -128,28 +101,22 @@ auto operator<<(std::ostream& os, const CallContext& self) -> std::ostream& {
 }
 
 // class CallResult
-CallResult::CallResult() {
-    std::cout << "CallResult\n";
-}
-CallResult::CallResult(Vallist) {
-    std::cout << "CallResult(Vallist)\n";
-}
+CallResult::CallResult() { std::cout << "CallResult\n"; }
+CallResult::CallResult(Vallist) { std::cout << "CallResult(Vallist)\n"; }
 CallResult::CallResult(std::vector<Value> values) : CallResult(Vallist(values)) {}
 CallResult::CallResult(std::initializer_list<Value> values) : CallResult(Vallist(values)) {}
-CallResult::CallResult(SourceChange) {
-    std::cout << "CallResult(SourceChange)\n";
+CallResult::CallResult(SuggestedSourceChange) {
+    std::cout << "CallResult(SuggestedSourceChange)\n";
 }
-CallResult::CallResult(Vallist, SourceChange) {
-    std::cout << "CallResult(Vallist, SourceChange)\n";
+CallResult::CallResult(Vallist, SuggestedSourceChange) {
+    std::cout << "CallResult(Vallist, SuggestedSourceChange)\n";
 }
 
 // struct NativeFunction
 auto operator<<(std::ostream& os, const NativeFunction & /*unused*/) -> std::ostream& {
     return os << "NativeFunction";
 }
-void swap(NativeFunction& self, NativeFunction& other) {
-    std::swap(self.func, other.func);
-}
+void swap(NativeFunction& self, NativeFunction& other) { std::swap(self.func, other.func); }
 
 // class Value
 struct Value::Impl {
@@ -177,23 +144,13 @@ Value::~Value() = default;
 auto Value::operator=(const Value& other) -> Value& = default;
 // NOLINTNEXTLINE
 auto Value::operator=(Value&& other) -> Value& = default;
-void swap(Value& self, Value& other) {
-    std::swap(self.impl, other.impl);
-}
+void swap(Value& self, Value& other) { std::swap(self.impl, other.impl); }
 
-auto Value::get() -> Value::Type& {
-    return impl->val;
-}
-auto Value::get() const -> const Value::Type& {
-    return impl->val;
-}
+auto Value::get() -> Value::Type& { return impl->val; }
+auto Value::get() const -> const Value::Type& { return impl->val; }
 
-auto operator==(const Value& a, const Value& b) noexcept -> bool {
-    return a.get() == b.get();
-}
-auto operator!=(const Value& a, const Value& b) noexcept -> bool {
-    return !(a == b);
-}
+auto operator==(const Value& a, const Value& b) noexcept -> bool { return a.get() == b.get(); }
+auto operator!=(const Value& a, const Value& b) noexcept -> bool { return !(a == b); }
 auto operator<<(std::ostream& os, const Value& self) -> std::ostream& {
     std::visit([&](const auto& value) { os << "Value(" << value << ")"; }, self.get());
     return os;
@@ -284,15 +241,9 @@ namespace minilua {
 struct Vallist::Impl {
     std::vector<Value> values;
 };
-Vallist::Vallist() {
-    std::cout << "Vallist()\n";
-}
-Vallist::Vallist(std::vector<Value>) {
-    std::cout << "Vallist(vector)\n";
-}
-Vallist::Vallist(std::initializer_list<Value>) {
-    std::cout << "Vallist(<init-list>)\n";
-}
+Vallist::Vallist() { std::cout << "Vallist()\n"; }
+Vallist::Vallist(std::vector<Value>) { std::cout << "Vallist(vector)\n"; }
+Vallist::Vallist(std::initializer_list<Value>) { std::cout << "Vallist(<init-list>)\n"; }
 
 Vallist::Vallist(const Vallist&) = default;
 // NOLINTNEXTLINE
@@ -302,18 +253,10 @@ auto Vallist::operator=(const Vallist&) -> Vallist& = default;
 auto Vallist::operator=(Vallist &&) -> Vallist& = default;
 Vallist::~Vallist() = default;
 
-auto Vallist::size() const -> size_t {
-    return impl->values.size();
-}
-auto Vallist::get(size_t index) const -> const Value& {
-    return impl->values.at(index);
-}
-auto Vallist::begin() const -> std::vector<Value>::const_iterator {
-    return impl->values.cbegin();
-}
-auto Vallist::end() const -> std::vector<Value>::const_iterator {
-    return impl->values.cend();
-}
+auto Vallist::size() const -> size_t { return impl->values.size(); }
+auto Vallist::get(size_t index) const -> const Value& { return impl->values.at(index); }
+auto Vallist::begin() const -> std::vector<Value>::const_iterator { return impl->values.cbegin(); }
+auto Vallist::end() const -> std::vector<Value>::const_iterator { return impl->values.cend(); }
 
 auto operator<<(std::ostream& os, const Vallist& self) -> std::ostream& {
     os << "Vallist{ ";

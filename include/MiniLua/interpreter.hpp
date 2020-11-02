@@ -8,16 +8,6 @@
 
 namespace minilua {
 
-struct SuggestedSourceChange {
-    // can be filled in by the function creating the suggestion
-    std::optional<std::string> origin;
-    // hint for the source locations that would be modified
-    // TODO maybe should be part of the SourceChange
-    std::string hint;
-    // TODO maybe this needs to be a vector
-    SourceChange change;
-};
-
 struct ParseResult {
     std::vector<std::string> errors;
 

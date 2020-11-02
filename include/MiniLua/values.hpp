@@ -51,12 +51,8 @@ public:
 };
 
 struct Nil {};
-constexpr auto operator==(Nil, Nil) noexcept -> bool {
-    return true;
-}
-constexpr auto operator!=(Nil, Nil) noexcept -> bool {
-    return false;
-}
+constexpr auto operator==(Nil, Nil) noexcept -> bool { return true; }
+constexpr auto operator!=(Nil, Nil) noexcept -> bool { return false; }
 auto operator<<(std::ostream&, Nil) -> std::ostream&;
 
 struct Bool {
@@ -64,12 +60,8 @@ struct Bool {
 
     constexpr Bool(bool value) : value(value) {}
 };
-constexpr auto operator==(Bool lhs, Bool rhs) noexcept -> bool {
-    return lhs.value == rhs.value;
-}
-constexpr auto operator!=(Bool lhs, Bool rhs) noexcept -> bool {
-    return !(lhs == rhs);
-}
+constexpr auto operator==(Bool lhs, Bool rhs) noexcept -> bool { return lhs.value == rhs.value; }
+constexpr auto operator!=(Bool lhs, Bool rhs) noexcept -> bool { return !(lhs == rhs); }
 auto operator<<(std::ostream&, Bool) -> std::ostream&;
 
 // normal c++ operators
@@ -86,15 +78,9 @@ struct Number {
 constexpr auto operator==(Number lhs, Number rhs) noexcept -> bool {
     return lhs.value == rhs.value;
 }
-constexpr auto operator!=(Number lhs, Number rhs) noexcept -> bool {
-    return !(lhs == rhs);
-}
-constexpr auto operator<(Number lhs, Number rhs) noexcept -> bool {
-    return lhs.value < rhs.value;
-}
-constexpr auto operator>(Number lhs, Number rhs) noexcept -> bool {
-    return lhs.value > rhs.value;
-}
+constexpr auto operator!=(Number lhs, Number rhs) noexcept -> bool { return !(lhs == rhs); }
+constexpr auto operator<(Number lhs, Number rhs) noexcept -> bool { return lhs.value < rhs.value; }
+constexpr auto operator>(Number lhs, Number rhs) noexcept -> bool { return lhs.value > rhs.value; }
 constexpr auto operator<=(Number lhs, Number rhs) noexcept -> bool {
     return lhs.value <= rhs.value;
 }
@@ -184,6 +170,17 @@ public:
      */
     [[nodiscard]] auto arguments() const -> const Vallist&;
 
+    /**
+     * Forces the 'target' value to become 'new_value' which will trigger
+     * create source change that is returned by 'Interpreter::evaluate'.
+     *
+     * The return value should be returned in NativeFunctions otherwise this
+     * does not have an effect.
+     *
+     * This throws an exception if the types of the values did't match.
+     */
+    auto force_value(Value target, Value new_value) -> SuggestedSourceChange;
+
     friend auto operator<<(std::ostream&, const CallContext&) -> std::ostream&;
 };
 
@@ -193,8 +190,8 @@ public:
     CallResult(Vallist);
     CallResult(std::vector<Value>);
     CallResult(std::initializer_list<Value>);
-    CallResult(SourceChange);
-    CallResult(Vallist, SourceChange);
+    CallResult(SuggestedSourceChange);
+    CallResult(Vallist, SuggestedSourceChange);
 
     // friend auto operator<<(std::ostream&, const CallResult&) -> std::ostream&;
 };
@@ -212,9 +209,7 @@ public:
             *this->func = fn;
         } else if constexpr (std::is_convertible_v<std::invoke_result_t<Fn, CallContext>, Value>) {
             // easy use of functions that return a type that is convertible to Value (e.g. string)
-            *this->func = [fn](CallContext ctx) -> CallResult {
-                return CallResult({fn(ctx)});
-            };
+            *this->func = [fn](CallContext ctx) -> CallResult { return CallResult({fn(ctx)}); };
         } else if constexpr (std::is_void_v<std::invoke_result_t<Fn, CallContext>>) {
             // support void functions by returning an empty Vallist
             *this->func = [fn](CallContext ctx) -> CallResult {

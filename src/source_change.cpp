@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "MiniLua/source_change.hpp"
 
 namespace minilua {
@@ -23,6 +25,21 @@ auto operator!=(const SourceChange& lhs, const SourceChange& rhs) noexcept -> bo
 auto operator<<(std::ostream& os, const SourceChange& self) -> std::ostream& {
     return os << "SourceChange{ range = " << self.range << ", replacement = \"" << self.replacement
               << "\" }";
+}
+
+// struct SuggestedSourceChange
+SuggestedSourceChange::SuggestedSourceChange() = default;
+SuggestedSourceChange::SuggestedSourceChange(SourceChange change) : change(std::move(change)) {}
+
+auto operator==(const SuggestedSourceChange& lhs, const SuggestedSourceChange& rhs) noexcept
+    -> bool {}
+auto operator!=(const SuggestedSourceChange& lhs, const SuggestedSourceChange& rhs) noexcept
+    -> bool {
+    return !(lhs == rhs);
+}
+auto operator<<(std::ostream& os, const SuggestedSourceChange& self) -> std::ostream& {
+    return os << "SuggestedSourceChange{ origin = \"" << self.origin.value_or(std::string())
+              << "\", hint = \"" << self.hint << "\", source_change = " << self.change << "}";
 }
 
 } // namespace minilua
