@@ -177,7 +177,7 @@ public:
      * The return value should be returned in NativeFunctions otherwise this
      * does not have an effect.
      *
-     * This throws an exception if the types of the values did't match.
+     * This throws an exception if the types of the values didn't match.
      */
     auto force_value(Value target, Value new_value) -> SuggestedSourceChange;
 
