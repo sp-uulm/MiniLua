@@ -40,16 +40,16 @@ auto Interpreter::parse(std::string source_code) -> ParseResult {
     std::cout << "parse\n";
     return ParseResult();
 }
-void Interpreter::apply_source_changes(std::vector<SourceChange> changes) {
+void Interpreter::apply_source_change(SourceChange change) {
     // TODO
-    std::cout << "apply_source_changes\n";
+    std::cout << "apply_source_change\n";
 }
 auto Interpreter::evaluate() -> EvalResult {
     std::cout << "run\n";
     // TODO
     return EvalResult();
 }
-auto Interpreter::force_value(Value target, Value new_value) -> SuggestedSourceChange {
+auto Interpreter::force_value(Value target, Value new_value) -> SourceChange {
     // TODO
     return {};
 }

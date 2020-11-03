@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <iostream>
 #include <optional>
+#include <variant>
+#include <vector>
 
 namespace minilua {
 
@@ -49,33 +51,72 @@ constexpr auto operator==(Range lhs, Range rhs) noexcept -> bool {
 constexpr auto operator!=(Range lhs, Range rhs) noexcept -> bool { return !(lhs == rhs); }
 auto operator<<(std::ostream&, const Range&) -> std::ostream&;
 
-// TODO this might need to be an opaque type
-struct SourceChange {
+class SourceChange;
+
+struct CommonSCInfo {
+    // can be filled in by the function creating the suggestion
+    std::string origin;
+    // hint for the source locations that would be modified (e.g. variable name/line number)
+    std::string hint;
+};
+
+struct SCSingle : public CommonSCInfo {
     Range range;
     std::string replacement;
+};
+
+auto operator==(const SCSingle& lhs, const SCSingle& rhs) noexcept -> bool;
+auto operator!=(const SCSingle& lhs, const SCSingle& rhs) noexcept -> bool;
+auto operator<<(std::ostream&, const SCSingle&) -> std::ostream&;
+
+struct SCAnd : public CommonSCInfo {
+    std::vector<SourceChange> changes;
+
+    void add(SourceChange);
+};
+
+auto operator==(const SCAnd& lhs, const SCAnd& rhs) noexcept -> bool;
+auto operator!=(const SCAnd& lhs, const SCAnd& rhs) noexcept -> bool;
+auto operator<<(std::ostream&, const SCAnd&) -> std::ostream&;
+
+struct SCOr : public CommonSCInfo {
+    std::vector<SourceChange> changes;
+
+    void add(SourceChange);
+};
+
+auto operator==(const SCOr& lhs, const SCOr& rhs) noexcept -> bool;
+auto operator!=(const SCOr& lhs, const SCOr& rhs) noexcept -> bool;
+auto operator<<(std::ostream&, const SCOr&) -> std::ostream&;
+
+// can't be just "using ..." because we need a forward reference
+class SourceChange {
+    using Type = std::variant<SCSingle, SCAnd, SCOr>;
+    Type change;
+
+public:
+    SourceChange();
+    SourceChange(SCSingle);
+    SourceChange(SCAnd);
+    SourceChange(SCOr);
+    SourceChange(Type);
+
+    [[nodiscard]] auto origin() const -> const std::string&;
+    [[nodiscard]] auto hint() const -> const std::string&;
+    void set_origin(std::string);
+    void set_hint(std::string);
+
+    template <typename Visitor> auto visit(Visitor visitor) { return std::visit(visitor, change); }
+
+    auto operator*() -> Type&;
+    auto operator*() const -> const Type&;
+
+    auto operator->() -> Type*;
 };
 
 auto operator==(const SourceChange& lhs, const SourceChange& rhs) noexcept -> bool;
 auto operator!=(const SourceChange& lhs, const SourceChange& rhs) noexcept -> bool;
 auto operator<<(std::ostream&, const SourceChange&) -> std::ostream&;
-
-struct SuggestedSourceChange {
-    // can be filled in by the function creating the suggestion
-    std::optional<std::string> origin;
-    // hint for the source locations that would be modified (e.g. variable name/line number)
-    std::string hint;
-    // TODO maybe this needs to be a vector
-    SourceChange change;
-
-    SuggestedSourceChange();
-    SuggestedSourceChange(SourceChange);
-};
-
-auto operator==(const SuggestedSourceChange& lhs, const SuggestedSourceChange& rhs) noexcept
-    -> bool;
-auto operator!=(const SuggestedSourceChange& lhs, const SuggestedSourceChange& rhs) noexcept
-    -> bool;
-auto operator<<(std::ostream&, const SuggestedSourceChange&) -> std::ostream&;
 
 } // namespace minilua
 

@@ -179,7 +179,7 @@ public:
      *
      * This throws an exception if the types of the values didn't match.
      */
-    auto force_value(Value target, Value new_value) -> SuggestedSourceChange;
+    auto force_value(Value target, Value new_value) -> SourceChange;
 
     friend auto operator<<(std::ostream&, const CallContext&) -> std::ostream&;
 };
@@ -190,8 +190,8 @@ public:
     CallResult(Vallist);
     CallResult(std::vector<Value>);
     CallResult(std::initializer_list<Value>);
-    CallResult(SuggestedSourceChange);
-    CallResult(Vallist, SuggestedSourceChange);
+    CallResult(SourceChange);
+    CallResult(Vallist, SourceChange);
 
     // friend auto operator<<(std::ostream&, const CallResult&) -> std::ostream&;
 };

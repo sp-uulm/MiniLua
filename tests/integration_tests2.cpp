@@ -517,7 +517,7 @@ TEST_CASE("Interpreter") {
               auto arg1 = ctx.arguments().get(0);
               auto arg2 = ctx.arguments().get(1);
               auto change = ctx.force_value(arg1, arg2);
-              change.origin = "forceValue";
+              change.set_origin("forceValue");
               return change;
           }}});
 
@@ -532,10 +532,10 @@ TEST_CASE("Interpreter") {
     //      program only causes one source change?
     const auto* previous_hint = "x_coord";
 
-    for (auto& suggestion : result.source_change_suggestions) {
-        if (suggestion.origin == "gui_drag_line") {
-            if (suggestion.hint == previous_hint) {
-                interpreter.apply_source_changes(std::vector{suggestion.change});
+    for (auto& source_change : result.source_changes) {
+        if (source_change.origin() == "gui_drag_line") {
+            if (source_change.hint() == previous_hint) {
+                interpreter.apply_source_change(source_change);
                 break;
             }
         }

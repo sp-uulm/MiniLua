@@ -88,7 +88,7 @@ auto CallContext::call_location() const -> Range { return impl->location; }
 auto CallContext::environment() const -> Environment& { return *impl->env; }
 auto CallContext::get(const std::string& name) const -> Value& { return impl->env->get(name); }
 auto CallContext::arguments() const -> const Vallist& { return impl->args; }
-auto CallContext::force_value(Value target, Value new_value) -> SuggestedSourceChange {
+auto CallContext::force_value(Value target, Value new_value) -> SourceChange {
     // TODO
     // needs some place to store source changes
     return {};
@@ -105,11 +105,9 @@ CallResult::CallResult() { std::cout << "CallResult\n"; }
 CallResult::CallResult(Vallist) { std::cout << "CallResult(Vallist)\n"; }
 CallResult::CallResult(std::vector<Value> values) : CallResult(Vallist(values)) {}
 CallResult::CallResult(std::initializer_list<Value> values) : CallResult(Vallist(values)) {}
-CallResult::CallResult(SuggestedSourceChange) {
-    std::cout << "CallResult(SuggestedSourceChange)\n";
-}
-CallResult::CallResult(Vallist, SuggestedSourceChange) {
-    std::cout << "CallResult(Vallist, SuggestedSourceChange)\n";
+CallResult::CallResult(SourceChange) { std::cout << "CallResult(SourceChange)\n"; }
+CallResult::CallResult(Vallist, SourceChange) {
+    std::cout << "CallResult(Vallist, SourceChange)\n";
 }
 
 // struct NativeFunction

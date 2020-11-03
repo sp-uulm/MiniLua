@@ -16,7 +16,7 @@ struct ParseResult {
 
 struct EvalResult {
     Value value;
-    std::vector<SuggestedSourceChange> source_change_suggestions;
+    std::vector<SourceChange> source_changes;
 };
 
 class Interpreter {
@@ -49,13 +49,12 @@ public:
     auto parse(std::string source_code) -> ParseResult;
 
     /**
-     * Applies source changes.
+     * Applies a source change.
      *
-     * These can be created inside or outside the interpreter but they should
-     * all be applied at once because they will move parts of the source code
-     * around.
+     * A source change can be a bigger tree of and-ed and or-ed changes. For
+     * or-ed changes only the first branch of the tree will be applied.
      */
-    void apply_source_changes(std::vector<SourceChange>);
+    void apply_source_change(SourceChange);
 
     /**
      * Run the parsed program.
@@ -74,7 +73,7 @@ public:
      *
      * This throws an exception if the types of the values didn't match.
      */
-    auto force_value(Value target, Value new_value) -> SuggestedSourceChange;
+    auto force_value(Value target, Value new_value) -> SourceChange;
 };
 
 }; // namespace minilua
