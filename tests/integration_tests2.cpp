@@ -1,4 +1,5 @@
 #include "MiniLua/environment.hpp"
+#include "MiniLua/source_change.hpp"
 #include <MiniLua/MiniLua.hpp>
 #include <algorithm>
 #include <catch2/catch.hpp>
@@ -540,6 +541,29 @@ TEST_CASE("Interpreter") {
             }
         }
     }
+}
+
+TEST_CASE("source_changes") {
+    auto change = minilua::SCSingle(minilua::Range(), "replacement");
+    change.hint = "hint";
+    change.origin = "origin";
+    INFO(change);
+    minilua::SourceChange source_change{change};
+
+    INFO(source_change);
+    REQUIRE(source_change.origin() == "origin");
+    REQUIRE(source_change.hint() == "hint");
+
+    auto change2 = minilua::SCSingle(minilua::Range(), "replacement");
+    change2.hint = "hint";
+    change2.origin = "origin";
+    INFO(change2);
+    minilua::SourceChange source_change2{change2};
+
+    auto combined_change = minilua::SCAnd({source_change, source_change2});
+    INFO(combined_change);
+    minilua::SourceChange source_change3{combined_change};
+    INFO(source_change3);
 }
 
 TEST_CASE("table") {

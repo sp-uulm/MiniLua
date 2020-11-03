@@ -23,16 +23,16 @@ SourceChange::SourceChange(SCOr change) : change(change) {}
 SourceChange::SourceChange(Type change) : change(std::move(change)) {}
 
 [[nodiscard]] auto SourceChange::origin() const -> const std::string& {
-    return std::visit([](const auto& change) { return change.origin; }, change);
+    return this->visit([](const auto& change) -> const std::string& { return change.origin; });
 }
 [[nodiscard]] auto SourceChange::hint() const -> const std::string& {
-    return std::visit([](const auto& change) { return change.hint; }, change);
+    return this->visit([](const auto& change) -> const std::string& { return change.hint; });
 }
 void SourceChange::set_origin(std::string origin) {
-    std::visit([&origin](auto& change) { change.origin = std::move(origin); }, change);
+    this->visit([&origin](auto& change) { change.origin = std::move(origin); });
 }
 void SourceChange::set_hint(std::string hint) {
-    std::visit([&hint](auto& change) { change.hint = std::move(hint); }, change);
+    this->visit([&hint](auto& change) { change.hint = std::move(hint); });
 }
 
 auto SourceChange::operator*() -> Type& { return change; }
@@ -46,10 +46,16 @@ auto operator!=(const SourceChange& lhs, const SourceChange& rhs) noexcept -> bo
     return !(lhs == rhs);
 }
 auto operator<<(std::ostream& os, const SourceChange& self) -> std::ostream& {
-    return os << "SourceChange{ change = " << *self << " }";
+    os << "SourceChange{ change = ";
+    self.visit([&os](const auto& change) { os << change; });
+    return os << " }";
 }
 
 // struct SCSingle
+SCSingle::SCSingle() = default;
+SCSingle::SCSingle(Range range, std::string replacement)
+    : range(range), replacement(std::move(replacement)) {}
+
 auto operator==(const SCSingle& lhs, const SCSingle& rhs) noexcept -> bool {
     return lhs.range == rhs.range && lhs.replacement == rhs.replacement &&
            lhs.origin == rhs.origin && lhs.hint == rhs.hint;
@@ -61,7 +67,10 @@ auto operator<<(std::ostream& os, const SCSingle& self) -> std::ostream& {
 }
 
 // struct SCAnd
-void SCAnd::add(SourceChange change) { changes.push_back(change); }
+SCAnd::SCAnd() = default;
+SCAnd::SCAnd(std::vector<SourceChange> changes) : changes(std::move(changes)) {}
+
+void SCAnd::add(SourceChange change) { changes.push_back(std::move(change)); }
 
 auto operator==(const SCAnd& lhs, const SCAnd& rhs) noexcept -> bool {
     return lhs.changes == rhs.changes;
@@ -78,6 +87,9 @@ auto operator<<(std::ostream& os, const SCAnd& self) -> std::ostream& {
 }
 
 // struct SCOr
+SCOr::SCOr() = default;
+SCOr::SCOr(std::vector<SourceChange> changes) : changes(std::move(changes)) {}
+
 void SCOr::add(SourceChange change) { changes.push_back(change); }
 
 auto operator==(const SCOr& lhs, const SCOr& rhs) noexcept -> bool {

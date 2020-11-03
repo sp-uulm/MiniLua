@@ -63,6 +63,9 @@ struct CommonSCInfo {
 struct SCSingle : public CommonSCInfo {
     Range range;
     std::string replacement;
+
+    SCSingle();
+    SCSingle(Range range, std::string replacement);
 };
 
 auto operator==(const SCSingle& lhs, const SCSingle& rhs) noexcept -> bool;
@@ -71,6 +74,9 @@ auto operator<<(std::ostream&, const SCSingle&) -> std::ostream&;
 
 struct SCAnd : public CommonSCInfo {
     std::vector<SourceChange> changes;
+
+    SCAnd();
+    SCAnd(std::vector<SourceChange> changes);
 
     void add(SourceChange);
 };
@@ -82,6 +88,9 @@ auto operator<<(std::ostream&, const SCAnd&) -> std::ostream&;
 struct SCOr : public CommonSCInfo {
     std::vector<SourceChange> changes;
 
+    SCOr();
+    SCOr(std::vector<SourceChange> changes);
+
     void add(SourceChange);
 };
 
@@ -89,12 +98,12 @@ auto operator==(const SCOr& lhs, const SCOr& rhs) noexcept -> bool;
 auto operator!=(const SCOr& lhs, const SCOr& rhs) noexcept -> bool;
 auto operator<<(std::ostream&, const SCOr&) -> std::ostream&;
 
-// can't be just "using ..." because we need a forward reference
+// can't be just "using SourceChange = ..." because we need a forward reference above
 class SourceChange {
+public:
     using Type = std::variant<SCSingle, SCAnd, SCOr>;
     Type change;
 
-public:
     SourceChange();
     SourceChange(SCSingle);
     SourceChange(SCAnd);
@@ -106,7 +115,12 @@ public:
     void set_origin(std::string);
     void set_hint(std::string);
 
-    template <typename Visitor> auto visit(Visitor visitor) { return std::visit(visitor, change); }
+    template <typename Visitor> decltype(auto) visit(Visitor visitor) {
+        return std::visit(visitor, change);
+    }
+    template <typename Visitor> decltype(auto) visit(Visitor visitor) const {
+        return std::visit(visitor, change);
+    }
 
     auto operator*() -> Type&;
     auto operator*() const -> const Type&;
