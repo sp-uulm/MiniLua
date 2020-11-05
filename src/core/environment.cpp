@@ -453,7 +453,7 @@ void Environment::populate_stdlib() {
     (*math)["floor"] = function(stdlib::floor);
     (*math)["pi"] = 3.1415926;
 
-    t["_G"] = shared_ptr<table>(shared_from_this(), &t);
+    // t["_G"] = shared_ptr<table>(shared_from_this(), &t);
 
     t["__visit_count"] = 0.0;
     t["__visit_limit"] = 500.0;

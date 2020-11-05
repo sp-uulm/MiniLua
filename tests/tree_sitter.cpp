@@ -7,7 +7,7 @@
 
 using namespace std::string_literals;
 
-TEST_CASE("Navigation", "[tree-sitter][!hide]") {
+TEST_CASE("Navigation", "[tree-sitter][.hide]") {
     // This is a possible design of how to use tree-sitter in the interpreter.
     // But of course this would be split up over multiple functions
     // and could use better variable names because of that.
@@ -28,7 +28,8 @@ TEST_CASE("Navigation", "[tree-sitter][!hide]") {
 
     public:
         BinaryOperation(ts::Node node)
-            : left_node(node.child(0)), right_node(node.child(2)), op_node(node.child(1)) {
+            : left_node(node.child(0).value()), right_node(node.child(2).value()),
+              op_node(node.child(1).value()) {
             if (node.type() != "binary_operation"s) {
                 throw std::runtime_error("not a binary_operation node");
             }
@@ -49,10 +50,10 @@ TEST_CASE("Navigation", "[tree-sitter][!hide]") {
     ts::Node root_node = tree.root_node();
     assert(root_node.type() == "program"s);
 
-    ts::Node child = root_node.named_child(0);
+    ts::Node child = root_node.named_child(0).value();
     // check all "root" types
     if (child.type() == "expression"s) {
-        ts::Node next_child = child.named_child(0);
+        ts::Node next_child = child.named_child(0).value();
         // check all expression types
         if (next_child.type() == "binary_operation"s) {
             BinaryOperation bin_op = BinaryOperation(next_child);
@@ -78,7 +79,7 @@ TEST_CASE("Navigation", "[tree-sitter][!hide]") {
     }
 }
 
-TEST_CASE("Print", "[tree-sitter][!hide]") {
+TEST_CASE("Print", "[tree-sitter][.hide]") {
     ts::Parser parser;
 
     std::string source = "print(1+2)";
@@ -281,7 +282,7 @@ TEST_CASE("language is compatible with tree-sitter", "[tree-sitter]") {
     REQUIRE(ts::language_compatible(ts::LUA_LANGUAGE));
 }
 
-TEST_CASE("language can list all fields", "[tree-sitter][!hide]") {
+TEST_CASE("language can list all fields", "[tree-sitter][.hide]") {
     ts::Language lang = ts::LUA_LANGUAGE;
 
     CAPTURE(lang.field_count());
@@ -294,7 +295,7 @@ TEST_CASE("language can list all fields", "[tree-sitter][!hide]") {
     // FAIL();
 }
 
-TEST_CASE("language can list all node types", "[tree-sitter][!hide]") {
+TEST_CASE("language can list all node types", "[tree-sitter][.hide]") {
     ts::Language lang = ts::LUA_LANGUAGE;
 
     CAPTURE(lang.node_type_count());
@@ -313,13 +314,21 @@ TEST_CASE("language can list all node types", "[tree-sitter][!hide]") {
 
 TEST_CASE("tree can be copied", "[tree-sitter]") {
     ts::Parser parser;
-    std::string source = "1 + 2";
+    const std::string source = "1 + 2";
+    const std::string source2 = "3 + 5";
+
     const ts::Tree tree = parser.parse_string(source);
+    ts::Tree tree2 = parser.parse_string(source2);
+
+    CHECK(tree.source() != tree2.source());
 
     // NOLINTNEXTLINE(performance-unnecessary-copy-initialization)
-    ts::Tree tree_copy = tree;
+    ts::Tree tree_copy{tree};
+    tree2 = tree;
+
     CHECK(tree.source() == tree_copy.source());
-    // root node is not equal because the tree is different
+    CHECK(tree.source() == tree2.source());
+
     CHECK(&tree.root_node().tree() != &tree_copy.root_node().tree());
 }
 
@@ -333,7 +342,8 @@ TEST_CASE("trees can be edited", "[tree-sitter]") {
         INFO("Pre edit: " << tree.root_node().as_s_expr());
 
         // check pre-condition on tree
-        ts::Node one_node = tree.root_node().named_child(0).named_child(0).child(0);
+        ts::Node one_node =
+            tree.root_node().named_child(0).value().named_child(0).value().child(0).value();
         CHECK(one_node.type() == "number"s);
         CHECK(one_node.text() == "1"s);
 
@@ -353,7 +363,8 @@ TEST_CASE("trees can be edited", "[tree-sitter]") {
 
         CHECK(tree.source() == "15 + 2"s);
 
-        ts::Node new_one_node = tree.root_node().named_child(0).named_child(0).child(0);
+        ts::Node new_one_node =
+            tree.root_node().named_child(0).value().named_child(0).value().child(0).value();
         CHECK(new_one_node.type() == "number"s);
         INFO("Range of new 'one_node' " << new_one_node.range());
         CHECK(new_one_node.text() == "15"s);
@@ -366,10 +377,12 @@ TEST_CASE("trees can be edited", "[tree-sitter]") {
         INFO("Pre edit: " << tree.root_node().as_s_expr());
 
         // check pre-condition on tree
-        ts::Node one_node = tree.root_node().named_child(0).named_child(0).child(0);
+        ts::Node one_node =
+            tree.root_node().named_child(0).value().named_child(0).value().child(0).value();
         CHECK(one_node.type() == "number"s);
         CHECK(one_node.text() == "1"s);
-        ts::Node two_node = tree.root_node().named_child(0).named_child(0).child(2);
+        ts::Node two_node =
+            tree.root_node().named_child(0).value().named_child(0).value().child(2).value();
         CHECK(two_node.type() == "number"s);
         CHECK(two_node.text() == "2"s);
 
@@ -395,11 +408,13 @@ TEST_CASE("trees can be edited", "[tree-sitter]") {
 
         CHECK(tree.source() == "15 + 7"s);
 
-        ts::Node new_one_node = tree.root_node().named_child(0).named_child(0).child(0);
+        ts::Node new_one_node =
+            tree.root_node().named_child(0).value().named_child(0).value().child(0).value();
         CHECK(new_one_node.type() == "number"s);
         INFO("Range of new 'one_node' " << new_one_node.range());
         CHECK(new_one_node.text() == "15"s);
-        ts::Node new_two_node = tree.root_node().named_child(0).named_child(0).child(2);
+        ts::Node new_two_node =
+            tree.root_node().named_child(0).value().named_child(0).value().child(2).value();
         CHECK(new_two_node.type() == "number"s);
         INFO("Range of new 'two_node' " << new_two_node.range());
         CHECK(new_two_node.text() == "7"s);
@@ -414,10 +429,10 @@ return a + b)#";
         INFO("Pre edit: " << tree.root_node().as_s_expr());
 
         // check pre-condition on tree
-        ts::Node one_node = tree.root_node().named_child(0).named_child(1);
+        ts::Node one_node = tree.root_node().named_child(0).value().named_child(1).value();
         CHECK(one_node.type() == "number"s);
         CHECK(one_node.text() == "1"s);
-        ts::Node two_node = tree.root_node().named_child(1).named_child(1);
+        ts::Node two_node = tree.root_node().named_child(1).value().named_child(1).value();
         CHECK(two_node.type() == "number"s);
         CHECK(two_node.text() == "2"s);
 
@@ -488,11 +503,11 @@ local b = 7
 return a + b)#";
         CHECK(tree.source() == expected);
 
-        ts::Node new_one_node = tree.root_node().named_child(0).named_child(1);
+        ts::Node new_one_node = tree.root_node().named_child(0).value().named_child(1).value();
         CHECK(new_one_node.type() == "number"s);
         INFO("Range of new 'one_node' " << new_one_node.range());
         CHECK(new_one_node.text() == "15"s);
-        ts::Node new_two_node = tree.root_node().named_child(1).named_child(1);
+        ts::Node new_two_node = tree.root_node().named_child(1).value().named_child(1).value();
         CHECK(new_two_node.type() == "number"s);
         INFO("Range of new 'two_node' " << new_two_node.range());
         CHECK(new_two_node.text() == "7"s);
@@ -502,7 +517,8 @@ return a + b)#";
         std::string source = "1 + 2";
         ts::Tree tree = parser.parse_string(source);
 
-        ts::Node one_node = tree.root_node().named_child(0).named_child(0).child(0);
+        ts::Node one_node =
+            tree.root_node().named_child(0).value().named_child(0).value().child(0).value();
         CHECK(one_node.type() == "number"s);
         CHECK(one_node.text() == "1"s);
 
@@ -520,7 +536,8 @@ return a + b)#";
         std::string source = "11 + 2";
         ts::Tree tree = parser.parse_string(source);
 
-        ts::Node one_node = tree.root_node().named_child(0).named_child(0).child(0);
+        ts::Node one_node =
+            tree.root_node().named_child(0).value().named_child(0).value().child(0).value();
         CHECK(one_node.type() == "number"s);
         CHECK(one_node.text() == "11"s);
 
@@ -586,8 +603,10 @@ TEST_CASE("Query", "[tree-sitter]") {
     std::string source = "1 + 2";
     ts::Tree tree = parser.parse_string(source);
 
-    ts::Node one_node = tree.root_node().named_child(0).named_child(0).named_child(0);
-    ts::Node two_node = tree.root_node().named_child(0).named_child(0).named_child(1);
+    ts::Node one_node =
+        tree.root_node().named_child(0).value().named_child(0).value().named_child(0).value();
+    ts::Node two_node =
+        tree.root_node().named_child(0).value().named_child(0).value().named_child(1).value();
 
     INFO(tree.root_node());
 
@@ -637,12 +656,19 @@ TEST_CASE("Cursor", "[tree-sitter]") {
         REQUIRE(cursor.goto_next_named_sibling());
         CHECK(cursor.current_node().type() == "number"s);
         CHECK(cursor.current_node().text() == "2"s);
+
+        REQUIRE(!cursor.goto_first_child());
+        REQUIRE(!cursor.goto_first_named_child());
+
+        REQUIRE(cursor.goto_parent());
+        CHECK(cursor.current_node().type() == "binary_operation"s);
     }
 
     SECTION("can be copied") {
-        ts::Cursor cursor{tree};
-        ts::Cursor cursor_copy{cursor};   // NOLINT
-        ts::Cursor cursor_copy2 = cursor; // NOLINT
+        const ts::Cursor cursor{tree};
+        ts::Cursor cursor2{tree};
+        const ts::Cursor cursor_copy{cursor}; // NOLINT
+        cursor2 = cursor;
     }
 
     SECTION("can get all children at once") {
@@ -694,29 +720,43 @@ TEST_CASE("Node", "[tree-sitter]") {
         ts::Node node_copy2 = root; // NOLINT
     }
 
+    SECTION("can be equality compares") {
+        CHECK(root == root);
+        CHECK(!(root != root));
+
+        ts::Node expr = root.named_child(0).value();
+        CHECK(expr == expr);
+        CHECK(root != expr);
+
+        ts::Node bin_op = expr.named_child(0).value();
+        CHECK(bin_op == bin_op);
+        CHECK(root != bin_op);
+        CHECK(expr != bin_op);
+    }
+
     SECTION("can retrieve origin tree") { REQUIRE(&tree == &root.tree()); }
 
     SECTION("type() returns a non-empty string") {
         REQUIRE(root.type() != nullptr);
         REQUIRE(std::strlen(root.type()) > 0);
 
-        ts::Node expr = root.named_child(0);
+        ts::Node expr = root.named_child(0).value();
         REQUIRE(expr.type() != nullptr);
         REQUIRE(std::strlen(expr.type()) > 0);
 
-        ts::Node bin_op = expr.named_child(0);
+        ts::Node bin_op = expr.named_child(0).value();
         REQUIRE(bin_op.type() != nullptr);
         REQUIRE(std::strlen(bin_op.type()) > 0);
 
-        ts::Node number_1 = bin_op.child(0);
+        ts::Node number_1 = bin_op.child(0).value();
         REQUIRE(number_1.type() != nullptr);
         REQUIRE(std::strlen(number_1.type()) > 0);
 
-        ts::Node op = bin_op.child(1);
+        ts::Node op = bin_op.child(1).value();
         REQUIRE(op.type() != nullptr);
         REQUIRE(std::strlen(op.type()) > 0);
 
-        ts::Node number_2 = bin_op.child(2);
+        ts::Node number_2 = bin_op.child(2).value();
         REQUIRE(number_2.type() != nullptr);
         REQUIRE(std::strlen(number_2.type()) > 0);
     }
@@ -724,65 +764,63 @@ TEST_CASE("Node", "[tree-sitter]") {
     SECTION("type_id() returns a non-zero type id") {
         REQUIRE(root.type_id() != 0);
 
-        ts::Node expr = root.named_child(0);
+        ts::Node expr = root.named_child(0).value();
         REQUIRE(expr.type_id() != 0);
 
-        ts::Node bin_op = expr.named_child(0);
+        ts::Node bin_op = expr.named_child(0).value();
         REQUIRE(bin_op.type() != nullptr);
 
-        ts::Node number_1 = bin_op.child(0);
+        ts::Node number_1 = bin_op.child(0).value();
         REQUIRE(number_1.type() != nullptr);
 
-        ts::Node op = bin_op.child(1);
+        ts::Node op = bin_op.child(1).value();
         REQUIRE(op.type() != nullptr);
 
-        ts::Node number_2 = bin_op.child(2);
+        ts::Node number_2 = bin_op.child(2).value();
         REQUIRE(number_2.type() != nullptr);
     }
 
     SECTION("child methods return a null node only if there are no more children") {
-        REQUIRE(!root.is_null());
+        auto expr = root.named_child(0);
+        REQUIRE(expr);
 
-        ts::Node expr = root.named_child(0);
-        REQUIRE(!expr.is_null());
+        auto bin_op = expr.value().named_child(0);
+        REQUIRE(bin_op);
 
-        ts::Node bin_op = expr.named_child(0);
-        REQUIRE(!bin_op.is_null());
+        auto number_1 = bin_op.value().child(0);
+        REQUIRE(number_1);
 
-        ts::Node number_1 = bin_op.child(0);
-        REQUIRE(!number_1.is_null());
+        auto op = bin_op.value().child(1);
+        REQUIRE(op);
 
-        ts::Node op = bin_op.child(1);
-        REQUIRE(!op.is_null());
+        auto number_2 = bin_op.value().child(2);
+        REQUIRE(number_2);
 
-        ts::Node number_2 = bin_op.child(2);
-        REQUIRE(!number_2.is_null());
-
-        REQUIRE(root.child(1).is_null());
-        REQUIRE(root.child(5).is_null());
-        REQUIRE(number_2.child(0).is_null());
+        REQUIRE(!root.child(1));
+        REQUIRE(!root.child(5));
+        REQUIRE(!number_2.value().child(0));
     }
 
     SECTION("named_child only return named nodes") {
-        ts::Node expr = root.named_child(0);
+        ts::Node expr = root.named_child(0).value();
         REQUIRE(expr.is_named());
 
-        ts::Node bin_op = expr.named_child(0);
+        ts::Node bin_op = expr.named_child(0).value();
         REQUIRE(bin_op.is_named());
 
-        ts::Node number_1 = bin_op.named_child(0);
+        ts::Node number_1 = bin_op.named_child(0).value();
         REQUIRE(number_1.is_named());
 
-        ts::Node op = bin_op.child(1);
+        ts::Node op = bin_op.child(1).value();
         REQUIRE(!op.is_named());
 
-        ts::Node number_2 = bin_op.named_child(1);
+        ts::Node number_2 = bin_op.named_child(1).value();
         REQUIRE(number_2.is_named());
     }
 
     SECTION("children returns at least as many as named_children") {
-        ts::Node expr = root.named_child(0);
-        ts::Node bin_op = expr.named_child(0);
+        ts::Node expr = root.named_child(0).value();
+        ts::Node bin_op = expr.named_child(0).value();
 
         auto children = bin_op.children();
         auto named_children = bin_op.named_children();
@@ -792,6 +830,43 @@ TEST_CASE("Node", "[tree-sitter]") {
 
         CHECK(bin_op.child_count() >= bin_op.named_child_count());
         CHECK(children.size() >= named_children.size());
+    }
+
+    SECTION("nodes know their parents") {
+        CHECK(!root.parent());
+
+        ts::Node expr = root.named_child(0).value();
+        CHECK(expr.parent() == root);
+
+        ts::Node bin_op = expr.named_child(0).value();
+        CHECK(bin_op.parent() == expr);
+
+        ts::Node number_1 = bin_op.named_child(0).value();
+        CHECK(number_1.parent() == bin_op);
+
+        ts::Node number_2 = bin_op.named_child(1).value();
+        CHECK(number_2.parent() == bin_op);
+    }
+
+    SECTION("nodes know their siblings") {
+        ts::Node expr = root.named_child(0).value();
+        ts::Node bin_op = expr.named_child(0).value();
+
+        ts::Node number_1 = bin_op.named_child(0).value();
+        ts::Node plus_op = bin_op.child(1).value();
+        ts::Node number_2 = bin_op.named_child(1).value();
+
+        CHECK(number_1.next_sibling() == plus_op);
+        CHECK(number_1.next_named_sibling() == number_2);
+        CHECK(plus_op.next_sibling() == number_2);
+        CHECK(plus_op.next_named_sibling() == number_2);
+        CHECK(!number_2.next_sibling());
+
+        CHECK(number_2.prev_sibling() == plus_op);
+        CHECK(number_2.prev_named_sibling() == number_1);
+        CHECK(plus_op.prev_sibling() == number_1);
+        CHECK(plus_op.prev_named_sibling() == number_1);
+        CHECK(!number_1.prev_sibling());
     }
 }
 
@@ -806,10 +881,10 @@ TEST_CASE("tree-sitter parses lua programs", "[tree-sitter][parser]") {
         INFO(root_node.as_s_expr());
         CHECK(root_node.type() == "program"s);
 
-        ts::Node expr_node = root_node.child(0);
+        ts::Node expr_node = root_node.child(0).value();
         CHECK(expr_node.type() == "expression"s);
 
-        ts::Node bin_op_node = expr_node.named_child(0);
+        ts::Node bin_op_node = expr_node.named_child(0).value();
         CHECK(bin_op_node.type() == "binary_operation"s);
         CHECK(bin_op_node.named_child_count() == 2);
         CHECK(bin_op_node.start_byte() == 0);
@@ -817,14 +892,14 @@ TEST_CASE("tree-sitter parses lua programs", "[tree-sitter][parser]") {
         CHECK(bin_op_node.start_point() == ts::Point{.row = 0, .column = 0});
         CHECK(bin_op_node.end_point() == ts::Point{.row = 0, .column = 5});
 
-        ts::Node number_1_node = bin_op_node.named_child(0);
+        ts::Node number_1_node = bin_op_node.named_child(0).value();
         CHECK(number_1_node.type() == "number"s);
         CHECK(number_1_node.start_byte() == 0);
         CHECK(number_1_node.end_byte() == 1);
         CHECK(number_1_node.start_point() == ts::Point{.row = 0, .column = 0});
         CHECK(number_1_node.end_point() == ts::Point{.row = 0, .column = 1});
 
-        ts::Node number_2_node = bin_op_node.named_child(1);
+        ts::Node number_2_node = bin_op_node.named_child(1).value();
         CHECK(number_2_node.type() == "number"s);
         CHECK(number_2_node.start_byte() == 4);
         CHECK(number_2_node.end_byte() == 5);
@@ -848,19 +923,19 @@ end
         INFO(root_node.as_s_expr());
         CHECK(root_node.type() == "program"s);
 
-        ts::Node if_stmt = root_node.child(0);
+        ts::Node if_stmt = root_node.child(0).value();
         CHECK(if_stmt.type() == "if_statement"s);
         CHECK(if_stmt.named_child_count() == 4);
 
-        ts::Node condition = if_stmt.named_child(0);
+        ts::Node condition = if_stmt.named_child(0).value();
         CHECK(condition.type() == "condition_expression"s);
         CHECK(condition.named_child_count() == 1);
 
-        ts::Node true_lit = condition.named_child(0);
+        ts::Node true_lit = condition.named_child(0).value();
         CHECK(true_lit.type() == "true"s);
 
         {
-            ts::Node call1 = if_stmt.named_child(1);
+            ts::Node call1 = if_stmt.named_child(1).value();
             CHECK(call1.type() == "function_call"s);
             CHECK(call1.start_byte() == 17);
             CHECK(call1.end_byte() == 25);
@@ -868,7 +943,7 @@ end
             CHECK(call1.end_point() == ts::Point{.row = 1, .column = 12});
             CHECK(call1.text() == "print(1)"s);
 
-            ts::Node call1_ident = call1.named_child(0);
+            ts::Node call1_ident = call1.named_child(0).value();
             CHECK(call1_ident.type() == "identifier"s);
             CHECK(call1_ident.start_byte() == 17);
             CHECK(call1_ident.end_byte() == 22);
@@ -876,11 +951,11 @@ end
             CHECK(call1_ident.end_point() == ts::Point{.row = 1, .column = 9});
             CHECK(call1_ident.text() == "print"s);
 
-            ts::Node call1_args = call1.named_child(1);
+            ts::Node call1_args = call1.named_child(1).value();
             CHECK(call1_args.type() == "arguments"s);
             CHECK(call1_args.named_child_count() == 1);
 
-            ts::Node call1_arg1 = call1_args.named_child(0);
+            ts::Node call1_arg1 = call1_args.named_child(0).value();
             CHECK(call1_arg1.type() == "number"s);
             CHECK(call1_arg1.start_byte() == 23);
             CHECK(call1_arg1.end_byte() == 24);
@@ -890,7 +965,7 @@ end
         }
 
         {
-            ts::Node call2 = if_stmt.named_child(2);
+            ts::Node call2 = if_stmt.named_child(2).value();
             CHECK(call2.type() == "function_call"s);
             CHECK(call2.start_byte() == 30);
             CHECK(call2.end_byte() == 38);
@@ -898,7 +973,7 @@ end
             CHECK(call2.end_point() == ts::Point{.row = 2, .column = 12});
             CHECK(call2.text() == "print(2)"s);
 
-            ts::Node call2_ident = call2.named_child(0);
+            ts::Node call2_ident = call2.named_child(0).value();
             CHECK(call2_ident.type() == "identifier"s);
             CHECK(call2_ident.start_byte() == 30);
             CHECK(call2_ident.end_byte() == 35);
@@ -906,11 +981,11 @@ end
             CHECK(call2_ident.end_point() == ts::Point{.row = 2, .column = 9});
             CHECK(call2_ident.text() == "print"s);
 
-            ts::Node call2_args = call2.named_child(1);
+            ts::Node call2_args = call2.named_child(1).value();
             CHECK(call2_args.type() == "arguments"s);
             CHECK(call2_args.named_child_count() == 1);
 
-            ts::Node call2_arg1 = call2_args.named_child(0);
+            ts::Node call2_arg1 = call2_args.named_child(0).value();
             CHECK(call2_arg1.type() == "number"s);
             CHECK(call2_arg1.start_byte() == 36);
             CHECK(call2_arg1.end_byte() == 37);
@@ -920,7 +995,7 @@ end
         }
 
         {
-            ts::Node else_branch = if_stmt.named_child(3);
+            ts::Node else_branch = if_stmt.named_child(3).value();
             CHECK(else_branch.type() == "else"s);
             CHECK(else_branch.start_byte() == 39);
             CHECK(else_branch.end_byte() == 69);
@@ -929,7 +1004,7 @@ end
             CHECK(else_branch.named_child_count() == 2);
 
             {
-                ts::Node call3 = else_branch.named_child(0);
+                ts::Node call3 = else_branch.named_child(0).value();
                 CHECK(call3.type() == "function_call"s);
                 CHECK(call3.start_byte() == 48);
                 CHECK(call3.end_byte() == 56);
@@ -937,7 +1012,7 @@ end
                 CHECK(call3.end_point() == ts::Point{.row = 4, .column = 12});
                 CHECK(call3.text() == "print(3)"s);
 
-                ts::Node call3_ident = call3.named_child(0);
+                ts::Node call3_ident = call3.named_child(0).value();
                 CHECK(call3_ident.type() == "identifier"s);
                 CHECK(call3_ident.start_byte() == 48);
                 CHECK(call3_ident.end_byte() == 53);
@@ -945,11 +1020,11 @@ end
                 CHECK(call3_ident.end_point() == ts::Point{.row = 4, .column = 9});
                 CHECK(call3_ident.text() == "print"s);
 
-                ts::Node call3_args = call3.named_child(1);
+                ts::Node call3_args = call3.named_child(1).value();
                 CHECK(call3_args.type() == "arguments"s);
                 CHECK(call3_args.named_child_count() == 1);
 
-                ts::Node call3_arg1 = call3_args.named_child(0);
+                ts::Node call3_arg1 = call3_args.named_child(0).value();
                 CHECK(call3_arg1.type() == "number"s);
                 CHECK(call3_arg1.start_byte() == 54);
                 CHECK(call3_arg1.end_byte() == 55);
@@ -959,7 +1034,7 @@ end
             }
 
             {
-                ts::Node call4 = else_branch.named_child(1);
+                ts::Node call4 = else_branch.named_child(1).value();
                 CHECK(call4.type() == "function_call"s);
                 CHECK(call4.start_byte() == 61);
                 CHECK(call4.end_byte() == 69);
@@ -967,7 +1042,7 @@ end
                 CHECK(call4.end_point() == ts::Point{.row = 5, .column = 12});
                 CHECK(call4.text() == "print(4)"s);
 
-                ts::Node call4_ident = call4.named_child(0);
+                ts::Node call4_ident = call4.named_child(0).value();
                 CHECK(call4_ident.type() == "identifier"s);
                 CHECK(call4_ident.start_byte() == 61);
                 CHECK(call4_ident.end_byte() == 66);
@@ -975,11 +1050,11 @@ end
                 CHECK(call4_ident.end_point() == ts::Point{.row = 5, .column = 9});
                 CHECK(call4_ident.text() == "print"s);
 
-                ts::Node call4_args = call4.named_child(1);
+                ts::Node call4_args = call4.named_child(1).value();
                 CHECK(call4_args.type() == "arguments"s);
                 CHECK(call4_args.named_child_count() == 1);
 
-                ts::Node call4_arg1 = call4_args.named_child(0);
+                ts::Node call4_arg1 = call4_args.named_child(0).value();
                 CHECK(call4_arg1.type() == "number"s);
                 CHECK(call4_arg1.start_byte() == 67);
                 CHECK(call4_arg1.end_byte() == 68);

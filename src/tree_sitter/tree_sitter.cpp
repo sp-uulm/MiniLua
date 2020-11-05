@@ -49,12 +49,17 @@ const char* ParserLanguageException::what() const noexcept {
     return "failed to set language on tree-sitter parser";
 }
 
+// class ParseFailureException
 const char* ParseFailureException::what() const noexcept { return "failed to parse"; }
+
+// class NullNodeException
+const char* NullNodeException::what() const noexcept { return "can't create a null node"; }
 
 // class QueryError
 QueryException::QueryException(TSQueryError error, std::uint32_t error_offset)
-    : std::runtime_error("failed to create query: " + _query_error(error) + " error at position " +
-                         std::to_string(error_offset)),
+    : std::runtime_error(
+          "failed to create query: " + _query_error(error) + " error at position " +
+          std::to_string(error_offset)),
       error_(error), error_offset_(error_offset) {}
 
 TSQueryError QueryException::query_error() const { return this->error_; }
@@ -200,12 +205,24 @@ bool language_compatible(const Language& lang) {
 }
 
 // class Node
-Node::Node(TSNode node, const Tree& tree) noexcept : node(node), tree_(&tree) {}
+Node::Node(Node::unsafe_t, TSNode node, const Tree& tree) noexcept : node(node), tree_(&tree) {}
+Node::Node(TSNode node, const Tree& tree) : Node(Node::unsafe, node, tree) {
+    if (ts_node_is_null(node)) {
+        throw NullNodeException();
+    }
+}
+
+std::optional<Node> Node::or_null(TSNode node, const Tree& tree) noexcept {
+    if (ts_node_is_null(node)) {
+        return std::nullopt;
+    } else {
+        return Node(Node::unsafe, node, tree);
+    }
+}
 
 TSNode Node::raw() const { return this->node; }
 const Tree& Node::tree() const { return *this->tree_; }
 
-bool Node::is_null() const { return ts_node_is_null(this->node); }
 bool Node::is_named() const { return ts_node_is_named(this->node); }
 bool Node::is_missing() const { return ts_node_is_missing(this->node); }
 bool Node::is_extra() const { return ts_node_is_extra(this->node); }
@@ -215,12 +232,14 @@ bool Node::has_error() const { return ts_node_has_error(this->node); }
 const char* Node::type() const { return ts_node_type(this->node); }
 TypeId Node::type_id() const { return ts_node_symbol(this->node); }
 
-Node Node::parent() const { return Node(ts_node_parent(this->node), this->tree()); }
+std::optional<Node> Node::parent() const {
+    return Node::or_null(ts_node_parent(this->node), this->tree());
+}
 
 std::uint32_t Node::child_count() const { return ts_node_child_count(this->node); }
 
-Node Node::child(std::uint32_t index) const {
-    return Node(ts_node_child(this->node, index), this->tree());
+std::optional<Node> Node::child(std::uint32_t index) const {
+    return Node::or_null(ts_node_child(this->node, index), this->tree());
 }
 
 std::vector<Node> Node::children() const {
@@ -229,7 +248,8 @@ std::vector<Node> Node::children() const {
     std::vector<Node> children;
     children.reserve(num_children);
     for (std::uint32_t index = 0; index < num_children; ++index) {
-        children.push_back(this->child(index));
+        // we know how many children there are so dereferencing the optional is fine
+        children.push_back(*this->child(index));
     }
 
     return children;
@@ -237,8 +257,8 @@ std::vector<Node> Node::children() const {
 
 std::uint32_t Node::named_child_count() const { return ts_node_named_child_count(this->node); }
 
-Node Node::named_child(std::uint32_t index) const {
-    return Node(ts_node_named_child(this->node, index), this->tree());
+std::optional<Node> Node::named_child(std::uint32_t index) const {
+    return Node::or_null(ts_node_named_child(this->node, index), this->tree());
 }
 
 std::vector<Node> Node::named_children() const {
@@ -247,19 +267,24 @@ std::vector<Node> Node::named_children() const {
     std::vector<Node> children;
     children.reserve(num_children);
     for (std::uint32_t index = 0; index < num_children; ++index) {
-        children.push_back(this->named_child(index));
+        // we know how many children there are so dereferencing the optional is fine
+        children.push_back(*this->named_child(index));
     }
 
     return children;
 }
 
-Node Node::next_sibling() const { return Node(ts_node_next_sibling(this->node), this->tree()); }
-Node Node::prev_sibling() const { return Node(ts_node_prev_sibling(this->node), this->tree()); }
-Node Node::next_named_sibling() const {
-    return Node(ts_node_next_named_sibling(this->node), this->tree());
+std::optional<Node> Node::next_sibling() const {
+    return Node::or_null(ts_node_next_sibling(this->node), this->tree());
 }
-Node Node::prev_named_sibling() const {
-    return Node(ts_node_prev_named_sibling(this->node), this->tree());
+std::optional<Node> Node::prev_sibling() const {
+    return Node::or_null(ts_node_prev_sibling(this->node), this->tree());
+}
+std::optional<Node> Node::next_named_sibling() const {
+    return Node::or_null(ts_node_next_named_sibling(this->node), this->tree());
+}
+std::optional<Node> Node::prev_named_sibling() const {
+    return Node::or_null(ts_node_prev_named_sibling(this->node), this->tree());
 }
 
 std::uint32_t Node::start_byte() const { return ts_node_start_byte(this->node); }
@@ -317,6 +342,14 @@ bool operator!=(const Node& lhs, const Node& rhs) { return !(lhs == rhs); }
 
 std::ostream& operator<<(std::ostream& os, const Node& node) { return os << node.as_s_expr(); }
 
+std::ostream& operator<<(std::ostream& o, const std::optional<Node>& node) {
+    o << "optional<";
+    if (node) {
+        o << *node;
+    }
+    return o << ">";
+}
+
 // struct AppliedEdit
 bool operator==(const AppliedEdit& self, const AppliedEdit& other) {
     return self.before == other.before && self.after == other.after &&
@@ -343,12 +376,12 @@ std::ostream& operator<<(std::ostream& o, const EditResult& self) {
 }
 
 // class Tree
-Tree::Tree(TSTree* tree, std::string source, Parser& parser)
-    : tree(tree, ts_tree_delete), source_(std::move(source)), parser(&parser) {}
+Tree::Tree(TSTree* tree, std::string source, const Parser& parser)
+    : tree(tree, ts_tree_delete), source_(std::move(source)), parser_(&parser) {}
 
 Tree::Tree(const Tree& other)
     : tree(ts_tree_copy(other.raw()), ts_tree_delete), source_(other.source()),
-      parser(other.parser) {}
+      parser_(other.parser_) {}
 Tree& Tree::operator=(const Tree& other) {
     Tree copy{other};
     swap(copy, *this);
@@ -359,205 +392,23 @@ void swap(Tree& self, Tree& other) noexcept {
     using std::swap;
     swap(self.tree, other.tree);
     swap(self.source_, other.source_);
-    swap(self.parser, other.parser);
+    swap(self.parser_, other.parser_);
 }
 
 const TSTree* Tree::raw() const { return this->tree.get(); }
 
 const std::string& Tree::source() const { return this->source_; }
 
-Node Tree::root_node() const { return Node(ts_tree_root_node(this->raw()), *this); }
+const Parser& Tree::parser() const { return *this->parser_; }
+
+Node Tree::root_node() const { return Node(Node::unsafe, ts_tree_root_node(this->raw()), *this); }
 
 Language Tree::language() const { return Language(ts_tree_language(this->raw())); }
 
-// helper function to apply one edit to the tree and source code
-static AppliedEdit _apply_edit(const Edit& edit, TSTree* tree, std::string& source) {
-    long old_size = edit.range.end.byte - edit.range.start.byte;
-
-    std::string old_source = source.substr(edit.range.start.byte, old_size);
-
-    source.replace(edit.range.start.byte, old_size, edit.replacement);
-
-    long end_byte_diff = static_cast<long>(edit.replacement.size()) - old_size;
-
-    Range before = edit.range;
-    Range after{.start = edit.range.start,
-                .end = {
-                    .point = {.row = edit.range.end.point.row,
-                              .column = static_cast<std::uint32_t>(before.end.point.column +
-                                                                   end_byte_diff)},
-                    .byte = static_cast<std::uint32_t>(before.end.byte + end_byte_diff),
-                }};
-
-    TSInputEdit input_edit{
-        .start_byte = before.start.byte,
-        .old_end_byte = before.end.byte,
-        .new_end_byte = after.end.byte,
-        .start_point =
-            TSPoint{
-                .row = before.start.point.row,
-                .column = before.start.point.column,
-            },
-        .old_end_point =
-            TSPoint{
-                .row = before.end.point.row,
-                .column = before.end.point.column,
-            },
-        .new_end_point =
-            TSPoint{
-                .row = after.end.point.row,
-                .column = after.end.point.column,
-            },
-    };
-
-    ts_tree_edit(tree, &input_edit);
-
-    return AppliedEdit{
-        .before = before,
-        .after = after,
-        .old_source = old_source,
-        .replacement = edit.replacement,
-    };
-}
-
-static inline Point _point(const TSPoint& point) {
-    return Point{
-        .row = point.row,
-        .column = point.column,
-    };
-}
-
-static inline Location _location(const TSPoint& point, const std::uint32_t byte) {
-    return Location{
-        .point = _point(point),
-        .byte = byte,
-    };
-}
-
-static inline Range _range(const TSRange& range) {
-    return Range{
-        .start = _location(range.start_point, range.start_byte),
-        .end = _location(range.end_point, range.end_byte),
-    };
-}
-
-static std::vector<Range> _get_changed_ranges(const TSTree* old_tree, const TSTree* new_tree) {
-    // this will always be set by ts_tree_get_changed_ranges
-    // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
-    std::uint32_t length;
-
-    std::unique_ptr<TSRange, decltype(&free)> ranges{
-        ts_tree_get_changed_ranges(old_tree, new_tree, &length), free};
-
-    if (length == 0) {
-        return {};
-    }
-
-    const TSRange* begin = ranges.get();
-    // we have no other choise because we get the point + length from a c api
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    const TSRange* end = begin + static_cast<std::size_t>(length);
-
-    std::vector<Range> changed_ranges{length};
-
-    std::transform(begin, end, changed_ranges.begin(),
-                   [](const TSRange& range) { return _range(range); });
-
-    return changed_ranges;
-}
-
-void _check_edits(const std::vector<Edit>& edits) {
-    // NOTE: assumes that the ranges are already sorted by edit.range.start.byte
-
-    for (int i = 0; i < edits.size(); ++i) {
-        const auto& edit1 = edits[i];
-
-        if (edit1.range.start == edit1.range.end) {
-            throw ZeroSizedEditException();
-        }
-
-        if (edit1.range.start.point.row != edit1.range.end.point.row ||
-            edit1.replacement.find('\n') != std::string::npos) {
-            throw MultilineEditException();
-        }
-
-        for (int j = 0; j < edits.size(); ++j) {
-            if (i == j) {
-                continue;
-            }
-
-            const auto& edit2 = edits[j];
-
-            if (edit1.range.overlaps(edit2.range)) {
-                throw OverlappingEditException();
-            }
-        }
-    }
-}
-
 EditResult Tree::edit(std::vector<Edit> edits) {
-    // save copies of the previous values so we can return the changed ranges
-    std::string new_source = this->source();
-    std::unique_ptr<TSTree, void (*)(TSTree*)> old_tree = std::move(this->tree);
+    const std::unique_ptr<TSTree, void (*)(TSTree*)> old_tree = std::move(this->tree);
 
-    // sorts the from the earliest in the source code to the latest in the source
-    // code.
-    // this is done so the locations for edits in the same line can be adjusted
-    // so we can return the ranges of the edit before and after
-    std::sort(edits.begin(), edits.end(), [](const Edit& edit1, const Edit& edit2) {
-        return edit1.range.start.byte <= edit2.range.start.byte;
-    });
-
-    // NOTE: this throws exceptions if there is something wrong with the edits
-    _check_edits(edits);
-
-    std::vector<AppliedEdit> applied_edits;
-    applied_edits.reserve(edits.size());
-
-    // used to adjust subsequent edits
-    Point last_point{};
-    int last_width_change = 0;
-    int comulative_byte_change = 0;
-
-    for (auto& edit : edits) {
-        Range range_before_adjustments = edit.range;
-        // if the last edit was in the current line we need to adjust the
-        // location of the next edit
-        if (last_width_change != 0 && last_point.row == edit.range.start.point.row) {
-            edit.range.start.point.column += last_width_change;
-            edit.range.end.point.column += last_width_change;
-        }
-
-        edit.range.start.byte += comulative_byte_change;
-        edit.range.end.byte += comulative_byte_change;
-
-        AppliedEdit applied_edit = _apply_edit(edit, old_tree.get(), new_source);
-        applied_edit.before = range_before_adjustments;
-        applied_edits.push_back(applied_edit);
-
-        int before_width =
-            applied_edit.before.end.point.column - applied_edit.before.start.point.column;
-        int after_width =
-            applied_edit.after.end.point.column - applied_edit.after.start.point.column;
-        last_width_change = after_width - before_width;
-
-        int byte_change = applied_edit.after.end.byte - applied_edit.before.end.byte;
-        comulative_byte_change += byte_change;
-        last_point = edit.range.end.point;
-    }
-
-    // reparse the source code
-    Tree new_tree = this->parser->parse_string(old_tree.get(), std::move(new_source));
-
-    // update this tree
-    swap(*this, new_tree);
-
-    std::vector<Range> changed_ranges = _get_changed_ranges(old_tree.get(), this->raw());
-
-    return EditResult{
-        .changed_ranges = changed_ranges,
-        .applied_edits = applied_edits,
-    };
+    return edit_tree(std::move(edits), *this, old_tree.get());
 }
 
 void Tree::print_dot_graph(std::string_view file) const {
@@ -607,15 +458,20 @@ bool Cursor::goto_first_named_child() {
 
     // walk over siblings until we encounter a named node
     while (!this->current_node().is_named()) {
+        // return false if there are no more siblings
+        // and therefore no more named nodes
         if (!this->goto_next_sibling()) {
             return false;
         }
     }
+
     return true;
 }
 bool Cursor::goto_next_named_sibling() {
     // walk over siblings until we encounter a named node
     do {
+        // return false if there are no more siblings
+        // and therefore no more named nodes
         if (!this->goto_next_sibling()) {
             return false;
         }
@@ -671,7 +527,7 @@ TSParser* Parser::raw() const { return this->parser.get(); }
 
 Language Parser::language() const { return Language(ts_parser_language(this->raw())); }
 
-Tree Parser::parse_string(const TSTree* old_tree, std::string source) {
+Tree Parser::parse_string(const TSTree* old_tree, std::string source) const {
     TSTree* tree = ts_parser_parse_string(this->raw(), old_tree, source.c_str(), source.length());
     if (tree == nullptr) {
         // TL;DR this should never happen
@@ -686,14 +542,14 @@ Tree Parser::parse_string(const TSTree* old_tree, std::string source) {
     }
     return Tree(tree, std::move(source), *this);
 }
-Tree Parser::parse_string(std::string str) { return parse_string(nullptr, std::move(str)); }
+Tree Parser::parse_string(std::string str) const { return parse_string(nullptr, std::move(str)); }
 
 // class Query
 static TSQuery* _make_query(std::string_view source) {
     std::uint32_t error_offset;
     TSQueryError error_type;
-    TSQuery* query = ts_query_new(LUA_LANGUAGE.raw(), source.data(), source.length(), &error_offset,
-                                  &error_type);
+    TSQuery* query = ts_query_new(
+        LUA_LANGUAGE.raw(), source.data(), source.length(), &error_offset, &error_type);
 
     if (query == nullptr) {
         throw QueryException(error_type, error_offset);
@@ -759,8 +615,9 @@ Match::Match(TSQueryMatch match, const Tree& tree) noexcept
     const std::size_t size = end - start;
 
     this->captures.reserve(size);
-    std::transform(start, end, std::back_inserter(this->captures),
-                   [&tree](const TSQueryCapture capture) { return Capture(capture, tree); });
+    std::transform(
+        start, end, std::back_inserter(this->captures),
+        [&tree](const TSQueryCapture capture) { return Capture(capture, tree); });
 }
 
 std::optional<Capture> Match::capture_with_index(std::uint32_t index) const {

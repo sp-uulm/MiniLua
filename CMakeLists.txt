@@ -22,28 +22,35 @@ add_compile_options(-Wall)
 # (e.g. language server)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
-include(FetchContent)
-include(add_FetchContent_MakeAvailable)
-
-set(COVERAGE OFF CACHE BOOL "Turns on code coverage generation for tests")
-if(COVERAGE)
-    include(CodeCoverage)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_COVERAGE}")
-    # remove tests and dependencies from coverage report
-    set(LCOV_REMOVE_EXTRA "'${CMAKE_SOURCE_DIR}/tests/*'" "'${CMAKE_BINARY_DIR}/*'")
-endif()
+# dependencies
+find_package(TreeSitter)
+find_package(TreeSitterLua)
 
 # library
 add_subdirectory(src)
 
-# example applications
-# (get compiled in ci but not run like tests)
-add_subdirectory(examples)
-
 # tests
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    add_subdirectory(extern/catch2)
+    # support "*san" build types
+    find_package(Sanitizers)
+
+    # support "coverage" build type
+    include(CodeCoverage)
+    # remove tests and dependencies from coverage report
+    set(LCOV_REMOVE_EXTRA "'${CMAKE_SOURCE_DIR}/tests/*'" "'${CMAKE_BINARY_DIR}/*'")
+
+    string(TOUPPER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_UPPERCASE)
+    if(CMAKE_BUILD_TYPE_UPPERCASE STREQUAL COVERAGE)
+        set(COVERAGE ON)
+    endif()
+
     add_subdirectory(tests)
     add_subdirectory(bench)
+
+    # example applications
+    # (get compiled in ci but not run like tests)
+    add_subdirectory(examples)
 endif()

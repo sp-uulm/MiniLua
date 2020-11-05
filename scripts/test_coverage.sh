@@ -2,6 +2,6 @@
 set -ev
 
 pushd build
-make MiniLua-tests-coverage
+make MiniLua-tests-coverage $@
 popd
 

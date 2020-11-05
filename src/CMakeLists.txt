@@ -1,8 +1,4 @@
 find_package(Boost REQUIRED)
-include(Tree-Sitter)
-
-setup_tree_sitter(Tree-Sitter)
-setup_tree_sitter_lua(TREE_SITTER_LUA_SOURCES)
 
 # core
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/core CORE_SRC_LIST)
@@ -10,15 +6,16 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/tree_sitter TREE_SITTER_WRAPPER
 
 set(LIB_SRC_LIST
     ${CORE_SRC_LIST}
-    ${TREE_SITTER_WRAPPER_SRC_LIST}
-    ${TREE_SITTER_LUA_SOURCES})
+    ${TREE_SITTER_WRAPPER_SRC_LIST})
 
 add_library(${PROJECT_NAME} SHARED ${LIB_SRC_LIST})
 target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(${PROJECT_NAME} PRIVATE Tree-Sitter)
+target_link_libraries(${PROJECT_NAME}
+    PRIVATE TreeSitter
+    PRIVATE TreeSitterLua)
 
 install(TARGETS ${PROJECT_NAME}
         EXPORT ${PROJECT_NAME}
