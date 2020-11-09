@@ -1,5 +1,6 @@
 #include <catch2/catch.hpp>
 #include <string>
+#include <type_traits>
 #include <variant>
 #include <iostream>
 #include <fstream>
@@ -73,7 +74,8 @@ std::string read_input_from_file(std::string path){
     return std::string(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
 }
 
-TEST_CASE("parse, eval, update", "[parse]") {
+// TODO fix the memory leaks
+TEST_CASE("parse, eval, update", "[parse][leaks]") {
     SECTION("simple for") {
         const std::string program = "for i=1, 10, 1 do \n    print('hello world ', i)\nend";
         const auto result = parse_eval_update(program);
@@ -116,4 +118,11 @@ TEST_CASE("whole lua-programs") {
         const auto result = parse_eval_update(program);
         REQUIRE(result == program);
     }
+}
+TEST_CASE("Environment", "[interpreter][leaks]") {
+    static_assert(std::is_move_constructible<lua::rt::Environment>());
+
+    auto env = std::make_shared<lua::rt::Environment>(nullptr);
+
+    env->populate_stdlib();
 }
