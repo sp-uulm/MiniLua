@@ -8,8 +8,6 @@
 #include "MiniLua/luainterpreter.hpp"
 #include "MiniLua/luaparser.hpp"
 
-namespace fs = std::filesystem;
-
 void add_force_function_to_env(const std::shared_ptr<lua::rt::Environment>& env) {
     env->assign(string{"force"},
                 make_shared<lua::rt::cfunction>(
