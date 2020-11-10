@@ -460,9 +460,9 @@ TEST_CASE("new Range") {
         .byte = 25 // NOLINT
     };
     minilua::Location loc2{
-        .line = 5, // NOLINT
-        .column = 7,
-        .byte = 32 // NOLINT
+        .line = 5,   // NOLINT
+        .column = 7, // NOLINT
+        .byte = 32   // NOLINT
     };
     minilua::Range range{
         .start = loc1,
@@ -528,7 +528,7 @@ TEST_CASE("Interpreter") {
     interpreter.parse("x_coord = 10; forceValue(x_coord, 25)");
     minilua::EvalResult result = interpreter.evaluate();
 
-    // chose source changes to apply
+    // choose source changes to apply
     // TODO do we need a vector here or is is ok to assume that one run of the
     //      program only causes one source change?
     const auto* previous_hint = "x_coord";
@@ -544,21 +544,24 @@ TEST_CASE("Interpreter") {
 }
 
 TEST_CASE("source_changes") {
-    auto change = minilua::SCSingle(minilua::Range(), "replacement");
+    auto change = minilua::SCSingle(minilua::Range{{0, 0, 0}, {0, 5, 5}}, "replacement"); // NOLINT
     change.hint = "hint";
     change.origin = "origin";
     INFO(change);
+    REQUIRE(change == change);
     minilua::SourceChange source_change{change};
 
     INFO(source_change);
     REQUIRE(source_change.origin() == "origin");
     REQUIRE(source_change.hint() == "hint");
+    REQUIRE(source_change == source_change);
 
-    auto change2 = minilua::SCSingle(minilua::Range(), "replacement");
+    auto change2 = minilua::SCSingle(minilua::Range{{0, 0, 0}, {0, 5, 5}}, "replacement"); // NOLINT
     change2.hint = "hint";
     change2.origin = "origin";
     INFO(change2);
     minilua::SourceChange source_change2{change2};
+    REQUIRE(source_change == source_change2);
 
     auto combined_change = minilua::SCAnd({source_change, source_change2});
     INFO(combined_change);

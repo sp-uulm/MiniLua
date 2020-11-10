@@ -333,6 +333,24 @@ auto operator^(const Value&, const Value&) -> Value;
 auto operator&&(const Value&, const Value&) -> Value;
 auto operator||(const Value&, const Value&) -> Value;
 
+// TODO Origin does not need to be public (except maybe ExternalOrigin)
+struct ExternalOrigin {};
+struct LiteralOrigin {
+    Range location;
+};
+struct BinaryOrigin {
+    owning_ptr<Value> lhs;
+    owning_ptr<Value> rhs;
+    Range location;
+};
+struct UnaryOrigin {
+    owning_ptr<Value> val;
+    Range location;
+};
+struct Origin {
+    std::variant<ExternalOrigin, LiteralOrigin, BinaryOrigin, UnaryOrigin> origin;
+};
+
 } // namespace minilua
 
 #endif

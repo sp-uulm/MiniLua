@@ -119,6 +119,7 @@ void swap(NativeFunction& self, NativeFunction& other) { std::swap(self.func, ot
 // class Value
 struct Value::Impl {
     Type val;
+    Origin origin;
 };
 
 Value::Value() = default;
