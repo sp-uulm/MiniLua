@@ -79,7 +79,7 @@ TEST_CASE("parse, eval, update", "[parse][leaks]") {
     }
 }
 
-TEST_CASE("Environment", "[interpreter][leaks]") {
+TEST_CASE("old Environment leaks", "[interpreter][leaks]") {
     static_assert(std::is_move_constructible<lua::rt::Environment>());
 
     auto env = std::make_shared<lua::rt::Environment>(nullptr);
