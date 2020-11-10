@@ -3,16 +3,18 @@
 namespace lua {
 namespace rt {
 
-eval_result_t ASTEvaluator::visit(const _LuaName& name, const shared_ptr<Environment>& env, const assign_t& assign) const {
-//    cout << "visit name" << endl;
+eval_result_t ASTEvaluator::visit(const _LuaName& name, const shared_ptr<Environment>& env,
+                                  const assign_t& assign) const {
+    //    cout << "visit name" << endl;
     if (assign) {
         env->assign(val{name.token.match}, get<val>(*assign), get<bool>(*assign));
     }
     return eval_success(name.token.match);
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaOp& op, const shared_ptr<Environment>& env, const assign_t& assign) const {
-//    cout << "visit op" << endl;
+eval_result_t ASTEvaluator::visit(const _LuaOp& op, const shared_ptr<Environment>& env,
+                                  const assign_t& assign) const {
+    //    cout << "visit op" << endl;
 
     EVAL(lhs, op.lhs, env);
 
@@ -55,12 +57,13 @@ eval_result_t ASTEvaluator::visit(const _LuaOp& op, const shared_ptr<Environment
     case LuaToken::Type::OR:
         return op_or(lhs, rhs) << (lhs_sc & rhs_sc);
     default:
-        return string {op.op.match + " is not a binary operator"};
+        return string{op.op.match + " is not a binary operator"};
     }
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaUnop& op, const shared_ptr<Environment>& env, const assign_t& assign) const {
-//    cout << "visit unop" << endl;
+eval_result_t ASTEvaluator::visit(const _LuaUnop& op, const shared_ptr<Environment>& env,
+                                  const assign_t& assign) const {
+    //    cout << "visit unop" << endl;
 
     EVAL(rhs, op.exp, env);
 
@@ -78,11 +81,12 @@ eval_result_t ASTEvaluator::visit(const _LuaUnop& op, const shared_ptr<Environme
     case LuaToken::Type::EVAL:
         return op_postfix_eval(rhs, op.op) << rhs_sc;
     default:
-        return string {op.op.match + " is not a unary operator"};
+        return string{op.op.match + " is not a unary operator"};
     }
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaExplist& explist, const shared_ptr<Environment>& env, const assign_t& assign) const {
+eval_result_t ASTEvaluator::visit(const _LuaExplist& explist, const shared_ptr<Environment>& env,
+                                  const assign_t& assign) const {
     // cout << "visit explist" << endl;
 
     auto t = make_shared<vallist>();
@@ -95,10 +99,13 @@ eval_result_t ASTEvaluator::visit(const _LuaExplist& explist, const shared_ptr<E
             sc = sc & exp_sc;
         } else {
             if (!holds_alternative<vallist_p>(get<val>(*assign)))
-                return string {"only a vallist can be assigned to a vallist"};
+                return string{"only a vallist can be assigned to a vallist"};
             bool local = get<bool>(*assign);
-            EVALL(exp, explist.exps[i], env, make_tuple(get<vallist_p>(get<val>(*assign))->size() > i ?
-                                                  get<vallist_p>(get<val>(*assign))->at(i) : nil(), local));
+            EVALL(exp, explist.exps[i], env,
+                  make_tuple(get<vallist_p>(get<val>(*assign))->size() > i
+                                 ? get<vallist_p>(get<val>(*assign))->at(i)
+                                 : nil(),
+                             local));
             t->push_back(exp);
             sc = sc & exp_sc;
         }
@@ -107,8 +114,9 @@ eval_result_t ASTEvaluator::visit(const _LuaExplist& explist, const shared_ptr<E
     return eval_success(t, sc);
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaFunctioncall& exp, const shared_ptr<Environment>& env, const assign_t& assign) const {
-//    cout << "visit functioncall" << endl;
+eval_result_t ASTEvaluator::visit(const _LuaFunctioncall& exp, const shared_ptr<Environment>& env,
+                                  const assign_t& assign) const {
+    //    cout << "visit functioncall" << endl;
 
     EVAL(func, exp.function, env);
 
@@ -122,7 +130,7 @@ eval_result_t ASTEvaluator::visit(const _LuaFunctioncall& exp, const shared_ptr<
         if (holds_alternative<std::shared_ptr<SourceChange>>(result)) {
             auto change = get<std::shared_ptr<SourceChange>>(result);
             return eval_success(make_shared<vallist>(), func_sc & _args_sc & change);
-        } else  if (holds_alternative<vallist>(result)) {
+        } else if (holds_alternative<vallist>(result)) {
             return eval_success(make_shared<vallist>(get<vallist>(result)), func_sc & _args_sc);
         } else {
             return get<string>(result);
@@ -131,7 +139,8 @@ eval_result_t ASTEvaluator::visit(const _LuaFunctioncall& exp, const shared_ptr<
 
     // call lua function
     if (holds_alternative<lfunction_p>(func)) {
-        EVALL(params, get<lfunction_p>(func)->params, get<lfunction_p>(func)->env, make_tuple(make_shared<vallist>(args), true));
+        EVALL(params, get<lfunction_p>(func)->params, get<lfunction_p>(func)->env,
+              make_tuple(make_shared<vallist>(args), true));
 
         EVAL(result, get<lfunction_p>(func)->f, get<lfunction_p>(func)->env);
 
@@ -142,14 +151,16 @@ eval_result_t ASTEvaluator::visit(const _LuaFunctioncall& exp, const shared_ptr<
     }
 
     if (holds_alternative<nil>(func)) {
-        return string {"attempted to call a nil value"};
+        return string{"attempted to call a nil value"};
     }
 
     return string{"functioncall unimplemented"};
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaAssignment &assignment, const shared_ptr<Environment>& env, const assign_t& assign) const {
-//    cout << "visit assignment" << assignment.local << endl;
+eval_result_t ASTEvaluator::visit(const _LuaAssignment& assignment,
+                                  const shared_ptr<Environment>& env,
+                                  const assign_t& assign) const {
+    //    cout << "visit assignment" << assignment.local << endl;
 
     EVAL(_exps, assignment.explist, env);
     vallist exps = flatten(*get<vallist_p>(_exps));
@@ -158,16 +169,18 @@ eval_result_t ASTEvaluator::visit(const _LuaAssignment &assignment, const shared
     return eval_success(nil(), _exps_sc & _vars_sc);
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaNameVar& var, const shared_ptr<Environment>& env, const assign_t& assign) const {
-//    cout << "visit namevar " << var.name->token << endl;
+eval_result_t ASTEvaluator::visit(const _LuaNameVar& var, const shared_ptr<Environment>& env,
+                                  const assign_t& assign) const {
+    //    cout << "visit namevar " << var.name->token << endl;
 
     EVAL(name, var.name, env);
 
     return eval_success(env->getvar(name), name_sc);
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaIndexVar& var, const shared_ptr<Environment>& env, const assign_t& assign) const {
-//    cout << "visit indexvar" << endl;
+eval_result_t ASTEvaluator::visit(const _LuaIndexVar& var, const shared_ptr<Environment>& env,
+                                  const assign_t& assign) const {
+    //    cout << "visit indexvar" << endl;
 
     EVALR(index, var.index, env);
     EVALR(table, var.table, env);
@@ -186,8 +199,9 @@ eval_result_t ASTEvaluator::visit(const _LuaIndexVar& var, const shared_ptr<Envi
     }
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaMemberVar& var, const shared_ptr<Environment>& env, const assign_t& assign) const {
-//    cout << "visit membervar" << endl;
+eval_result_t ASTEvaluator::visit(const _LuaMemberVar& var, const shared_ptr<Environment>& env,
+                                  const assign_t& assign) const {
+    //    cout << "visit membervar" << endl;
     EVAL(index, var.member, env);
     EVALR(table, var.table, env);
 
@@ -205,20 +219,23 @@ eval_result_t ASTEvaluator::visit(const _LuaMemberVar& var, const shared_ptr<Env
     }
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaReturnStmt& stmt, const shared_ptr<Environment>& env, const assign_t& assign) const {
-//    cout << "visit returnstmt" << endl;
+eval_result_t ASTEvaluator::visit(const _LuaReturnStmt& stmt, const shared_ptr<Environment>& env,
+                                  const assign_t& assign) const {
+    //    cout << "visit returnstmt" << endl;
 
     EVAL(result, stmt.explist, env);
     return eval_success(make_shared<vallist>(flatten(*get<vallist_p>(result))), result_sc);
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaBreakStmt& stmt, const shared_ptr<Environment>& env, const assign_t& assign) const {
-//    cout << "visit breakstmt" << endl;
+eval_result_t ASTEvaluator::visit(const _LuaBreakStmt& stmt, const shared_ptr<Environment>& env,
+                                  const assign_t& assign) const {
+    //    cout << "visit breakstmt" << endl;
     return eval_success(true);
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaValue& value, const shared_ptr<Environment>& env, const assign_t& assign) const {
-//    cout << "visit value " << value.token << endl;
+eval_result_t ASTEvaluator::visit(const _LuaValue& value, const shared_ptr<Environment>& env,
+                                  const assign_t& assign) const {
+    //    cout << "visit value " << value.token << endl;
 
     switch (value.token.type) {
     case LuaToken::Type::NIL:
@@ -229,20 +246,23 @@ eval_result_t ASTEvaluator::visit(const _LuaValue& value, const shared_ptr<Envir
         return eval_success(val{true, sourceval::create(value.token)});
     case LuaToken::Type::NUMLIT:
         try {
-            return eval_success(val{atof(("0" + value.token.match).c_str()), sourceval::create(value.token)});
+            return eval_success(
+                val{atof(("0" + value.token.match).c_str()), sourceval::create(value.token)});
         } catch (const invalid_argument& invalid) {
-            return string {"invalid_argument to stod: "} + invalid.what();
+            return string{"invalid_argument to stod: "} + invalid.what();
         }
 
     case LuaToken::Type::STRINGLIT:
-        return eval_success(val{string(value.token.match.begin()+1, value.token.match.end()-1), sourceval::create(value.token)});
+        return eval_success(val{string(value.token.match.begin() + 1, value.token.match.end() - 1),
+                                sourceval::create(value.token)});
     default:
         return string{"value unimplemented"};
     }
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaChunk& chunk, const shared_ptr<Environment>& env, const assign_t& assign) const {
-//    cout << "visit chunk" << endl;
+eval_result_t ASTEvaluator::visit(const _LuaChunk& chunk, const shared_ptr<Environment>& env,
+                                  const assign_t& assign) const {
+    //    cout << "visit chunk" << endl;
 
     source_change_t sc;
 
@@ -252,15 +272,16 @@ eval_result_t ASTEvaluator::visit(const _LuaChunk& chunk, const shared_ptr<Envir
         sc = sc & result_sc;
 
         if (!holds_alternative<nil>(result) && !dynamic_pointer_cast<_LuaFunctioncall>(stmt)) {
-                return eval_success(result, sc);
+            return eval_success(result, sc);
         }
     }
 
     return eval_success(nil(), sc);
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaForStmt& for_stmt, const shared_ptr<Environment>& env, const assign_t& assign) const {
-//    cout << "visit for" << endl;
+eval_result_t ASTEvaluator::visit(const _LuaForStmt& for_stmt, const shared_ptr<Environment>& env,
+                                  const assign_t& assign) const {
+    //    cout << "visit for" << endl;
 
     auto newenv = make_shared<lua::rt::Environment>(env);
 
@@ -311,9 +332,9 @@ eval_result_t ASTEvaluator::visit(const _LuaForStmt& for_stmt, const shared_ptr<
     }
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaLoopStmt &loop_stmt, const shared_ptr<Environment>& env, const assign_t& assign) const
-{
-//    cout << "visit loop" << endl;
+eval_result_t ASTEvaluator::visit(const _LuaLoopStmt& loop_stmt, const shared_ptr<Environment>& env,
+                                  const assign_t& assign) const {
+    //    cout << "visit loop" << endl;
 
     source_change_t sc;
 
@@ -358,8 +379,10 @@ eval_result_t ASTEvaluator::visit(const _LuaLoopStmt &loop_stmt, const shared_pt
     }
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaTableconstructor& tableconst, const shared_ptr<Environment>& env, const assign_t& assign) const {
-//    cout << "visit tableconstructor" << endl;
+eval_result_t ASTEvaluator::visit(const _LuaTableconstructor& tableconst,
+                                  const shared_ptr<Environment>& env,
+                                  const assign_t& assign) const {
+    //    cout << "visit tableconstructor" << endl;
     table_p result = make_shared<table>();
     source_change_t sc;
 
@@ -385,14 +408,17 @@ eval_result_t ASTEvaluator::visit(const _LuaTableconstructor& tableconst, const 
     return eval_success(_result, sc);
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaFunction& exp, const shared_ptr<Environment>& env, const assign_t& assign) const {
-//    cout << "visit function" << endl;
+eval_result_t ASTEvaluator::visit(const _LuaFunction& exp, const shared_ptr<Environment>& env,
+                                  const assign_t& assign) const {
+    //    cout << "visit function" << endl;
 
-    return eval_success(make_shared<lfunction>(exp.body, exp.params, make_shared<Environment>(env)));
+    return eval_success(
+        make_shared<lfunction>(exp.body, exp.params, make_shared<Environment>(env)));
 }
 
-eval_result_t ASTEvaluator::visit(const _LuaIfStmt &stmt, const shared_ptr<Environment>& env, const assign_t& assign) const {
-//    cout << "visit if" << endl;
+eval_result_t ASTEvaluator::visit(const _LuaIfStmt& stmt, const shared_ptr<Environment>& env,
+                                  const assign_t& assign) const {
+    //    cout << "visit if" << endl;
 
     source_change_t sc;
 
@@ -416,5 +442,13 @@ eval_result_t ASTEvaluator::visit(const _LuaIfStmt &stmt, const shared_ptr<Envir
     return eval_success(nil(), sc);
 }
 
+eval_result_t ASTEvaluator::visit(const _LuaComment& comment, const shared_ptr<Environment>& env,
+                                  const assign_t& assign) const {
+    //    cout << "visit function" << endl;
+
+    source_change_t sc;
+    return eval_success(nil(), sc);
 }
-}
+
+} // namespace rt
+} // namespace lua

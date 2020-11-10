@@ -1,10 +1,10 @@
-#include "MiniLua/luaparser.hpp"
-#include "MiniLua/luainterpreter.hpp"
 #include "gui.h"
+#include "MiniLua/luainterpreter.hpp"
+#include "MiniLua/luaparser.hpp"
 
 using namespace std;
 
-void DrawWidget::paintEvent(QPaintEvent *event) {
+void DrawWidget::paintEvent(QPaintEvent* event) {
     QPainter painter;
     painter.begin(this);
     painter.fillRect(event->rect(), Qt::white);
@@ -15,45 +15,58 @@ void DrawWidget::paintEvent(QPaintEvent *event) {
 
         env->populate_stdlib();
 
-        env->assign(string {"line"}, make_shared<lua::rt::cfunction>([&painter](const lua::rt::vallist& args) -> lua::rt::cfunction::result {
-            if (args.size() != 4) {
-                return lua::rt::vallist{lua::rt::nil(), string {"invalid number of arguments"}};
-            }
-
-            for (int i = 0; i < 4; ++i) {
-                if (!holds_alternative<double>(args[i])) {
-                    return lua::rt::vallist{lua::rt::nil(), string {"invalid type of argument "} + to_string(i+1) + " (number expected)"};
+        env->assign(
+            string{"line"},
+            make_shared<lua::rt::cfunction>([&painter](const lua::rt::vallist& args)
+                                                -> lua::rt::cfunction::result {
+                if (args.size() != 4) {
+                    return lua::rt::vallist{lua::rt::nil(), string{"invalid number of arguments"}};
                 }
-            }
 
-            painter.drawLine(get<double>(args[0]), get<double>(args[1]), get<double>(args[2]), get<double>(args[3]));
+                for (int i = 0; i < 4; ++i) {
+                    if (!holds_alternative<double>(args[i])) {
+                        return lua::rt::vallist{lua::rt::nil(),
+                                                string{"invalid type of argument "} +
+                                                    to_string(i + 1) + " (number expected)"};
+                    }
+                }
 
-            return {};
-        }), false);
+                painter.drawLine(get<double>(args[0]), get<double>(args[1]), get<double>(args[2]),
+                                 get<double>(args[3]));
 
-        env->assign(string {"force"}, make_shared<lua::rt::cfunction>([this](const lua::rt::vallist& args) -> lua::rt::cfunction::result {
-            if (args.size() != 2) {
-                return lua::rt::vallist{lua::rt::nil(), string {"wrong number of arguments (expected 2)"}};
-            }
-
-            cout << "force " << args[0] << " to be " << args[1] << endl;
-
-            auto source_changes = args[0].forceValue(args[1]);
-
-            if (!source_changes) {
-                cout << "could not force value, source location not available" << endl;
                 return {};
-            }
+            }),
+            false);
 
-            cout << (*source_changes)->to_string() << endl;
-            addSourceChanges(*source_changes);
+        env->assign(
+            string{"force"},
+            make_shared<lua::rt::cfunction>(
+                [this](const lua::rt::vallist& args) -> lua::rt::cfunction::result {
+                    if (args.size() != 2) {
+                        return lua::rt::vallist{lua::rt::nil(),
+                                                string{"wrong number of arguments (expected 2)"}};
+                    }
 
-            return {};
-        }), false);
+                    cout << "force " << args[0] << " to be " << args[1] << endl;
+
+                    auto source_changes = args[0].forceValue(args[1]);
+
+                    if (!source_changes) {
+                        cout << "could not force value, source location not available" << endl;
+                        return {};
+                    }
+
+                    cout << (*source_changes)->to_string() << endl;
+                    addSourceChanges(*source_changes);
+
+                    return {};
+                }),
+            false);
 
         clearSourceChanges();
 
-        if (auto eval_result = parse_result->accept(eval, env); holds_alternative<string>(eval_result)) {
+        if (auto eval_result = parse_result->accept(eval, env);
+            holds_alternative<string>(eval_result)) {
             cerr << "Error: " << get<string>(eval_result) << endl;
         }
 
@@ -67,12 +80,11 @@ void DrawWidget::paintEvent(QPaintEvent *event) {
 void DrawWidget::addSourceChanges(const shared_ptr<lua::rt::SourceChange>& change) {
     if (!current_source_changes)
         current_source_changes = make_shared<lua::rt::SourceChangeAnd>();
-    dynamic_pointer_cast<lua::rt::SourceChangeAnd>(current_source_changes)->changes.push_back(change);
+    dynamic_pointer_cast<lua::rt::SourceChangeAnd>(current_source_changes)
+        ->changes.push_back(change);
 }
 
-void DrawWidget::clearSourceChanges() {
-    current_source_changes.reset();
-}
+void DrawWidget::clearSourceChanges() { current_source_changes.reset(); }
 
 void highlight_changes(const shared_ptr<lua::rt::SourceChange>& change, QTextCursor& cursor) {
     if (auto p = dynamic_pointer_cast<lua::rt::SourceAssignment>(change); p) {
@@ -80,7 +92,7 @@ void highlight_changes(const shared_ptr<lua::rt::SourceChange>& change, QTextCur
         fmt.setBackground(Qt::red);
 
         cursor.setPosition(p->token.pos, QTextCursor::MoveAnchor);
-        cursor.setPosition(p->token.pos+p->token.length, QTextCursor::KeepAnchor);
+        cursor.setPosition(p->token.pos + p->token.length, QTextCursor::KeepAnchor);
         cursor.setCharFormat(fmt);
     }
 
@@ -95,7 +107,7 @@ void highlight_changes(const shared_ptr<lua::rt::SourceChange>& change, QTextCur
     }
 }
 
-void DrawWidget::highlightSourceChanges(QPlainTextEdit *editor) {
+void DrawWidget::highlightSourceChanges(QPlainTextEdit* editor) {
     QTextCharFormat fmt;
 
     QTextCursor cursor(editor->document());
@@ -103,7 +115,6 @@ void DrawWidget::highlightSourceChanges(QPlainTextEdit *editor) {
     cursor.setPosition(0, QTextCursor::MoveAnchor);
     cursor.setPosition(editor->document()->toPlainText().length(), QTextCursor::KeepAnchor);
     cursor.setCharFormat(fmt);
-
 
     highlight_changes(current_source_changes, cursor);
 }
@@ -123,7 +134,7 @@ void DrawWidget::onTextChanged() {
     }
 }
 
-auto main(int argc, char *argv[]) -> int {
+auto main(int argc, char* argv[]) -> int {
 
     QApplication app(argc, argv);
     setlocale(LC_ALL, "C");
@@ -149,7 +160,6 @@ auto main(int argc, char *argv[]) -> int {
     layout->addWidget(draw_area, 0, 1);
 
     window.show();
-    window.setWindowTitle(
-        QApplication::translate("toplevel", "QMiniLua"));
+    window.setWindowTitle(QApplication::translate("toplevel", "QMiniLua"));
     return app.exec();
 }
