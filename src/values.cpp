@@ -19,6 +19,8 @@ auto operator<<(std::ostream& os, Bool self) -> std::ostream& {
 auto operator<<(std::ostream& os, Number self) -> std::ostream& {
     return os << "Number(" << self.value << ")";
 }
+auto operator^(Number lhs, Number rhs) -> Number { return std::pow(lhs.value, rhs.value); }
+auto operator%(Number lhs, Number rhs) -> Number { return Number(std::fmod(lhs.value, rhs.value)); }
 
 // struct String
 String::String(std::string value) : value(std::move(value)) {}
@@ -155,47 +157,73 @@ auto operator<<(std::ostream& os, const Value& self) -> std::ostream& {
     return os;
 }
 
-auto Value::operator[](const Value&) -> Value& {
-    // TODO
-    throw std::runtime_error("unimplemented");
+auto Value::operator[](const Value& index) -> Value& {
+    // TODO metatable for absent fields
+    return std::visit(
+        minilua::overloaded{
+            [this](minilua::Table& index) -> Value& { return (*this)[index]; },
+            [](auto & /*unused*/) -> Value& { throw std::runtime_error("unimplemented"); },
+        },
+        index.impl->val);
 }
-auto Value::operator[](const Value&) const -> const Value& {
-    // TODO
-    throw std::runtime_error("unimplemented");
+auto Value::operator[](const Value& index) const -> const Value& {
+    return std::visit(
+        overloaded{
+            [this](Table& index) -> const Value& { return (*this)[index]; },
+            [](auto & /*unused*/) -> const Value& { throw std::runtime_error("unimplemented"); },
+        },
+        index.impl->val);
 }
-auto operator+(const Value&, const Value&) -> Value {
+
+#define IMPL_ARITHMETIC(OP, ERR_INFO)                                                              \
+    auto operator OP(const Value& lhs, const Value& rhs)->Value {                                  \
+        auto origin = Origin({BinaryOrigin{make_owning<Value>(lhs), make_owning<Value>(rhs)}});    \
+        return std::visit(                                                                         \
+            overloaded{                                                                            \
+                [&origin](const Number& lhs, const Number& rhs) -> Value {                         \
+                    auto value = Value(lhs OP rhs);                                                \
+                    value.impl->origin = origin;                                                   \
+                    return value;                                                                  \
+                },                                                                                 \
+                [](const Table& lhs, const Table& rhs) -> Value { /* NOLINT */                     \
+                                                                  /* TODO tables with metatables   \
+                                                                   */                              \
+                                                                  throw std::runtime_error(        \
+                                                                      "unimplemented");            \
+                },                                                                                 \
+                [](const auto& lhs, const auto& rhs) -> Value {                                    \
+                    std::string msg = "Can not ";                                                  \
+                    msg.append(ERR_INFO);                                                          \
+                    msg.append(" values of type ");                                                \
+                    msg.append(lhs.TYPE);                                                          \
+                    msg.append(" and ");                                                           \
+                    msg.append(rhs.TYPE);                                                          \
+                    msg.append(".");                                                               \
+                    throw std::runtime_error(msg);                                                 \
+                }},                                                                                \
+            lhs.impl->val, rhs.impl->val);                                                         \
+    }
+
+IMPL_ARITHMETIC(+, "add");
+IMPL_ARITHMETIC(-, "subtract");
+IMPL_ARITHMETIC(*, "multiply");
+IMPL_ARITHMETIC(/, "divide");
+IMPL_ARITHMETIC(^, "attempt to pow");
+IMPL_ARITHMETIC(%, "take modulo of");
+
+auto operator&(const Value& lhs, const Value& rhs) -> Value {
     // TODO
     return Value();
 }
-auto operator-(const Value&, const Value&) -> Value {
+auto operator|(const Value& lhs, const Value& rhs) -> Value {
     // TODO
     return Value();
 }
-auto operator*(const Value&, const Value&) -> Value {
+auto operator&&(const Value& lhs, const Value& rhs) -> Value {
     // TODO
     return Value();
 }
-auto operator/(const Value&, const Value&) -> Value {
-    // TODO
-    return Value();
-}
-auto operator&(const Value&, const Value&) -> Value {
-    // TODO
-    return Value();
-}
-auto operator|(const Value&, const Value&) -> Value {
-    // TODO
-    return Value();
-}
-auto operator^(const Value&, const Value&) -> Value {
-    // TODO
-    return Value();
-}
-auto operator&&(const Value&, const Value&) -> Value {
-    // TODO
-    return Value();
-}
-auto operator||(const Value&, const Value&) -> Value {
+auto operator||(const Value& lhs, const Value& rhs) -> Value {
     // TODO
     return Value();
 }
@@ -230,6 +258,7 @@ auto std::hash<minilua::Table>::operator()(const minilua::Table& value) const ->
 }
 auto std::hash<minilua::NativeFunction>::operator()(const minilua::NativeFunction& value) const
     -> size_t {
+    // TODO maybe use address of shared_ptr directly
     return std::hash<decltype(value.func)>()(value.func);
 }
 } // namespace std

@@ -50,13 +50,17 @@ public:
     friend auto operator<<(std::ostream&, const Vallist&) -> std::ostream&;
 };
 
-struct Nil {};
+struct Nil {
+    constexpr static const std::string_view TYPE = "nil";
+};
 constexpr auto operator==(Nil, Nil) noexcept -> bool { return true; }
 constexpr auto operator!=(Nil, Nil) noexcept -> bool { return false; }
 auto operator<<(std::ostream&, Nil) -> std::ostream&;
 
 struct Bool {
     bool value;
+
+    constexpr static const std::string_view TYPE = "boolean";
 
     constexpr Bool(bool value) : value(value) {}
 };
@@ -71,6 +75,8 @@ DELEGATE_OP(Bool, ^);
 
 struct Number {
     double value;
+
+    constexpr static const std::string_view TYPE = "number";
 
     constexpr Number(int value) : value(value) {}
     constexpr Number(double value) : value(value) {}
@@ -94,9 +100,13 @@ DELEGATE_OP(Number, +);
 DELEGATE_OP(Number, -);
 DELEGATE_OP(Number, *);
 DELEGATE_OP(Number, /);
+auto operator^(Number lhs, Number rhs) -> Number;
+auto operator%(Number lhs, Number rhs) -> Number;
 
 struct String {
     std::string value;
+
+    constexpr static const std::string_view TYPE = "string";
 
     String(std::string value);
 
@@ -111,6 +121,8 @@ class Table {
     std::shared_ptr<Impl> impl;
 
 public:
+    constexpr static const std::string_view TYPE = "table";
+
     Table();
     Table(std::unordered_map<Value, Value>);
     Table(std::initializer_list<std::pair<const Value, Value>> values);
@@ -201,6 +213,8 @@ class NativeFunction {
     std::shared_ptr<std::function<FnType>> func;
 
 public:
+    constexpr static const std::string_view TYPE = "function";
+
     template <typename Fn, typename = std::enable_if_t<std::is_invocable_v<Fn, CallContext>>>
     NativeFunction(Fn fn) {
         this->func = std::make_shared<std::function<FnType>>();
@@ -233,7 +247,11 @@ public:
 auto operator<<(std::ostream&, const NativeFunction&) -> std::ostream&;
 
 // TODO LuaFunction
-// could maybe share a type with NativeFunction (not sure)
+// could maybe share a type with NativeFunction (e.g. by providing lambdas)
+//
+// Requires:
+// - reference to ast of function definition
+// - copy of enclosing environment
 
 } // namespace minilua
 
@@ -258,7 +276,6 @@ template <> struct hash<minilua::String> {
 template <> struct hash<minilua::Table> {
     auto operator()(const minilua::Table& value) const -> size_t;
 };
-// TODO should we allow this?
 template <> struct hash<minilua::NativeFunction> {
     auto operator()(const minilua::NativeFunction& value) const -> size_t;
 };
@@ -317,21 +334,22 @@ public:
 
     auto operator[](const Value&) -> Value&;
     auto operator[](const Value&) const -> const Value&;
+
+    friend auto operator+(const Value&, const Value&) -> Value;
+    friend auto operator-(const Value&, const Value&) -> Value;
+    friend auto operator*(const Value&, const Value&) -> Value;
+    friend auto operator/(const Value&, const Value&) -> Value;
+    friend auto operator^(const Value&, const Value&) -> Value;
+    friend auto operator%(const Value&, const Value&) -> Value;
+    friend auto operator&(const Value&, const Value&) -> Value;
+    friend auto operator|(const Value&, const Value&) -> Value;
+    friend auto operator&&(const Value&, const Value&) -> Value;
+    friend auto operator||(const Value&, const Value&) -> Value;
 };
 
 auto operator==(const Value&, const Value&) noexcept -> bool;
 auto operator!=(const Value&, const Value&) noexcept -> bool;
 auto operator<<(std::ostream&, const Value&) -> std::ostream&;
-
-auto operator+(const Value&, const Value&) -> Value;
-auto operator-(const Value&, const Value&) -> Value;
-auto operator*(const Value&, const Value&) -> Value;
-auto operator/(const Value&, const Value&) -> Value;
-auto operator&(const Value&, const Value&) -> Value;
-auto operator|(const Value&, const Value&) -> Value;
-auto operator^(const Value&, const Value&) -> Value;
-auto operator&&(const Value&, const Value&) -> Value;
-auto operator||(const Value&, const Value&) -> Value;
 
 // TODO Origin does not need to be public (except maybe ExternalOrigin)
 struct ExternalOrigin {};

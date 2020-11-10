@@ -316,6 +316,86 @@ TEST_CASE("minilua::Value") {
             CHECK(std::holds_alternative<minilua::NativeFunction>(value2.get()));
         }
     }
+
+    SECTION("addition") {
+        SECTION("can add two numbers") {
+            minilua::Value value1{4};
+            minilua::Value value2{3};
+            REQUIRE(value1 + value2 == minilua::Value(7));
+        }
+        SECTION("can't add two non numbers") {
+            minilua::Value value1{"hi"};
+            minilua::Value value2{minilua::Nil()};
+            REQUIRE_THROWS(value1 + value2);
+        }
+        // TODO metatables
+    }
+    SECTION("subtraction") {
+        SECTION("can sub two numbers") {
+            minilua::Value value1{4};
+            minilua::Value value2{3};
+            REQUIRE(value1 - value2 == minilua::Value(1));
+        }
+        SECTION("can't sub two non numbers") {
+            minilua::Value value1{"hi"};
+            minilua::Value value2{minilua::Nil()};
+            REQUIRE_THROWS(value1 - value2);
+        }
+        // TODO metatables
+    }
+    SECTION("multiplication") {
+        SECTION("can multiply two numbers") {
+            minilua::Value value1{4};
+            minilua::Value value2{3};
+            REQUIRE(value1 * value2 == minilua::Value(12));
+        }
+        SECTION("can't multiply two non numbers") {
+            minilua::Value value1{"hi"};
+            minilua::Value value2{minilua::Nil()};
+            REQUIRE_THROWS(value1 * value2);
+        }
+        // TODO metatables
+    }
+    SECTION("division") {
+        SECTION("can divide two numbers") {
+            minilua::Value value1{13};
+            minilua::Value value2{4};
+            REQUIRE(value1 / value2 == minilua::Value(3.25));
+        }
+        SECTION("can't divide two non numbers") {
+            minilua::Value value1{"hi"};
+            minilua::Value value2{minilua::Nil()};
+            REQUIRE_THROWS(value1 / value2);
+        }
+        // TODO metatables
+    }
+    SECTION("power") {
+        SECTION("can take power of two numbers") {
+            minilua::Value value1{4};
+            minilua::Value value2{3};
+            REQUIRE((value1 ^ value2) == minilua::Value(64));
+        }
+        SECTION("can't take power of two non numbers") {
+            minilua::Value value1{"hi"};
+            minilua::Value value2{minilua::Nil()};
+            REQUIRE_THROWS(value1 ^ value2);
+        }
+        // TODO metatables
+    }
+    SECTION("modulo") {
+        SECTION("can take modulo of two numbers") {
+            minilua::Value value1{5.4};
+            minilua::Value value2{2.1};
+            REQUIRE(std::fmod(5.4, 2.1) == Approx(1.2));
+            REQUIRE(std::get<minilua::Number>((value1 % value2).get()).value == Approx(1.2));
+        }
+        SECTION("can't take modulo of two non numbers") {
+            minilua::Value value1{"hi"};
+            minilua::Value value2{minilua::Nil()};
+            REQUIRE_THROWS(value1 % value2);
+        }
+        // TODO metatables
+    }
 }
 
 TEST_CASE("minilua::Environment") {

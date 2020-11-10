@@ -75,17 +75,11 @@ public:
         return *this;
     }
 
-    friend void swap(owning_ptr<T>& lhs, owning_ptr<T>& rhs) {
-        std::swap(lhs.value, rhs.value);
-    }
+    friend void swap(owning_ptr<T>& lhs, owning_ptr<T>& rhs) { std::swap(lhs.value, rhs.value); }
 
-    auto get() const noexcept -> typename std::unique_ptr<T>::pointer {
-        return value.get();
-    }
+    auto get() const noexcept -> typename std::unique_ptr<T>::pointer { return value.get(); }
 
-    auto operator*() const -> T& {
-        return value.operator*();
-    }
+    auto operator*() const -> T& { return value.operator*(); }
     auto operator->() const noexcept -> typename std::unique_ptr<T>::pointer {
         return value.operator->();
     }
@@ -117,8 +111,12 @@ template <typename T, typename... Args> auto make_owning(Args... args) -> owning
     return owning_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
-// template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-// template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+// Overloading trick for lambdas
+// This is easier than
+//   if constexpr (std::is_same_v<decltype(param), T>) { ... }
+// Source: https://dev.to/tmr232/that-overloaded-trick-overloading-lambdas-in-c17
+template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 } // namespace minilua
 
