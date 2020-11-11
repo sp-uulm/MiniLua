@@ -88,9 +88,7 @@ public:
         }
     }
 
-    void clear() {
-        t.clear();
-    }
+    void clear() { t.clear(); }
 
     void assign(const val& var, const val& newval, bool is_local);
     val getvar(const val& var);
