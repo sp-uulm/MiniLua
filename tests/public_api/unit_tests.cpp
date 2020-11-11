@@ -396,6 +396,69 @@ TEST_CASE("minilua::Value") {
         }
         // TODO metatables
     }
+    SECTION("bitwise and") {
+        SECTION("can bitwise and two integers") {
+            minilua::Value value1{0b11001};
+            minilua::Value value2{0b01100};
+            REQUIRE((value1 & value2) == minilua::Value(0b01000));
+        }
+        SECTION("can't bitwise and two floats") {
+            minilua::Value value1{5.2};
+            minilua::Value value2{3.1};
+            REQUIRE_THROWS(value1 & value2);
+        }
+        SECTION("can't bitwise and two non numbers") {
+            minilua::Value value1{"hi"};
+            minilua::Value value2{minilua::Nil()};
+            REQUIRE_THROWS(value1 & value2);
+        }
+        // TODO metatables?
+    }
+    SECTION("bitwise or") {
+        SECTION("can bitwise or two integers") {
+            minilua::Value value1{0b11001};
+            minilua::Value value2{0b01100};
+            REQUIRE((value1 | value2) == minilua::Value(0b11101));
+        }
+        SECTION("can't bitwise or two floats") {
+            minilua::Value value1{5.2};
+            minilua::Value value2{3.1};
+            REQUIRE_THROWS(value1 | value2);
+        }
+        SECTION("can't bitwise or two non numbers") {
+            minilua::Value value1{"hi"};
+            minilua::Value value2{minilua::Nil()};
+            REQUIRE_THROWS(value1 | value2);
+        }
+        // TODO metatables?
+    }
+    SECTION("as bool") {
+        SECTION("false and nil are falsey") {
+            REQUIRE(bool(minilua::Value(false)) == false);
+            REQUIRE(bool(minilua::Value(minilua::Nil())) == false);
+        }
+        SECTION("everything else is truthy") {
+            REQUIRE(bool(minilua::Value(0)) == true);
+            REQUIRE(bool(minilua::Value(4)) == true);
+            REQUIRE(bool(minilua::Value(20.5)) == true);
+            REQUIRE(bool(minilua::Value("hi")) == true);
+            REQUIRE(bool(minilua::Value(minilua::Table())) == true);
+        }
+    }
+    SECTION("logic and") {
+        REQUIRE(
+            (minilua::Value(minilua::Nil()) && minilua::Value(5)) ==
+            minilua::Value(minilua::Nil()));
+        REQUIRE((minilua::Value(false) && minilua::Value(5)) == minilua::Value(false));
+        REQUIRE((minilua::Value(3) && minilua::Value(5)) == minilua::Value(5));
+        REQUIRE((minilua::Value(3) && minilua::Value(false)) == minilua::Value(false));
+    }
+    SECTION("logic or") {
+        REQUIRE((minilua::Value(minilua::Nil()) || minilua::Value(5)) == minilua::Value(5));
+        REQUIRE((minilua::Value(false) || minilua::Value(5)) == minilua::Value(5));
+        REQUIRE((minilua::Value(3) || minilua::Value(5)) == minilua::Value(3));
+        REQUIRE((minilua::Value(3) || minilua::Value(false)) == minilua::Value(3));
+    }
 }
 
 TEST_CASE("minilua::Environment") {

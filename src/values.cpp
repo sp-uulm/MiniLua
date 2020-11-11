@@ -8,22 +8,52 @@ namespace minilua {
 
 // struct Nil
 auto operator<<(std::ostream& os, Nil /*unused*/) -> std::ostream& { return os << "Nil"; }
+Nil::operator bool() const { return false; }
 
 // struct Bool
-
 auto operator<<(std::ostream& os, Bool self) -> std::ostream& {
     return os << "Bool(" << std::boolalpha << self.value << std::noboolalpha << ")";
 }
+Bool::operator bool() const { return this->value; }
 
 // struct Number
 auto operator<<(std::ostream& os, Number self) -> std::ostream& {
     return os << "Number(" << self.value << ")";
 }
+Number::operator bool() const { return true; }
 auto operator^(Number lhs, Number rhs) -> Number { return std::pow(lhs.value, rhs.value); }
 auto operator%(Number lhs, Number rhs) -> Number { return Number(std::fmod(lhs.value, rhs.value)); }
+auto operator&(Number lhs, Number rhs) -> Number {
+    if (lhs.value != std::floor(lhs.value)) {
+        throw std::runtime_error("lhs of bitwise and is not an integer");
+    }
+    if (rhs.value != std::floor(rhs.value)) {
+        throw std::runtime_error("rhs of bitwise and is not an integer");
+    }
+    // TODO is int big enough or do we need long?
+    int lhs_int = lhs.value;
+    int rhs_int = rhs.value;
+
+    return Number(lhs_int & rhs_int);
+}
+auto operator|(Number lhs, Number rhs) -> Number {
+    if (lhs.value != std::floor(lhs.value)) {
+        throw std::runtime_error("lhs of bitwise or is not an integer");
+    }
+    if (rhs.value != std::floor(rhs.value)) {
+        throw std::runtime_error("rhs of bitwise or is not an integer");
+    }
+    // TODO is int big enough or do we need long?
+    int lhs_int = lhs.value;
+    int rhs_int = rhs.value;
+
+    return Number(lhs_int | rhs_int);
+}
 
 // struct String
 String::String(std::string value) : value(std::move(value)) {}
+
+String::operator bool() const { return true; }
 
 void swap(String& self, String& other) { std::swap(self.value, other.value); }
 
@@ -59,6 +89,8 @@ void Table::set(Value&& key, Value value) { impl->value[key] = std::move(value);
 
 auto Table::operator[](const Value& index) -> Value& { return impl->value[index]; }
 auto Table::operator[](const Value& index) const -> const Value& { return impl->value[index]; }
+
+Table::operator bool() const { return true; }
 
 auto operator==(const Table& a, const Table& b) noexcept -> bool { return a.impl == b.impl; }
 auto operator!=(const Table& a, const Table& b) noexcept -> bool { return !(a == b); }
@@ -116,6 +148,7 @@ CallResult::CallResult(Vallist, SourceChange) {
 auto operator<<(std::ostream& os, const NativeFunction & /*unused*/) -> std::ostream& {
     return os << "NativeFunction";
 }
+NativeFunction::operator bool() const { return true; }
 void swap(NativeFunction& self, NativeFunction& other) { std::swap(self.func, other.func); }
 
 // class Value
@@ -175,6 +208,10 @@ auto Value::operator[](const Value& index) const -> const Value& {
         index.impl->val);
 }
 
+Value::operator bool() const {
+    return std::visit([](const auto& value) { return bool(value); }, this->impl->val);
+}
+
 #define IMPL_ARITHMETIC(OP, ERR_INFO)                                                              \
     auto operator OP(const Value& lhs, const Value& rhs)->Value {                                  \
         auto origin = Origin({BinaryOrigin{make_owning<Value>(lhs), make_owning<Value>(rhs)}});    \
@@ -210,22 +247,35 @@ IMPL_ARITHMETIC(*, "multiply");
 IMPL_ARITHMETIC(/, "divide");
 IMPL_ARITHMETIC(^, "attempt to pow");
 IMPL_ARITHMETIC(%, "take modulo of");
+IMPL_ARITHMETIC(&, "bitwise and");
+IMPL_ARITHMETIC(|, "bitwise or");
 
-auto operator&(const Value& lhs, const Value& rhs) -> Value {
-    // TODO
-    return Value();
-}
-auto operator|(const Value& lhs, const Value& rhs) -> Value {
-    // TODO
-    return Value();
-}
+// logic operators
 auto operator&&(const Value& lhs, const Value& rhs) -> Value {
-    // TODO
-    return Value();
+    // return lhs if it is falsey and rhs otherwise
+    auto origin = Origin({BinaryOrigin{make_owning<Value>(lhs), make_owning<Value>(rhs)}});
+    if (!lhs) {
+        auto value = Value(lhs);
+        value.impl->origin = origin;
+        return value;
+    } else {
+        auto value = Value(rhs);
+        value.impl->origin = origin;
+        return value;
+    }
 }
 auto operator||(const Value& lhs, const Value& rhs) -> Value {
-    // TODO
-    return Value();
+    // return lhs if it is truthy and rhs otherwise
+    auto origin = Origin({BinaryOrigin{make_owning<Value>(lhs), make_owning<Value>(rhs)}});
+    if (lhs) {
+        auto value = Value(lhs);
+        value.impl->origin = origin;
+        return value;
+    } else {
+        auto value = Value(rhs);
+        value.impl->origin = origin;
+        return value;
+    }
 }
 
 } // namespace minilua

@@ -52,6 +52,8 @@ public:
 
 struct Nil {
     constexpr static const std::string_view TYPE = "nil";
+
+    explicit operator bool() const;
 };
 constexpr auto operator==(Nil, Nil) noexcept -> bool { return true; }
 constexpr auto operator!=(Nil, Nil) noexcept -> bool { return false; }
@@ -63,6 +65,8 @@ struct Bool {
     constexpr static const std::string_view TYPE = "boolean";
 
     constexpr Bool(bool value) : value(value) {}
+
+    explicit operator bool() const;
 };
 constexpr auto operator==(Bool lhs, Bool rhs) noexcept -> bool { return lhs.value == rhs.value; }
 constexpr auto operator!=(Bool lhs, Bool rhs) noexcept -> bool { return !(lhs == rhs); }
@@ -80,6 +84,8 @@ struct Number {
 
     constexpr Number(int value) : value(value) {}
     constexpr Number(double value) : value(value) {}
+
+    explicit operator bool() const;
 };
 constexpr auto operator==(Number lhs, Number rhs) noexcept -> bool {
     return lhs.value == rhs.value;
@@ -100,8 +106,11 @@ DELEGATE_OP(Number, +);
 DELEGATE_OP(Number, -);
 DELEGATE_OP(Number, *);
 DELEGATE_OP(Number, /);
+// exponentiation (pow)
 auto operator^(Number lhs, Number rhs) -> Number;
 auto operator%(Number lhs, Number rhs) -> Number;
+auto operator&(Number lhs, Number rhs) -> Number;
+auto operator|(Number lhs, Number rhs) -> Number;
 
 struct String {
     std::string value;
@@ -109,6 +118,8 @@ struct String {
     constexpr static const std::string_view TYPE = "string";
 
     String(std::string value);
+
+    explicit operator bool() const;
 
     friend void swap(String& self, String& other);
 };
@@ -147,6 +158,8 @@ public:
     // TODO maybe return proxy "entry" type
     auto operator[](const Value&) -> Value&;
     auto operator[](const Value&) const -> const Value&;
+
+    explicit operator bool() const;
 };
 
 class CallContext {
@@ -238,6 +251,8 @@ public:
                 "can only use function likes that take a CallContext as parameter");
         }
     }
+
+    explicit operator bool() const;
 
     friend void swap(NativeFunction& self, NativeFunction& other);
 
@@ -334,6 +349,8 @@ public:
 
     auto operator[](const Value&) -> Value&;
     auto operator[](const Value&) const -> const Value&;
+
+    explicit operator bool() const;
 
     friend auto operator+(const Value&, const Value&) -> Value;
     friend auto operator-(const Value&, const Value&) -> Value;
