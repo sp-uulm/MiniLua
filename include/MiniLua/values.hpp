@@ -50,26 +50,26 @@ public:
     friend auto operator<<(std::ostream&, const Vallist&) -> std::ostream&;
 };
 
-struct Nil {};
-constexpr auto operator==(Nil, Nil) noexcept -> bool {
-    return true;
-}
-constexpr auto operator!=(Nil, Nil) noexcept -> bool {
-    return false;
-}
+struct Nil {
+    constexpr static const std::string_view TYPE = "nil";
+
+    explicit operator bool() const;
+};
+constexpr auto operator==(Nil, Nil) noexcept -> bool { return true; }
+constexpr auto operator!=(Nil, Nil) noexcept -> bool { return false; }
 auto operator<<(std::ostream&, Nil) -> std::ostream&;
 
 struct Bool {
     bool value;
 
+    constexpr static const std::string_view TYPE = "boolean";
+
     constexpr Bool(bool value) : value(value) {}
+
+    explicit operator bool() const;
 };
-constexpr auto operator==(Bool lhs, Bool rhs) noexcept -> bool {
-    return lhs.value == rhs.value;
-}
-constexpr auto operator!=(Bool lhs, Bool rhs) noexcept -> bool {
-    return !(lhs == rhs);
-}
+constexpr auto operator==(Bool lhs, Bool rhs) noexcept -> bool { return lhs.value == rhs.value; }
+constexpr auto operator!=(Bool lhs, Bool rhs) noexcept -> bool { return !(lhs == rhs); }
 auto operator<<(std::ostream&, Bool) -> std::ostream&;
 
 // normal c++ operators
@@ -80,21 +80,19 @@ DELEGATE_OP(Bool, ^);
 struct Number {
     double value;
 
+    constexpr static const std::string_view TYPE = "number";
+
     constexpr Number(int value) : value(value) {}
     constexpr Number(double value) : value(value) {}
+
+    explicit operator bool() const;
 };
 constexpr auto operator==(Number lhs, Number rhs) noexcept -> bool {
     return lhs.value == rhs.value;
 }
-constexpr auto operator!=(Number lhs, Number rhs) noexcept -> bool {
-    return !(lhs == rhs);
-}
-constexpr auto operator<(Number lhs, Number rhs) noexcept -> bool {
-    return lhs.value < rhs.value;
-}
-constexpr auto operator>(Number lhs, Number rhs) noexcept -> bool {
-    return lhs.value > rhs.value;
-}
+constexpr auto operator!=(Number lhs, Number rhs) noexcept -> bool { return !(lhs == rhs); }
+constexpr auto operator<(Number lhs, Number rhs) noexcept -> bool { return lhs.value < rhs.value; }
+constexpr auto operator>(Number lhs, Number rhs) noexcept -> bool { return lhs.value > rhs.value; }
 constexpr auto operator<=(Number lhs, Number rhs) noexcept -> bool {
     return lhs.value <= rhs.value;
 }
@@ -108,11 +106,20 @@ DELEGATE_OP(Number, +);
 DELEGATE_OP(Number, -);
 DELEGATE_OP(Number, *);
 DELEGATE_OP(Number, /);
+// exponentiation (pow)
+auto operator^(Number lhs, Number rhs) -> Number;
+auto operator%(Number lhs, Number rhs) -> Number;
+auto operator&(Number lhs, Number rhs) -> Number;
+auto operator|(Number lhs, Number rhs) -> Number;
 
 struct String {
     std::string value;
 
+    constexpr static const std::string_view TYPE = "string";
+
     String(std::string value);
+
+    explicit operator bool() const;
 
     friend void swap(String& self, String& other);
 };
@@ -125,6 +132,8 @@ class Table {
     std::shared_ptr<Impl> impl;
 
 public:
+    constexpr static const std::string_view TYPE = "table";
+
     Table();
     Table(std::unordered_map<Value, Value>);
     Table(std::initializer_list<std::pair<const Value, Value>> values);
@@ -149,6 +158,8 @@ public:
     // TODO maybe return proxy "entry" type
     auto operator[](const Value&) -> Value&;
     auto operator[](const Value&) const -> const Value&;
+
+    explicit operator bool() const;
 };
 
 class CallContext {
@@ -184,6 +195,17 @@ public:
      */
     [[nodiscard]] auto arguments() const -> const Vallist&;
 
+    /**
+     * Forces the 'target' value to become 'new_value' which will trigger
+     * create source change that is returned by 'Interpreter::evaluate'.
+     *
+     * The return value should be returned in NativeFunctions otherwise this
+     * does not have an effect.
+     *
+     * This throws an exception if the types of the values didn't match.
+     */
+    auto force_value(Value target, Value new_value) -> SourceChange;
+
     friend auto operator<<(std::ostream&, const CallContext&) -> std::ostream&;
 };
 
@@ -204,6 +226,8 @@ class NativeFunction {
     std::shared_ptr<std::function<FnType>> func;
 
 public:
+    constexpr static const std::string_view TYPE = "function";
+
     template <typename Fn, typename = std::enable_if_t<std::is_invocable_v<Fn, CallContext>>>
     NativeFunction(Fn fn) {
         this->func = std::make_shared<std::function<FnType>>();
@@ -212,9 +236,7 @@ public:
             *this->func = fn;
         } else if constexpr (std::is_convertible_v<std::invoke_result_t<Fn, CallContext>, Value>) {
             // easy use of functions that return a type that is convertible to Value (e.g. string)
-            *this->func = [fn](CallContext ctx) -> CallResult {
-                return CallResult({fn(ctx)});
-            };
+            *this->func = [fn](CallContext ctx) -> CallResult { return CallResult({fn(ctx)}); };
         } else if constexpr (std::is_void_v<std::invoke_result_t<Fn, CallContext>>) {
             // support void functions by returning an empty Vallist
             *this->func = [fn](CallContext ctx) -> CallResult {
@@ -230,6 +252,8 @@ public:
         }
     }
 
+    explicit operator bool() const;
+
     friend void swap(NativeFunction& self, NativeFunction& other);
 
     friend struct std::hash<NativeFunction>;
@@ -238,7 +262,11 @@ public:
 auto operator<<(std::ostream&, const NativeFunction&) -> std::ostream&;
 
 // TODO LuaFunction
-// could maybe share a type with NativeFunction (not sure)
+// could maybe share a type with NativeFunction (e.g. by providing lambdas)
+//
+// Requires:
+// - reference to ast of function definition
+// - copy of enclosing environment
 
 } // namespace minilua
 
@@ -263,7 +291,6 @@ template <> struct hash<minilua::String> {
 template <> struct hash<minilua::Table> {
     auto operator()(const minilua::Table& value) const -> size_t;
 };
-// TODO should we allow this?
 template <> struct hash<minilua::NativeFunction> {
     auto operator()(const minilua::NativeFunction& value) const -> size_t;
 };
@@ -322,21 +349,42 @@ public:
 
     auto operator[](const Value&) -> Value&;
     auto operator[](const Value&) const -> const Value&;
+
+    explicit operator bool() const;
+
+    friend auto operator+(const Value&, const Value&) -> Value;
+    friend auto operator-(const Value&, const Value&) -> Value;
+    friend auto operator*(const Value&, const Value&) -> Value;
+    friend auto operator/(const Value&, const Value&) -> Value;
+    friend auto operator^(const Value&, const Value&) -> Value;
+    friend auto operator%(const Value&, const Value&) -> Value;
+    friend auto operator&(const Value&, const Value&) -> Value;
+    friend auto operator|(const Value&, const Value&) -> Value;
+    friend auto operator&&(const Value&, const Value&) -> Value;
+    friend auto operator||(const Value&, const Value&) -> Value;
 };
 
 auto operator==(const Value&, const Value&) noexcept -> bool;
 auto operator!=(const Value&, const Value&) noexcept -> bool;
 auto operator<<(std::ostream&, const Value&) -> std::ostream&;
 
-auto operator+(const Value&, const Value&) -> Value;
-auto operator-(const Value&, const Value&) -> Value;
-auto operator*(const Value&, const Value&) -> Value;
-auto operator/(const Value&, const Value&) -> Value;
-auto operator&(const Value&, const Value&) -> Value;
-auto operator|(const Value&, const Value&) -> Value;
-auto operator^(const Value&, const Value&) -> Value;
-auto operator&&(const Value&, const Value&) -> Value;
-auto operator||(const Value&, const Value&) -> Value;
+// TODO Origin does not need to be public (except maybe ExternalOrigin)
+struct ExternalOrigin {};
+struct LiteralOrigin {
+    Range location;
+};
+struct BinaryOrigin {
+    owning_ptr<Value> lhs;
+    owning_ptr<Value> rhs;
+    Range location;
+};
+struct UnaryOrigin {
+    owning_ptr<Value> val;
+    Range location;
+};
+struct Origin {
+    std::variant<ExternalOrigin, LiteralOrigin, BinaryOrigin, UnaryOrigin> origin;
+};
 
 } // namespace minilua
 

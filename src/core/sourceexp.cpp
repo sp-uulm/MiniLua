@@ -28,25 +28,24 @@ eval_result_t sourceval::reevaluate() {
     return string{"reevaluate unimplemented"};
 }
 
-bool sourceval::isDirty() const {
-    return false;
-}
+bool sourceval::isDirty() const { return false; }
 
 source_change_t sourcebinop::forceValue(const val& v) const {
     if (!holds_alternative<double>(v))
         return nullopt;
 
     switch (op.type) {
-    case LuaToken::Type::ADD:
-    {
+    case LuaToken::Type::ADD: {
         auto res_or = make_shared<SourceChangeOr>();
         if (lhs.source && holds_alternative<double>(rhs)) {
-            if (auto result = lhs.source->forceValue(val {get<double>(v) - get<double>(rhs)}); result) {
+            if (auto result = lhs.source->forceValue(val{get<double>(v) - get<double>(rhs)});
+                result) {
                 res_or->alternatives.push_back(*result);
             }
         }
         if (rhs.source && holds_alternative<double>(lhs)) {
-            if (auto result = rhs.source->forceValue(val {get<double>(v) - get<double>(lhs)}); result) {
+            if (auto result = rhs.source->forceValue(val{get<double>(v) - get<double>(lhs)});
+                result) {
                 res_or->alternatives.push_back(*result);
             }
         }
@@ -55,16 +54,17 @@ source_change_t sourcebinop::forceValue(const val& v) const {
             return res_or;
         return nullopt;
     }
-    case LuaToken::Type::SUB:
-    {
+    case LuaToken::Type::SUB: {
         auto res_or = make_shared<SourceChangeOr>();
         if (lhs.source && holds_alternative<double>(rhs)) {
-            if (auto result = lhs.source->forceValue(val {get<double>(v) + get<double>(rhs)}); result) {
+            if (auto result = lhs.source->forceValue(val{get<double>(v) + get<double>(rhs)});
+                result) {
                 res_or->alternatives.push_back(*result);
             }
         }
         if (rhs.source && holds_alternative<double>(lhs)) {
-            if (auto result = rhs.source->forceValue(val {get<double>(lhs) - get<double>(v)}); result) {
+            if (auto result = rhs.source->forceValue(val{get<double>(lhs) - get<double>(v)});
+                result) {
                 res_or->alternatives.push_back(*result);
             }
         }
@@ -73,16 +73,17 @@ source_change_t sourcebinop::forceValue(const val& v) const {
             return res_or;
         return nullopt;
     }
-    case LuaToken::Type::MUL:
-    {
+    case LuaToken::Type::MUL: {
         auto res_or = make_shared<SourceChangeOr>();
         if (lhs.source && holds_alternative<double>(rhs)) {
-            if (auto result = lhs.source->forceValue(val {get<double>(v) / get<double>(rhs)}); result) {
+            if (auto result = lhs.source->forceValue(val{get<double>(v) / get<double>(rhs)});
+                result) {
                 res_or->alternatives.push_back(*result);
             }
         }
         if (rhs.source && holds_alternative<double>(lhs)) {
-            if (auto result = rhs.source->forceValue(val {get<double>(v) / get<double>(lhs)}); result) {
+            if (auto result = rhs.source->forceValue(val{get<double>(v) / get<double>(lhs)});
+                result) {
                 res_or->alternatives.push_back(*result);
             }
         }
@@ -91,16 +92,17 @@ source_change_t sourcebinop::forceValue(const val& v) const {
             return res_or;
         return nullopt;
     }
-    case LuaToken::Type::DIV:
-    {
+    case LuaToken::Type::DIV: {
         auto res_or = make_shared<SourceChangeOr>();
         if (lhs.source && holds_alternative<double>(rhs)) {
-            if (auto result = lhs.source->forceValue(val {get<double>(v) * get<double>(rhs)}); result) {
+            if (auto result = lhs.source->forceValue(val{get<double>(v) * get<double>(rhs)});
+                result) {
                 res_or->alternatives.push_back(*result);
             }
         }
         if (rhs.source && holds_alternative<double>(lhs)) {
-            if (auto result = rhs.source->forceValue(val {get<double>(lhs) / get<double>(v)}); result) {
+            if (auto result = rhs.source->forceValue(val{get<double>(lhs) / get<double>(v)});
+                result) {
                 res_or->alternatives.push_back(*result);
             }
         }
@@ -109,18 +111,19 @@ source_change_t sourcebinop::forceValue(const val& v) const {
             return res_or;
         return nullopt;
     }
-    case LuaToken::Type::POW:
-    {
+    case LuaToken::Type::POW: {
         auto res_or = make_shared<SourceChangeOr>();
         if (lhs.source && holds_alternative<double>(rhs)) {
-            if (auto result = lhs.source->forceValue(val {pow(get<double>(v), 1/get<double>(rhs))}); result) {
+            if (auto result =
+                    lhs.source->forceValue(val{pow(get<double>(v), 1 / get<double>(rhs))});
+                result) {
                 res_or->alternatives.push_back(*result);
             }
         }
         if (rhs.source && holds_alternative<double>(lhs)) {
             auto new_rhs = log(get<double>(v)) / log(get<double>(lhs));
             if (!isnan(new_rhs))
-                if (auto result = rhs.source->forceValue(val {new_rhs}); result) {
+                if (auto result = rhs.source->forceValue(val{new_rhs}); result) {
                     res_or->alternatives.push_back(*result);
                 }
         }
@@ -129,17 +132,18 @@ source_change_t sourcebinop::forceValue(const val& v) const {
             return res_or;
         return nullopt;
     }
-    case LuaToken::Type::MOD:
-    {
+    case LuaToken::Type::MOD: {
         auto res_or = make_shared<SourceChangeOr>();
         if (lhs.source && holds_alternative<double>(rhs)) {
-            if (auto result = lhs.source->forceValue(v); result && get<double>(rhs) > get<double>(v)) {
+            if (auto result = lhs.source->forceValue(v);
+                result && get<double>(rhs) > get<double>(v)) {
                 res_or->alternatives.push_back(*result);
             }
         }
         if (rhs.source && holds_alternative<double>(lhs)) {
-            //TODO: doesn't work if lhs < v
-            if (auto result = rhs.source->forceValue(val {get<double>(lhs) - get<double>(v)}); result) {
+            // TODO: doesn't work if lhs < v
+            if (auto result = rhs.source->forceValue(val{get<double>(lhs) - get<double>(v)});
+                result) {
                 res_or->alternatives.push_back(*result);
             }
         }
@@ -148,8 +152,7 @@ source_change_t sourcebinop::forceValue(const val& v) const {
             return res_or;
         return nullopt;
     }
-    case LuaToken::Type::EVAL:
-    {
+    case LuaToken::Type::EVAL: {
         auto res_and = make_shared<SourceChangeAnd>();
         if (lhs.source) {
             if (auto result = lhs.source->forceValue(v); result) {
@@ -209,13 +212,12 @@ eval_result_t sourcebinop::reevaluate() {
     case LuaToken::Type::OR:
         return op_or(_lhs, _rhs);
     default:
-        return string {op.match + " cannot be reevaluated"};
+        return string{op.match + " cannot be reevaluated"};
     }
 }
 
 bool sourcebinop::isDirty() const {
-    return (lhs.source && lhs.source->isDirty())
-        || (rhs.source && rhs.source->isDirty());
+    return (lhs.source && lhs.source->isDirty()) || (rhs.source && rhs.source->isDirty());
 }
 
 source_change_t sourceunop::forceValue(const val& new_v) const {
@@ -226,15 +228,15 @@ source_change_t sourceunop::forceValue(const val& new_v) const {
         return nullopt;
 
     switch (op.type) {
-    case LuaToken::Type::SUB:
-    {
+    case LuaToken::Type::SUB: {
         auto res_or = make_shared<SourceChangeOr>();
-        if (auto result = v.source->forceValue(val {-get<double>(new_v)}); result) {
-            if (auto p = dynamic_pointer_cast<sourceval>(v.source); !p || p->location[0].pos != op.pos+op.length) {
+        if (auto result = v.source->forceValue(val{-get<double>(new_v)}); result) {
+            if (auto p = dynamic_pointer_cast<sourceval>(v.source);
+                !p || p->location[0].pos != op.pos + op.length) {
                 res_or->alternatives.push_back(*result);
             }
         }
-        if (auto result = v.source->forceValue(val {get<double>(new_v)}); result) {
+        if (auto result = v.source->forceValue(val{get<double>(new_v)}); result) {
             auto res_and = make_shared<SourceChangeAnd>();
             res_and->changes.push_back(*result);
             res_and->changes.push_back(SourceAssignment::create(op, ""));
@@ -268,13 +270,11 @@ eval_result_t sourceunop::reevaluate() {
     case LuaToken::Type::EVAL:
         return op_postfix_eval(_v);
     default:
-        return string {op.match + " is not a unary operator"};
+        return string{op.match + " is not a unary operator"};
     }
 }
 
-bool sourceunop::isDirty() const {
-    return v.source && v.source->isDirty();
-}
+bool sourceunop::isDirty() const { return v.source && v.source->isDirty(); }
 
-}
-}
+} // namespace rt
+} // namespace lua

@@ -1,17 +1,16 @@
 #include "MiniLua/luaparser.hpp"
 
-LuaParser::LuaParser() {
-}
+LuaParser::LuaParser() {}
 
 auto LuaParser::parse(const string program, PerformanceStatistics& ps) -> parse_result_t<LuaChunk> {
     auto tokenize_start = chrono::steady_clock::now();
     tokens = tokenize(begin(program), end(program));
     auto tokenize_end = chrono::steady_clock::now();
-//    for (const auto& token : tokens)
-//        cout << token << endl;
+    //    for (const auto& token : tokens)
+    //        cout << token << endl;
 
     token_it_t begin_tok = tokens.cbegin();
-    token_it_t end_tok = tokens.cend()-1; //end_token is not part of the program
+    token_it_t end_tok = tokens.cend() - 1; // end_token is not part of the program
     auto parse_result = parse_chunk(begin_tok, end_tok);
 
     auto parse_end = chrono::steady_clock::now();
@@ -22,46 +21,46 @@ auto LuaParser::parse(const string program, PerformanceStatistics& ps) -> parse_
     return parse_result;
 }
 
-auto LuaParser::tokenize(string::const_iterator first, string::const_iterator last) -> token_list_t {
+auto LuaParser::tokenize(string::const_iterator first, string::const_iterator last)
+    -> token_list_t {
     string ws = "";
 
     token_list_t result_tokens;
-    bool tokenize_result = bs::lex::tokenize(first, last, lua_lexer, [&, start = first](const auto& token) {
-        if (token.id() == WS) {
-            ws = string(token.value().begin(), token.value().end());
-            return true;
-        }
+    bool tokenize_result =
+        bs::lex::tokenize(first, last, lua_lexer, [&, start = first](const auto& token) {
+            if (token.id() == WS) {
+                ws = string(token.value().begin(), token.value().end());
+                return true;
+            }
 
-        string match = string(token.value().begin(), token.value().end());
-        long pos = token.value().begin() - start;
-        long length = static_cast<long>(match.size());
-        result_tokens.push_back(LuaToken{static_cast<LuaToken::Type>(token.id()), match, pos, length, ws});
-        ws = "";
-        return true;
-    });
+            string match = string(token.value().begin(), token.value().end());
+            long pos = token.value().begin() - start;
+            long length = static_cast<long>(match.size());
+            result_tokens.push_back(
+                LuaToken{static_cast<LuaToken::Type>(token.id()), match, pos, length, ws});
+            ws = "";
+            return true;
+        });
 
     if (!tokenize_result) {
         cerr << "tokenizing failed" << endl;
     }
 
-    LuaToken end_token {LuaToken::Type::NONE, "", -1, 0, ws};
+    LuaToken end_token{LuaToken::Type::NONE, "", -1, 0, ws};
     result_tokens.push_back(end_token);
 
     return result_tokens;
 }
 
 auto LuaParser::parse_chunk(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaChunk> {
-    //cout << "chunk" << endl;
+    // cout << "chunk" << endl;
     // chunk ::= {stat [`;´]} [laststat [`;´]]
 
     LuaChunk result = make_shared<_LuaChunk>();
 
-    while (begin != end &&
-           begin->type != LuaToken::Type::RETURN &&
-           begin->type != LuaToken::Type::BREAK &&
-           begin->type != LuaToken::Type::END &&
-           begin->type != LuaToken::Type::ELSE &&
-           begin->type != LuaToken::Type::ELSEIF &&
+    while (begin != end && begin->type != LuaToken::Type::RETURN &&
+           begin->type != LuaToken::Type::BREAK && begin->type != LuaToken::Type::END &&
+           begin->type != LuaToken::Type::ELSE && begin->type != LuaToken::Type::ELSEIF &&
            begin->type != LuaToken::Type::UNTIL) {
         auto ast = parse_stat(begin, end);
         if (holds_alternative<string>(ast)) {
@@ -74,7 +73,8 @@ auto LuaParser::parse_chunk(token_it_t& begin, token_it_t& end) const -> parse_r
             begin++;
     }
 
-    if (begin != end && (begin->type == LuaToken::Type::RETURN || begin->type == LuaToken::Type::BREAK)) {
+    if (begin != end &&
+        (begin->type == LuaToken::Type::RETURN || begin->type == LuaToken::Type::BREAK)) {
         auto ast = parse_laststat(begin, end);
         if (holds_alternative<string>(ast)) {
             return "chunk -> " + get<string>(ast);
@@ -90,12 +90,12 @@ auto LuaParser::parse_chunk(token_it_t& begin, token_it_t& end) const -> parse_r
 }
 
 auto LuaParser::parse_block(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaChunk> {
-    //cout << "block" << endl;
+    // cout << "block" << endl;
     return parse_chunk(begin, end);
 }
 
 auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaStmt> {
-    //cout << "stat" << endl;
+    // cout << "stat" << endl;
     /* stat ::=     varlist `=´ explist |
                     functioncall |
                     do block end |
@@ -147,10 +147,9 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
         return move(assign);
     }
     case LuaToken::Type::DO:
-        return "unimplemented";
-    case LuaToken::Type::WHILE:
-    {
-        begin++; //while
+        return "unimplemented1";
+    case LuaToken::Type::WHILE: {
+        begin++; // while
         LuaLoopStmt while_stmt = make_shared<_LuaLoopStmt>();
         while_stmt->head_controlled = true;
 
@@ -177,9 +176,8 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
         copy(stat_begin, begin, back_inserter(while_stmt->tokens));
         return move(while_stmt);
     }
-    case LuaToken::Type::REPEAT:
-    {
-        begin++; //repeat
+    case LuaToken::Type::REPEAT: {
+        begin++; // repeat
         LuaLoopStmt repeat_stmt = make_shared<_LuaLoopStmt>();
         repeat_stmt->head_controlled = false;
 
@@ -202,8 +200,7 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
         copy(stat_begin, begin, back_inserter(repeat_stmt->tokens));
         return move(repeat_stmt);
     }
-    case LuaToken::Type::IF:
-    {
+    case LuaToken::Type::IF: {
         begin++;
 
         LuaIfStmt if_stmt = make_shared<_LuaIfStmt>();
@@ -264,15 +261,14 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
         copy(stat_begin, begin, back_inserter(if_stmt->tokens));
         return move(if_stmt);
     }
-    case LuaToken::Type::FOR:
-    {
+    case LuaToken::Type::FOR: {
         begin++;
 
-        if (begin->type == LuaToken::Type::NAME && (begin+1)->type == LuaToken::Type::ASSIGN) {
+        if (begin->type == LuaToken::Type::NAME && (begin + 1)->type == LuaToken::Type::ASSIGN) {
             LuaForStmt for_stmt = make_shared<_LuaForStmt>();
 
             for_stmt->var = make_shared<_LuaName>(*begin++); // name
-            begin++; // =
+            begin++;                                         // =
 
             auto ast = parse_exp(begin, end);
             if (holds_alternative<string>(ast)) {
@@ -322,11 +318,10 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
             copy(stat_begin, begin, back_inserter(for_stmt->tokens));
             return move(for_stmt);
         } else {
-            return "unimplemented";
+            return "unimplemented2";
         }
     }
-    case LuaToken::Type::FUNCTION:
-    {
+    case LuaToken::Type::FUNCTION: {
         begin++;
 
         LuaAssignment assign = make_shared<_LuaAssignment>();
@@ -348,8 +343,7 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
         copy(stat_begin, begin, back_inserter(assign->tokens));
         return move(assign);
     }
-    case LuaToken::Type::LOCAL:
-    {
+    case LuaToken::Type::LOCAL: {
         begin++;
 
         LuaAssignment assign = make_shared<_LuaAssignment>();
@@ -394,21 +388,28 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
         copy(stat_begin, begin, back_inserter(assign->tokens));
         return move(assign);
     }
+    case LuaToken::Type::COMMENT:
+    case LuaToken::Type::BLOCKCOMMENT: {
+        begin++;
+        LuaComment comment = make_shared<_LuaComment>();
+        return move(comment);
+    }
     default:
+        cout << lua_token_to_string(begin->type) << endl;
         return "stat: wrong alternative " + begin->match;
     }
 }
 
-auto LuaParser::parse_laststat(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaStmt> {
-    //cout << "laststat" << endl;
+auto LuaParser::parse_laststat(token_it_t& begin, token_it_t& end) const
+    -> parse_result_t<LuaStmt> {
+    // cout << "laststat" << endl;
     // laststat ::= return [explist] | break
 
     if (begin == end)
         return "laststat: unexpected end";
 
     switch (begin->type) {
-    case LuaToken::Type::RETURN:
-    {
+    case LuaToken::Type::RETURN: {
         begin++;
 
         token_it_t old_begin = begin;
@@ -428,8 +429,9 @@ auto LuaParser::parse_laststat(token_it_t& begin, token_it_t& end) const -> pars
     }
 }
 
-auto LuaParser::parse_varlist(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaExplist> {
-    //cout << "varlist" << endl;
+auto LuaParser::parse_varlist(token_it_t& begin, token_it_t& end) const
+    -> parse_result_t<LuaExplist> {
+    // cout << "varlist" << endl;
     // varlist ::= var {`,´ var}
 
     LuaExplist varlist = make_shared<_LuaExplist>();
@@ -449,7 +451,8 @@ auto LuaParser::parse_varlist(token_it_t& begin, token_it_t& end) const -> parse
         if (begin == end)
             return move(varlist);
 
-    } while (begin++->type == LuaToken::Type::COMMA && begin != end && begin->type == LuaToken::Type::NAME);
+    } while (begin++->type == LuaToken::Type::COMMA && begin != end &&
+             begin->type == LuaToken::Type::NAME);
 
     begin--;
 
@@ -457,7 +460,7 @@ auto LuaParser::parse_varlist(token_it_t& begin, token_it_t& end) const -> parse
 }
 
 auto LuaParser::parse_var(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaVar> {
-    //cout << "var" << endl;
+    // cout << "var" << endl;
     // var ::=  Name | prefixexp `[´ exp `]´ | prefixexp `.´ Name
 
     if (begin->type == LuaToken::Type::NAME) {
@@ -471,42 +474,43 @@ auto LuaParser::parse_var(token_it_t& begin, token_it_t& end) const -> parse_res
         prefixexp = get<LuaExp>(ast);
     }
 
-//    if (begin->type == LuaToken::Type::LSB) {
-//        LuaIndexVar var = make_shared<_LuaIndexVar>();
-//        var->table = prefixexp;
+    //    if (begin->type == LuaToken::Type::LSB) {
+    //        LuaIndexVar var = make_shared<_LuaIndexVar>();
+    //        var->table = prefixexp;
 
-//        begin++; // [
+    //        begin++; // [
 
-//        if (auto ast = parse_exp(begin, end); holds_alternative<string>(ast)) {
-//            return "var [] -> " + get<string>(ast);
-//        } else {
-//            var->index = get<LuaExp>(ast);
-//        }
+    //        if (auto ast = parse_exp(begin, end); holds_alternative<string>(ast)) {
+    //            return "var [] -> " + get<string>(ast);
+    //        } else {
+    //            var->index = get<LuaExp>(ast);
+    //        }
 
-//        if (begin++->type != LuaToken::Type::RSB) {
-//            return "var: ']' expected";
-//        }
+    //        if (begin++->type != LuaToken::Type::RSB) {
+    //            return "var: ']' expected";
+    //        }
 
-//        return var;
-//    } else if (begin->type == LuaToken::Type::DOT) {
-//        LuaMemberVar var = make_shared<_LuaMemberVar>();
-//        var->table = prefixexp;
-//        begin++; // .
+    //        return var;
+    //    } else if (begin->type == LuaToken::Type::DOT) {
+    //        LuaMemberVar var = make_shared<_LuaMemberVar>();
+    //        var->table = prefixexp;
+    //        begin++; // .
 
-//        if (begin++->type != LuaToken::Type::NAME) {
-//            return "var: Name expected";
-//        } else {
-//            var->member = make_shared<_LuaName>(*(begin-1));
-//        }
+    //        if (begin++->type != LuaToken::Type::NAME) {
+    //            return "var: Name expected";
+    //        } else {
+    //            var->member = make_shared<_LuaName>(*(begin-1));
+    //        }
 
-//        return var;
-//    }
+    //        return var;
+    //    }
 
     return "var: wrong alternative " + begin->match;
 }
 
-auto LuaParser::parse_namelist(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaExplist> {
-    //cout << "namelist" << endl;
+auto LuaParser::parse_namelist(token_it_t& begin, token_it_t& end) const
+    -> parse_result_t<LuaExplist> {
+    // cout << "namelist" << endl;
     // namelist ::= Name {`,´ Name}
 
     LuaExplist namelist = make_shared<_LuaExplist>();
@@ -524,8 +528,9 @@ auto LuaParser::parse_namelist(token_it_t& begin, token_it_t& end) const -> pars
     return namelist;
 }
 
-auto LuaParser::parse_explist(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaExplist> {
-    //cout << "explist" << endl;
+auto LuaParser::parse_explist(token_it_t& begin, token_it_t& end) const
+    -> parse_result_t<LuaExplist> {
+    // cout << "explist" << endl;
     // explist ::= {exp `,´} exp
 
     LuaExplist explist = make_shared<_LuaExplist>();
@@ -547,45 +552,37 @@ auto LuaParser::parse_explist(token_it_t& begin, token_it_t& end) const -> parse
 LuaExp resolve_precedence(vector<LuaExp>& exps, vector<LuaToken>& ops) {
     //                         Operator     precedence   left associative
     const static unordered_map<LuaToken::Type, pair<int, bool>> precedences = {
-        {LuaToken::Type::ADD, {5, true}},
-        {LuaToken::Type::SUB, {5, true}},
-        {LuaToken::Type::MUL, {6, true}},
-        {LuaToken::Type::DIV, {6, true}},
-        {LuaToken::Type::POW, {8, false}},
-        {LuaToken::Type::MOD, {6, true}},
-        {LuaToken::Type::CONCAT, {4, false}},
-        {LuaToken::Type::LT, {3, true}},
-        {LuaToken::Type::LEQ, {3, true}},
-        {LuaToken::Type::GT, {3, true}},
-        {LuaToken::Type::GEQ, {3, true}},
-        {LuaToken::Type::EQ, {3, true}},
-        {LuaToken::Type::NEQ, {3, true}},
-        {LuaToken::Type::AND, {2, true}},
-        {LuaToken::Type::OR, {1, true}},
-        {LuaToken::Type::EVAL, {9, true}}
-    };
+        {LuaToken::Type::ADD, {5, true}},     {LuaToken::Type::SUB, {5, true}},
+        {LuaToken::Type::MUL, {6, true}},     {LuaToken::Type::DIV, {6, true}},
+        {LuaToken::Type::POW, {8, false}},    {LuaToken::Type::MOD, {6, true}},
+        {LuaToken::Type::CONCAT, {4, false}}, {LuaToken::Type::LT, {3, true}},
+        {LuaToken::Type::LEQ, {3, true}},     {LuaToken::Type::GT, {3, true}},
+        {LuaToken::Type::GEQ, {3, true}},     {LuaToken::Type::EQ, {3, true}},
+        {LuaToken::Type::NEQ, {3, true}},     {LuaToken::Type::AND, {2, true}},
+        {LuaToken::Type::OR, {1, true}},      {LuaToken::Type::EVAL, {9, true}}};
 
-    for (int i = 0; i < static_cast<int>(ops.size())-1; ++i) {
-        while (i < static_cast<int>(ops.size())-1 &&
-               precedences.at(ops[i].type).first - precedences.at(ops[i+1].type).first >= (precedences.at(ops[i].type).second ? 0 : 1)) {
+    for (int i = 0; i < static_cast<int>(ops.size()) - 1; ++i) {
+        while (i < static_cast<int>(ops.size()) - 1 &&
+               precedences.at(ops[i].type).first - precedences.at(ops[i + 1].type).first >=
+                   (precedences.at(ops[i].type).second ? 0 : 1)) {
             LuaOp op = make_shared<_LuaOp>();
             op->lhs = exps[i];
-            op->rhs = exps[i+1];
+            op->rhs = exps[i + 1];
             op->op = ops[i];
-            exps[i+1] = op;
+            exps[i + 1] = op;
 
             ops.erase(ops.begin() + i);
             exps.erase(exps.begin() + i);
-            i = max(i-1, 0);
+            i = max(i - 1, 0);
         }
     }
 
-    for (int i = ops.size()-1; i >= 0; --i) {
+    for (int i = ops.size() - 1; i >= 0; --i) {
         LuaOp op = make_shared<_LuaOp>();
         op->lhs = exps[i];
-        op->rhs = exps[i+1];
+        op->rhs = exps[i + 1];
         op->op = ops[i];
-        exps[i+1] = op;
+        exps[i + 1] = op;
 
         ops.erase(ops.begin() + i);
         exps.erase(exps.begin() + i);
@@ -595,7 +592,7 @@ LuaExp resolve_precedence(vector<LuaExp>& exps, vector<LuaToken>& ops) {
 }
 
 auto LuaParser::parse_exp(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaExp> {
-    //cout << "exp" << endl;
+    // cout << "exp" << endl;
     // exp ::=  nil | false | true | Number | String | `...´ | function |
     //          prefixexp | tableconstructor | exp binop exp | unop exp
 
@@ -607,7 +604,7 @@ auto LuaParser::parse_exp(token_it_t& begin, token_it_t& end) const -> parse_res
 
     LuaToken unop_token;
     bool is_unop = false;
-    for(;;) {
+    for (;;) {
         switch (begin->type) {
         case LuaToken::Type::NIL:
         case LuaToken::Type::FALSE:
@@ -618,7 +615,7 @@ auto LuaParser::parse_exp(token_it_t& begin, token_it_t& end) const -> parse_res
             break;
         case LuaToken::Type::ELLIPSE:
             begin++;
-            return "unimplemented";
+            return "unimplemented3";
         case LuaToken::Type::FUNCTION:
             if (auto func = parse_function(begin, end); holds_alternative<LuaFunction>(func)) {
                 exps.push_back(get<LuaFunction>(func));
@@ -627,7 +624,8 @@ auto LuaParser::parse_exp(token_it_t& begin, token_it_t& end) const -> parse_res
                 return "exp -> " + get<string>(func);
             }
         case LuaToken::Type::LCB: // tableconstructor
-            if (auto table = parse_tableconstructor(begin, end); holds_alternative<LuaTableconstructor>(table)) {
+            if (auto table = parse_tableconstructor(begin, end);
+                holds_alternative<LuaTableconstructor>(table)) {
                 exps.push_back(get<LuaTableconstructor>(table));
                 break;
             } else {
@@ -669,22 +667,14 @@ auto LuaParser::parse_exp(token_it_t& begin, token_it_t& end) const -> parse_res
             exps.back() = unop;
         }
 
-        if (begin->type == LuaToken::Type::ADD ||
-            begin->type == LuaToken::Type::SUB ||
-            begin->type == LuaToken::Type::MUL ||
-            begin->type == LuaToken::Type::DIV ||
-            begin->type == LuaToken::Type::POW ||
-            begin->type == LuaToken::Type::MOD ||
-            begin->type == LuaToken::Type::CONCAT ||
-            begin->type == LuaToken::Type::EVAL ||
-            begin->type == LuaToken::Type::LT ||
-            begin->type == LuaToken::Type::LEQ ||
-            begin->type == LuaToken::Type::GT ||
-            begin->type == LuaToken::Type::GEQ ||
-            begin->type == LuaToken::Type::EQ ||
-            begin->type == LuaToken::Type::NEQ ||
-            begin->type == LuaToken::Type::AND ||
-            begin->type == LuaToken::Type::OR) {
+        if (begin->type == LuaToken::Type::ADD || begin->type == LuaToken::Type::SUB ||
+            begin->type == LuaToken::Type::MUL || begin->type == LuaToken::Type::DIV ||
+            begin->type == LuaToken::Type::POW || begin->type == LuaToken::Type::MOD ||
+            begin->type == LuaToken::Type::CONCAT || begin->type == LuaToken::Type::EVAL ||
+            begin->type == LuaToken::Type::LT || begin->type == LuaToken::Type::LEQ ||
+            begin->type == LuaToken::Type::GT || begin->type == LuaToken::Type::GEQ ||
+            begin->type == LuaToken::Type::EQ || begin->type == LuaToken::Type::NEQ ||
+            begin->type == LuaToken::Type::AND || begin->type == LuaToken::Type::OR) {
 
             ops.push_back(*begin++);
         } else {
@@ -695,8 +685,9 @@ auto LuaParser::parse_exp(token_it_t& begin, token_it_t& end) const -> parse_res
     return resolve_precedence(exps, ops);
 }
 
-auto LuaParser::parse_prefixexp(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaExp> {
-    //cout << "prefixexp " << *begin << endl;
+auto LuaParser::parse_prefixexp(token_it_t& begin, token_it_t& end) const
+    -> parse_result_t<LuaExp> {
+    // cout << "prefixexp " << *begin << endl;
     // prefixexp ::= var | functioncall | `(´ exp `)´
 
     LuaExp result;
@@ -725,13 +716,13 @@ auto LuaParser::parse_prefixexp(token_it_t& begin, token_it_t& end) const -> par
         result = get<LuaExp>(ast);
     }
 
-    while (begin != end && (
-           begin->type == LuaToken::Type::LRB || begin->type == LuaToken::Type::COLON ||
-           begin->type == LuaToken::Type::LCB || begin->type == LuaToken::Type::STRINGLIT ||
-           begin->type == LuaToken::Type::LSB || begin->type == LuaToken::Type::DOT)) {
+    while (begin != end &&
+           (begin->type == LuaToken::Type::LRB || begin->type == LuaToken::Type::COLON ||
+            begin->type == LuaToken::Type::LCB || begin->type == LuaToken::Type::STRINGLIT ||
+            begin->type == LuaToken::Type::LSB || begin->type == LuaToken::Type::DOT)) {
 
         if (begin->type == LuaToken::Type::LSB) {
-            //cout << "idx" << endl;
+            // cout << "idx" << endl;
             LuaIndexVar var = make_shared<_LuaIndexVar>();
             var->table = result;
 
@@ -756,12 +747,13 @@ auto LuaParser::parse_prefixexp(token_it_t& begin, token_it_t& end) const -> par
             if (begin++->type != LuaToken::Type::NAME) {
                 return "var: Name expected";
             } else {
-                var->member = make_shared<_LuaName>(*(begin-1));
+                var->member = make_shared<_LuaName>(*(begin - 1));
             }
 
             result = var;
         } else {
-            if (auto call = parse_functioncall(begin, end, result); holds_alternative<string>(call)) {
+            if (auto call = parse_functioncall(begin, end, result);
+                holds_alternative<string>(call)) {
                 return "prefixexp -> " + get<string>(call);
             } else {
                 result = get<LuaFunctioncall>(call);
@@ -772,8 +764,9 @@ auto LuaParser::parse_prefixexp(token_it_t& begin, token_it_t& end) const -> par
     return move(result);
 }
 
-auto LuaParser::parse_functioncall(token_it_t& begin, token_it_t& end, const LuaExp& prefixexp) const -> parse_result_t<LuaFunctioncall> {
-    //cout << "functioncall" << endl;
+auto LuaParser::parse_functioncall(token_it_t& begin, token_it_t& end, const LuaExp& prefixexp)
+    const -> parse_result_t<LuaFunctioncall> {
+    // cout << "functioncall" << endl;
     // functioncall ::=  prefixexp args | prefixexp `:´ Name args
     LuaFunctioncall call = make_shared<_LuaFunctioncall>();
 
@@ -784,7 +777,7 @@ auto LuaParser::parse_functioncall(token_it_t& begin, token_it_t& end, const Lua
         begin++; // :
 
         if (begin++->type == LuaToken::Type::NAME) {
-            name = make_shared<_LuaName>(*(begin-1));
+            name = make_shared<_LuaName>(*(begin - 1));
         } else {
             return "functioncall: Name expected";
         }
@@ -804,7 +797,7 @@ auto LuaParser::parse_functioncall(token_it_t& begin, token_it_t& end, const Lua
 }
 
 auto LuaParser::parse_args(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaExplist> {
-    //cout << "args" << endl;
+    // cout << "args" << endl;
     // args ::=  `(´ [explist] `)´ | tableconstructor | String
 
     if (begin == end)
@@ -830,8 +823,7 @@ auto LuaParser::parse_args(token_it_t& begin, token_it_t& end) const -> parse_re
         }
 
         return args;
-    case LuaToken::Type::LCB:
-    {
+    case LuaToken::Type::LCB: {
         auto ast = parse_tableconstructor(begin, end);
         if (holds_alternative<string>(ast)) {
             return "args -> " + get<string>(ast);
@@ -849,8 +841,9 @@ auto LuaParser::parse_args(token_it_t& begin, token_it_t& end) const -> parse_re
     }
 }
 
-auto LuaParser::parse_function(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaFunction> {
-    //cout << "function" << endl;
+auto LuaParser::parse_function(token_it_t& begin, token_it_t& end) const
+    -> parse_result_t<LuaFunction> {
+    // cout << "function" << endl;
     // function ::= function funcbody
 
     if (begin == end)
@@ -863,8 +856,9 @@ auto LuaParser::parse_function(token_it_t& begin, token_it_t& end) const -> pars
     return parse_funcbody(begin, end);
 }
 
-auto LuaParser::parse_funcbody(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaFunction> {
-    //cout << "funcbody" << endl;
+auto LuaParser::parse_funcbody(token_it_t& begin, token_it_t& end) const
+    -> parse_result_t<LuaFunction> {
+    // cout << "funcbody" << endl;
     // funcbody ::= `(´ [parlist] `)´ block end
 
     if (begin == end)
@@ -903,8 +897,9 @@ auto LuaParser::parse_funcbody(token_it_t& begin, token_it_t& end) const -> pars
     return func;
 }
 
-auto LuaParser::parse_parlist(token_it_t &begin, token_it_t &end) const -> parse_result_t<LuaExplist> {
-    //cout << "parlist" << endl;
+auto LuaParser::parse_parlist(token_it_t& begin, token_it_t& end) const
+    -> parse_result_t<LuaExplist> {
+    // cout << "parlist" << endl;
     // parlist ::= namelist [`,´ `...´] | `...´
 
     if (begin == end)
@@ -935,8 +930,9 @@ auto LuaParser::parse_parlist(token_it_t &begin, token_it_t &end) const -> parse
     return parlist;
 }
 
-auto LuaParser::parse_tableconstructor(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaTableconstructor> {
-    //cout << "tableconstructor" << endl;
+auto LuaParser::parse_tableconstructor(token_it_t& begin, token_it_t& end) const
+    -> parse_result_t<LuaTableconstructor> {
+    // cout << "tableconstructor" << endl;
     // tableconstructor ::= `{´ [fieldlist] `}´
     // fieldlist ::= field {fieldsep field} [fieldsep]
 
@@ -948,7 +944,7 @@ auto LuaParser::parse_tableconstructor(token_it_t& begin, token_it_t& end) const
     }
 
     LuaTableconstructor result = make_shared<_LuaTableconstructor>();
-    auto tableconst_begin = begin-1;
+    auto tableconst_begin = begin - 1;
 
     if (begin->type != LuaToken::Type::RCB) {
         if (auto field = parse_field(begin, end); holds_alternative<LuaField>(field)) {
@@ -984,7 +980,7 @@ auto LuaParser::parse_tableconstructor(token_it_t& begin, token_it_t& end) const
 }
 
 auto LuaParser::parse_field(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaField> {
-    //cout << "field" << endl;
+    // cout << "field" << endl;
     // field ::= `[´ exp `]´ `=´ exp | Name `=´ exp | exp
 
     if (begin == end)
@@ -1010,7 +1006,7 @@ auto LuaParser::parse_field(token_it_t& begin, token_it_t& end) const -> parse_r
         }
 
     } else if (begin->type == LuaToken::Type::NAME) {
-        if (begin+1 != end && (begin+1)->type == LuaToken::Type::ASSIGN) {
+        if (begin + 1 != end && (begin + 1)->type == LuaToken::Type::ASSIGN) {
             field->lhs = make_shared<_LuaName>(*begin);
             begin++; // name
             begin++; // =
@@ -1027,7 +1023,7 @@ auto LuaParser::parse_field(token_it_t& begin, token_it_t& end) const -> parse_r
 }
 
 auto LuaParser::parse_funcname(token_it_t& begin, token_it_t& end) const -> parse_result_t<LuaVar> {
-    //cout << "funcname" << endl;
+    // cout << "funcname" << endl;
     // var ::=  funcname ::= Name {`.´ Name} [`:´ Name]
 
     if (begin->type == LuaToken::Type::NAME) {
@@ -1045,4 +1041,121 @@ string get_string(const LuaParser::token_list_t& tokens) {
     }
 
     return ss.str();
+}
+
+auto LuaParser::lua_token_to_string(LuaToken::Type type) const -> std::string {
+    switch (type) {
+    case LuaToken::Type::NONE:
+        return "NONE";
+    case LuaToken::Type::ADD:
+        return "ADD";
+    case LuaToken::Type::SUB:
+        return "SUB";
+    case LuaToken::Type::MUL:
+        return "MUL";
+    case LuaToken::Type::DIV:
+        return "DIV";
+    case LuaToken::Type::MOD:
+        return "MOD";
+    case LuaToken::Type::POW:
+        return "POW";
+    case LuaToken::Type::LEN:
+        return "LEN";
+    case LuaToken::Type::STRIP:
+        return "STRIP";
+    case LuaToken::Type::EVAL:
+        return "EVAL";
+    case LuaToken::Type::EQ:
+        return "EQ";
+    case LuaToken::Type::NEQ:
+        return "NEQ";
+    case LuaToken::Type::LEQ:
+        return "LEQ";
+    case LuaToken::Type::GEQ:
+        return "GEQ";
+    case LuaToken::Type::LT:
+        return "LT";
+    case LuaToken::Type::GT:
+        return "GT";
+    case LuaToken::Type::ASSIGN:
+        return "ASSIGN";
+    case LuaToken::Type::LCB:
+        return "LCB";
+    case LuaToken::Type::RCB:
+        return "RCB";
+    case LuaToken::Type::LRB:
+        return "LRB";
+    case LuaToken::Type::RRB:
+        return "RRB";
+    case LuaToken::Type::LSB:
+        return "LSB";
+    case LuaToken::Type::RSB:
+        return "RSB";
+    case LuaToken::Type::SEM:
+        return "SEM";
+    case LuaToken::Type::COLON:
+        return "COLON";
+    case LuaToken::Type::COMMA:
+        return "COMMA";
+    case LuaToken::Type::DOT:
+        return "DOT";
+    case LuaToken::Type::CONCAT:
+        return "CONCAT";
+    case LuaToken::Type::ELLIPSE:
+        return "ELLIPSE";
+    case LuaToken::Type::AND:
+        return "AND";
+    case LuaToken::Type::BREAK:
+        return "BREAK";
+    case LuaToken::Type::DO:
+        return "DO";
+    case LuaToken::Type::ELSE:
+        return "ELSE";
+    case LuaToken::Type::ELSEIF:
+        return "ELSEIF";
+    case LuaToken::Type::END:
+        return "END";
+    case LuaToken::Type::FALSE:
+        return "FALSE";
+    case LuaToken::Type::FOR:
+        return "FOR";
+    case LuaToken::Type::FUNCTION:
+        return "FUNCTION";
+    case LuaToken::Type::IF:
+        return "IF";
+    case LuaToken::Type::IN:
+        return "IN";
+    case LuaToken::Type::LOCAL:
+        return "LOCAL";
+    case LuaToken::Type::NIL:
+        return "NIL";
+    case LuaToken::Type::NOT:
+        return "NOT";
+    case LuaToken::Type::OR:
+        return "OR";
+    case LuaToken::Type::REPEAT:
+        return "REPEAT";
+    case LuaToken::Type::RETURN:
+        return "RETURN";
+    case LuaToken::Type::THEN:
+        return "THEN";
+    case LuaToken::Type::TRUE:
+        return "TRUE";
+    case LuaToken::Type::UNTIL:
+        return "UNTIL";
+    case LuaToken::Type::WHILE:
+        return "WHILE";
+    case LuaToken::Type::NAME:
+        return "NAME";
+    case LuaToken::Type::STRINGLIT:
+        return "STRINGLIT";
+    case LuaToken::Type::NUMLIT:
+        return "NUMLIT";
+    case LuaToken::Type::COMMENT:
+        return "COMMENT";
+    case LuaToken::Type::BLOCKCOMMENT:
+        return "BLOCKCOMMENT";
+    default:
+        return "invalid luaToken-type";
+    }
 }

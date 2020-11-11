@@ -8,16 +8,6 @@
 
 namespace minilua {
 
-struct SuggestedSourceChange {
-    // can be filled in by the function creating the suggestion
-    std::optional<std::string> origin;
-    // hint for the source locations that would be modified
-    // TODO maybe should be part of the SourceChange
-    std::string hint;
-    // TODO maybe this needs to be a vector
-    SourceChange change;
-};
-
 struct ParseResult {
     std::vector<std::string> errors;
 
@@ -26,7 +16,7 @@ struct ParseResult {
 
 struct EvalResult {
     Value value;
-    std::vector<SuggestedSourceChange> source_change_suggestions;
+    std::vector<SourceChange> source_changes;
 };
 
 class Interpreter {
@@ -59,13 +49,12 @@ public:
     auto parse(std::string source_code) -> ParseResult;
 
     /**
-     * Applies source changes.
+     * Applies a source change.
      *
-     * These can be created inside or outside the interpreter but they should
-     * all be applied at once because they will move parts of the source code
-     * around.
+     * A source change can be a bigger tree of and-ed and or-ed changes. For
+     * or-ed changes only the first branch of the tree will be applied.
      */
-    void apply_source_changes(std::vector<SourceChange>);
+    void apply_source_change(SourceChange);
 
     /**
      * Run the parsed program.
@@ -74,6 +63,17 @@ public:
      * - not sure how you would provide them to lua
      */
     auto evaluate() -> EvalResult;
+
+    /**
+     * Forces the 'target' value to become 'new_value' which will trigger
+     * create source change that is returned by 'Interpreter::evaluate'.
+     *
+     * The return value should be returned in NativeFunctions otherwise this
+     * does not have an effect.
+     *
+     * This throws an exception if the types of the values didn't match.
+     */
+    auto force_value(Value target, Value new_value) -> SourceChange;
 };
 
 }; // namespace minilua

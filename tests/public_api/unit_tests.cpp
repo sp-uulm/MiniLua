@@ -1,15 +1,9 @@
-#include "MiniLua/environment.hpp"
 #include <MiniLua/MiniLua.hpp>
-#include <algorithm>
 #include <catch2/catch.hpp>
-#include <functional>
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
-#include <type_traits>
-#include <variant>
 
-TEST_CASE("owning_ptr") {
+#include <sstream>
+
+TEST_CASE("minilua::owning_ptr") {
     SECTION("creating a new object") {
         minilua::owning_ptr<std::string> x = minilua::make_owning<std::string>("hi"); // NOLINT
         REQUIRE(*x.get() == "hi");
@@ -54,21 +48,7 @@ TEST_CASE("owning_ptr") {
     }
 }
 
-auto debug_values(const minilua::CallContext& ctx) -> minilua::CallResult {
-    std::vector<minilua::Value> values;
-    values.reserve(ctx.arguments().size());
-
-    std::transform(
-        ctx.arguments().begin(), ctx.arguments().end(), values.begin(),
-        [](const minilua::Value& value) {
-            std::stringstream ss;
-            ss << value;
-            return ss.str();
-        });
-
-    return values;
-}
-
+// functions for use in testing NativeFunction
 auto fn(minilua::CallContext /*unused*/) -> minilua::CallResult { // NOLINT
     return minilua::CallResult();
 }
@@ -98,7 +78,7 @@ auto fn_ref_string(const minilua::CallContext & /*unused*/) -> std::string { ret
 void fn_void(minilua::CallContext /*unused*/) {} // NOLINT
 void fn_ref_void(const minilua::CallContext& /*unused*/) {}
 
-TEST_CASE("Lua Values") {
+TEST_CASE("minilua::Value") {
     SECTION("nil") {
         static_assert(std::is_nothrow_move_constructible<minilua::Nil>());
         static_assert(std::is_nothrow_move_assignable<minilua::Nil>());
@@ -336,9 +316,152 @@ TEST_CASE("Lua Values") {
             CHECK(std::holds_alternative<minilua::NativeFunction>(value2.get()));
         }
     }
+
+    SECTION("addition") {
+        SECTION("can add two numbers") {
+            minilua::Value value1{4};
+            minilua::Value value2{3};
+            REQUIRE(value1 + value2 == minilua::Value(7));
+        }
+        SECTION("can't add two non numbers") {
+            minilua::Value value1{"hi"};
+            minilua::Value value2{minilua::Nil()};
+            REQUIRE_THROWS(value1 + value2);
+        }
+        // TODO metatables
+    }
+    SECTION("subtraction") {
+        SECTION("can sub two numbers") {
+            minilua::Value value1{4};
+            minilua::Value value2{3};
+            REQUIRE(value1 - value2 == minilua::Value(1));
+        }
+        SECTION("can't sub two non numbers") {
+            minilua::Value value1{"hi"};
+            minilua::Value value2{minilua::Nil()};
+            REQUIRE_THROWS(value1 - value2);
+        }
+        // TODO metatables
+    }
+    SECTION("multiplication") {
+        SECTION("can multiply two numbers") {
+            minilua::Value value1{4};
+            minilua::Value value2{3};
+            REQUIRE(value1 * value2 == minilua::Value(12));
+        }
+        SECTION("can't multiply two non numbers") {
+            minilua::Value value1{"hi"};
+            minilua::Value value2{minilua::Nil()};
+            REQUIRE_THROWS(value1 * value2);
+        }
+        // TODO metatables
+    }
+    SECTION("division") {
+        SECTION("can divide two numbers") {
+            minilua::Value value1{13};
+            minilua::Value value2{4};
+            REQUIRE(value1 / value2 == minilua::Value(3.25));
+        }
+        SECTION("can't divide two non numbers") {
+            minilua::Value value1{"hi"};
+            minilua::Value value2{minilua::Nil()};
+            REQUIRE_THROWS(value1 / value2);
+        }
+        // TODO metatables
+    }
+    SECTION("power") {
+        SECTION("can take power of two numbers") {
+            minilua::Value value1{4};
+            minilua::Value value2{3};
+            REQUIRE((value1 ^ value2) == minilua::Value(64));
+        }
+        SECTION("can't take power of two non numbers") {
+            minilua::Value value1{"hi"};
+            minilua::Value value2{minilua::Nil()};
+            REQUIRE_THROWS(value1 ^ value2);
+        }
+        // TODO metatables
+    }
+    SECTION("modulo") {
+        SECTION("can take modulo of two numbers") {
+            minilua::Value value1{5.4};
+            minilua::Value value2{2.1};
+            REQUIRE(std::fmod(5.4, 2.1) == Approx(1.2));
+            REQUIRE(std::get<minilua::Number>((value1 % value2).get()).value == Approx(1.2));
+        }
+        SECTION("can't take modulo of two non numbers") {
+            minilua::Value value1{"hi"};
+            minilua::Value value2{minilua::Nil()};
+            REQUIRE_THROWS(value1 % value2);
+        }
+        // TODO metatables
+    }
+    SECTION("bitwise and") {
+        SECTION("can bitwise and two integers") {
+            minilua::Value value1{0b11001};
+            minilua::Value value2{0b01100};
+            REQUIRE((value1 & value2) == minilua::Value(0b01000));
+        }
+        SECTION("can't bitwise and two floats") {
+            minilua::Value value1{5.2};
+            minilua::Value value2{3.1};
+            REQUIRE_THROWS(value1 & value2);
+        }
+        SECTION("can't bitwise and two non numbers") {
+            minilua::Value value1{"hi"};
+            minilua::Value value2{minilua::Nil()};
+            REQUIRE_THROWS(value1 & value2);
+        }
+        // TODO metatables?
+    }
+    SECTION("bitwise or") {
+        SECTION("can bitwise or two integers") {
+            minilua::Value value1{0b11001};
+            minilua::Value value2{0b01100};
+            REQUIRE((value1 | value2) == minilua::Value(0b11101));
+        }
+        SECTION("can't bitwise or two floats") {
+            minilua::Value value1{5.2};
+            minilua::Value value2{3.1};
+            REQUIRE_THROWS(value1 | value2);
+        }
+        SECTION("can't bitwise or two non numbers") {
+            minilua::Value value1{"hi"};
+            minilua::Value value2{minilua::Nil()};
+            REQUIRE_THROWS(value1 | value2);
+        }
+        // TODO metatables?
+    }
+    SECTION("as bool") {
+        SECTION("false and nil are falsey") {
+            REQUIRE(bool(minilua::Value(false)) == false);
+            REQUIRE(bool(minilua::Value(minilua::Nil())) == false);
+        }
+        SECTION("everything else is truthy") {
+            REQUIRE(bool(minilua::Value(0)) == true);
+            REQUIRE(bool(minilua::Value(4)) == true);
+            REQUIRE(bool(minilua::Value(20.5)) == true);
+            REQUIRE(bool(minilua::Value("hi")) == true);
+            REQUIRE(bool(minilua::Value(minilua::Table())) == true);
+        }
+    }
+    SECTION("logic and") {
+        REQUIRE(
+            (minilua::Value(minilua::Nil()) && minilua::Value(5)) ==
+            minilua::Value(minilua::Nil()));
+        REQUIRE((minilua::Value(false) && minilua::Value(5)) == minilua::Value(false));
+        REQUIRE((minilua::Value(3) && minilua::Value(5)) == minilua::Value(5));
+        REQUIRE((minilua::Value(3) && minilua::Value(false)) == minilua::Value(false));
+    }
+    SECTION("logic or") {
+        REQUIRE((minilua::Value(minilua::Nil()) || minilua::Value(5)) == minilua::Value(5));
+        REQUIRE((minilua::Value(false) || minilua::Value(5)) == minilua::Value(5));
+        REQUIRE((minilua::Value(3) || minilua::Value(5)) == minilua::Value(3));
+        REQUIRE((minilua::Value(3) || minilua::Value(false)) == minilua::Value(3));
+    }
 }
 
-TEST_CASE("new Environment") {
+TEST_CASE("minilua::Environment") {
     SECTION("from unordered_map") {
         std::unordered_map<std::string, int> map;
         map.insert_or_assign("hi", 25); // NOLINT
@@ -443,7 +566,7 @@ TEST_CASE("new Environment") {
     }
 }
 
-TEST_CASE("new Location") {
+TEST_CASE("minilua::Location") {
     minilua::Location loc1{
         .line = 5, // NOLINT
         .column = 0,
@@ -452,16 +575,16 @@ TEST_CASE("new Location") {
     CHECK(loc1 == minilua::Location{.line = 5, .column = 0, .byte = 25});
 }
 
-TEST_CASE("new Range") {
+TEST_CASE("minilua::Range") {
     minilua::Location loc1{
         .line = 5, // NOLINT
         .column = 0,
         .byte = 25 // NOLINT
     };
     minilua::Location loc2{
-        .line = 5, // NOLINT
-        .column = 7,
-        .byte = 32 // NOLINT
+        .line = 5,   // NOLINT
+        .column = 7, // NOLINT
+        .byte = 32   // NOLINT
     };
     minilua::Range range{
         .start = loc1,
@@ -482,88 +605,28 @@ TEST_CASE("new Range") {
                      }});
 }
 
-TEST_CASE("Interpreter") {
-    minilua::Interpreter interpreter;
+TEST_CASE("minilua::SourceChange") {
+    auto change = minilua::SCSingle(minilua::Range{{0, 0, 0}, {0, 5, 5}}, "replacement"); // NOLINT
+    change.hint = "hint";
+    change.origin = "origin";
+    INFO(change);
+    REQUIRE(change == change);
+    minilua::SourceChange source_change{change};
 
-    // populate the environment
-    interpreter.environment().add_default_stdlib();
+    INFO(source_change);
+    REQUIRE(source_change.origin() == "origin");
+    REQUIRE(source_change.hint() == "hint");
+    REQUIRE(source_change == source_change);
 
-    auto lambda = [](minilua::CallContext /*unused*/) { // NOLINT
-        return std::string{"force something"};
-    };
+    auto change2 = minilua::SCSingle(minilua::Range{{0, 0, 0}, {0, 5, 5}}, "replacement"); // NOLINT
+    change2.hint = "hint";
+    change2.origin = "origin";
+    INFO(change2);
+    minilua::SourceChange source_change2{change2};
+    REQUIRE(source_change == source_change2);
 
-    minilua::NativeFunction as_native_function = lambda;
-
-    // add a single variable to the environment
-    interpreter.environment().add("func1", lambda);
-    interpreter.environment().add("num1", 5); // NOLINT
-
-    // add multiple variables to the environment
-    interpreter.environment().add_all(
-        {{"num2", 128},  // NOLINT
-         {"num3", 1.31}, // NOLINT
-         {"func2", debug_values},
-         {"func3", [](const minilua::CallContext& /*unused*/) { std::cout << "func3 -> void\n"; }},
-         {"func4",
-          [](minilua::CallContext /*unused*/) -> minilua::Vallist { // NOLINT
-              return {1, std::string{"hi"}};
-          }},
-         {"tabl", minilua::Table({
-                      {std::string("key1"), 25.0}, // NOLINT
-                      {std::string("key2"), std::string("value")},
-                  })}});
-
-    std::cout << interpreter.environment() << "\n";
-
-    // parse and run a program
-    interpreter.parse("print(120)");
-    minilua::EvalResult result = interpreter.evaluate();
-
-    // chose source changes to apply
-    // TODO do we need a vector here or is is ok to assume that one run of the
-    //      program only causes one source change?
-    const auto* previous_hint = "x_coord";
-
-    for (auto& suggestion : result.source_change_suggestions) {
-        if (suggestion.origin == "gui_drag_line") {
-            if (suggestion.hint == previous_hint) {
-                interpreter.apply_source_changes(std::vector{suggestion.change});
-                break;
-            }
-        }
-    }
-}
-
-TEST_CASE("table") {
-    minilua::Table table;
-
-    table.set(5, "value1"); // NOLINT
-    CHECK(table.get(5) == "value1");
-
-    minilua::Value val1 = table.get(5); // NOLINT
-
-    table.set(5, "value2"); // NOLINT
-    table.set("hi", "value1");
-
-    CHECK(table.get(5) == "value2");
-    CHECK(table.get("hi") == "value1");
-    CHECK(val1 == "value1");
-
-    table.set("table", minilua::Table());
-    CAPTURE(table);
-
-    auto table2 = std::get<minilua::Table>(table.get("table").get());
-    table2.set("x", 22); // NOLINT
-
-    CAPTURE(table);
-
-    minilua::Table table3;
-    table3.set("y", 23); // NOLINT
-
-    CHECK(table.get("table") == table2);
-
-    table.set("table", table3);
-
-    CAPTURE(table);
-    // FAIL();
+    auto combined_change = minilua::SCAnd({source_change, source_change2});
+    INFO(combined_change);
+    minilua::SourceChange source_change3{combined_change};
+    INFO(source_change3);
 }

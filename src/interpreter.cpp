@@ -5,9 +5,7 @@
 
 namespace minilua {
 
-ParseResult::operator bool() const {
-    return !this->errors.empty();
-}
+ParseResult::operator bool() const { return !this->errors.empty(); }
 
 class Parser {
     std::string _source;
@@ -15,9 +13,7 @@ class Parser {
 public:
     Parser(std::string source) : _source(std::move(source)) {}
 
-    [[nodiscard]] auto source() const -> const std::string& {
-        return _source;
-    }
+    [[nodiscard]] auto source() const -> const std::string& { return _source; }
 };
 
 class Tree {};
@@ -38,24 +34,24 @@ Interpreter::Interpreter(std::string initial_source_code)
 }
 Interpreter::~Interpreter() = default;
 
-auto Interpreter::environment() const -> Environment& {
-    return impl->env;
-}
-auto Interpreter::source_code() const -> std::string_view {
-    return impl->parser.source();
-}
+auto Interpreter::environment() const -> Environment& { return impl->env; }
+auto Interpreter::source_code() const -> std::string_view { return impl->parser.source(); }
 auto Interpreter::parse(std::string source_code) -> ParseResult {
     std::cout << "parse\n";
     return ParseResult();
 }
-void Interpreter::apply_source_changes(std::vector<SourceChange> changes) {
+void Interpreter::apply_source_change(SourceChange change) {
     // TODO
-    std::cout << "apply_source_changes\n";
+    std::cout << "apply_source_change\n";
 }
 auto Interpreter::evaluate() -> EvalResult {
     std::cout << "run\n";
     // TODO
     return EvalResult();
+}
+auto Interpreter::force_value(Value target, Value new_value) -> SourceChange {
+    // TODO
+    return {};
 }
 
 } // namespace minilua
