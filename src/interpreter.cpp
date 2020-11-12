@@ -7,6 +7,8 @@ namespace minilua {
 
 ParseResult::operator bool() const { return !this->errors.empty(); }
 
+// TODO incomplete
+// can maybe also be included in the Interpreter::Impl
 class Parser {
     std::string _source;
 
@@ -16,6 +18,7 @@ public:
     [[nodiscard]] auto source() const -> const std::string& { return _source; }
 };
 
+// TODO replace by tree-sitter tree OR our ast
 class Tree {};
 
 struct Interpreter::Impl {
@@ -37,21 +40,18 @@ Interpreter::~Interpreter() = default;
 auto Interpreter::environment() const -> Environment& { return impl->env; }
 auto Interpreter::source_code() const -> std::string_view { return impl->parser.source(); }
 auto Interpreter::parse(std::string source_code) -> ParseResult {
+    // TODO parse
     std::cout << "parse\n";
     return ParseResult();
 }
 void Interpreter::apply_source_change(SourceChange change) {
-    // TODO
+    // TODO apply source change
     std::cout << "apply_source_change\n";
 }
 auto Interpreter::evaluate() -> EvalResult {
+    // TODO evaluate
     std::cout << "run\n";
-    // TODO
     return EvalResult();
-}
-auto Interpreter::force_value(Value target, Value new_value) -> SourceChange {
-    // TODO
-    return {};
 }
 
 } // namespace minilua

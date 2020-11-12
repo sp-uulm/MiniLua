@@ -195,17 +195,6 @@ public:
      */
     [[nodiscard]] auto arguments() const -> const Vallist&;
 
-    /**
-     * Forces the 'target' value to become 'new_value' which will trigger
-     * create source change that is returned by 'Interpreter::evaluate'.
-     *
-     * The return value should be returned in NativeFunctions otherwise this
-     * does not have an effect.
-     *
-     * This throws an exception if the types of the values didn't match.
-     */
-    auto force_value(Value target, Value new_value) -> SourceChange;
-
     friend auto operator<<(std::ostream&, const CallContext&) -> std::ostream&;
 };
 
@@ -346,6 +335,18 @@ public:
 
     auto get() -> Type&;
     [[nodiscard]] auto get() const -> const Type&;
+
+    /**
+     * Forces this value to become 'new_value'. Does not actually change the
+     * value. This will only return a SourceChange that (when applied) would
+     * result in the this value being changed.
+     *
+     * The return value should be returned in NativeFunctions otherwise this
+     * does not have an effect.
+     *
+     * This throws an exception if the types of the values didn't match.
+     */
+    auto force(Value new_value, std::string origin = "") -> SourceChange;
 
     auto operator[](const Value&) -> Value&;
     auto operator[](const Value&) const -> const Value&;

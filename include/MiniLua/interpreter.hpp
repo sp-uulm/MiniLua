@@ -63,17 +63,6 @@ public:
      * - not sure how you would provide them to lua
      */
     auto evaluate() -> EvalResult;
-
-    /**
-     * Forces the 'target' value to become 'new_value' which will trigger
-     * create source change that is returned by 'Interpreter::evaluate'.
-     *
-     * The return value should be returned in NativeFunctions otherwise this
-     * does not have an effect.
-     *
-     * This throws an exception if the types of the values didn't match.
-     */
-    auto force_value(Value target, Value new_value) -> SourceChange;
 };
 
 }; // namespace minilua

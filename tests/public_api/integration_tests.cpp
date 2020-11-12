@@ -59,8 +59,7 @@ TEST_CASE("Interpreter integration test") {
               // auto [arg1, arg2] = ctx.arguments();
               auto arg1 = ctx.arguments().get(0);
               auto arg2 = ctx.arguments().get(1);
-              auto change = ctx.force_value(arg1, arg2);
-              change.set_origin("forceValue");
+              auto change = arg1.force(arg2, "forceValue");
               return change;
           }}});
 

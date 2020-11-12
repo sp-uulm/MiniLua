@@ -122,11 +122,6 @@ auto CallContext::call_location() const -> Range { return impl->location; }
 auto CallContext::environment() const -> Environment& { return *impl->env; }
 auto CallContext::get(const std::string& name) const -> Value& { return impl->env->get(name); }
 auto CallContext::arguments() const -> const Vallist& { return impl->args; }
-auto CallContext::force_value(Value target, Value new_value) -> SourceChange {
-    // TODO
-    // needs some place to store source changes
-    return {};
-}
 
 auto operator<<(std::ostream& os, const CallContext& self) -> std::ostream& {
     return os << "CallContext{ location = " << self.impl->location
@@ -182,6 +177,11 @@ void swap(Value& self, Value& other) { std::swap(self.impl, other.impl); }
 
 auto Value::get() -> Value::Type& { return impl->val; }
 auto Value::get() const -> const Value::Type& { return impl->val; }
+
+auto Value::force(Value new_value, std::string origin) -> SourceChange {
+    // TODO force value
+    return SourceChange();
+}
 
 auto operator==(const Value& a, const Value& b) noexcept -> bool { return a.get() == b.get(); }
 auto operator!=(const Value& a, const Value& b) noexcept -> bool { return !(a == b); }
