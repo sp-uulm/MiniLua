@@ -90,6 +90,7 @@ TEST_CASE("minilua::Value") {
         SECTION("via explicit construction of Nil") {
             const minilua::Value value{minilua::Nil()};
             CHECK(std::holds_alternative<minilua::Nil>(value.get()));
+            CHECK_NOTHROW(std::get<minilua::Nil>(value));
             CHECK(value.is_nil());
         }
         SECTION("nils are equal") {
@@ -106,6 +107,7 @@ TEST_CASE("minilua::Value") {
             CHECK(std::holds_alternative<minilua::Bool>(value.get()));
             CHECK(std::get<minilua::Bool>(value.get()) == true);
             CHECK(std::get<minilua::Bool>(value.get()).value == true);
+            CHECK(std::get<minilua::Bool>(value) == true);
             CHECK(value.is_bool());
         }
         SECTION("false") {
@@ -113,6 +115,7 @@ TEST_CASE("minilua::Value") {
             CHECK(std::holds_alternative<minilua::Bool>(value.get()));
             CHECK(std::get<minilua::Bool>(value.get()) == false);
             CHECK(std::get<minilua::Bool>(value.get()).value == false);
+            CHECK(std::get<minilua::Bool>(value) == false);
             CHECK(value.is_bool());
         }
     }
@@ -125,6 +128,7 @@ TEST_CASE("minilua::Value") {
             CHECK(std::holds_alternative<minilua::Number>(value.get()));
             CHECK(std::get<minilua::Number>(value.get()) == 2);
             CHECK(std::get<minilua::Number>(value.get()).value == 2);
+            CHECK(std::get<minilua::Number>(value) == 2);
             CHECK(value.is_number());
         }
         SECTION("-5e27") {
@@ -133,6 +137,7 @@ TEST_CASE("minilua::Value") {
             CHECK(std::holds_alternative<minilua::Number>(value.get()));
             CHECK(std::get<minilua::Number>(value.get()) == expected_value);
             CHECK(std::get<minilua::Number>(value.get()).value == expected_value);
+            CHECK(std::get<minilua::Number>(value) == expected_value);
             CHECK(value.is_number());
         }
     }
@@ -145,6 +150,7 @@ TEST_CASE("minilua::Value") {
             CHECK(std::holds_alternative<minilua::String>(value.get()));
             CHECK(std::get<minilua::String>(value.get()) == "");
             CHECK(std::get<minilua::String>(value.get()).value == ""); // NOLINT
+            CHECK(std::get<minilua::String>(value) == "");
             CHECK(value.is_string());
         }
         SECTION("small") {
@@ -152,6 +158,7 @@ TEST_CASE("minilua::Value") {
             CHECK(std::holds_alternative<minilua::String>(value.get()));
             CHECK(std::get<minilua::String>(value.get()) == "string");
             CHECK(std::get<minilua::String>(value.get()).value == "string");
+            CHECK(std::get<minilua::String>(value) == "string");
             CHECK(value.is_string());
         }
         SECTION("big") {
@@ -161,6 +168,7 @@ TEST_CASE("minilua::Value") {
             CHECK(std::holds_alternative<minilua::String>(value.get()));
             CHECK(std::get<minilua::String>(value.get()) == expected_value);
             CHECK(std::get<minilua::String>(value.get()).value == expected_value);
+            CHECK(std::get<minilua::String>(value) == expected_value);
             CHECK(value.is_string());
         }
     }
@@ -174,6 +182,7 @@ TEST_CASE("minilua::Value") {
             SECTION("different tables are not equal") {
                 CHECK(std::holds_alternative<minilua::Table>(value.get()));
                 CHECK(std::get<minilua::Table>(value.get()) != minilua::Table());
+                CHECK(std::get<minilua::Table>(value) != minilua::Table());
             }
 
             minilua::Value value_copy = value; // NOLINT
@@ -183,6 +192,7 @@ TEST_CASE("minilua::Value") {
                 CHECK(
                     std::get<minilua::Table>(value_copy.get()) ==
                     std::get<minilua::Table>(value.get()));
+                CHECK(std::get<minilua::Table>(value_copy) == std::get<minilua::Table>(value));
             }
 
             SECTION("changes apply to all copies of a table") {

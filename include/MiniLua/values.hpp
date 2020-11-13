@@ -398,4 +398,15 @@ struct Origin {
 
 } // namespace minilua
 
+namespace std {
+
+// behaves like std::get(std::variant) but only accepts types as template parameter
+template <typename T> auto get(minilua::Value& value) -> T& { return std::get<T>(value.get()); }
+
+template <typename T> auto get(const minilua::Value& value) -> const T& {
+    return std::get<T>(value.get());
+}
+
+} // namespace std
+
 #endif
