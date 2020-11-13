@@ -336,6 +336,15 @@ public:
     auto get() -> Type&;
     [[nodiscard]] auto get() const -> const Type&;
 
+    [[nodiscard]] auto to_literal() const -> std::string;
+
+    [[nodiscard]] auto is_nil() const -> bool;
+    [[nodiscard]] auto is_bool() const -> bool;
+    [[nodiscard]] auto is_number() const -> bool;
+    [[nodiscard]] auto is_string() const -> bool;
+    [[nodiscard]] auto is_table() const -> bool;
+    [[nodiscard]] auto is_function() const -> bool;
+
     /**
      * Forces this value to become 'new_value'. Does not actually change the
      * value. This will only return a SourceChange that (when applied) would

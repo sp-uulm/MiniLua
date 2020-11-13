@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
+#include <variant>
 
 namespace minilua {
 
@@ -177,6 +178,30 @@ void swap(Value& self, Value& other) { std::swap(self.impl, other.impl); }
 
 auto Value::get() -> Value::Type& { return impl->val; }
 auto Value::get() const -> const Value::Type& { return impl->val; }
+
+[[nodiscard]] auto Value::to_literal() const -> std::string {
+    // TODO
+    return {};
+}
+
+[[nodiscard]] auto Value::is_nil() const -> bool {
+    return std::holds_alternative<Nil>(this->get());
+}
+[[nodiscard]] auto Value::is_bool() const -> bool {
+    return std::holds_alternative<Bool>(this->get());
+}
+[[nodiscard]] auto Value::is_number() const -> bool {
+    return std::holds_alternative<Number>(this->get());
+}
+[[nodiscard]] auto Value::is_string() const -> bool {
+    return std::holds_alternative<String>(this->get());
+}
+[[nodiscard]] auto Value::is_table() const -> bool {
+    return std::holds_alternative<Table>(this->get());
+}
+[[nodiscard]] auto Value::is_function() const -> bool {
+    return std::holds_alternative<NativeFunction>(this->get());
+}
 
 auto Value::force(Value new_value, std::string origin) -> SourceChange {
     // TODO force value
