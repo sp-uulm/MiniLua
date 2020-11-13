@@ -32,9 +32,7 @@ struct Interpreter::Impl {
 Interpreter::Interpreter() : Interpreter("") {}
 Interpreter::Interpreter(std::string initial_source_code)
     : impl(std::make_unique<Interpreter::Impl>(
-          Parser(std::move(initial_source_code)), Environment())) {
-    // TODO initialize parser with source code
-}
+          Parser(std::move(initial_source_code)), Environment())) {}
 Interpreter::~Interpreter() = default;
 
 auto Interpreter::environment() const -> Environment& { return impl->env; }

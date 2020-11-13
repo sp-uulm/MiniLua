@@ -74,12 +74,9 @@ TEST_CASE("Interpreter integration test") {
     //      program only causes one source change?
     const auto* previous_hint = "x_coord";
 
-    for (auto& source_change : result.source_changes) {
-        if (source_change.origin() == "gui_drag_line") {
-            if (source_change.hint() == previous_hint) {
-                interpreter.apply_source_change(source_change);
-                break;
-            }
+    if (result.source_change.origin() == "gui_drag_line") {
+        if (result.source_change.hint() == previous_hint) {
+            interpreter.apply_source_change(result.source_change);
         }
     }
 }
