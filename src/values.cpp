@@ -2,22 +2,46 @@
 
 #include <cmath>
 #include <iostream>
+#include <regex>
+#include <sstream>
 #include <stdexcept>
+#include <string>
 #include <variant>
 
 namespace minilua {
 
 // struct Nil
+[[nodiscard]] auto Nil::to_literal() const -> std::string { return "nil"; }
 auto operator<<(std::ostream& os, Nil /*unused*/) -> std::ostream& { return os << "Nil"; }
 Nil::operator bool() const { return false; }
 
 // struct Bool
+[[nodiscard]] auto Bool::to_literal() const -> std::string {
+    if (this->value) {
+        return "true";
+    } else {
+        return "false";
+    }
+}
 auto operator<<(std::ostream& os, Bool self) -> std::ostream& {
     return os << "Bool(" << std::boolalpha << self.value << std::noboolalpha << ")";
 }
 Bool::operator bool() const { return this->value; }
 
 // struct Number
+[[nodiscard]] auto Number::to_literal() const -> std::string {
+    // NOTE: use stringstream so we get better formatting than with std::to_string
+    std::ostringstream result;
+    if (this->value == std::floor(this->value)) {
+        result << static_cast<long>(this->value);
+    } else {
+        // TODO maybe we can use a better float representation algorithm than the default c++
+        // (not sure what c++ uses by default)
+
+        result << this->value;
+    }
+    return result.str();
+}
 auto operator<<(std::ostream& os, Number self) -> std::ostream& {
     return os << "Number(" << self.value << ")";
 }
@@ -54,6 +78,19 @@ auto operator|(Number lhs, Number rhs) -> Number {
 // struct String
 String::String(std::string value) : value(std::move(value)) {}
 
+[[nodiscard]] auto String::to_literal() const -> std::string {
+    // TODO escape quotes
+    return "\"" + this->value + "\"";
+}
+
+[[nodiscard]] auto String::is_valid_identifier() const -> bool {
+    // According to the lua spec:
+    // Names (also called identifiers) in Lua can be any string of letters,
+    // digits, and underscores, not beginning with a digit.
+    static std::regex regex{R"(^[A-Za-z_][\w_]*$)"};
+    return std::regex_search(this->value, regex);
+}
+
 String::operator bool() const { return true; }
 
 void swap(String& self, String& other) { std::swap(self.value, other.value); }
@@ -88,6 +125,44 @@ auto Table::get(const Value& key) -> Value { return impl->value.at(key); }
 void Table::set(const Value& key, Value value) { impl->value[key] = std::move(value); }
 void Table::set(Value&& key, Value value) { impl->value[key] = std::move(value); }
 
+[[nodiscard]] auto Table::to_literal() const -> std::string {
+    // TODO fix infinite recursion if table contains itself
+
+    // TODO should we sort keys for consistency?
+    std::string str;
+    str.append("{");
+
+    const char* sep = " ";
+
+    for (const auto& [key, value] : this->impl->value) {
+        if (value.is_nil()) {
+            continue;
+        }
+
+        str.append(sep);
+
+        // use strings directly as identifiers if possible
+        if (key.is_valid_identifier()) {
+            str.append(std::get<String>(key.get()).value);
+        } else {
+            str.append("[");
+            str.append(key.to_literal());
+            str.append("]");
+        }
+
+        str.append(" = ");
+        str.append(value.to_literal());
+        sep = ", ";
+    }
+
+    if (!this->impl->value.empty()) {
+        str.append(" ");
+    }
+
+    str.append("}");
+    return str;
+}
+
 auto Table::operator[](const Value& index) -> Value& { return impl->value[index]; }
 auto Table::operator[](const Value& index) const -> const Value& { return impl->value[index]; }
 
@@ -116,7 +191,7 @@ CallContext::CallContext(const CallContext& other) = default;
 CallContext::CallContext(CallContext&& other) = default;
 auto CallContext::operator=(const CallContext&) -> CallContext& = default;
 // NOLINTNEXTLINE
-auto CallContext::operator=(CallContext &&) -> CallContext& = default;
+auto CallContext::operator=(CallContext&&) -> CallContext& = default;
 CallContext::~CallContext() = default;
 
 auto CallContext::call_location() const -> Range { return impl->location; }
@@ -141,7 +216,7 @@ CallResult::CallResult(Vallist, SourceChange) {
 }
 
 // struct NativeFunction
-auto operator<<(std::ostream& os, const NativeFunction & /*unused*/) -> std::ostream& {
+auto operator<<(std::ostream& os, const NativeFunction& /*unused*/) -> std::ostream& {
     return os << "NativeFunction";
 }
 NativeFunction::operator bool() const { return true; }
@@ -180,8 +255,22 @@ auto Value::get() -> Value::Type& { return impl->val; }
 auto Value::get() const -> const Value::Type& { return impl->val; }
 
 [[nodiscard]] auto Value::to_literal() const -> std::string {
-    // TODO
-    return {};
+    return std::visit(
+        overloaded{
+            [](NativeFunction) -> std::string {
+                throw std::runtime_error("can't create a literal for a function");
+            },
+            [](auto value) -> std::string { return value.to_literal(); }},
+        this->get());
+}
+
+[[nodiscard]] auto Value::is_valid_identifier() const -> bool {
+    return std::visit(
+        overloaded{
+            [](const String& value) -> bool { return value.is_valid_identifier(); },
+            [](const auto&) -> bool { return false; },
+        },
+        this->get());
 }
 
 [[nodiscard]] auto Value::is_nil() const -> bool {
@@ -219,18 +308,22 @@ auto Value::operator[](const Value& index) -> Value& {
     // TODO metatable for absent fields
     return std::visit(
         minilua::overloaded{
-            [this](minilua::Table& index) -> Value& { return (*this)[index]; },
-            [](auto & /*unused*/) -> Value& { throw std::runtime_error("unimplemented"); },
+            [&index](Table& value) -> Value& { return value[index]; },
+            [](auto& value) -> Value& {
+                throw std::runtime_error("can't index into " + std::string(value.TYPE));
+            },
         },
-        index.impl->val);
+        this->impl->val);
 }
 auto Value::operator[](const Value& index) const -> const Value& {
     return std::visit(
         overloaded{
-            [this](Table& index) -> const Value& { return (*this)[index]; },
-            [](auto & /*unused*/) -> const Value& { throw std::runtime_error("unimplemented"); },
+            [&index](const Table& value) -> const Value& { return value[index]; },
+            [](const auto& value) -> const Value& {
+                throw std::runtime_error("can't index into " + std::string(value.TYPE));
+            },
         },
-        index.impl->val);
+        this->impl->val);
 }
 
 Value::operator bool() const {
@@ -353,7 +446,7 @@ Vallist::Vallist(const Vallist&) = default;
 Vallist::Vallist(Vallist&&) = default;
 auto Vallist::operator=(const Vallist&) -> Vallist& = default;
 // NOLINTNEXTLINE
-auto Vallist::operator=(Vallist &&) -> Vallist& = default;
+auto Vallist::operator=(Vallist&&) -> Vallist& = default;
 Vallist::~Vallist() = default;
 
 auto Vallist::size() const -> size_t { return impl->values.size(); }

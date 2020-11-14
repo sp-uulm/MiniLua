@@ -52,28 +52,28 @@ TEST_CASE("minilua::owning_ptr") {
 auto fn(minilua::CallContext /*unused*/) -> minilua::CallResult { // NOLINT
     return minilua::CallResult();
 }
-auto fn_ref(const minilua::CallContext & /*unused*/) -> minilua::CallResult {
+auto fn_ref(const minilua::CallContext& /*unused*/) -> minilua::CallResult {
     return minilua::CallResult();
 }
 
 auto fn_vallist(minilua::CallContext /*unused*/) -> minilua::Vallist { // NOLINT
     return minilua::Vallist();
 }
-auto fn_ref_vallist(const minilua::CallContext & /*unused*/) -> minilua::Vallist {
+auto fn_ref_vallist(const minilua::CallContext& /*unused*/) -> minilua::Vallist {
     return minilua::Vallist();
 }
 
 auto fn_value(minilua::CallContext /*unused*/) -> minilua::Value { // NOLINT
     return minilua::Value();
 }
-auto fn_ref_value(const minilua::CallContext & /*unused*/) -> minilua::Value {
+auto fn_ref_value(const minilua::CallContext& /*unused*/) -> minilua::Value {
     return minilua::Value();
 }
 
 auto fn_string(minilua::CallContext /*unused*/) -> std::string { // NOLINT
     return std::string();
 }
-auto fn_ref_string(const minilua::CallContext & /*unused*/) -> std::string { return std::string(); }
+auto fn_ref_string(const minilua::CallContext& /*unused*/) -> std::string { return std::string(); }
 
 void fn_void(minilua::CallContext /*unused*/) {} // NOLINT
 void fn_ref_void(const minilua::CallContext& /*unused*/) {}
@@ -97,6 +97,10 @@ TEST_CASE("minilua::Value") {
             const minilua::Value value{};
             CHECK(value == minilua::Nil());
         }
+        SECTION("nil to literal") {
+            const minilua::Value value{};
+            CHECK(value.to_literal() == "nil");
+        }
     }
 
     SECTION("bool") {
@@ -118,6 +122,12 @@ TEST_CASE("minilua::Value") {
             CHECK(std::get<minilua::Bool>(value) == false);
             CHECK(value.is_bool());
         }
+        SECTION("bool to literal") {
+            const minilua::Value value{true};
+            CHECK(value.to_literal() == "true");
+            const minilua::Value value2{false};
+            CHECK(value2.to_literal() == "false");
+        }
     }
 
     SECTION("number") {
@@ -131,14 +141,20 @@ TEST_CASE("minilua::Value") {
             CHECK(std::get<minilua::Number>(value) == 2);
             CHECK(value.is_number());
         }
-        SECTION("-5e27") {
-            const double expected_value = -5e27;
+        SECTION("-2e12") {
+            const double expected_value = -2e12;
             const minilua::Value value{expected_value};
             CHECK(std::holds_alternative<minilua::Number>(value.get()));
             CHECK(std::get<minilua::Number>(value.get()) == expected_value);
             CHECK(std::get<minilua::Number>(value.get()).value == expected_value);
             CHECK(std::get<minilua::Number>(value) == expected_value);
             CHECK(value.is_number());
+        }
+        SECTION("number to literal") {
+            const minilua::Value value{2};
+            CHECK(value.to_literal() == "2");
+            const minilua::Value value2{-2e12};
+            CHECK(value2.to_literal() == "-2e12");
         }
     }
 
@@ -170,6 +186,15 @@ TEST_CASE("minilua::Value") {
             CHECK(std::get<minilua::String>(value.get()).value == expected_value);
             CHECK(std::get<minilua::String>(value) == expected_value);
             CHECK(value.is_string());
+        }
+        SECTION("number to literal") {
+            const minilua::Value value{""};
+            CHECK(value.to_literal() == R"("")");
+            const minilua::Value value2{"string"};
+            CHECK(value2.to_literal() == R"("string")");
+            const minilua::Value value3{R"(string with "quotes".)"};
+            CHECK(value3.to_literal() == R"("string with \"quotes\".")");
+            // TODO strings with newlines
         }
     }
 
@@ -231,6 +256,23 @@ TEST_CASE("minilua::Value") {
                 CHECK(table == table_copy);
                 CHECK(table_copy.get(1) == "hello");
             }
+
+            SECTION("contains initial values") {
+                minilua::Value value{minilua::Table{{5, 22}, {"key1", 17}, {true, 12}}}; // NOLINT
+                CHECK(value[5] == 22);
+                CHECK(value["key1"] == 17);
+                CHECK(value[true] == 12);
+            }
+        }
+        SECTION("table to literal") {
+            minilua::Value value{minilua::Table()};
+            CHECK(value.to_literal() == R"({})");
+            minilua::Value value2{minilua::Table{{"key1", 22}}}; // NOLINT
+            CHECK(value2.to_literal() == R"({ key1 = 22 })");
+            minilua::Value value3{minilua::Table{{5, 22}}}; // NOLINT
+            CHECK(value3.to_literal() == R"({ [5] = 22 })");
+            minilua::Value value4{minilua::Table{{5, 22}, {"key1", 17}, {true, 12.5}}}; // NOLINT
+            CHECK(value4.to_literal() == R"({ [5] = 22, key1 = 17, [true] = 12.5})");
         }
     }
 
@@ -254,7 +296,7 @@ TEST_CASE("minilua::Value") {
             CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
             CHECK(value1.is_function());
 
-            auto lambda = [](const minilua::CallContext & /*unused*/) -> minilua::CallResult {
+            auto lambda = [](const minilua::CallContext& /*unused*/) -> minilua::CallResult {
                 return minilua::CallResult();
             };
             minilua::Value value2{lambda};
@@ -279,7 +321,7 @@ TEST_CASE("minilua::Value") {
             CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
             CHECK(value1.is_function());
 
-            auto lambda = [](const minilua::CallContext & /*unused*/) -> minilua::Vallist {
+            auto lambda = [](const minilua::CallContext& /*unused*/) -> minilua::Vallist {
                 return minilua::Vallist();
             };
             minilua::Value value2{lambda};
@@ -304,7 +346,7 @@ TEST_CASE("minilua::Value") {
             CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
             CHECK(value1.is_function());
 
-            auto lambda = [](const minilua::CallContext & /*unused*/) -> minilua::Value {
+            auto lambda = [](const minilua::CallContext& /*unused*/) -> minilua::Value {
                 return minilua::Value();
             };
             minilua::Value value2{lambda};
@@ -329,7 +371,7 @@ TEST_CASE("minilua::Value") {
             CHECK(std::holds_alternative<minilua::NativeFunction>(value1.get()));
             CHECK(value1.is_function());
 
-            auto lambda = [](const minilua::CallContext & /*unused*/) -> std::string {
+            auto lambda = [](const minilua::CallContext& /*unused*/) -> std::string {
                 return std::string();
             };
             minilua::Value value2{lambda};
@@ -357,6 +399,10 @@ TEST_CASE("minilua::Value") {
             minilua::Value value2{lambda};
             CHECK(std::holds_alternative<minilua::NativeFunction>(value2.get()));
             CHECK(value2.is_function());
+        }
+        SECTION("function to literal") {
+            minilua::Value value{fn};
+            CHECK_THROWS(value.to_literal());
         }
     }
 

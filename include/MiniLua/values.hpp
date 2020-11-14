@@ -39,7 +39,7 @@ public:
     auto operator=(const Vallist&) -> Vallist&;
     // can't use noexcept = default in older compilers (pre c++20 compilers)
     // NOLINTNEXTLINE
-    auto operator=(Vallist &&) -> Vallist&;
+    auto operator=(Vallist&&) -> Vallist&;
     ~Vallist();
 
     [[nodiscard]] auto size() const -> size_t;
@@ -53,6 +53,8 @@ public:
 struct Nil {
     constexpr static const std::string_view TYPE = "nil";
 
+    [[nodiscard]] auto to_literal() const -> std::string;
+
     explicit operator bool() const;
 };
 constexpr auto operator==(Nil, Nil) noexcept -> bool { return true; }
@@ -65,6 +67,8 @@ struct Bool {
     constexpr static const std::string_view TYPE = "boolean";
 
     constexpr Bool(bool value) : value(value) {}
+
+    [[nodiscard]] auto to_literal() const -> std::string;
 
     explicit operator bool() const;
 };
@@ -84,6 +88,8 @@ struct Number {
 
     constexpr Number(int value) : value(value) {}
     constexpr Number(double value) : value(value) {}
+
+    [[nodiscard]] auto to_literal() const -> std::string;
 
     explicit operator bool() const;
 };
@@ -119,6 +125,10 @@ struct String {
 
     String(std::string value);
 
+    [[nodiscard]] auto to_literal() const -> std::string;
+
+    [[nodiscard]] auto is_valid_identifier() const -> bool;
+
     explicit operator bool() const;
 
     friend void swap(String& self, String& other);
@@ -149,6 +159,8 @@ public:
     void set(const Value& key, Value value);
     void set(Value&& key, Value value);
 
+    [[nodiscard]] auto to_literal() const -> std::string;
+
     friend auto operator==(const Table&, const Table&) noexcept -> bool;
     friend auto operator!=(const Table&, const Table&) noexcept -> bool;
     friend auto operator<<(std::ostream&, const Table&) -> std::ostream&;
@@ -175,7 +187,7 @@ public:
     auto operator=(const CallContext&) -> CallContext&;
     // can't use noexcept = default in older compilers (pre c++20 compilers)
     // NOLINTNEXTLINE
-    auto operator=(CallContext &&) -> CallContext&;
+    auto operator=(CallContext&&) -> CallContext&;
     ~CallContext();
 
     [[nodiscard]] auto call_location() const -> Range;
@@ -336,7 +348,14 @@ public:
     auto get() -> Type&;
     [[nodiscard]] auto get() const -> const Type&;
 
+    /**
+     * Returns the value as a literal string that can be directly inserted in lua code.
+     *
+     * Throws a 'std::runtime_error' if the value is a function.
+     */
     [[nodiscard]] auto to_literal() const -> std::string;
+
+    [[nodiscard]] auto is_valid_identifier() const -> bool;
 
     [[nodiscard]] auto is_nil() const -> bool;
     [[nodiscard]] auto is_bool() const -> bool;
