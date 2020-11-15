@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iostream>
 #include <regex>
+#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -188,41 +189,61 @@ void Table::set(const Value& key, Value value) { impl->value[key] = std::move(va
 void Table::set(Value&& key, Value value) { impl->value[key] = std::move(value); }
 
 [[nodiscard]] auto Table::to_literal() const -> std::string {
-    // TODO fix infinite recursion if table contains itself
+    // NOTE: recursive table check needs to be in a lambda because Table::Impl is private and we
+    // don't want a helper function in the public interface
+    std::set<Table::Impl*> visited;
+    auto table_to_literal = [&visited](const Table& table, const auto& rec) -> std::string {
+        visited.insert(table.impl.get());
+        auto visit_nested = [&rec, &visited](const Value& value) -> std::string {
+            return std::visit(
+                overloaded{
+                    [&visited, &rec](const Table& nested) -> std::string {
+                        if (visited.find(nested.impl.get()) != visited.end()) {
+                            throw std::runtime_error(
+                                "self recursive table can't be converted to literal");
+                        }
+                        return rec(nested, rec);
+                    },
+                    [](const auto& nested) -> std::string { return nested.to_literal(); }},
+                value.get());
+        };
 
-    // TODO should we sort keys for consistency?
-    std::string str;
-    str.append("{");
+        // TODO should we sort keys for consistency?
+        std::string str;
+        str.append("{");
 
-    const char* sep = " ";
+        const char* sep = " ";
 
-    for (const auto& [key, value] : this->impl->value) {
-        if (value.is_nil()) {
-            continue;
+        for (const auto& [key, value] : table.impl->value) {
+            if (value.is_nil()) {
+                continue;
+            }
+
+            str.append(sep);
+
+            // use strings directly as identifiers if possible
+            if (key.is_valid_identifier()) {
+                str.append(std::get<String>(key.get()).value);
+            } else {
+                str.append("[");
+                str.append(visit_nested(key));
+                str.append("]");
+            }
+
+            str.append(" = ");
+            str.append(visit_nested(value));
+            sep = ", ";
         }
 
-        str.append(sep);
-
-        // use strings directly as identifiers if possible
-        if (key.is_valid_identifier()) {
-            str.append(std::get<String>(key.get()).value);
-        } else {
-            str.append("[");
-            str.append(key.to_literal());
-            str.append("]");
+        if (!table.impl->value.empty()) {
+            str.append(" ");
         }
 
-        str.append(" = ");
-        str.append(value.to_literal());
-        sep = ", ";
-    }
+        str.append("}");
+        return str;
+    };
 
-    if (!this->impl->value.empty()) {
-        str.append(" ");
-    }
-
-    str.append("}");
-    return str;
+    return table_to_literal(*this, table_to_literal);
 }
 
 auto Table::operator[](const Value& index) -> Value& { return impl->value[index]; }
@@ -281,6 +302,9 @@ CallResult::CallResult(Vallist, SourceChange) {
 auto operator<<(std::ostream& os, const NativeFunction& /*unused*/) -> std::ostream& {
     return os << "NativeFunction";
 }
+[[nodiscard]] auto NativeFunction::to_literal() const -> std::string {
+    throw std::runtime_error("can't create a literal for a function");
+}
 NativeFunction::operator bool() const { return true; }
 void swap(NativeFunction& self, NativeFunction& other) { std::swap(self.func, other.func); }
 
@@ -317,13 +341,7 @@ auto Value::get() -> Value::Type& { return impl->val; }
 auto Value::get() const -> const Value::Type& { return impl->val; }
 
 [[nodiscard]] auto Value::to_literal() const -> std::string {
-    return std::visit(
-        overloaded{
-            [](NativeFunction) -> std::string {
-                throw std::runtime_error("can't create a literal for a function");
-            },
-            [](auto value) -> std::string { return value.to_literal(); }},
-        this->get());
+    return std::visit([](auto value) -> std::string { return value.to_literal(); }, this->get());
 }
 
 [[nodiscard]] auto Value::is_valid_identifier() const -> bool {

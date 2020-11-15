@@ -253,6 +253,9 @@ public:
         }
     }
 
+    // always throws an exception. just here for convenience.
+    [[nodiscard]] auto to_literal() const -> std::string;
+
     explicit operator bool() const;
 
     friend void swap(NativeFunction& self, NativeFunction& other);
