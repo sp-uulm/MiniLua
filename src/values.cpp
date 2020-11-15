@@ -75,12 +75,74 @@ auto operator|(Number lhs, Number rhs) -> Number {
     return Number(lhs_int | rhs_int);
 }
 
+// helper function to escape characters in string literals
+auto escape_char(char c) -> std::string {
+    if (0 <= c && c <= 31) { // NOLINT
+        switch (c) {
+        case 7: // NOLINT
+            return "\\a";
+        case 8: // NOLINT
+            return "\\b";
+        case 9: // NOLINT
+            return "\\t";
+        case 10: // NOLINT
+            return "\\n";
+        case 11: // NOLINT
+            return "\\v";
+        case 12: // NOLINT
+            return "\\f";
+        case 13: // NOLINT
+            return "\\r";
+        default:
+            // format as \000
+            std::array<char, 4> escaped;
+            std::snprintf(escaped.data(), 4, "%3d", c);
+            std::string escaped_str;
+            escaped_str.reserve(4);
+            escaped_str.append("\\");
+            escaped_str.append(escaped.data());
+            return escaped_str;
+        }
+    } else if (c == '"') {
+        return "\\\"";
+    } else if (c == '\\') {
+        return "\\\\";
+    } else {
+        return std::string(1, c);
+    }
+}
+
 // struct String
 String::String(std::string value) : value(std::move(value)) {}
 
 [[nodiscard]] auto String::to_literal() const -> std::string {
-    // TODO escape quotes
-    return "\"" + this->value + "\"";
+    // TODO this can probably be implemented more efficiently (and more clearly)
+
+    std::string str;
+    str.reserve(this->value.size() + 2);
+
+    // characters to replace
+    // 7 -> \a (bell)
+    // 8 -> \b (back space)
+    // 9 -> \t (horizontal tab)
+    // 10 -> \n (line feed)
+    // 11 -> \v (vertical tab)
+    // 12 -> \f (form feed)
+    // 13 -> \r (cariage return)
+    // \ -> \\
+    // " -> \"
+    // ' -> \' (not needed if string surrounded by ")
+    // invisible chars -> \000
+
+    str.append("\"");
+
+    for (char c : this->value) {
+        str.append(escape_char(c));
+    }
+
+    str.append("\"");
+
+    return str;
 }
 
 [[nodiscard]] auto String::is_valid_identifier() const -> bool {

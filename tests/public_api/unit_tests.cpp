@@ -154,7 +154,7 @@ TEST_CASE("minilua::Value") {
             const minilua::Value value{2};
             CHECK(value.to_literal() == "2");
             const minilua::Value value2{-2e12};
-            CHECK(value2.to_literal() == "-2e12");
+            CHECK(value2.to_literal() == "-2000000000000");
         }
     }
 
