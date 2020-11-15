@@ -99,7 +99,7 @@ TEST_CASE("minilua::Table") {
     table.set("table", minilua::Table());
     CAPTURE(table);
 
-    auto table2 = std::get<minilua::Table>(table.get("table").get());
+    auto table2 = std::get<minilua::Table>(table.get("table").raw());
     table2.set("x", 22); // NOLINT
 
     CAPTURE(table);

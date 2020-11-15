@@ -205,7 +205,7 @@ void Table::set(Value&& key, Value value) { impl->value[key] = std::move(value);
                         return rec(nested, rec);
                     },
                     [](const auto& nested) -> std::string { return nested.to_literal(); }},
-                value.get());
+                value.raw());
         };
 
         // TODO should we sort keys for consistency?
@@ -223,7 +223,7 @@ void Table::set(Value&& key, Value value) { impl->value[key] = std::move(value);
 
             // use strings directly as identifiers if possible
             if (key.is_valid_identifier()) {
-                str.append(std::get<String>(key.get()).value);
+                str.append(std::get<String>(key.raw()).value);
             } else {
                 str.append("[");
                 str.append(visit_nested(key));
@@ -337,11 +337,11 @@ auto Value::operator=(const Value& other) -> Value& = default;
 auto Value::operator=(Value&& other) -> Value& = default;
 void swap(Value& self, Value& other) { std::swap(self.impl, other.impl); }
 
-auto Value::get() -> Value::Type& { return impl->val; }
-auto Value::get() const -> const Value::Type& { return impl->val; }
+auto Value::raw() -> Value::Type& { return impl->val; }
+auto Value::raw() const -> const Value::Type& { return impl->val; }
 
 [[nodiscard]] auto Value::to_literal() const -> std::string {
-    return std::visit([](auto value) -> std::string { return value.to_literal(); }, this->get());
+    return std::visit([](auto value) -> std::string { return value.to_literal(); }, this->raw());
 }
 
 [[nodiscard]] auto Value::is_valid_identifier() const -> bool {
@@ -350,26 +350,26 @@ auto Value::get() const -> const Value::Type& { return impl->val; }
             [](const String& value) -> bool { return value.is_valid_identifier(); },
             [](const auto&) -> bool { return false; },
         },
-        this->get());
+        this->raw());
 }
 
 [[nodiscard]] auto Value::is_nil() const -> bool {
-    return std::holds_alternative<Nil>(this->get());
+    return std::holds_alternative<Nil>(this->raw());
 }
 [[nodiscard]] auto Value::is_bool() const -> bool {
-    return std::holds_alternative<Bool>(this->get());
+    return std::holds_alternative<Bool>(this->raw());
 }
 [[nodiscard]] auto Value::is_number() const -> bool {
-    return std::holds_alternative<Number>(this->get());
+    return std::holds_alternative<Number>(this->raw());
 }
 [[nodiscard]] auto Value::is_string() const -> bool {
-    return std::holds_alternative<String>(this->get());
+    return std::holds_alternative<String>(this->raw());
 }
 [[nodiscard]] auto Value::is_table() const -> bool {
-    return std::holds_alternative<Table>(this->get());
+    return std::holds_alternative<Table>(this->raw());
 }
 [[nodiscard]] auto Value::is_function() const -> bool {
-    return std::holds_alternative<NativeFunction>(this->get());
+    return std::holds_alternative<NativeFunction>(this->raw());
 }
 
 auto Value::force(Value new_value, std::string origin) -> SourceChange {
@@ -377,10 +377,10 @@ auto Value::force(Value new_value, std::string origin) -> SourceChange {
     return SourceChange();
 }
 
-auto operator==(const Value& a, const Value& b) noexcept -> bool { return a.get() == b.get(); }
+auto operator==(const Value& a, const Value& b) noexcept -> bool { return a.raw() == b.raw(); }
 auto operator!=(const Value& a, const Value& b) noexcept -> bool { return !(a == b); }
 auto operator<<(std::ostream& os, const Value& self) -> std::ostream& {
-    std::visit([&](const auto& value) { os << "Value(" << value << ")"; }, self.get());
+    std::visit([&](const auto& value) { os << "Value(" << value << ")"; }, self.raw());
     return os;
 }
 
@@ -480,7 +480,7 @@ auto operator||(const Value& lhs, const Value& rhs) -> Value {
 
 namespace std {
 auto std::hash<minilua::Value>::operator()(const minilua::Value& value) const -> size_t {
-    return std::hash<minilua::Value::Type>()(value.get());
+    return std::hash<minilua::Value::Type>()(value.raw());
 }
 auto std::hash<minilua::Nil>::operator()(const minilua::Nil& /*value*/) const -> size_t {
     // lua does not allow using nil as a table key

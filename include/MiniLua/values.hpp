@@ -348,8 +348,11 @@ public:
 
     ~Value();
 
-    auto get() -> Type&;
-    [[nodiscard]] auto get() const -> const Type&;
+    /**
+     * Use as `std::visit(lambdas, value.raw())`.
+     */
+    auto raw() -> Type&;
+    [[nodiscard]] auto raw() const -> const Type&;
 
     /**
      * Returns the value as a literal string that can be directly inserted in lua code.
@@ -423,10 +426,10 @@ struct Origin {
 namespace std {
 
 // behaves like std::get(std::variant) but only accepts types as template parameter
-template <typename T> auto get(minilua::Value& value) -> T& { return std::get<T>(value.get()); }
+template <typename T> auto get(minilua::Value& value) -> T& { return std::get<T>(value.raw()); }
 
 template <typename T> auto get(const minilua::Value& value) -> const T& {
-    return std::get<T>(value.get());
+    return std::get<T>(value.raw());
 }
 
 } // namespace std
