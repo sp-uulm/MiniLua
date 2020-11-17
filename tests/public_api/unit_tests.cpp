@@ -275,12 +275,6 @@ TEST_CASE("minilua::Value") {
             // TODO check by parsing the resulting literal
             // minilua::Value value4{minilua::Table{{5, 22}, {"key1", 17}, {true, 12.5}}}; // NOLINT
             // CHECK(value4.to_literal() == R"({ key1 = 17, [true] = 12.5, [5] = 22 })");
-
-            SECTION("self recursive table throws an exception") {
-                minilua::Value value5{minilua::Table{}};
-                value5["key1"] = value5;
-                CHECK_THROWS(value5.to_literal());
-            }
         }
     }
 
@@ -555,6 +549,15 @@ TEST_CASE("minilua::Value") {
         REQUIRE((minilua::Value(false) || minilua::Value(5)) == minilua::Value(5));
         REQUIRE((minilua::Value(3) || minilua::Value(5)) == minilua::Value(3));
         REQUIRE((minilua::Value(3) || minilua::Value(false)) == minilua::Value(3));
+    }
+}
+
+TEST_CASE("Leaking values", "[leaks]") {
+    // TODO fix leaks
+    SECTION("self recursive table throws an exception") {
+        minilua::Value value5{minilua::Table{}};
+        value5["key1"] = value5;
+        CHECK_THROWS(value5.to_literal());
     }
 }
 
