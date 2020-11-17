@@ -16,6 +16,8 @@ namespace minilua {
 auto operator<<(std::ostream& os, Nil /*unused*/) -> std::ostream& { return os << "Nil"; }
 Nil::operator bool() const { return false; }
 
+static const Value GLOBAL_NIL_CONST = Nil();
+
 // struct Bool
 [[nodiscard]] auto Bool::to_literal() const -> std::string {
     if (this->value) {
@@ -517,9 +519,11 @@ namespace minilua {
 struct Vallist::Impl {
     std::vector<Value> values;
 };
-Vallist::Vallist() { std::cout << "Vallist()\n"; }
-Vallist::Vallist(std::vector<Value>) { std::cout << "Vallist(vector)\n"; }
-Vallist::Vallist(std::initializer_list<Value>) { std::cout << "Vallist(<init-list>)\n"; }
+Vallist::Vallist() = default;
+Vallist::Vallist(std::vector<Value> values)
+    : impl(make_owning<Vallist::Impl>(Vallist::Impl{std::move(values)})) {}
+Vallist::Vallist(std::initializer_list<Value> values)
+    : impl(make_owning<Vallist::Impl>(Vallist::Impl{std::vector(values.begin(), values.end())})) {}
 
 Vallist::Vallist(const Vallist&) = default;
 // NOLINTNEXTLINE
@@ -530,7 +534,14 @@ auto Vallist::operator=(Vallist&&) -> Vallist& = default;
 Vallist::~Vallist() = default;
 
 auto Vallist::size() const -> size_t { return impl->values.size(); }
-auto Vallist::get(size_t index) const -> const Value& { return impl->values.at(index); }
+auto Vallist::get(size_t index) const -> const Value& {
+    if (impl->values.size() > index) {
+        return impl->values.at(index);
+    } else {
+        return GLOBAL_NIL_CONST;
+    }
+}
+
 auto Vallist::begin() const -> std::vector<Value>::const_iterator { return impl->values.cbegin(); }
 auto Vallist::end() const -> std::vector<Value>::const_iterator { return impl->values.cend(); }
 

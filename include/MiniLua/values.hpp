@@ -4,6 +4,7 @@
 #include <functional>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -17,6 +18,8 @@
     }
 
 namespace minilua {
+
+template <size_t, class T> using T_ = T;
 
 // forward declaration
 class Value;
@@ -43,9 +46,42 @@ public:
     ~Vallist();
 
     [[nodiscard]] auto size() const -> size_t;
+
+    /**
+     * Returns the value at the given index.
+     *
+     * If the value does not exist a Nil value will be returned.
+     */
     [[nodiscard]] auto get(size_t index) const -> const Value&;
+
+    /**
+     * Iterator over the Vallist. Can be used in e.g. for loops.
+     */
     [[nodiscard]] auto begin() const -> std::vector<Value>::const_iterator;
     [[nodiscard]] auto end() const -> std::vector<Value>::const_iterator;
+
+    // helper for next method
+    template <std::size_t... Is>
+    [[nodiscard]] auto tuple(std::index_sequence<Is...>) const
+        -> std::tuple<T_<Is, std::reference_wrapper<const Value>>...> {
+        return std::make_tuple(std::cref(this->get(Is))...);
+    }
+
+    /**
+     * Will return the given number of values in a tuple.
+     *
+     * If the given number is bigger than the number of values the remaining items
+     * in the tuple will be filled with Nil.
+     *
+     * Use this for structured binding declarations:
+     *
+     * ```
+     * const auto& [val1, val2, val3] = vallist.tuple<3>();
+     * ```
+     */
+    template <std::size_t N> [[nodiscard]] auto tuple() const {
+        return tuple(std::make_index_sequence<N>{});
+    }
 
     friend auto operator<<(std::ostream&, const Vallist&) -> std::ostream&;
 };

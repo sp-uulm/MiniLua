@@ -558,6 +558,41 @@ TEST_CASE("minilua::Value") {
     }
 }
 
+TEST_CASE("Vallist") {
+    SECTION("construction") {
+        const minilua::Vallist vallist{1, 3, true, "hi"};
+        CHECK(vallist.get(0) == 1);
+        CHECK(vallist.get(1) == 3);
+        CHECK(vallist.get(2) == true);
+        CHECK(vallist.get(3) == "hi");
+    }
+    SECTION("destructuring") {
+        const minilua::Vallist vallist{1, 3, true, "hi"};
+        SECTION("exact amount") {
+            const auto& [one, three, tru, hi] = vallist.tuple<4>();
+            CHECK(one == 1);
+            CHECK(three == 3);
+            CHECK(tru == true);
+            CHECK(hi == "hi");
+        }
+        SECTION("less bindings") {
+            const auto& [one, three, tru] = vallist.tuple<3>();
+            CHECK(one == 1);
+            CHECK(three == 3);
+            CHECK(tru == true);
+        }
+        SECTION("more bindings") {
+            const auto& [one, three, tru, hi, nil1, nil2] = vallist.tuple<6>(); // NOLINT
+            CHECK(one == 1);
+            CHECK(three == 3);
+            CHECK(tru == true);
+            CHECK(hi == "hi");
+            CHECK(nil1 == minilua::Nil());
+            CHECK(nil2 == minilua::Nil());
+        }
+    }
+}
+
 TEST_CASE("minilua::Environment") {
     SECTION("from unordered_map") {
         std::unordered_map<std::string, int> map;
