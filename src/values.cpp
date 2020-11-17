@@ -523,7 +523,8 @@ Vallist::Vallist() = default;
 Vallist::Vallist(std::vector<Value> values)
     : impl(make_owning<Vallist::Impl>(Vallist::Impl{std::move(values)})) {}
 Vallist::Vallist(std::initializer_list<Value> values)
-    : impl(make_owning<Vallist::Impl>(Vallist::Impl{std::vector(values.begin(), values.end())})) {}
+    : impl(make_owning<Vallist::Impl>(
+          Vallist::Impl{std::vector<Value>(values.begin(), values.end())})) {}
 
 Vallist::Vallist(const Vallist&) = default;
 // NOLINTNEXTLINE
