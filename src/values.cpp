@@ -374,6 +374,19 @@ auto Value::raw() const -> const Value::Type& { return impl->val; }
     return std::holds_alternative<NativeFunction>(this->raw());
 }
 
+[[nodiscard]] auto Value::has_origin() const -> bool {
+    return !std::holds_alternative<NoOrigin>(this->impl->origin.origin);
+}
+
+[[nodiscard]] auto Value::remove_origin() const -> Value {
+    return this->with_origin(Origin{NoOrigin()});
+}
+[[nodiscard]] auto Value::with_origin(Origin new_origin) const -> Value {
+    Value new_value{*this};
+    new_value.impl->origin = std::move(new_origin);
+    return new_value;
+}
+
 auto Value::force(Value new_value, std::string origin) -> SourceChange {
     // TODO force value
     return SourceChange();
