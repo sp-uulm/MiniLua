@@ -2,21 +2,49 @@
 
 #include <cmath>
 #include <iostream>
+#include <regex>
+#include <set>
+#include <sstream>
 #include <stdexcept>
+#include <string>
+#include <variant>
 
 namespace minilua {
 
 // struct Nil
+[[nodiscard]] auto Nil::to_literal() const -> std::string { return "nil"; }
 auto operator<<(std::ostream& os, Nil /*unused*/) -> std::ostream& { return os << "Nil"; }
 Nil::operator bool() const { return false; }
 
+static const Value GLOBAL_NIL_CONST = Nil();
+
 // struct Bool
+[[nodiscard]] auto Bool::to_literal() const -> std::string {
+    if (this->value) {
+        return "true";
+    } else {
+        return "false";
+    }
+}
 auto operator<<(std::ostream& os, Bool self) -> std::ostream& {
     return os << "Bool(" << std::boolalpha << self.value << std::noboolalpha << ")";
 }
 Bool::operator bool() const { return this->value; }
 
 // struct Number
+[[nodiscard]] auto Number::to_literal() const -> std::string {
+    // NOTE: use stringstream so we get better formatting than with std::to_string
+    std::ostringstream result;
+    if (this->value == std::floor(this->value)) {
+        result << static_cast<long>(this->value);
+    } else {
+        // TODO maybe we can use a better float representation algorithm than the default c++
+        // (not sure what c++ uses by default)
+
+        result << this->value;
+    }
+    return result.str();
+}
 auto operator<<(std::ostream& os, Number self) -> std::ostream& {
     return os << "Number(" << self.value << ")";
 }
@@ -50,8 +78,83 @@ auto operator|(Number lhs, Number rhs) -> Number {
     return Number(lhs_int | rhs_int);
 }
 
+// helper function to escape characters in string literals
+auto escape_char(char c) -> std::string {
+    if (0 <= c && c <= 31) { // NOLINT
+        switch (c) {
+        case 7: // NOLINT
+            return "\\a";
+        case 8: // NOLINT
+            return "\\b";
+        case 9: // NOLINT
+            return "\\t";
+        case 10: // NOLINT
+            return "\\n";
+        case 11: // NOLINT
+            return "\\v";
+        case 12: // NOLINT
+            return "\\f";
+        case 13: // NOLINT
+            return "\\r";
+        default:
+            // format as \000
+            std::array<char, 4> escaped;
+            std::snprintf(escaped.data(), 4, "%3d", c);
+            std::string escaped_str;
+            escaped_str.reserve(4);
+            escaped_str.append("\\");
+            escaped_str.append(escaped.data());
+            return escaped_str;
+        }
+    } else if (c == '"') {
+        return "\\\"";
+    } else if (c == '\\') {
+        return "\\\\";
+    } else {
+        return std::string(1, c);
+    }
+}
+
 // struct String
 String::String(std::string value) : value(std::move(value)) {}
+
+[[nodiscard]] auto String::to_literal() const -> std::string {
+    // TODO this can probably be implemented more efficiently (and more clearly)
+
+    std::string str;
+    str.reserve(this->value.size() + 2);
+
+    // characters to replace
+    // 7 -> \a (bell)
+    // 8 -> \b (back space)
+    // 9 -> \t (horizontal tab)
+    // 10 -> \n (line feed)
+    // 11 -> \v (vertical tab)
+    // 12 -> \f (form feed)
+    // 13 -> \r (cariage return)
+    // \ -> \\
+    // " -> \"
+    // ' -> \' (not needed if string surrounded by ")
+    // invisible chars -> \000
+
+    str.append("\"");
+
+    for (char c : this->value) {
+        str.append(escape_char(c));
+    }
+
+    str.append("\"");
+
+    return str;
+}
+
+[[nodiscard]] auto String::is_valid_identifier() const -> bool {
+    // According to the lua spec:
+    // Names (also called identifiers) in Lua can be any string of letters,
+    // digits, and underscores, not beginning with a digit.
+    static std::regex regex{R"(^[A-Za-z_][\w_]*$)"};
+    return std::regex_search(this->value, regex);
+}
 
 String::operator bool() const { return true; }
 
@@ -87,6 +190,64 @@ auto Table::get(const Value& key) -> Value { return impl->value.at(key); }
 void Table::set(const Value& key, Value value) { impl->value[key] = std::move(value); }
 void Table::set(Value&& key, Value value) { impl->value[key] = std::move(value); }
 
+[[nodiscard]] auto Table::to_literal() const -> std::string {
+    // NOTE: recursive table check needs to be in a lambda because Table::Impl is private and we
+    // don't want a helper function in the public interface
+    std::set<Table::Impl*> visited;
+    auto table_to_literal = [&visited](const Table& table, const auto& rec) -> std::string {
+        visited.insert(table.impl.get());
+        auto visit_nested = [&rec, &visited](const Value& value) -> std::string {
+            return std::visit(
+                overloaded{
+                    [&visited, &rec](const Table& nested) -> std::string {
+                        if (visited.find(nested.impl.get()) != visited.end()) {
+                            throw std::runtime_error(
+                                "self recursive table can't be converted to literal");
+                        }
+                        return rec(nested, rec);
+                    },
+                    [](const auto& nested) -> std::string { return nested.to_literal(); }},
+                value.raw());
+        };
+
+        // TODO should we sort keys for consistency?
+        std::string str;
+        str.append("{");
+
+        const char* sep = " ";
+
+        for (const auto& [key, value] : table.impl->value) {
+            if (value.is_nil()) {
+                continue;
+            }
+
+            str.append(sep);
+
+            // use strings directly as identifiers if possible
+            if (key.is_valid_identifier()) {
+                str.append(std::get<String>(key.raw()).value);
+            } else {
+                str.append("[");
+                str.append(visit_nested(key));
+                str.append("]");
+            }
+
+            str.append(" = ");
+            str.append(visit_nested(value));
+            sep = ", ";
+        }
+
+        if (!table.impl->value.empty()) {
+            str.append(" ");
+        }
+
+        str.append("}");
+        return str;
+    };
+
+    return table_to_literal(*this, table_to_literal);
+}
+
 auto Table::operator[](const Value& index) -> Value& { return impl->value[index]; }
 auto Table::operator[](const Value& index) const -> const Value& { return impl->value[index]; }
 
@@ -115,18 +276,13 @@ CallContext::CallContext(const CallContext& other) = default;
 CallContext::CallContext(CallContext&& other) = default;
 auto CallContext::operator=(const CallContext&) -> CallContext& = default;
 // NOLINTNEXTLINE
-auto CallContext::operator=(CallContext &&) -> CallContext& = default;
+auto CallContext::operator=(CallContext&&) -> CallContext& = default;
 CallContext::~CallContext() = default;
 
 auto CallContext::call_location() const -> Range { return impl->location; }
 auto CallContext::environment() const -> Environment& { return *impl->env; }
 auto CallContext::get(const std::string& name) const -> Value& { return impl->env->get(name); }
 auto CallContext::arguments() const -> const Vallist& { return impl->args; }
-auto CallContext::force_value(Value target, Value new_value) -> SourceChange {
-    // TODO
-    // needs some place to store source changes
-    return {};
-}
 
 auto operator<<(std::ostream& os, const CallContext& self) -> std::ostream& {
     return os << "CallContext{ location = " << self.impl->location
@@ -145,8 +301,11 @@ CallResult::CallResult(Vallist, SourceChange) {
 }
 
 // struct NativeFunction
-auto operator<<(std::ostream& os, const NativeFunction & /*unused*/) -> std::ostream& {
+auto operator<<(std::ostream& os, const NativeFunction& /*unused*/) -> std::ostream& {
     return os << "NativeFunction";
+}
+[[nodiscard]] auto NativeFunction::to_literal() const -> std::string {
+    throw std::runtime_error("can't create a literal for a function");
 }
 NativeFunction::operator bool() const { return true; }
 void swap(NativeFunction& self, NativeFunction& other) { std::swap(self.func, other.func); }
@@ -180,13 +339,50 @@ auto Value::operator=(const Value& other) -> Value& = default;
 auto Value::operator=(Value&& other) -> Value& = default;
 void swap(Value& self, Value& other) { std::swap(self.impl, other.impl); }
 
-auto Value::get() -> Value::Type& { return impl->val; }
-auto Value::get() const -> const Value::Type& { return impl->val; }
+auto Value::raw() -> Value::Type& { return impl->val; }
+auto Value::raw() const -> const Value::Type& { return impl->val; }
 
-auto operator==(const Value& a, const Value& b) noexcept -> bool { return a.get() == b.get(); }
+[[nodiscard]] auto Value::to_literal() const -> std::string {
+    return std::visit([](auto value) -> std::string { return value.to_literal(); }, this->raw());
+}
+
+[[nodiscard]] auto Value::is_valid_identifier() const -> bool {
+    return std::visit(
+        overloaded{
+            [](const String& value) -> bool { return value.is_valid_identifier(); },
+            [](const auto&) -> bool { return false; },
+        },
+        this->raw());
+}
+
+[[nodiscard]] auto Value::is_nil() const -> bool {
+    return std::holds_alternative<Nil>(this->raw());
+}
+[[nodiscard]] auto Value::is_bool() const -> bool {
+    return std::holds_alternative<Bool>(this->raw());
+}
+[[nodiscard]] auto Value::is_number() const -> bool {
+    return std::holds_alternative<Number>(this->raw());
+}
+[[nodiscard]] auto Value::is_string() const -> bool {
+    return std::holds_alternative<String>(this->raw());
+}
+[[nodiscard]] auto Value::is_table() const -> bool {
+    return std::holds_alternative<Table>(this->raw());
+}
+[[nodiscard]] auto Value::is_function() const -> bool {
+    return std::holds_alternative<NativeFunction>(this->raw());
+}
+
+auto Value::force(Value new_value, std::string origin) -> SourceChange {
+    // TODO force value
+    return SourceChange();
+}
+
+auto operator==(const Value& a, const Value& b) noexcept -> bool { return a.raw() == b.raw(); }
 auto operator!=(const Value& a, const Value& b) noexcept -> bool { return !(a == b); }
 auto operator<<(std::ostream& os, const Value& self) -> std::ostream& {
-    std::visit([&](const auto& value) { os << "Value(" << value << ")"; }, self.get());
+    std::visit([&](const auto& value) { os << "Value(" << value << ")"; }, self.raw());
     return os;
 }
 
@@ -194,18 +390,22 @@ auto Value::operator[](const Value& index) -> Value& {
     // TODO metatable for absent fields
     return std::visit(
         minilua::overloaded{
-            [this](minilua::Table& index) -> Value& { return (*this)[index]; },
-            [](auto & /*unused*/) -> Value& { throw std::runtime_error("unimplemented"); },
+            [&index](Table& value) -> Value& { return value[index]; },
+            [](auto& value) -> Value& {
+                throw std::runtime_error("can't index into " + std::string(value.TYPE));
+            },
         },
-        index.impl->val);
+        this->impl->val);
 }
 auto Value::operator[](const Value& index) const -> const Value& {
     return std::visit(
         overloaded{
-            [this](Table& index) -> const Value& { return (*this)[index]; },
-            [](auto & /*unused*/) -> const Value& { throw std::runtime_error("unimplemented"); },
+            [&index](const Table& value) -> const Value& { return value[index]; },
+            [](const auto& value) -> const Value& {
+                throw std::runtime_error("can't index into " + std::string(value.TYPE));
+            },
         },
-        index.impl->val);
+        this->impl->val);
 }
 
 Value::operator bool() const {
@@ -282,7 +482,7 @@ auto operator||(const Value& lhs, const Value& rhs) -> Value {
 
 namespace std {
 auto std::hash<minilua::Value>::operator()(const minilua::Value& value) const -> size_t {
-    return std::hash<minilua::Value::Type>()(value.get());
+    return std::hash<minilua::Value::Type>()(value.raw());
 }
 auto std::hash<minilua::Nil>::operator()(const minilua::Nil& /*value*/) const -> size_t {
     // lua does not allow using nil as a table key
@@ -319,20 +519,30 @@ namespace minilua {
 struct Vallist::Impl {
     std::vector<Value> values;
 };
-Vallist::Vallist() { std::cout << "Vallist()\n"; }
-Vallist::Vallist(std::vector<Value>) { std::cout << "Vallist(vector)\n"; }
-Vallist::Vallist(std::initializer_list<Value>) { std::cout << "Vallist(<init-list>)\n"; }
+Vallist::Vallist() = default;
+Vallist::Vallist(std::vector<Value> values)
+    : impl(make_owning<Vallist::Impl>(Vallist::Impl{std::move(values)})) {}
+Vallist::Vallist(std::initializer_list<Value> values)
+    : impl(make_owning<Vallist::Impl>(
+          Vallist::Impl{std::vector<Value>(values.begin(), values.end())})) {}
 
 Vallist::Vallist(const Vallist&) = default;
 // NOLINTNEXTLINE
 Vallist::Vallist(Vallist&&) = default;
 auto Vallist::operator=(const Vallist&) -> Vallist& = default;
 // NOLINTNEXTLINE
-auto Vallist::operator=(Vallist &&) -> Vallist& = default;
+auto Vallist::operator=(Vallist&&) -> Vallist& = default;
 Vallist::~Vallist() = default;
 
 auto Vallist::size() const -> size_t { return impl->values.size(); }
-auto Vallist::get(size_t index) const -> const Value& { return impl->values.at(index); }
+auto Vallist::get(size_t index) const -> const Value& {
+    if (impl->values.size() > index) {
+        return impl->values.at(index);
+    } else {
+        return GLOBAL_NIL_CONST;
+    }
+}
+
 auto Vallist::begin() const -> std::vector<Value>::const_iterator { return impl->values.cbegin(); }
 auto Vallist::end() const -> std::vector<Value>::const_iterator { return impl->values.cend(); }
 

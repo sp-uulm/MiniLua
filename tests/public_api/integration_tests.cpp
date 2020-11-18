@@ -59,8 +59,7 @@ TEST_CASE("Interpreter integration test") {
               // auto [arg1, arg2] = ctx.arguments();
               auto arg1 = ctx.arguments().get(0);
               auto arg2 = ctx.arguments().get(1);
-              auto change = ctx.force_value(arg1, arg2);
-              change.set_origin("forceValue");
+              auto change = arg1.force(arg2, "forceValue");
               return change;
           }}});
 
@@ -75,12 +74,9 @@ TEST_CASE("Interpreter integration test") {
     //      program only causes one source change?
     const auto* previous_hint = "x_coord";
 
-    for (auto& source_change : result.source_changes) {
-        if (source_change.origin() == "gui_drag_line") {
-            if (source_change.hint() == previous_hint) {
-                interpreter.apply_source_change(source_change);
-                break;
-            }
+    if (result.source_change.origin() == "gui_drag_line") {
+        if (result.source_change.hint() == previous_hint) {
+            interpreter.apply_source_change(result.source_change);
         }
     }
 }
@@ -103,7 +99,7 @@ TEST_CASE("minilua::Table") {
     table.set("table", minilua::Table());
     CAPTURE(table);
 
-    auto table2 = std::get<minilua::Table>(table.get("table").get());
+    auto table2 = std::get<minilua::Table>(table.get("table").raw());
     table2.set("x", 22); // NOLINT
 
     CAPTURE(table);
