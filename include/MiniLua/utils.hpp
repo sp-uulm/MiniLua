@@ -61,16 +61,14 @@ public:
 
     owning_ptr(const owning_ptr<T>& other) : value(new T(*other.get())) {}
 
-    owning_ptr(owning_ptr<T>&& other) noexcept(std::is_nothrow_move_constructible_v<T>)
-        : owning_ptr(new T(std::move(*other.value))) {}
+    owning_ptr(owning_ptr<T>&& other) : owning_ptr(new T(std::move(*other.value))) {}
 
     auto operator=(const owning_ptr<T>& other) -> owning_ptr<T>& {
         value.reset(new T(*other.get()));
         return *this;
     }
 
-    auto operator=(owning_ptr<T>&& other) noexcept(std::is_nothrow_move_assignable_v<T>)
-        -> owning_ptr<T>& {
+    auto operator=(owning_ptr<T>&& other) -> owning_ptr<T>& {
         *this->value = std::move(*other.value);
         return *this;
     }

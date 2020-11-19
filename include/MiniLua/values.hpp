@@ -339,6 +339,25 @@ template <> struct hash<minilua::NativeFunction> {
 
 namespace minilua {
 
+// TODO Origin does not need to be public (except maybe ExternalOrigin)
+struct NoOrigin {};
+struct ExternalOrigin {};
+struct LiteralOrigin {
+    Range location;
+};
+struct BinaryOrigin {
+    owning_ptr<Value> lhs;
+    owning_ptr<Value> rhs;
+    Range location;
+};
+struct UnaryOrigin {
+    owning_ptr<Value> val;
+    Range location;
+};
+struct Origin {
+    std::variant<NoOrigin, ExternalOrigin, LiteralOrigin, BinaryOrigin, UnaryOrigin> origin;
+};
+
 /**
  * Represents a value in lua.
  *
@@ -406,6 +425,11 @@ public:
     [[nodiscard]] auto is_table() const -> bool;
     [[nodiscard]] auto is_function() const -> bool;
 
+    [[nodiscard]] auto has_origin() const -> bool;
+
+    [[nodiscard]] auto remove_origin() const -> Value;
+    [[nodiscard]] auto with_origin(Origin new_origin) const -> Value;
+
     /**
      * Forces this value to become 'new_value'. Does not actually change the
      * value. This will only return a SourceChange that (when applied) would
@@ -438,24 +462,6 @@ public:
 auto operator==(const Value&, const Value&) noexcept -> bool;
 auto operator!=(const Value&, const Value&) noexcept -> bool;
 auto operator<<(std::ostream&, const Value&) -> std::ostream&;
-
-// TODO Origin does not need to be public (except maybe ExternalOrigin)
-struct ExternalOrigin {};
-struct LiteralOrigin {
-    Range location;
-};
-struct BinaryOrigin {
-    owning_ptr<Value> lhs;
-    owning_ptr<Value> rhs;
-    Range location;
-};
-struct UnaryOrigin {
-    owning_ptr<Value> val;
-    Range location;
-};
-struct Origin {
-    std::variant<ExternalOrigin, LiteralOrigin, BinaryOrigin, UnaryOrigin> origin;
-};
 
 } // namespace minilua
 
