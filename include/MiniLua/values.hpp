@@ -258,17 +258,21 @@ public:
     // friend auto operator<<(std::ostream&, const CallResult&) -> std::ostream&;
 };
 
-class NativeFunction {
+class Function {
     using FnType = CallResult(CallContext);
+
     std::shared_ptr<std::function<FnType>> func;
+    std::string name;
 
 public:
     constexpr static const std::string_view TYPE = "function";
 
     template <typename Fn, typename = std::enable_if_t<std::is_invocable_v<Fn, CallContext>>>
-    NativeFunction(Fn fn) {
-        this->func = std::make_shared<std::function<FnType>>();
+    Function(Fn fn) : Function(fn, "") {}
 
+    template <typename Fn, typename = std::enable_if_t<std::is_invocable_v<Fn, CallContext>>>
+    Function(Fn fn, std::string name)
+        : func(std::make_shared<std::function<FnType>>()), name(std::move(name)) {
         if constexpr (std::is_convertible_v<Fn, std::function<FnType>>) {
             *this->func = fn;
         } else if constexpr (std::is_convertible_v<std::invoke_result_t<Fn, CallContext>, Value>) {
@@ -294,12 +298,12 @@ public:
 
     explicit operator bool() const;
 
-    friend void swap(NativeFunction& self, NativeFunction& other);
+    friend void swap(Function& self, Function& other);
 
-    friend struct std::hash<NativeFunction>;
+    friend struct std::hash<Function>;
 };
 
-auto operator<<(std::ostream&, const NativeFunction&) -> std::ostream&;
+auto operator<<(std::ostream&, const Function&) -> std::ostream&;
 
 // TODO LuaFunction
 // could maybe share a type with NativeFunction (e.g. by providing lambdas)
@@ -331,8 +335,8 @@ template <> struct hash<minilua::String> {
 template <> struct hash<minilua::Table> {
     auto operator()(const minilua::Table& value) const -> size_t;
 };
-template <> struct hash<minilua::NativeFunction> {
-    auto operator()(const minilua::NativeFunction& value) const -> size_t;
+template <> struct hash<minilua::Function> {
+    auto operator()(const minilua::Function& value) const -> size_t;
 };
 
 } // namespace std
@@ -369,7 +373,7 @@ class Value {
     owning_ptr<Impl> impl;
 
 public:
-    using Type = std::variant<Nil, Bool, Number, String, Table, NativeFunction>;
+    using Type = std::variant<Nil, Bool, Number, String, Table, Function>;
 
     Value();
     Value(Type val);
@@ -383,13 +387,13 @@ public:
     Value(std::string val);
     Value(const char* val);
     Value(Table val);
-    Value(NativeFunction val);
+    Value(Function val);
 
     /**
      * NOTE: Functions with a parameter of CallContext& does not work.
      */
     template <typename Fn, typename = std::enable_if_t<std::is_invocable_v<Fn, CallContext>>>
-    Value(Fn val) : Value(NativeFunction(std::forward<Fn>(val))) {}
+    Value(Fn val) : Value(Function(std::forward<Fn>(val))) {}
 
     Value(const Value&);
     // can't use noexcept = default in older compilers (pre c++20 compilers)

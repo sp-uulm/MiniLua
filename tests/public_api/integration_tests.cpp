@@ -35,7 +35,7 @@ TEST_CASE("Interpreter integration test") {
         return std::string{"force something"};
     };
 
-    minilua::NativeFunction as_native_function = lambda;
+    minilua::Function as_native_function = lambda;
 
     // add a single variable to the environment
     interpreter.environment().add("func1", lambda);

@@ -301,14 +301,14 @@ CallResult::CallResult(Vallist, SourceChange) {
 }
 
 // struct NativeFunction
-auto operator<<(std::ostream& os, const NativeFunction& /*unused*/) -> std::ostream& {
+auto operator<<(std::ostream& os, const Function& /*unused*/) -> std::ostream& {
     return os << "NativeFunction";
 }
-[[nodiscard]] auto NativeFunction::to_literal() const -> std::string {
+[[nodiscard]] auto Function::to_literal() const -> std::string {
     throw std::runtime_error("can't create a literal for a function");
 }
-NativeFunction::operator bool() const { return true; }
-void swap(NativeFunction& self, NativeFunction& other) { std::swap(self.func, other.func); }
+Function::operator bool() const { return true; }
+void swap(Function& self, Function& other) { std::swap(self.func, other.func); }
 
 // class Value
 struct Value::Impl {
@@ -328,7 +328,7 @@ Value::Value(String val) : impl(make_owning<Impl>(Impl{.val = val})) {}
 Value::Value(std::string val) : Value(String(std::move(val))) {}
 Value::Value(const char* val) : Value(String(val)) {}
 Value::Value(Table val) : impl(make_owning<Impl>(Impl{.val = val})) {}
-Value::Value(NativeFunction val) : impl(make_owning<Impl>(Impl{.val = val})) {}
+Value::Value(Function val) : impl(make_owning<Impl>(Impl{.val = val})) {}
 
 Value::Value(const Value& other) = default;
 // NOLINTNEXTLINE
@@ -371,7 +371,7 @@ auto Value::raw() const -> const Value::Type& { return impl->val; }
     return std::holds_alternative<Table>(this->raw());
 }
 [[nodiscard]] auto Value::is_function() const -> bool {
-    return std::holds_alternative<NativeFunction>(this->raw());
+    return std::holds_alternative<Function>(this->raw());
 }
 
 [[nodiscard]] auto Value::has_origin() const -> bool {
@@ -519,8 +519,7 @@ auto std::hash<minilua::String>::operator()(const minilua::String& value) const 
 auto std::hash<minilua::Table>::operator()(const minilua::Table& value) const -> size_t {
     return std::hash<decltype(value.impl)>()(value.impl);
 }
-auto std::hash<minilua::NativeFunction>::operator()(const minilua::NativeFunction& value) const
-    -> size_t {
+auto std::hash<minilua::Function>::operator()(const minilua::Function& value) const -> size_t {
     // TODO maybe use address of shared_ptr directly
     return std::hash<decltype(value.func)>()(value.func);
 }

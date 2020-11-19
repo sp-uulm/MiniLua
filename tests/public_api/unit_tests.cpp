@@ -279,127 +279,127 @@ TEST_CASE("minilua::Value") {
     }
 
     SECTION("native function") {
-        static_assert(std::is_nothrow_move_constructible<minilua::NativeFunction>());
-        static_assert(std::is_nothrow_move_assignable<minilua::NativeFunction>());
+        static_assert(std::is_nothrow_move_constructible<minilua::Function>());
+        static_assert(std::is_nothrow_move_assignable<minilua::Function>());
         SECTION("lambda: (CallContext) -> CallResult") {
             minilua::Value value1{fn};
-            CHECK(std::holds_alternative<minilua::NativeFunction>(value1.raw()));
+            CHECK(std::holds_alternative<minilua::Function>(value1.raw()));
             CHECK(value1.is_function());
 
             auto lambda = [](minilua::CallContext /*unused*/) -> minilua::CallResult { // NOLINT
                 return minilua::CallResult();
             };
             minilua::Value value2{lambda};
-            CHECK(std::holds_alternative<minilua::NativeFunction>(value2.raw()));
+            CHECK(std::holds_alternative<minilua::Function>(value2.raw()));
             CHECK(value2.is_function());
         }
         SECTION("lambda: (const CallContext&) -> CallResult") {
             minilua::Value value1{fn_ref};
-            CHECK(std::holds_alternative<minilua::NativeFunction>(value1.raw()));
+            CHECK(std::holds_alternative<minilua::Function>(value1.raw()));
             CHECK(value1.is_function());
 
             auto lambda = [](const minilua::CallContext& /*unused*/) -> minilua::CallResult {
                 return minilua::CallResult();
             };
             minilua::Value value2{lambda};
-            CHECK(std::holds_alternative<minilua::NativeFunction>(value2.raw()));
+            CHECK(std::holds_alternative<minilua::Function>(value2.raw()));
             CHECK(value2.is_function());
         }
 
         SECTION("lambda: (CallContext) -> Vallist") {
             minilua::Value value1{fn_vallist};
-            CHECK(std::holds_alternative<minilua::NativeFunction>(value1.raw()));
+            CHECK(std::holds_alternative<minilua::Function>(value1.raw()));
             CHECK(value1.is_function());
 
             auto lambda = [](minilua::CallContext /*unused*/) -> minilua::Vallist { // NOLINT
                 return minilua::Vallist();
             };
             minilua::Value value2{lambda};
-            CHECK(std::holds_alternative<minilua::NativeFunction>(value2.raw()));
+            CHECK(std::holds_alternative<minilua::Function>(value2.raw()));
             CHECK(value2.is_function());
         }
         SECTION("lambda: (const CallContext&) -> Vallist") {
             minilua::Value value1{fn_ref_vallist};
-            CHECK(std::holds_alternative<minilua::NativeFunction>(value1.raw()));
+            CHECK(std::holds_alternative<minilua::Function>(value1.raw()));
             CHECK(value1.is_function());
 
             auto lambda = [](const minilua::CallContext& /*unused*/) -> minilua::Vallist {
                 return minilua::Vallist();
             };
             minilua::Value value2{lambda};
-            CHECK(std::holds_alternative<minilua::NativeFunction>(value2.raw()));
+            CHECK(std::holds_alternative<minilua::Function>(value2.raw()));
             CHECK(value2.is_function());
         }
 
         SECTION("lambda: (CallContext) -> Value") {
             minilua::Value value1{fn_value};
-            CHECK(std::holds_alternative<minilua::NativeFunction>(value1.raw()));
+            CHECK(std::holds_alternative<minilua::Function>(value1.raw()));
             CHECK(value1.is_function());
 
             auto lambda = [](minilua::CallContext /*unused*/) -> minilua::Value { // NOLINT
                 return minilua::Value();
             };
             minilua::Value value2{lambda};
-            CHECK(std::holds_alternative<minilua::NativeFunction>(value2.raw()));
+            CHECK(std::holds_alternative<minilua::Function>(value2.raw()));
             CHECK(value2.is_function());
         }
         SECTION("lambda: (const CallContext&) -> Value") {
             minilua::Value value1{fn_ref_value};
-            CHECK(std::holds_alternative<minilua::NativeFunction>(value1.raw()));
+            CHECK(std::holds_alternative<minilua::Function>(value1.raw()));
             CHECK(value1.is_function());
 
             auto lambda = [](const minilua::CallContext& /*unused*/) -> minilua::Value {
                 return minilua::Value();
             };
             minilua::Value value2{lambda};
-            CHECK(std::holds_alternative<minilua::NativeFunction>(value2.raw()));
+            CHECK(std::holds_alternative<minilua::Function>(value2.raw()));
             CHECK(value2.is_function());
         }
 
         SECTION("lambda: (CallContext) -> into Value") {
             minilua::Value value1{fn_string};
-            CHECK(std::holds_alternative<minilua::NativeFunction>(value1.raw()));
+            CHECK(std::holds_alternative<minilua::Function>(value1.raw()));
             CHECK(value1.is_function());
 
             auto lambda = [](minilua::CallContext /*unused*/) -> std::string { // NOLINT
                 return std::string();
             };
             minilua::Value value2{lambda};
-            CHECK(std::holds_alternative<minilua::NativeFunction>(value2.raw()));
+            CHECK(std::holds_alternative<minilua::Function>(value2.raw()));
             CHECK(value2.is_function());
         }
         SECTION("lambda: (const CallContext&) -> into Value") {
             minilua::Value value1{fn_ref_string};
-            CHECK(std::holds_alternative<minilua::NativeFunction>(value1.raw()));
+            CHECK(std::holds_alternative<minilua::Function>(value1.raw()));
             CHECK(value1.is_function());
 
             auto lambda = [](const minilua::CallContext& /*unused*/) -> std::string {
                 return std::string();
             };
             minilua::Value value2{lambda};
-            CHECK(std::holds_alternative<minilua::NativeFunction>(value2.raw()));
+            CHECK(std::holds_alternative<minilua::Function>(value2.raw()));
             CHECK(value2.is_function());
         }
 
         SECTION("lambda: (CallContext) -> void") {
             minilua::Value value1{fn_void};
-            CHECK(std::holds_alternative<minilua::NativeFunction>(value1.raw()));
+            CHECK(std::holds_alternative<minilua::Function>(value1.raw()));
             CHECK(value1.is_function());
 
             auto lambda = [](minilua::CallContext /*unused*/) { // NOLINT
             };
             minilua::Value value2{lambda};
-            CHECK(std::holds_alternative<minilua::NativeFunction>(value2.raw()));
+            CHECK(std::holds_alternative<minilua::Function>(value2.raw()));
             CHECK(value2.is_function());
         }
         SECTION("lambda: (const CallContext&) -> void") {
             minilua::Value value1{fn_ref_void};
-            CHECK(std::holds_alternative<minilua::NativeFunction>(value1.raw()));
+            CHECK(std::holds_alternative<minilua::Function>(value1.raw()));
             CHECK(value1.is_function());
 
             auto lambda = [](const minilua::CallContext& /*unused*/) {};
             minilua::Value value2{lambda};
-            CHECK(std::holds_alternative<minilua::NativeFunction>(value2.raw()));
+            CHECK(std::holds_alternative<minilua::Function>(value2.raw()));
             CHECK(value2.is_function());
         }
         SECTION("function to literal") {
