@@ -83,6 +83,7 @@ public:
         return tuple(std::make_index_sequence<N>{});
     }
 
+    friend auto operator==(const Vallist&, const Vallist&) -> bool;
     friend auto operator<<(std::ostream&, const Vallist&) -> std::ostream&;
 };
 
@@ -226,6 +227,15 @@ public:
     auto operator=(CallContext&&) -> CallContext&;
     ~CallContext();
 
+    /**
+     * Create a new call context with new arguments but reuse all other information.
+     */
+    [[nodiscard]] auto make_new(Vallist) const -> CallContext;
+
+    template <typename... Args> [[nodiscard]] auto make_new(Args... args) const -> CallContext {
+        return this->make_new(Vallist{args...});
+    }
+
     [[nodiscard]] auto call_location() const -> Range;
 
     /**
@@ -247,6 +257,9 @@ public:
 };
 
 class CallResult {
+    Vallist vallist;
+    std::optional<SourceChange> _source_change;
+
 public:
     CallResult();
     CallResult(Vallist);
@@ -255,8 +268,13 @@ public:
     CallResult(SourceChange);
     CallResult(Vallist, SourceChange);
 
+    [[nodiscard]] auto values() const -> const Vallist&;
+    [[nodiscard]] auto source_change() const -> const std::optional<SourceChange>&;
+
     // friend auto operator<<(std::ostream&, const CallResult&) -> std::ostream&;
 };
+
+auto operator==(const CallResult&, const CallResult&) -> bool;
 
 class Function {
     using FnType = CallResult(CallContext);
@@ -295,6 +313,8 @@ public:
 
     // always throws an exception. just here for convenience.
     [[nodiscard]] auto to_literal() const -> std::string;
+
+    auto call(CallContext) const -> CallResult;
 
     explicit operator bool() const;
 
@@ -445,6 +465,9 @@ public:
      * This throws an exception if the types of the values didn't match.
      */
     auto force(Value new_value, std::string origin = "") -> SourceChange;
+
+    auto call(CallContext) const -> CallResult;
+    auto bind(CallContext) const -> std::function<CallResult(Vallist)>;
 
     auto operator[](const Value&) -> Value&;
     auto operator[](const Value&) const -> const Value&;

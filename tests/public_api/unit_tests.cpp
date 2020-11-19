@@ -406,6 +406,19 @@ TEST_CASE("minilua::Value") {
             minilua::Value value{fn};
             CHECK_THROWS(value.to_literal());
         }
+        SECTION("calling a function from a function") {
+            minilua::Value simple_fn{[](minilua::CallContext) { return 1; }};
+            auto lambda = [](minilua::CallContext ctx) {
+                const auto& [callback] = ctx.arguments().tuple<1>();
+                return callback.get().bind(ctx)({});
+            };
+            minilua::Value value{minilua::Function(lambda)};
+
+            minilua::Environment env;
+            minilua::CallContext ctx(&env);
+            REQUIRE(simple_fn.call(ctx) == minilua::CallResult({1}));
+            CHECK(value.bind(ctx)({simple_fn}) == minilua::CallResult({1}));
+        }
     }
 
     SECTION("addition") {
