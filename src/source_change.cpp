@@ -16,7 +16,6 @@ auto operator<<(std::ostream& os, const Range& self) -> std::ostream& {
 }
 
 // struct SourceChange
-SourceChange::SourceChange() = default;
 SourceChange::SourceChange(SCSingle change) : change(change) {}
 SourceChange::SourceChange(SCAnd change) : change(change) {}
 SourceChange::SourceChange(SCOr change) : change(change) {}
@@ -52,7 +51,6 @@ auto operator<<(std::ostream& os, const SourceChange& self) -> std::ostream& {
 }
 
 // struct SCSingle
-SCSingle::SCSingle() = default;
 SCSingle::SCSingle(Range range, std::string replacement)
     : range(range), replacement(std::move(replacement)) {}
 

@@ -16,7 +16,7 @@ struct ParseResult {
 
 struct EvalResult {
     Value value;
-    SourceChange source_change;
+    std::optional<SourceChange> source_change;
 };
 
 /**

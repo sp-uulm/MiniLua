@@ -266,7 +266,9 @@ public:
     CallResult(std::vector<Value>);
     CallResult(std::initializer_list<Value>);
     CallResult(SourceChange);
+    CallResult(std::optional<SourceChange>);
     CallResult(Vallist, SourceChange);
+    CallResult(Vallist, std::optional<SourceChange>);
 
     [[nodiscard]] auto values() const -> const Vallist&;
     [[nodiscard]] auto source_change() const -> const std::optional<SourceChange>&;
@@ -464,10 +466,10 @@ public:
      *
      * This throws an exception if the types of the values didn't match.
      */
-    auto force(Value new_value, std::string origin = "") -> SourceChange;
+    auto force(Value new_value, std::string origin = "") -> std::optional<SourceChange>;
 
-    auto call(CallContext) const -> CallResult;
-    auto bind(CallContext) const -> std::function<CallResult(Vallist)>;
+    [[nodiscard]] auto call(CallContext) const -> CallResult;
+    [[nodiscard]] auto bind(CallContext) const -> std::function<CallResult(Vallist)>;
 
     auto operator[](const Value&) -> Value&;
     auto operator[](const Value&) const -> const Value&;

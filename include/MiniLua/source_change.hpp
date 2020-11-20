@@ -64,7 +64,6 @@ struct SCSingle : public CommonSCInfo {
     Range range;
     std::string replacement;
 
-    SCSingle();
     SCSingle(Range range, std::string replacement);
 };
 
@@ -98,13 +97,11 @@ auto operator==(const SCOr& lhs, const SCOr& rhs) noexcept -> bool;
 auto operator!=(const SCOr& lhs, const SCOr& rhs) noexcept -> bool;
 auto operator<<(std::ostream&, const SCOr&) -> std::ostream&;
 
-// can't be just "using SourceChange = ..." because we need a forward reference above
 class SourceChange {
 public:
     using Type = std::variant<SCSingle, SCAnd, SCOr>;
     Type change;
 
-    SourceChange();
     SourceChange(SCSingle);
     SourceChange(SCAnd);
     SourceChange(SCOr);

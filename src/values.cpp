@@ -303,8 +303,11 @@ CallResult::CallResult(Vallist vallist) : vallist(std::move(vallist)) {}
 CallResult::CallResult(std::vector<Value> values) : CallResult(Vallist(std::move(values))) {}
 CallResult::CallResult(std::initializer_list<Value> values) : CallResult(Vallist(values)) {}
 CallResult::CallResult(SourceChange sc) : _source_change(sc) {}
+CallResult::CallResult(std::optional<SourceChange> sc) : _source_change(std::move(sc)) {}
 CallResult::CallResult(Vallist vallist, SourceChange sc)
     : vallist(std::move(vallist)), _source_change(sc) {}
+CallResult::CallResult(Vallist vallist, std::optional<SourceChange> sc)
+    : vallist(std::move(vallist)), _source_change(std::move(sc)) {}
 
 [[nodiscard]] auto CallResult::values() const -> const Vallist& { return this->vallist; }
 [[nodiscard]] auto CallResult::source_change() const -> const std::optional<SourceChange>& {
@@ -407,9 +410,9 @@ auto Value::raw() const -> const Value::Type& { return impl->val; }
     return new_value;
 }
 
-auto Value::force(Value new_value, std::string origin) -> SourceChange {
+auto Value::force(Value new_value, std::string origin) -> std::optional<SourceChange> {
     // TODO force value
-    return SourceChange();
+    return SourceChange(SCAnd());
 }
 
 auto Value::call(CallContext call_context) const -> CallResult {
