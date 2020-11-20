@@ -1,8 +1,10 @@
 #ifndef MINILUA_SOURCE_CHANGE_HPP
 #define MINILUA_SOURCE_CHANGE_HPP
 
+#include "MiniLua/utils.hpp"
 #include <cstdint>
 #include <iostream>
+#include <numeric>
 #include <optional>
 #include <variant>
 #include <vector>
@@ -112,11 +114,89 @@ public:
     void set_origin(std::string);
     void set_hint(std::string);
 
+    /**
+     * Visit the root node of the tree of source changes.
+     *
+     * You have to manually navigate the tree.
+     *
+     * Visitor has to be callable with SCSingle&, SCAnd&, SCOr& (or with const
+     * references for the const version of the method).
+     *
+     * For possible implementations see visit_left.
+     */
     template <typename Visitor> decltype(auto) visit(Visitor visitor) {
         return std::visit(visitor, change);
     }
     template <typename Visitor> decltype(auto) visit(Visitor visitor) const {
         return std::visit(visitor, change);
+    }
+
+    // TODO this could be an iterator
+
+    /**
+     * Visits only the first child (left) of an or node. And nodes are completely visited.
+     */
+    template <typename Visitor> void visit_left(Visitor visitor) {
+        this->visit(overloaded{
+            [&visitor](SCSingle& leaf_node) { visitor(leaf_node); },
+            [&visitor](SCAnd& and_node) {
+                for (auto& change : and_node.changes) {
+                    change.visit_left(visitor);
+                }
+            },
+            [&visitor](SCOr& or_node) {
+                if (!or_node.changes.empty()) {
+                    or_node.changes[0].visit_left(visitor);
+                }
+            }});
+    }
+    template <typename Visitor> void visit_left(Visitor visitor) const {
+        this->visit(overloaded{
+            [&visitor](const SCSingle& leaf_node) { visitor(leaf_node); },
+            [&visitor](const SCAnd& and_node) {
+                for (const auto& change : and_node.changes) {
+                    change.visit_left(visitor);
+                }
+            },
+            [&visitor](const SCOr& or_node) {
+                if (!or_node.changes.empty()) {
+                    or_node.changes[0].visit_left(visitor);
+                }
+            }});
+    }
+
+    /**
+     * Visit all leaf nodes (SCSingle).
+     */
+    template <typename Visitor> void visit_all(Visitor visitor) {
+        this->visit(overloaded{
+            [&visitor](SCSingle& leaf_node) { visitor(leaf_node); },
+            [&visitor](SCAnd& and_node) {
+                for (auto& change : and_node.changes) {
+                    change.visit_left(visitor);
+                }
+            },
+            [&visitor](SCOr& or_node) {
+                for (auto& change : or_node.changes) {
+                    change.visit_left(visitor);
+                }
+            },
+        });
+    }
+    template <typename Visitor> void visit_all(Visitor visitor) const {
+        this->visit(overloaded{
+            [&visitor](const SCSingle& leaf_node) { visitor(leaf_node); },
+            [&visitor](const SCAnd& and_node) {
+                for (const auto& change : and_node.changes) {
+                    change.visit_left(visitor);
+                }
+            },
+            [&visitor](const SCOr& or_node) {
+                for (const auto& change : or_node.changes) {
+                    change.visit_left(visitor);
+                }
+            },
+        });
     }
 
     auto operator*() -> Type&;
