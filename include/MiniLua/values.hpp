@@ -12,6 +12,7 @@
 #include "source_change.hpp"
 #include "utils.hpp"
 
+// helper macros to delegate a binary operator
 #define DELEGATE_OP(TYPE, OP)                                                                      \
     constexpr auto operator OP(const TYPE& lhs, const TYPE& rhs)->TYPE {                           \
         return TYPE(lhs.value OP rhs.value);                                                       \
@@ -19,11 +20,31 @@
 
 namespace minilua {
 
+// helper template used later to repeat a type in fold expression
 template <size_t, class T> using T_ = T;
 
 // forward declaration
 class Value;
 
+/**
+ * A vallist can contain an arbitrary amount of 'Value's.
+ *
+ * You can use a Vallist in destructuring assignments. You have to specify the
+ * number of values you want. If the number is lower than the amount of values
+ * it will simply return the first values. If the number is higher than the
+ * amount of values it will return references to a Nil value for the remaining
+ * values. Note: This will actually return 'std::reference_wrapper's because
+ * it's not possible to put references inside a tuple. That means that you have
+ * to call 'get' on the values.
+ *
+ * ```
+ * auto& [one, two, three] = vallist.tuple<3>();
+ * out.get();
+ * two.get();
+ * ```
+ *
+ * You can iterate over a Vallist and you can get one element by index using 'get'.
+ */
 class Vallist {
     struct Impl;
     owning_ptr<Impl> impl;
@@ -45,12 +66,15 @@ public:
     auto operator=(Vallist&&) -> Vallist&;
     ~Vallist();
 
+    /**
+     * Returns the number of actual Values in the Vallist.
+     */
     [[nodiscard]] auto size() const -> size_t;
 
     /**
      * Returns the value at the given index.
      *
-     * If the value does not exist a Nil value will be returned.
+     * If the value does not exist a reference to a Nil value will be returned.
      */
     [[nodiscard]] auto get(size_t index) const -> const Value&;
 
@@ -78,6 +102,10 @@ public:
      * ```
      * const auto& [val1, val2, val3] = vallist.tuple<3>();
      * ```
+     *
+     * NOTE: The values will be 'std::reference_wrapper's becuase it's not
+     * possible to put references in a tuple. You have to call 'get' on the
+     * values before using it.
      */
     template <std::size_t N> [[nodiscard]] auto tuple() const {
         return tuple(std::make_index_sequence<N>{});
@@ -211,6 +239,11 @@ public:
     explicit operator bool() const;
 };
 
+/**
+ * Contains information for use in the implementation of native functions.
+ *
+ * Contains the arguments and the environment.
+ */
 class CallContext {
     struct Impl;
     owning_ptr<Impl> impl;
@@ -236,15 +269,19 @@ public:
         return this->make_new(Vallist{args...});
     }
 
+    /**
+     * Returns the location of the call.
+     */
     [[nodiscard]] auto call_location() const -> Range;
 
     /**
      * Returns a reference to the global environment.
+     * You can't access local variables with this.
      */
     [[nodiscard]] auto environment() const -> Environment&;
 
     /**
-     * Returns the value of a variable accessible from the function.
+     * Returns the value of a global variable accessible from the function.
      */
     [[nodiscard]] auto get(const std::string& name) const -> Value&;
 
@@ -256,6 +293,11 @@ public:
     friend auto operator<<(std::ostream&, const CallContext&) -> std::ostream&;
 };
 
+/**
+ * Return value of the implementation of native function.
+ *
+ * Contains the actual return value and optionally source changes.
+ */
 class CallResult {
     Vallist vallist;
     std::optional<SourceChange> _source_change;
@@ -270,7 +312,13 @@ public:
     CallResult(Vallist, SourceChange);
     CallResult(Vallist, std::optional<SourceChange>);
 
+    /**
+     * Get the return values.
+     */
     [[nodiscard]] auto values() const -> const Vallist&;
+    /**
+     * Get the source change.
+     */
     [[nodiscard]] auto source_change() const -> const std::optional<SourceChange>&;
 
     // friend auto operator<<(std::ostream&, const CallResult&) -> std::ostream&;
@@ -365,7 +413,6 @@ template <> struct hash<minilua::Function> {
 
 namespace minilua {
 
-// TODO Origin does not need to be public (except maybe ExternalOrigin)
 struct NoOrigin {};
 struct ExternalOrigin {};
 struct LiteralOrigin {

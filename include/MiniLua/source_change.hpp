@@ -42,6 +42,9 @@ constexpr auto operator>=(Location lhs, Location rhs) noexcept -> bool {
 }
 auto operator<<(std::ostream&, const Location&) -> std::ostream&;
 
+/**
+ * Represents a range/span in source code.
+ */
 struct Range {
     Location start;
     Location end;
@@ -55,6 +58,7 @@ auto operator<<(std::ostream&, const Range&) -> std::ostream&;
 
 class SourceChange;
 
+// common information for source changes
 struct CommonSCInfo {
     // can be filled in by the function creating the suggestion
     std::string origin;
@@ -62,6 +66,9 @@ struct CommonSCInfo {
     std::string hint;
 };
 
+/**
+ * A source change for a single location.
+ */
 struct SCSingle : public CommonSCInfo {
     Range range;
     std::string replacement;
@@ -73,6 +80,9 @@ auto operator==(const SCSingle& lhs, const SCSingle& rhs) noexcept -> bool;
 auto operator!=(const SCSingle& lhs, const SCSingle& rhs) noexcept -> bool;
 auto operator<<(std::ostream&, const SCSingle&) -> std::ostream&;
 
+/**
+ * Multiple source changes that has to all be applied together.
+ */
 struct SCAnd : public CommonSCInfo {
     std::vector<SourceChange> changes;
 
@@ -86,6 +96,9 @@ auto operator==(const SCAnd& lhs, const SCAnd& rhs) noexcept -> bool;
 auto operator!=(const SCAnd& lhs, const SCAnd& rhs) noexcept -> bool;
 auto operator<<(std::ostream&, const SCAnd&) -> std::ostream&;
 
+/**
+ * Multiple source changes where only one can be applied.
+ */
 struct SCOr : public CommonSCInfo {
     std::vector<SourceChange> changes;
 
@@ -99,6 +112,9 @@ auto operator==(const SCOr& lhs, const SCOr& rhs) noexcept -> bool;
 auto operator!=(const SCOr& lhs, const SCOr& rhs) noexcept -> bool;
 auto operator<<(std::ostream&, const SCOr&) -> std::ostream&;
 
+/**
+ * Wrapper for a source change tree.
+ */
 class SourceChange {
 public:
     using Type = std::variant<SCSingle, SCAnd, SCOr>;
@@ -109,9 +125,22 @@ public:
     SourceChange(SCOr);
     SourceChange(Type);
 
+    /**
+     * Returns the origin of the root source change.
+     */
     [[nodiscard]] auto origin() const -> const std::string&;
+    /**
+     * Returns the hint of the root source change.
+     */
     [[nodiscard]] auto hint() const -> const std::string&;
+
+    /**
+     * Set the origin of the root source change.
+     */
     void set_origin(std::string);
+    /**
+     * Set the hint of the root source change.
+     */
     void set_hint(std::string);
 
     /**
@@ -199,6 +228,7 @@ public:
         });
     }
 
+    // dereference to the underlying variant type
     auto operator*() -> Type&;
     auto operator*() const -> const Type&;
 
