@@ -66,7 +66,9 @@ TEST_CASE("Interpreter integration test") {
     std::cout << interpreter.environment() << "\n";
 
     // parse and run a program
-    interpreter.parse("x_coord = 10; forceValue(x_coord, 25)");
+    if (!interpreter.parse("x_coord = 10; forceValue(x_coord, 25)")) {
+        FAIL("parse failed");
+    }
     minilua::EvalResult result = interpreter.evaluate();
 
     // choose source changes to apply

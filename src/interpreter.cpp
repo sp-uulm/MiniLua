@@ -5,7 +5,7 @@
 
 namespace minilua {
 
-ParseResult::operator bool() const { return !this->errors.empty(); }
+ParseResult::operator bool() const { return this->errors.empty(); }
 
 // TODO incomplete
 // can maybe also be included in the Interpreter::Impl

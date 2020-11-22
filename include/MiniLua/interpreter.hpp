@@ -12,7 +12,7 @@ namespace minilua {
  * Result of calling Interpreter::parse.
  *
  * Contains a list of errors and can be converted to a bool.
- * Is true if there are errors.
+ * True means sucessful parse, false means there are errors.
  */
 struct ParseResult {
     std::vector<std::string> errors;

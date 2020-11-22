@@ -3,6 +3,8 @@
 
 #include <sstream>
 
+using Catch::Matchers::Matches;
+
 TEST_CASE("minilua::owning_ptr") {
     SECTION("creating a new object") {
         minilua::owning_ptr<std::string> x = minilua::make_owning<std::string>("hi"); // NOLINT
@@ -45,6 +47,24 @@ TEST_CASE("minilua::owning_ptr") {
 
         minilua::owning_ptr<X> x = minilua::make_owning<X>(X{});
         REQUIRE(x.get() != nullptr);
+    }
+
+    SECTION("can't be constructed from a nullptr") {
+        REQUIRE_THROWS(minilua::owning_ptr<int>(nullptr));
+    }
+
+    SECTION("is printable for printable types") {
+        minilua::owning_ptr<std::string> x = minilua::make_owning<std::string>("hi");
+        std::stringstream ss;
+        ss << x;
+        REQUIRE(ss.str() == "owning_ptr(hi)");
+    }
+    SECTION("is printable for non printable types") {
+        struct X {};
+        minilua::owning_ptr<X> x;
+        std::stringstream ss;
+        ss << x;
+        REQUIRE_THAT(ss.str(), Matches(R"#(owning_ptr\(0x[0-9a-f]+\))#"));
     }
 }
 
@@ -711,6 +731,13 @@ TEST_CASE("minilua::Environment") {
         std::stringstream err;
         env.set_stderr(&err);
         REQUIRE(&err == env.get_stderr());
+    }
+
+    SECTION("nullptr as I/O is not allowed") {
+        minilua::Environment env;
+        REQUIRE_THROWS(env.set_stdin(nullptr));
+        REQUIRE_THROWS(env.set_stdout(nullptr));
+        REQUIRE_THROWS(env.set_stderr(nullptr));
     }
 }
 

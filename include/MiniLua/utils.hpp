@@ -95,11 +95,8 @@ public:
     }
 
     friend auto operator==(const owning_ptr<T>& lhs, const owning_ptr<T>& rhs) -> bool {
-        if (lhs.get() == nullptr) {
-            // can' derefence nullptr
-            return rhs.get() == nullptr;
-        } else if (rhs.get() == nullptr) {
-            return false;
+        if (lhs.get() == nullptr || rhs.get() == nullptr) {
+            throw std::runtime_error("owning_ptr has become null by error (because copy/move/swap threw an error)");
         }
 
         return *lhs == *rhs;
