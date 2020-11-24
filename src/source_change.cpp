@@ -34,6 +34,14 @@ void SourceChange::set_hint(std::string hint) {
     this->visit([&hint](auto& change) { change.hint = std::move(hint); });
 }
 
+[[nodiscard]] auto SourceChange::collect_left() const -> std::vector<SCSingle> {
+    std::vector<SCSingle> changes;
+
+    this->visit_left([&changes](const SCSingle& single) { changes.push_back(single); });
+
+    return changes;
+}
+
 auto SourceChange::operator*() -> Type& { return change; }
 auto SourceChange::operator*() const -> const Type& { return change; }
 auto SourceChange::operator->() -> Type* { return &change; }

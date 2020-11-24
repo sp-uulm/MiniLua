@@ -78,7 +78,7 @@ TEST_CASE("Interpreter integration test") {
 
     if (result.source_change && result.source_change->origin() == "gui_drag_line") {
         if (result.source_change->hint() == previous_hint) {
-            interpreter.apply_source_change(result.source_change.value());
+            interpreter.apply_source_changes(result.source_change.value().collect_left());
         }
     }
 }

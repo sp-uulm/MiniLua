@@ -93,12 +93,9 @@ public:
     auto parse(std::string source_code) -> ParseResult;
 
     /**
-     * Applies a source change.
-     *
-     * A source change can be a bigger tree of and-ed and or-ed changes. For
-     * or-ed changes only the first branch of the tree will be applied.
+     * Applies a list of single source changes.
      */
-    void apply_source_change(SourceChange);
+    void apply_source_changes(std::vector<SCSingle>);
 
     /**
      * Run the parsed program.

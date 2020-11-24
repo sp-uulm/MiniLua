@@ -228,6 +228,11 @@ public:
         });
     }
 
+    /**
+     * Collect only the left side of or-branches.
+     */
+    [[nodiscard]] auto collect_left() const -> std::vector<SCSingle>;
+
     // dereference to the underlying variant type
     auto operator*() -> Type&;
     auto operator*() const -> const Type&;

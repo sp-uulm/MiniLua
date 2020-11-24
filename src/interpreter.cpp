@@ -42,9 +42,9 @@ auto Interpreter::parse(std::string source_code) -> ParseResult {
     std::cout << "parse\n";
     return ParseResult();
 }
-void Interpreter::apply_source_change(SourceChange change) {
+void Interpreter::apply_source_changes(std::vector<SCSingle> source_changes) {
     // TODO apply source change
-    std::cout << "apply_source_change\n";
+    std::cout << "apply_source_changes\n";
 }
 auto Interpreter::evaluate() -> EvalResult {
     // TODO evaluate
