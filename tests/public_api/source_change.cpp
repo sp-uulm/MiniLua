@@ -41,27 +41,45 @@ TEST_CASE("minilua::Range") {
 }
 
 TEST_CASE("minilua::SourceChange") {
-    auto change = minilua::SCSingle(minilua::Range{{0, 0, 0}, {0, 5, 5}}, "replacement"); // NOLINT
+    auto change =
+        minilua::SourceChange(minilua::Range{{0, 0, 0}, {0, 5, 5}}, "replacement"); // NOLINT
     change.hint = "hint";
     change.origin = "origin";
-    INFO(change);
     REQUIRE(change == change);
-    minilua::SourceChange source_change{change};
+    minilua::SourceChangeTree source_change{change};
 
-    INFO(source_change);
     REQUIRE(source_change.origin() == "origin");
     REQUIRE(source_change.hint() == "hint");
     REQUIRE(source_change == source_change);
 
-    auto change2 = minilua::SCSingle(minilua::Range{{0, 0, 0}, {0, 5, 5}}, "replacement"); // NOLINT
+    auto change2 =
+        minilua::SourceChange(minilua::Range{{0, 0, 0}, {0, 5, 5}}, "replacement"); // NOLINT
     change2.hint = "hint";
     change2.origin = "origin";
-    INFO(change2);
-    minilua::SourceChange source_change2{change2};
+    minilua::SourceChangeTree source_change2{change2};
     REQUIRE(source_change == source_change2);
 
-    auto combined_change = minilua::SCAnd({source_change, source_change2});
-    INFO(combined_change);
-    minilua::SourceChange source_change3{combined_change};
-    INFO(source_change3);
+    auto combined_change = minilua::SourceChangeCombination({source_change, source_change2});
+    minilua::SourceChangeTree source_change3{combined_change};
+    source_change3.origin() = "new_origin";
+    source_change3.hint() = "new_hint";
+
+    // kind, range, replacement, origin, hint
+    std::vector<std::tuple<std::string, minilua::Range, std::string, std::string, std::string>>
+        visited_elements;
+
+    source_change3.visit_all([&visited_elements](const minilua::SourceChange& change) {
+        visited_elements.emplace_back(
+            "SourceChange", change.range, change.replacement, change.origin, change.hint);
+    });
+
+    REQUIRE_THAT(
+        visited_elements,
+        Catch::Matchers::UnorderedEquals(
+            std::vector<
+                std::tuple<std::string, minilua::Range, std::string, std::string, std::string>>{
+                {"SourceChange", minilua::Range{{0, 0, 0}, {0, 5, 5}}, "replacement", "origin",
+                 "hint"},
+                {"SourceChange", minilua::Range{{0, 0, 0}, {0, 5, 5}}, "replacement", "origin",
+                 "hint"}}));
 }

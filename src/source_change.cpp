@@ -16,98 +16,111 @@ auto operator<<(std::ostream& os, const Range& self) -> std::ostream& {
 }
 
 // struct SourceChange
-SourceChange::SourceChange(SCSingle change) : change(change) {}
-SourceChange::SourceChange(SCAnd change) : change(change) {}
-SourceChange::SourceChange(SCOr change) : change(change) {}
-SourceChange::SourceChange(Type change) : change(std::move(change)) {}
+SourceChangeTree::SourceChangeTree(SourceChange change) : change(change) {}
+SourceChangeTree::SourceChangeTree(SourceChangeCombination change) : change(change) {}
+SourceChangeTree::SourceChangeTree(SourceChangeAlternative change) : change(change) {}
+SourceChangeTree::SourceChangeTree(Type change) : change(std::move(change)) {}
 
-[[nodiscard]] auto SourceChange::origin() const -> const std::string& {
+[[nodiscard]] auto SourceChangeTree::origin() const -> const std::string& {
     return this->visit([](const auto& change) -> const std::string& { return change.origin; });
 }
-[[nodiscard]] auto SourceChange::hint() const -> const std::string& {
+auto SourceChangeTree::origin() -> std::string& {
+    return this->visit([](auto& change) -> std::string& { return change.origin; });
+}
+[[nodiscard]] auto SourceChangeTree::hint() const -> const std::string& {
     return this->visit([](const auto& change) -> const std::string& { return change.hint; });
 }
-void SourceChange::set_origin(std::string origin) {
-    this->visit([&origin](auto& change) { change.origin = std::move(origin); });
-}
-void SourceChange::set_hint(std::string hint) {
-    this->visit([&hint](auto& change) { change.hint = std::move(hint); });
+auto SourceChangeTree::hint() -> std::string& {
+    return this->visit([](auto& change) -> std::string& { return change.hint; });
 }
 
-[[nodiscard]] auto SourceChange::collect_left() const -> std::vector<SCSingle> {
-    std::vector<SCSingle> changes;
+[[nodiscard]] auto SourceChangeTree::collect_first_alternative() const
+    -> std::vector<SourceChange> {
+    std::vector<SourceChange> changes;
 
-    this->visit_left([&changes](const SCSingle& single) { changes.push_back(single); });
+    this->visit_left([&changes](const SourceChange& single) { changes.push_back(single); });
 
     return changes;
 }
 
-auto SourceChange::operator*() -> Type& { return change; }
-auto SourceChange::operator*() const -> const Type& { return change; }
-auto SourceChange::operator->() -> Type* { return &change; }
+auto SourceChangeTree::operator*() -> Type& { return change; }
+auto SourceChangeTree::operator*() const -> const Type& { return change; }
+auto SourceChangeTree::operator->() -> Type* { return &change; }
 
-auto operator==(const SourceChange& lhs, const SourceChange& rhs) noexcept -> bool {
+auto operator==(const SourceChangeTree& lhs, const SourceChangeTree& rhs) noexcept -> bool {
     return *lhs == *rhs;
 }
-auto operator!=(const SourceChange& lhs, const SourceChange& rhs) noexcept -> bool {
+auto operator!=(const SourceChangeTree& lhs, const SourceChangeTree& rhs) noexcept -> bool {
     return !(lhs == rhs);
 }
-auto operator<<(std::ostream& os, const SourceChange& self) -> std::ostream& {
+auto operator<<(std::ostream& os, const SourceChangeTree& self) -> std::ostream& {
     os << "SourceChange{ change = ";
     self.visit([&os](const auto& change) { os << change; });
     return os << " }";
 }
 
 // struct SCSingle
-SCSingle::SCSingle(Range range, std::string replacement)
+SourceChange::SourceChange(Range range, std::string replacement)
     : range(range), replacement(std::move(replacement)) {}
 
-auto operator==(const SCSingle& lhs, const SCSingle& rhs) noexcept -> bool {
+auto operator==(const SourceChange& lhs, const SourceChange& rhs) noexcept -> bool {
     return lhs.range == rhs.range && lhs.replacement == rhs.replacement &&
            lhs.origin == rhs.origin && lhs.hint == rhs.hint;
 }
-auto operator!=(const SCSingle& lhs, const SCSingle& rhs) noexcept -> bool { return !(lhs == rhs); }
-auto operator<<(std::ostream& os, const SCSingle& self) -> std::ostream& {
+auto operator!=(const SourceChange& lhs, const SourceChange& rhs) noexcept -> bool {
+    return !(lhs == rhs);
+}
+auto operator<<(std::ostream& os, const SourceChange& self) -> std::ostream& {
     return os << "SCSingle{ range = " << self.range << ", replacement = \"" << self.replacement
               << "\", origin = \"" << self.origin << "\", hint = \"" << self.hint << "\" }";
 }
 
 // struct SCAnd
-SCAnd::SCAnd() = default;
-SCAnd::SCAnd(std::vector<SourceChange> changes) : changes(std::move(changes)) {}
+SourceChangeCombination::SourceChangeCombination() = default;
+SourceChangeCombination::SourceChangeCombination(std::vector<SourceChangeTree> changes)
+    : changes(std::move(changes)) {}
 
-void SCAnd::add(SourceChange change) { changes.push_back(std::move(change)); }
+void SourceChangeCombination::add(SourceChangeTree change) { changes.push_back(std::move(change)); }
 
-auto operator==(const SCAnd& lhs, const SCAnd& rhs) noexcept -> bool {
+auto operator==(const SourceChangeCombination& lhs, const SourceChangeCombination& rhs) noexcept
+    -> bool {
     return lhs.changes == rhs.changes;
 }
-auto operator!=(const SCAnd& lhs, const SCAnd& rhs) noexcept -> bool { return !(lhs == rhs); }
-auto operator<<(std::ostream& os, const SCAnd& self) -> std::ostream& {
+auto operator!=(const SourceChangeCombination& lhs, const SourceChangeCombination& rhs) noexcept
+    -> bool {
+    return !(lhs == rhs);
+}
+auto operator<<(std::ostream& os, const SourceChangeCombination& self) -> std::ostream& {
     os << "SCAnd { ";
-    const char* sep = "";
+    os << "origin = \"" << self.origin << "\", ";
+    os << "hint = \"" << self.hint << "\"";
     for (const auto& change : self.changes) {
-        os << sep << change;
-        sep = ", ";
+        os << ", " << change;
     }
     return os << " }";
 }
 
 // struct SCOr
-SCOr::SCOr() = default;
-SCOr::SCOr(std::vector<SourceChange> changes) : changes(std::move(changes)) {}
+SourceChangeAlternative::SourceChangeAlternative() = default;
+SourceChangeAlternative::SourceChangeAlternative(std::vector<SourceChangeTree> changes)
+    : changes(std::move(changes)) {}
 
-void SCOr::add(SourceChange change) { changes.push_back(change); }
+void SourceChangeAlternative::add(SourceChangeTree change) { changes.push_back(change); }
 
-auto operator==(const SCOr& lhs, const SCOr& rhs) noexcept -> bool {
+auto operator==(const SourceChangeAlternative& lhs, const SourceChangeAlternative& rhs) noexcept
+    -> bool {
     return lhs.changes == rhs.changes;
 }
-auto operator!=(const SCOr& lhs, const SCOr& rhs) noexcept -> bool { return !(lhs == rhs); }
-auto operator<<(std::ostream& os, const SCOr& self) -> std::ostream& {
+auto operator!=(const SourceChangeAlternative& lhs, const SourceChangeAlternative& rhs) noexcept
+    -> bool {
+    return !(lhs == rhs);
+}
+auto operator<<(std::ostream& os, const SourceChangeAlternative& self) -> std::ostream& {
     os << "SCOr { ";
-    const char* sep = "";
+    os << "origin = \"" << self.origin << "\", ";
+    os << "hint = \"" << self.hint << "\"";
     for (const auto& change : self.changes) {
-        os << sep << change;
-        sep = ", ";
+        os << ", " << change;
     }
     return os << " }";
 }

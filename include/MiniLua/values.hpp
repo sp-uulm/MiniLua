@@ -300,17 +300,17 @@ public:
  */
 class CallResult {
     Vallist vallist;
-    std::optional<SourceChange> _source_change;
+    std::optional<SourceChangeTree> _source_change;
 
 public:
     CallResult();
     CallResult(Vallist);
     CallResult(std::vector<Value>);
     CallResult(std::initializer_list<Value>);
-    CallResult(SourceChange);
-    CallResult(std::optional<SourceChange>);
-    CallResult(Vallist, SourceChange);
-    CallResult(Vallist, std::optional<SourceChange>);
+    CallResult(SourceChangeTree);
+    CallResult(std::optional<SourceChangeTree>);
+    CallResult(Vallist, SourceChangeTree);
+    CallResult(Vallist, std::optional<SourceChangeTree>);
 
     /**
      * Get the return values.
@@ -319,7 +319,7 @@ public:
     /**
      * Get the source change.
      */
-    [[nodiscard]] auto source_change() const -> const std::optional<SourceChange>&;
+    [[nodiscard]] auto source_change() const -> const std::optional<SourceChangeTree>&;
 
     // friend auto operator<<(std::ostream&, const CallResult&) -> std::ostream&;
 };
@@ -513,7 +513,7 @@ public:
      *
      * This throws an exception if the types of the values didn't match.
      */
-    auto force(Value new_value, std::string origin = "") -> std::optional<SourceChange>;
+    auto force(Value new_value, std::string origin = "") -> std::optional<SourceChangeTree>;
 
     [[nodiscard]] auto call(CallContext) const -> CallResult;
     [[nodiscard]] auto bind(CallContext) const -> std::function<CallResult(Vallist)>;

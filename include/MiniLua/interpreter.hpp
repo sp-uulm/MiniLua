@@ -28,7 +28,7 @@ struct ParseResult {
  */
 struct EvalResult {
     Value value;
-    std::optional<SourceChange> source_change;
+    std::optional<SourceChangeTree> source_change;
 };
 
 /**
@@ -95,7 +95,7 @@ public:
     /**
      * Applies a list of single source changes.
      */
-    void apply_source_changes(std::vector<SCSingle>);
+    void apply_source_changes(std::vector<SourceChange>);
 
     /**
      * Run the parsed program.
