@@ -1,6 +1,7 @@
 #include "MiniLua/interpreter.hpp"
 
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace minilua {
@@ -22,11 +23,11 @@ public:
 class Tree {};
 
 struct Interpreter::Impl {
-    Parser parser;
-    Tree tree;
-    Environment env;
+    Parser parser;   // NOLINT(misc-non-private-member-variables-in-classes)
+    Tree tree;       // NOLINT(misc-non-private-member-variables-in-classes)
+    Environment env; // NOLINT(misc-non-private-member-variables-in-classes)
 
-    Impl(Parser parser, Environment env) : parser(parser), env(std::move(env)) {}
+    Impl(Parser parser, Environment env) : parser(std::move(parser)), env(std::move(env)) {}
 };
 
 Interpreter::Interpreter() : Interpreter("") {}

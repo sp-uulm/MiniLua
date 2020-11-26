@@ -334,8 +334,8 @@ Function::operator bool() const { return true; }
 void swap(Function& self, Function& other) { std::swap(self.func, other.func); }
 
 // class Origin
-Origin::Origin() {}
-Origin::Origin(Type origin) : origin(origin) {}
+Origin::Origin() = default;
+Origin::Origin(Type origin) : origin(std::move(origin)) {}
 
 [[nodiscard]] auto Origin::raw() const -> const Type& { return this->origin; }
 auto Origin::raw() -> Type& { return this->origin; }
@@ -396,7 +396,7 @@ auto Value::raw() const -> const Value::Type& { return impl->val; }
     return std::visit(
         overloaded{
             [](const String& value) -> bool { return value.is_valid_identifier(); },
-            [](const auto&) -> bool { return false; },
+            [](const auto& /*unused*/) -> bool { return false; },
         },
         this->raw());
 }
@@ -439,11 +439,13 @@ auto Value::force(Value new_value, std::string origin) -> std::optional<SourceCh
 auto Value::call(CallContext call_context) const -> CallResult {
     return std::visit(
         overloaded{
-            [call_context](const Function& value) -> CallResult {
-                return value.call(call_context);
+            [&call_context](const Function& value) -> CallResult {
+                return value.call(std::move(call_context));
             },
             // TODO tables with metatable with __call
-            [](auto&) -> CallResult { throw std::runtime_error("can't call non function"); },
+            [](auto& /*unused*/) -> CallResult {
+                throw std::runtime_error("can't call non function");
+            },
         },
         this->raw());
 }
@@ -456,7 +458,7 @@ auto Value::bind(CallContext call_context) const -> std::function<CallResult(Val
                     return value.call(call_context.make_new(std::move(args)));
                 };
             },
-            [](auto&) -> std::function<CallResult(Vallist)> {
+            [](auto& /*unused*/) -> std::function<CallResult(Vallist)> {
                 throw std::runtime_error("can't bind to a non function");
             },
         },

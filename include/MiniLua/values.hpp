@@ -86,7 +86,7 @@ public:
 
     // helper for next method
     template <std::size_t... Is>
-    [[nodiscard]] auto tuple(std::index_sequence<Is...>) const
+    [[nodiscard]] auto tuple(std::index_sequence<Is...> /*unused*/) const
         -> std::tuple<T_<Is, std::reference_wrapper<const Value>>...> {
         return std::make_tuple(std::cref(this->get(Is))...);
     }
@@ -122,12 +122,12 @@ struct Nil {
 
     explicit operator bool() const;
 };
-constexpr auto operator==(Nil, Nil) noexcept -> bool { return true; }
-constexpr auto operator!=(Nil, Nil) noexcept -> bool { return false; }
+constexpr auto operator==(Nil /*unused*/, Nil /*unused*/) noexcept -> bool { return true; }
+constexpr auto operator!=(Nil /*unused*/, Nil /*unused*/) noexcept -> bool { return false; }
 auto operator<<(std::ostream&, Nil) -> std::ostream&;
 
 struct Bool {
-    bool value;
+    bool value; // NOLINT(misc-non-private-member-variables-in-classes)
 
     constexpr static const std::string_view TYPE = "boolean";
 
@@ -147,7 +147,7 @@ DELEGATE_OP(Bool, ||);
 DELEGATE_OP(Bool, ^);
 
 struct Number {
-    double value;
+    double value; // NOLINT(misc-non-private-member-variables-in-classes)
 
     constexpr static const std::string_view TYPE = "number";
 
@@ -184,7 +184,7 @@ auto operator&(Number lhs, Number rhs) -> Number;
 auto operator|(Number lhs, Number rhs) -> Number;
 
 struct String {
-    std::string value;
+    std::string value; // NOLINT(misc-non-private-member-variables-in-classes)
 
     constexpr static const std::string_view TYPE = "string";
 
