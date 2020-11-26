@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/CMakeFiles/tree-sitter-lua-populate"
+		},
+		{
+			"file" : "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/CMakeFiles/tree-sitter-lua-populate.rule"
+		},
+		{
+			"file" : "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/CMakeFiles/tree-sitter-lua-populate-complete.rule"
+		},
+		{
+			"file" : "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-install.rule"
+		},
+		{
+			"file" : "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-mkdir.rule"
+		},
+		{
+			"file" : "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-download.rule"
+		},
+		{
+			"file" : "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-update.rule"
+		},
+		{
+			"file" : "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-patch.rule"
+		},
+		{
+			"file" : "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-configure.rule"
+		},
+		{
+			"file" : "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-build.rule"
+		},
+		{
+			"file" : "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-test.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"tree-sitter-lua-populate"
+		],
+		"name" : "tree-sitter-lua-populate"
+	}
+}

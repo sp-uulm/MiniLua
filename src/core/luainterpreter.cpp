@@ -24,40 +24,40 @@ eval_result_t ASTEvaluator::visit(const _LuaOp& op, const shared_ptr<Environment
     rhs = fst(rhs);
 
     switch (op.op.type) {
-    case LuaToken::Type::ADD:
-        return op_add(lhs, rhs, op.op) << (lhs_sc & rhs_sc);
-    case LuaToken::Type::SUB:
-        return op_sub(lhs, rhs, op.op) << (lhs_sc & rhs_sc);
-    case LuaToken::Type::MUL:
-        return op_mul(lhs, rhs, op.op) << (lhs_sc & rhs_sc);
-    case LuaToken::Type::DIV:
-        return op_div(lhs, rhs, op.op) << (lhs_sc & rhs_sc);
-    case LuaToken::Type::POW:
-        return op_pow(lhs, rhs, op.op) << (lhs_sc & rhs_sc);
-    case LuaToken::Type::MOD:
-        return op_mod(lhs, rhs, op.op) << (lhs_sc & rhs_sc);
-    case LuaToken::Type::CONCAT:
-        return op_concat(lhs, rhs) << (lhs_sc & rhs_sc);
-    case LuaToken::Type::EVAL:
-        return op_eval(lhs, rhs, op.op) << (lhs_sc & rhs_sc);
-    case LuaToken::Type::LT:
-        return op_lt(lhs, rhs) << (lhs_sc & rhs_sc);
-    case LuaToken::Type::LEQ:
-        return op_leq(lhs, rhs) << (lhs_sc & rhs_sc);
-    case LuaToken::Type::GT:
-        return op_gt(lhs, rhs) << (lhs_sc & rhs_sc);
-    case LuaToken::Type::GEQ:
-        return op_geq(lhs, rhs) << (lhs_sc & rhs_sc);
-    case LuaToken::Type::EQ:
-        return op_eq(lhs, rhs) << (lhs_sc & rhs_sc);
-    case LuaToken::Type::NEQ:
-        return op_neq(lhs, rhs) << (lhs_sc & rhs_sc);
-    case LuaToken::Type::AND:
-        return op_and(lhs, rhs) << (lhs_sc & rhs_sc);
-    case LuaToken::Type::OR:
-        return op_or(lhs, rhs) << (lhs_sc & rhs_sc);
-    default:
-        return string{op.op.match + " is not a binary operator"};
+        case LuaToken::Type::ADD:
+            return op_add(lhs, rhs, op.op) << (lhs_sc & rhs_sc);
+        case LuaToken::Type::SUB:
+            return op_sub(lhs, rhs, op.op) << (lhs_sc & rhs_sc);
+        case LuaToken::Type::MUL:
+            return op_mul(lhs, rhs, op.op) << (lhs_sc & rhs_sc);
+        case LuaToken::Type::DIV:
+            return op_div(lhs, rhs, op.op) << (lhs_sc & rhs_sc);
+        case LuaToken::Type::POW:
+            return op_pow(lhs, rhs, op.op) << (lhs_sc & rhs_sc);
+        case LuaToken::Type::MOD:
+            return op_mod(lhs, rhs, op.op) << (lhs_sc & rhs_sc);
+        case LuaToken::Type::CONCAT:
+            return op_concat(lhs, rhs) << (lhs_sc & rhs_sc);
+        case LuaToken::Type::EVAL:
+            return op_eval(lhs, rhs, op.op) << (lhs_sc & rhs_sc);
+        case LuaToken::Type::LT:
+            return op_lt(lhs, rhs) << (lhs_sc & rhs_sc);
+        case LuaToken::Type::LEQ:
+            return op_leq(lhs, rhs) << (lhs_sc & rhs_sc);
+        case LuaToken::Type::GT:
+            return op_gt(lhs, rhs) << (lhs_sc & rhs_sc);
+        case LuaToken::Type::GEQ:
+            return op_geq(lhs, rhs) << (lhs_sc & rhs_sc);
+        case LuaToken::Type::EQ:
+            return op_eq(lhs, rhs) << (lhs_sc & rhs_sc);
+        case LuaToken::Type::NEQ:
+            return op_neq(lhs, rhs) << (lhs_sc & rhs_sc);
+        case LuaToken::Type::AND:
+            return op_and(lhs, rhs) << (lhs_sc & rhs_sc);
+        case LuaToken::Type::OR:
+            return op_or(lhs, rhs) << (lhs_sc & rhs_sc);
+        default:
+            return string{op.op.match + " is not a binary operator"};
     }
 }
 

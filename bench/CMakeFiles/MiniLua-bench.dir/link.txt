@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/MiniLua-bench.dir/main.cpp.o CMakeFiles/MiniLua-bench.dir/tree_sitter.cpp.o -o MiniLua-bench  -Wl,-rpath,/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src ../extern/tree-sitter/libtree-sitter.a ../src/libMiniLua.so 

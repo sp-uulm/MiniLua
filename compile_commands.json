@@ -1,1 +1,112 @@
-build/compile_commands.json
+[
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua",
+  "command": "/usr/bin/cc  -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -fPIC -Wall -o CMakeFiles/TreeSitterLua.dir/extern/tree-sitter-lua/src/parser.c.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter-lua/src/parser.c",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter-lua/src/parser.c"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua",
+  "command": "/usr/bin/c++  -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -fPIC -Wall -std=c++17 -o CMakeFiles/TreeSitterLua.dir/extern/tree-sitter-lua/src/scanner.cc.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter-lua/src/scanner.cc",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter-lua/src/scanner.cc"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src",
+  "command": "/usr/bin/c++ -DMiniLua_EXPORTS -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -fPIC -Wall -std=c++17 -o CMakeFiles/MiniLua.dir/core/environment.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/environment.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/environment.cpp"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src",
+  "command": "/usr/bin/c++ -DMiniLua_EXPORTS -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -fPIC -Wall -std=c++17 -o CMakeFiles/MiniLua.dir/core/luaast.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/luaast.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/luaast.cpp"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src",
+  "command": "/usr/bin/c++ -DMiniLua_EXPORTS -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -fPIC -Wall -std=c++17 -o CMakeFiles/MiniLua.dir/core/luainterpreter.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/luainterpreter.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/luainterpreter.cpp"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src",
+  "command": "/usr/bin/c++ -DMiniLua_EXPORTS -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -fPIC -Wall -std=c++17 -o CMakeFiles/MiniLua.dir/core/luaparser.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/luaparser.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/luaparser.cpp"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src",
+  "command": "/usr/bin/c++ -DMiniLua_EXPORTS -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -fPIC -Wall -std=c++17 -o CMakeFiles/MiniLua.dir/core/luatoken.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/luatoken.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/luatoken.cpp"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src",
+  "command": "/usr/bin/c++ -DMiniLua_EXPORTS -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -fPIC -Wall -std=c++17 -o CMakeFiles/MiniLua.dir/core/operators.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/operators.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/operators.cpp"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src",
+  "command": "/usr/bin/c++ -DMiniLua_EXPORTS -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -fPIC -Wall -std=c++17 -o CMakeFiles/MiniLua.dir/core/sourcechange.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/sourcechange.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/sourcechange.cpp"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src",
+  "command": "/usr/bin/c++ -DMiniLua_EXPORTS -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -fPIC -Wall -std=c++17 -o CMakeFiles/MiniLua.dir/core/sourceexp.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/sourceexp.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/sourceexp.cpp"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src",
+  "command": "/usr/bin/c++ -DMiniLua_EXPORTS -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -fPIC -Wall -std=c++17 -o CMakeFiles/MiniLua.dir/core/val.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/val.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/val.cpp"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src",
+  "command": "/usr/bin/c++ -DMiniLua_EXPORTS -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -fPIC -Wall -std=c++17 -o CMakeFiles/MiniLua.dir/tree_sitter/edit_helper.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/tree_sitter/edit_helper.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/tree_sitter/edit_helper.cpp"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src",
+  "command": "/usr/bin/c++ -DMiniLua_EXPORTS -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -fPIC -Wall -std=c++17 -o CMakeFiles/MiniLua.dir/tree_sitter/tree_sitter.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/tree_sitter/tree_sitter.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/tree_sitter/tree_sitter.cpp"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/tests",
+  "command": "/usr/bin/c++  -I/lib/include -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/catch2/single_include -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -Wall -std=c++17 -o CMakeFiles/MiniLua-tests.dir/main.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/tests/main.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/tests/main.cpp"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/tests",
+  "command": "/usr/bin/c++  -I/lib/include -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/catch2/single_include -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -Wall -std=c++17 -o CMakeFiles/MiniLua-tests.dir/unit_tests.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/tests/unit_tests.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/tests/unit_tests.cpp"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/tests",
+  "command": "/usr/bin/c++  -I/lib/include -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/catch2/single_include -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -Wall -std=c++17 -o CMakeFiles/MiniLua-tests.dir/integration_tests.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/tests/integration_tests.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/tests/integration_tests.cpp"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/tests",
+  "command": "/usr/bin/c++  -I/lib/include -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/catch2/single_include -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -Wall -std=c++17 -o CMakeFiles/MiniLua-tests.dir/tree_sitter.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/tests/tree_sitter.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/tests/tree_sitter.cpp"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/bench",
+  "command": "/usr/bin/c++  -I/lib/include -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/catch2/single_include -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -Wall -std=c++17 -o CMakeFiles/MiniLua-bench.dir/main.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/bench/main.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/bench/main.cpp"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/bench",
+  "command": "/usr/bin/c++  -I/lib/include -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/catch2/single_include -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -Wall -std=c++17 -o CMakeFiles/MiniLua-bench.dir/tree_sitter.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/bench/tree_sitter.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/bench/tree_sitter.cpp"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/examples/cli",
+  "command": "/usr/bin/c++  -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -g -Wall -std=c++17 -o CMakeFiles/MiniLua-cli.dir/main.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/examples/cli/main.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/examples/cli/main.cpp"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/examples/gui",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -g -Wall -fPIC -std=c++17 -o CMakeFiles/MiniLua-gui.dir/gui.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/examples/gui/gui.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/examples/gui/gui.cpp"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/examples/gui",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -isystem /usr/include/qt -isystem /usr/include/qt/QtWidgets -isystem /usr/include/qt/QtGui -isystem /usr/include/qt/QtCore -isystem /usr/lib/qt/mkspecs/linux-g++ -g -Wall -fPIC -std=c++17 -o CMakeFiles/MiniLua-gui.dir/moc_gui.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/examples/gui/moc_gui.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/examples/gui/moc_gui.cpp"
+}
+]

@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/MiniLua-tests.dir/main.cpp.o CMakeFiles/MiniLua-tests.dir/unit_tests.cpp.o CMakeFiles/MiniLua-tests.dir/integration_tests.cpp.o CMakeFiles/MiniLua-tests.dir/tree_sitter.cpp.o -o MiniLua-tests  -Wl,-rpath,/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src ../src/libMiniLua.so ../extern/tree-sitter/libtree-sitter.a 

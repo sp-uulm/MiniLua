@@ -1,0 +1,14 @@
+# Target labels
+ tree-sitter-lua-populate
+# Source files and their labels
+/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/CMakeFiles/tree-sitter-lua-populate
+/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/CMakeFiles/tree-sitter-lua-populate.rule
+/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/CMakeFiles/tree-sitter-lua-populate-complete.rule
+/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-install.rule
+/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-mkdir.rule
+/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-download.rule
+/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-update.rule
+/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-patch.rule
+/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-configure.rule
+/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-build.rule
+/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-lua-subbuild/tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-test.rule

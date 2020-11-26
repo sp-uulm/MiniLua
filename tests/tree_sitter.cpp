@@ -1,11 +1,19 @@
 #include <catch2/catch.hpp>
 #include <cstring>
 #include <iostream>
+#include <fstream>
 #include <type_traits>
 
 #include "tree_sitter/tree_sitter.hpp"
 
 using namespace std::string_literals;
+
+std::string read_input_from_file2(std::string path){
+    std::ifstream ifs;
+    ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    ifs.open(path);
+    return std::string(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
+}
 
 TEST_CASE("Navigation", "[tree-sitter][.hide]") {
     // This is a possible design of how to use tree-sitter in the interpreter.
@@ -82,10 +90,21 @@ TEST_CASE("Navigation", "[tree-sitter][.hide]") {
 TEST_CASE("Print", "[tree-sitter][.hide]") {
     ts::Parser parser;
 
-    std::string source = "print(1+2)";
+    std::string source = "print(1+5)";
     ts::Tree tree = parser.parse_string(source);
     ts::Node root = tree.root_node();
+    
+    INFO(root.as_s_expr());
+    FAIL();
+}
 
+TEST_CASE("TestCase for program", "[tree-sitter]"){
+    ts::Parser parser;
+
+    std::string source = read_input_from_file2("../luaprograms/FragmeentedFurniture.lua");
+    ts::Tree tree = parser.parse_string(source);
+    ts::Node root = tree.root_node();
+    
     INFO(root.as_s_expr());
     FAIL();
 }

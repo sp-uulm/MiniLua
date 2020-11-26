@@ -1,0 +1,11 @@
+# Hashes of file build rules.
+afdff91c5dbc94611c643b3538b1b7ad CMakeFiles/tree-sitter-lua-populate
+ec5b91dcc13a76129946df502f987dd1 CMakeFiles/tree-sitter-lua-populate-complete
+bf160731a12074b3620e68e4a75e9496 tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-build
+536588aff4856f447260b329858175eb tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-configure
+386276ceee4390f8c188e6398ae2b0ca tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-download
+362cc5937f84b792576a7603a97fe6d2 tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-install
+44ce27c04abb3e90f0be295aad7562b1 tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-mkdir
+cfbddc9bfd26226f5e90b762b1ae9b03 tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-patch
+a1fcbd7c22f7f827090624129c0f7426 tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-test
+9bf0cd0328e3e9644d6ff182ebe673fa tree-sitter-lua-populate-prefix/src/tree-sitter-lua-populate-stamp/tree-sitter-lua-populate-update

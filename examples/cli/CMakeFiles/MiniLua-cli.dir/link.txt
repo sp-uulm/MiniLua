@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/MiniLua-cli.dir/main.cpp.o -o MiniLua-cli  -Wl,-rpath,/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src: ../../src/libMiniLua.so 

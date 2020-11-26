@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/MiniLua-gui.dir/gui.cpp.o CMakeFiles/MiniLua-gui.dir/moc_gui.cpp.o -o MiniLua-gui  -Wl,-rpath,/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src: ../../src/libMiniLua.so /usr/lib/libQt5Widgets.so.5.15.1 /usr/lib/libQt5Gui.so.5.15.1 /usr/lib/libQt5Core.so.5.15.1 
