@@ -35,7 +35,7 @@ TEST_CASE("Interpreter integration test") {
         return std::string{"force something"};
     };
 
-    minilua::NativeFunction as_native_function = lambda;
+    minilua::Function as_native_function = lambda;
 
     // add a single variable to the environment
     interpreter.environment().add("func1", lambda);
@@ -66,7 +66,9 @@ TEST_CASE("Interpreter integration test") {
     std::cout << interpreter.environment() << "\n";
 
     // parse and run a program
-    interpreter.parse("x_coord = 10; forceValue(x_coord, 25)");
+    if (!interpreter.parse("x_coord = 10; forceValue(x_coord, 25)")) {
+        FAIL("parse failed");
+    }
     minilua::EvalResult result = interpreter.evaluate();
 
     // choose source changes to apply
@@ -74,9 +76,10 @@ TEST_CASE("Interpreter integration test") {
     //      program only causes one source change?
     const auto* previous_hint = "x_coord";
 
-    if (result.source_change.origin() == "gui_drag_line") {
-        if (result.source_change.hint() == previous_hint) {
-            interpreter.apply_source_change(result.source_change);
+    if (result.source_change && result.source_change->origin() == "gui_drag_line") {
+        if (result.source_change->hint() == previous_hint) {
+            interpreter.apply_source_changes(
+                result.source_change.value().collect_first_alternative());
         }
     }
 }

@@ -53,6 +53,14 @@ public:
             "no default constructor for owning_ptr because T does not have one");
     }
 
+    /**
+     * Creates an owning_ptr from the given pointer.
+     *
+     * This will take ownership of the heap location at the pointer. You should
+     * not manually free the pointer after calling this constructor.
+     *
+     * Will throw 'std::invalid_argument' exception if the value is 'nullptr'.
+     */
     explicit owning_ptr(T* value) : value(value) {
         if (value == nullptr) {
             throw std::invalid_argument("owning_ptr can't contain a nullptr");
@@ -75,19 +83,20 @@ public:
 
     friend void swap(owning_ptr<T>& lhs, owning_ptr<T>& rhs) { std::swap(lhs.value, rhs.value); }
 
+    /**
+     * Get a pointer to the heap value.
+     */
     auto get() const noexcept -> typename std::unique_ptr<T>::pointer { return value.get(); }
 
+    // derefence to a pointer to the heap value
     auto operator*() const -> T& { return value.operator*(); }
     auto operator->() const noexcept -> typename std::unique_ptr<T>::pointer {
         return value.operator->();
     }
 
     friend auto operator==(const owning_ptr<T>& lhs, const owning_ptr<T>& rhs) -> bool {
-        if (lhs.get() == nullptr) {
-            // can' derefence nullptr
-            return rhs.get() == nullptr;
-        } else if (rhs.get() == nullptr) {
-            return false;
+        if (lhs.get() == nullptr || rhs.get() == nullptr) {
+            throw std::runtime_error("owning_ptr has become null by error (because copy/move/swap threw an error)");
         }
 
         return *lhs == *rhs;
@@ -105,6 +114,7 @@ public:
     }
 };
 
+// Helper function to create owning_ptr. Similar to make_unique, etc.
 template <typename T, typename... Args> auto make_owning(Args... args) -> owning_ptr<T> {
     return owning_ptr<T>(new T(std::forward<Args>(args)...));
 }

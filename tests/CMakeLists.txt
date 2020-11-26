@@ -3,7 +3,10 @@ add_executable(MiniLua-tests
     unit_tests.cpp
     integration_tests.cpp
     public_api/integration_tests.cpp
-    public_api/unit_tests.cpp
+    public_api/owning_ptr.cpp
+    public_api/values.cpp
+    public_api/environment.cpp
+    public_api/source_change.cpp
     tree_sitter.cpp)
 target_include_directories(MiniLua-tests PRIVATE ${tree-sitter_SOURCE_DIR}/lib/include)
 target_link_libraries(MiniLua-tests

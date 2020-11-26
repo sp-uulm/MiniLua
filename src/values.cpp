@@ -7,6 +7,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <variant>
 
 namespace minilua {
@@ -279,6 +280,12 @@ auto CallContext::operator=(const CallContext&) -> CallContext& = default;
 auto CallContext::operator=(CallContext&&) -> CallContext& = default;
 CallContext::~CallContext() = default;
 
+[[nodiscard]] auto CallContext::make_new(Vallist args) const -> CallContext {
+    CallContext new_cc{*this};
+    new_cc.impl->args = std::move(args);
+    return new_cc;
+}
+
 auto CallContext::call_location() const -> Range { return impl->location; }
 auto CallContext::environment() const -> Environment& { return *impl->env; }
 auto CallContext::get(const std::string& name) const -> Value& { return impl->env->get(name); }
@@ -291,24 +298,40 @@ auto operator<<(std::ostream& os, const CallContext& self) -> std::ostream& {
 }
 
 // class CallResult
-CallResult::CallResult() { std::cout << "CallResult\n"; }
-CallResult::CallResult(Vallist) { std::cout << "CallResult(Vallist)\n"; }
-CallResult::CallResult(std::vector<Value> values) : CallResult(Vallist(values)) {}
+CallResult::CallResult() = default;
+CallResult::CallResult(Vallist vallist) : vallist(std::move(vallist)) {}
+CallResult::CallResult(std::vector<Value> values) : CallResult(Vallist(std::move(values))) {}
 CallResult::CallResult(std::initializer_list<Value> values) : CallResult(Vallist(values)) {}
-CallResult::CallResult(SourceChange) { std::cout << "CallResult(SourceChange)\n"; }
-CallResult::CallResult(Vallist, SourceChange) {
-    std::cout << "CallResult(Vallist, SourceChange)\n";
+CallResult::CallResult(SourceChangeTree sc) : _source_change(sc) {}
+CallResult::CallResult(std::optional<SourceChangeTree> sc) : _source_change(std::move(sc)) {}
+CallResult::CallResult(Vallist vallist, SourceChangeTree sc)
+    : vallist(std::move(vallist)), _source_change(sc) {}
+CallResult::CallResult(Vallist vallist, std::optional<SourceChangeTree> sc)
+    : vallist(std::move(vallist)), _source_change(std::move(sc)) {}
+
+[[nodiscard]] auto CallResult::values() const -> const Vallist& { return this->vallist; }
+[[nodiscard]] auto CallResult::source_change() const -> const std::optional<SourceChangeTree>& {
+    return this->_source_change;
+}
+
+auto operator==(const CallResult& lhs, const CallResult& rhs) -> bool {
+    return lhs.values() == rhs.values(); // && lhs.source_change() == rhs.source_change();
 }
 
 // struct NativeFunction
-auto operator<<(std::ostream& os, const NativeFunction& /*unused*/) -> std::ostream& {
+auto operator<<(std::ostream& os, const Function& /*unused*/) -> std::ostream& {
     return os << "NativeFunction";
 }
-[[nodiscard]] auto NativeFunction::to_literal() const -> std::string {
+[[nodiscard]] auto Function::to_literal() const -> std::string {
     throw std::runtime_error("can't create a literal for a function");
 }
-NativeFunction::operator bool() const { return true; }
-void swap(NativeFunction& self, NativeFunction& other) { std::swap(self.func, other.func); }
+
+auto Function::call(CallContext call_context) const -> CallResult {
+    return (*this->func)(std::move(call_context));
+}
+
+Function::operator bool() const { return true; }
+void swap(Function& self, Function& other) { std::swap(self.func, other.func); }
 
 // class Value
 struct Value::Impl {
@@ -328,7 +351,7 @@ Value::Value(String val) : impl(make_owning<Impl>(Impl{.val = val})) {}
 Value::Value(std::string val) : Value(String(std::move(val))) {}
 Value::Value(const char* val) : Value(String(val)) {}
 Value::Value(Table val) : impl(make_owning<Impl>(Impl{.val = val})) {}
-Value::Value(NativeFunction val) : impl(make_owning<Impl>(Impl{.val = val})) {}
+Value::Value(Function val) : impl(make_owning<Impl>(Impl{.val = val})) {}
 
 Value::Value(const Value& other) = default;
 // NOLINTNEXTLINE
@@ -371,7 +394,7 @@ auto Value::raw() const -> const Value::Type& { return impl->val; }
     return std::holds_alternative<Table>(this->raw());
 }
 [[nodiscard]] auto Value::is_function() const -> bool {
-    return std::holds_alternative<NativeFunction>(this->raw());
+    return std::holds_alternative<Function>(this->raw());
 }
 
 [[nodiscard]] auto Value::has_origin() const -> bool {
@@ -387,9 +410,36 @@ auto Value::raw() const -> const Value::Type& { return impl->val; }
     return new_value;
 }
 
-auto Value::force(Value new_value, std::string origin) -> SourceChange {
+auto Value::force(Value new_value, std::string origin) -> std::optional<SourceChangeTree> {
     // TODO force value
-    return SourceChange();
+    return SourceChangeTree(SourceChangeCombination());
+}
+
+auto Value::call(CallContext call_context) const -> CallResult {
+    return std::visit(
+        overloaded{
+            [call_context](const Function& value) -> CallResult {
+                return value.call(call_context);
+            },
+            // TODO tables with metatable with __call
+            [](auto&) -> CallResult { throw std::runtime_error("can't call non function"); },
+        },
+        this->raw());
+}
+auto Value::bind(CallContext call_context) const -> std::function<CallResult(Vallist)> {
+    return std::visit(
+        overloaded{
+            [call_context = std::move(call_context)](
+                const Function& value) -> std::function<CallResult(Vallist)> {
+                return [call_context, &value](Vallist args) {
+                    return value.call(call_context.make_new(std::move(args)));
+                };
+            },
+            [](auto&) -> std::function<CallResult(Vallist)> {
+                throw std::runtime_error("can't bind to a non function");
+            },
+        },
+        this->raw());
 }
 
 auto operator==(const Value& a, const Value& b) noexcept -> bool { return a.raw() == b.raw(); }
@@ -519,8 +569,7 @@ auto std::hash<minilua::String>::operator()(const minilua::String& value) const 
 auto std::hash<minilua::Table>::operator()(const minilua::Table& value) const -> size_t {
     return std::hash<decltype(value.impl)>()(value.impl);
 }
-auto std::hash<minilua::NativeFunction>::operator()(const minilua::NativeFunction& value) const
-    -> size_t {
+auto std::hash<minilua::Function>::operator()(const minilua::Function& value) const -> size_t {
     // TODO maybe use address of shared_ptr directly
     return std::hash<decltype(value.func)>()(value.func);
 }
@@ -558,6 +607,10 @@ auto Vallist::get(size_t index) const -> const Value& {
 
 auto Vallist::begin() const -> std::vector<Value>::const_iterator { return impl->values.cbegin(); }
 auto Vallist::end() const -> std::vector<Value>::const_iterator { return impl->values.cend(); }
+
+auto operator==(const Vallist& lhs, const Vallist& rhs) -> bool {
+    return lhs.impl->values == rhs.impl->values;
+}
 
 auto operator<<(std::ostream& os, const Vallist& self) -> std::ostream& {
     os << "Vallist{ ";

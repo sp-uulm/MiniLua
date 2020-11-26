@@ -12,6 +12,7 @@
 #include "source_change.hpp"
 #include "utils.hpp"
 
+// helper macros to delegate a binary operator
 #define DELEGATE_OP(TYPE, OP)                                                                      \
     constexpr auto operator OP(const TYPE& lhs, const TYPE& rhs)->TYPE {                           \
         return TYPE(lhs.value OP rhs.value);                                                       \
@@ -19,11 +20,31 @@
 
 namespace minilua {
 
+// helper template used later to repeat a type in fold expression
 template <size_t, class T> using T_ = T;
 
 // forward declaration
 class Value;
 
+/**
+ * A vallist can contain an arbitrary amount of 'Value's.
+ *
+ * You can use a Vallist in destructuring assignments. You have to specify the
+ * number of values you want. If the number is lower than the amount of values
+ * it will simply return the first values. If the number is higher than the
+ * amount of values it will return references to a Nil value for the remaining
+ * values. Note: This will actually return 'std::reference_wrapper's because
+ * it's not possible to put references inside a tuple. That means that you have
+ * to call 'get' on the values.
+ *
+ * ```
+ * auto& [one, two, three] = vallist.tuple<3>();
+ * out.get();
+ * two.get();
+ * ```
+ *
+ * You can iterate over a Vallist and you can get one element by index using 'get'.
+ */
 class Vallist {
     struct Impl;
     owning_ptr<Impl> impl;
@@ -45,12 +66,15 @@ public:
     auto operator=(Vallist&&) -> Vallist&;
     ~Vallist();
 
+    /**
+     * Returns the number of actual Values in the Vallist.
+     */
     [[nodiscard]] auto size() const -> size_t;
 
     /**
      * Returns the value at the given index.
      *
-     * If the value does not exist a Nil value will be returned.
+     * If the value does not exist a reference to a Nil value will be returned.
      */
     [[nodiscard]] auto get(size_t index) const -> const Value&;
 
@@ -78,11 +102,16 @@ public:
      * ```
      * const auto& [val1, val2, val3] = vallist.tuple<3>();
      * ```
+     *
+     * NOTE: The values will be 'std::reference_wrapper's becuase it's not
+     * possible to put references in a tuple. You have to call 'get' on the
+     * values before using it.
      */
     template <std::size_t N> [[nodiscard]] auto tuple() const {
         return tuple(std::make_index_sequence<N>{});
     }
 
+    friend auto operator==(const Vallist&, const Vallist&) -> bool;
     friend auto operator<<(std::ostream&, const Vallist&) -> std::ostream&;
 };
 
@@ -210,6 +239,11 @@ public:
     explicit operator bool() const;
 };
 
+/**
+ * Contains information for use in the implementation of native functions.
+ *
+ * Contains the arguments and the environment.
+ */
 class CallContext {
     struct Impl;
     owning_ptr<Impl> impl;
@@ -226,15 +260,28 @@ public:
     auto operator=(CallContext&&) -> CallContext&;
     ~CallContext();
 
+    /**
+     * Create a new call context with new arguments but reuse all other information.
+     */
+    [[nodiscard]] auto make_new(Vallist) const -> CallContext;
+
+    template <typename... Args> [[nodiscard]] auto make_new(Args... args) const -> CallContext {
+        return this->make_new(Vallist{args...});
+    }
+
+    /**
+     * Returns the location of the call.
+     */
     [[nodiscard]] auto call_location() const -> Range;
 
     /**
      * Returns a reference to the global environment.
+     * You can't access local variables with this.
      */
     [[nodiscard]] auto environment() const -> Environment&;
 
     /**
-     * Returns the value of a variable accessible from the function.
+     * Returns the value of a global variable accessible from the function.
      */
     [[nodiscard]] auto get(const std::string& name) const -> Value&;
 
@@ -246,29 +293,54 @@ public:
     friend auto operator<<(std::ostream&, const CallContext&) -> std::ostream&;
 };
 
+/**
+ * Return value of the implementation of native function.
+ *
+ * Contains the actual return value and optionally source changes.
+ */
 class CallResult {
+    Vallist vallist;
+    std::optional<SourceChangeTree> _source_change;
+
 public:
     CallResult();
     CallResult(Vallist);
     CallResult(std::vector<Value>);
     CallResult(std::initializer_list<Value>);
-    CallResult(SourceChange);
-    CallResult(Vallist, SourceChange);
+    CallResult(SourceChangeTree);
+    CallResult(std::optional<SourceChangeTree>);
+    CallResult(Vallist, SourceChangeTree);
+    CallResult(Vallist, std::optional<SourceChangeTree>);
+
+    /**
+     * Get the return values.
+     */
+    [[nodiscard]] auto values() const -> const Vallist&;
+    /**
+     * Get the source change.
+     */
+    [[nodiscard]] auto source_change() const -> const std::optional<SourceChangeTree>&;
 
     // friend auto operator<<(std::ostream&, const CallResult&) -> std::ostream&;
 };
 
-class NativeFunction {
+auto operator==(const CallResult&, const CallResult&) -> bool;
+
+class Function {
     using FnType = CallResult(CallContext);
+
     std::shared_ptr<std::function<FnType>> func;
+    std::string name;
 
 public:
     constexpr static const std::string_view TYPE = "function";
 
     template <typename Fn, typename = std::enable_if_t<std::is_invocable_v<Fn, CallContext>>>
-    NativeFunction(Fn fn) {
-        this->func = std::make_shared<std::function<FnType>>();
+    Function(Fn fn) : Function(fn, "") {}
 
+    template <typename Fn, typename = std::enable_if_t<std::is_invocable_v<Fn, CallContext>>>
+    Function(Fn fn, std::string name)
+        : func(std::make_shared<std::function<FnType>>()), name(std::move(name)) {
         if constexpr (std::is_convertible_v<Fn, std::function<FnType>>) {
             *this->func = fn;
         } else if constexpr (std::is_convertible_v<std::invoke_result_t<Fn, CallContext>, Value>) {
@@ -292,14 +364,16 @@ public:
     // always throws an exception. just here for convenience.
     [[nodiscard]] auto to_literal() const -> std::string;
 
+    auto call(CallContext) const -> CallResult;
+
     explicit operator bool() const;
 
-    friend void swap(NativeFunction& self, NativeFunction& other);
+    friend void swap(Function& self, Function& other);
 
-    friend struct std::hash<NativeFunction>;
+    friend struct std::hash<Function>;
 };
 
-auto operator<<(std::ostream&, const NativeFunction&) -> std::ostream&;
+auto operator<<(std::ostream&, const Function&) -> std::ostream&;
 
 // TODO LuaFunction
 // could maybe share a type with NativeFunction (e.g. by providing lambdas)
@@ -331,15 +405,14 @@ template <> struct hash<minilua::String> {
 template <> struct hash<minilua::Table> {
     auto operator()(const minilua::Table& value) const -> size_t;
 };
-template <> struct hash<minilua::NativeFunction> {
-    auto operator()(const minilua::NativeFunction& value) const -> size_t;
+template <> struct hash<minilua::Function> {
+    auto operator()(const minilua::Function& value) const -> size_t;
 };
 
 } // namespace std
 
 namespace minilua {
 
-// TODO Origin does not need to be public (except maybe ExternalOrigin)
 struct NoOrigin {};
 struct ExternalOrigin {};
 struct LiteralOrigin {
@@ -369,7 +442,7 @@ class Value {
     owning_ptr<Impl> impl;
 
 public:
-    using Type = std::variant<Nil, Bool, Number, String, Table, NativeFunction>;
+    using Type = std::variant<Nil, Bool, Number, String, Table, Function>;
 
     Value();
     Value(Type val);
@@ -383,13 +456,13 @@ public:
     Value(std::string val);
     Value(const char* val);
     Value(Table val);
-    Value(NativeFunction val);
+    Value(Function val);
 
     /**
      * NOTE: Functions with a parameter of CallContext& does not work.
      */
     template <typename Fn, typename = std::enable_if_t<std::is_invocable_v<Fn, CallContext>>>
-    Value(Fn val) : Value(NativeFunction(std::forward<Fn>(val))) {}
+    Value(Fn val) : Value(Function(std::forward<Fn>(val))) {}
 
     Value(const Value&);
     // can't use noexcept = default in older compilers (pre c++20 compilers)
@@ -440,7 +513,10 @@ public:
      *
      * This throws an exception if the types of the values didn't match.
      */
-    auto force(Value new_value, std::string origin = "") -> SourceChange;
+    auto force(Value new_value, std::string origin = "") -> std::optional<SourceChangeTree>;
+
+    [[nodiscard]] auto call(CallContext) const -> CallResult;
+    [[nodiscard]] auto bind(CallContext) const -> std::function<CallResult(Vallist)>;
 
     auto operator[](const Value&) -> Value&;
     auto operator[](const Value&) const -> const Value&;
