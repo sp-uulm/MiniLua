@@ -363,7 +363,7 @@ struct Value::Impl {
 };
 
 Value::Value() = default;
-Value::Value(Value::Type val) : impl(make_owning<Impl>(Impl{.val = std::move(val), .origin{}})) {}
+Value::Value(Value::Type val) : impl(make_owning<Impl>(Impl{.val = std::move(val)})) {}
 Value::Value(Nil val) : impl(make_owning<Impl>(Impl{.val = val})) {}
 Value::Value(Bool val) : impl(make_owning<Impl>(Impl{.val = val})) {}
 Value::Value(bool val) : Value(Bool(val)) {}
