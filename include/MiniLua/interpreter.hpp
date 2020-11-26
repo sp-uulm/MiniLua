@@ -15,7 +15,7 @@ namespace minilua {
  * True means sucessful parse, false means there are errors.
  */
 struct ParseResult {
-    std::vector<std::string> errors;
+    std::vector<std::string> errors; // NOLINT(misc-non-private-member-variables-in-classes)
 
     operator bool() const;
 };

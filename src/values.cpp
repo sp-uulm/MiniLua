@@ -333,6 +333,29 @@ auto Function::call(CallContext call_context) const -> CallResult {
 Function::operator bool() const { return true; }
 void swap(Function& self, Function& other) { std::swap(self.func, other.func); }
 
+// class Origin
+Origin::Origin() = default;
+Origin::Origin(Type origin) : origin(std::move(origin)) {}
+
+[[nodiscard]] auto Origin::raw() const -> const Type& { return this->origin; }
+auto Origin::raw() -> Type& { return this->origin; }
+
+[[nodiscard]] auto Origin::is_none() const -> bool {
+    return std::holds_alternative<NoOrigin>(this->raw());
+}
+[[nodiscard]] auto Origin::is_external() const -> bool {
+    return std::holds_alternative<ExternalOrigin>(this->raw());
+}
+[[nodiscard]] auto Origin::is_literal() const -> bool {
+    return std::holds_alternative<LiteralOrigin>(this->raw());
+}
+[[nodiscard]] auto Origin::is_binary() const -> bool {
+    return std::holds_alternative<BinaryOrigin>(this->raw());
+}
+[[nodiscard]] auto Origin::is_unary() const -> bool {
+    return std::holds_alternative<UnaryOrigin>(this->raw());
+}
+
 // class Value
 struct Value::Impl {
     Type val;
@@ -373,7 +396,7 @@ auto Value::raw() const -> const Value::Type& { return impl->val; }
     return std::visit(
         overloaded{
             [](const String& value) -> bool { return value.is_valid_identifier(); },
-            [](const auto&) -> bool { return false; },
+            [](const auto& /*unused*/) -> bool { return false; },
         },
         this->raw());
 }
@@ -397,9 +420,7 @@ auto Value::raw() const -> const Value::Type& { return impl->val; }
     return std::holds_alternative<Function>(this->raw());
 }
 
-[[nodiscard]] auto Value::has_origin() const -> bool {
-    return !std::holds_alternative<NoOrigin>(this->impl->origin.origin);
-}
+[[nodiscard]] auto Value::has_origin() const -> bool { return !this->impl->origin.is_none(); }
 
 [[nodiscard]] auto Value::remove_origin() const -> Value {
     return this->with_origin(Origin{NoOrigin()});
@@ -418,11 +439,13 @@ auto Value::force(Value new_value, std::string origin) -> std::optional<SourceCh
 auto Value::call(CallContext call_context) const -> CallResult {
     return std::visit(
         overloaded{
-            [call_context](const Function& value) -> CallResult {
-                return value.call(call_context);
+            [&call_context](const Function& value) -> CallResult {
+                return value.call(std::move(call_context));
             },
             // TODO tables with metatable with __call
-            [](auto&) -> CallResult { throw std::runtime_error("can't call non function"); },
+            [](auto& /*unused*/) -> CallResult {
+                throw std::runtime_error("can't call non function");
+            },
         },
         this->raw());
 }
@@ -435,7 +458,7 @@ auto Value::bind(CallContext call_context) const -> std::function<CallResult(Val
                     return value.call(call_context.make_new(std::move(args)));
                 };
             },
-            [](auto&) -> std::function<CallResult(Vallist)> {
+            [](auto& /*unused*/) -> std::function<CallResult(Vallist)> {
                 throw std::runtime_error("can't bind to a non function");
             },
         },
@@ -477,7 +500,7 @@ Value::operator bool() const {
 
 #define IMPL_ARITHMETIC(OP, ERR_INFO)                                                              \
     auto operator OP(const Value& lhs, const Value& rhs)->Value {                                  \
-        auto origin = Origin({BinaryOrigin{make_owning<Value>(lhs), make_owning<Value>(rhs)}});    \
+        auto origin = Origin(BinaryOrigin{make_owning<Value>(lhs), make_owning<Value>(rhs)});      \
         return std::visit(                                                                         \
             overloaded{                                                                            \
                 [&origin](const Number& lhs, const Number& rhs) -> Value {                         \
@@ -516,7 +539,7 @@ IMPL_ARITHMETIC(|, "bitwise or");
 // logic operators
 auto operator&&(const Value& lhs, const Value& rhs) -> Value {
     // return lhs if it is falsey and rhs otherwise
-    auto origin = Origin({BinaryOrigin{make_owning<Value>(lhs), make_owning<Value>(rhs)}});
+    auto origin = Origin(BinaryOrigin{make_owning<Value>(lhs), make_owning<Value>(rhs)});
     if (!lhs) {
         auto value = Value(lhs);
         value.impl->origin = origin;
@@ -529,7 +552,7 @@ auto operator&&(const Value& lhs, const Value& rhs) -> Value {
 }
 auto operator||(const Value& lhs, const Value& rhs) -> Value {
     // return lhs if it is truthy and rhs otherwise
-    auto origin = Origin({BinaryOrigin{make_owning<Value>(lhs), make_owning<Value>(rhs)}});
+    auto origin = Origin(BinaryOrigin{make_owning<Value>(lhs), make_owning<Value>(rhs)});
     if (lhs) {
         auto value = Value(lhs);
         value.impl->origin = origin;

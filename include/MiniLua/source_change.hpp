@@ -122,8 +122,11 @@ auto operator<<(std::ostream&, const SourceChangeAlternative&) -> std::ostream&;
 class SourceChangeTree {
 public:
     using Type = std::variant<SourceChange, SourceChangeCombination, SourceChangeAlternative>;
+
+private:
     Type change;
 
+public:
     SourceChangeTree(SourceChange);
     SourceChangeTree(SourceChangeCombination);
     SourceChangeTree(SourceChangeAlternative);

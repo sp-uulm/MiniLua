@@ -105,7 +105,7 @@ SourceChangeAlternative::SourceChangeAlternative() = default;
 SourceChangeAlternative::SourceChangeAlternative(std::vector<SourceChangeTree> changes)
     : changes(std::move(changes)) {}
 
-void SourceChangeAlternative::add(SourceChangeTree change) { changes.push_back(change); }
+void SourceChangeAlternative::add(SourceChangeTree change) { changes.push_back(std::move(change)); }
 
 auto operator==(const SourceChangeAlternative& lhs, const SourceChangeAlternative& rhs) noexcept
     -> bool {

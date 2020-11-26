@@ -86,7 +86,7 @@ public:
 
     // helper for next method
     template <std::size_t... Is>
-    [[nodiscard]] auto tuple(std::index_sequence<Is...>) const
+    [[nodiscard]] auto tuple(std::index_sequence<Is...> /*unused*/) const
         -> std::tuple<T_<Is, std::reference_wrapper<const Value>>...> {
         return std::make_tuple(std::cref(this->get(Is))...);
     }
@@ -122,12 +122,12 @@ struct Nil {
 
     explicit operator bool() const;
 };
-constexpr auto operator==(Nil, Nil) noexcept -> bool { return true; }
-constexpr auto operator!=(Nil, Nil) noexcept -> bool { return false; }
+constexpr auto operator==(Nil /*unused*/, Nil /*unused*/) noexcept -> bool { return true; }
+constexpr auto operator!=(Nil /*unused*/, Nil /*unused*/) noexcept -> bool { return false; }
 auto operator<<(std::ostream&, Nil) -> std::ostream&;
 
 struct Bool {
-    bool value;
+    bool value; // NOLINT(misc-non-private-member-variables-in-classes)
 
     constexpr static const std::string_view TYPE = "boolean";
 
@@ -147,7 +147,7 @@ DELEGATE_OP(Bool, ||);
 DELEGATE_OP(Bool, ^);
 
 struct Number {
-    double value;
+    double value; // NOLINT(misc-non-private-member-variables-in-classes)
 
     constexpr static const std::string_view TYPE = "number";
 
@@ -184,7 +184,7 @@ auto operator&(Number lhs, Number rhs) -> Number;
 auto operator|(Number lhs, Number rhs) -> Number;
 
 struct String {
-    std::string value;
+    std::string value; // NOLINT(misc-non-private-member-variables-in-classes)
 
     constexpr static const std::string_view TYPE = "string";
 
@@ -364,7 +364,7 @@ public:
     // always throws an exception. just here for convenience.
     [[nodiscard]] auto to_literal() const -> std::string;
 
-    auto call(CallContext) const -> CallResult;
+    [[nodiscard]] auto call(CallContext) const -> CallResult;
 
     explicit operator bool() const;
 
@@ -374,13 +374,6 @@ public:
 };
 
 auto operator<<(std::ostream&, const Function&) -> std::ostream&;
-
-// TODO LuaFunction
-// could maybe share a type with NativeFunction (e.g. by providing lambdas)
-//
-// Requires:
-// - reference to ast of function definition
-// - copy of enclosing environment
 
 } // namespace minilua
 
@@ -415,21 +408,60 @@ namespace minilua {
 
 struct NoOrigin {};
 struct ExternalOrigin {};
+// Value was created from a literal in code.
 struct LiteralOrigin {
     Range location;
 };
+// Value was created in a binary operation using lhs and rhs.
 struct BinaryOrigin {
     owning_ptr<Value> lhs;
     owning_ptr<Value> rhs;
     Range location;
 };
+// Value was created in a unary operation using val.
 struct UnaryOrigin {
     owning_ptr<Value> val;
     Range location;
 };
-struct Origin {
-    std::variant<NoOrigin, ExternalOrigin, LiteralOrigin, BinaryOrigin, UnaryOrigin> origin;
+
+/**
+ * The origin of a value.
+ */
+class Origin {
+public:
+    using Type = std::variant<NoOrigin, ExternalOrigin, LiteralOrigin, BinaryOrigin, UnaryOrigin>;
+
+private:
+    Type origin;
+
+public:
+    Origin();
+    Origin(Type);
+
+    [[nodiscard]] auto raw() const -> const Type&;
+    auto raw() -> Type&;
+
+    [[nodiscard]] auto is_none() const -> bool;
+    [[nodiscard]] auto is_external() const -> bool;
+    [[nodiscard]] auto is_literal() const -> bool;
+    [[nodiscard]] auto is_binary() const -> bool;
+    [[nodiscard]] auto is_unary() const -> bool;
 };
+
+} // namespace minilua
+
+namespace std {
+
+// behaves like std::get(std::variant) but only accepts types as template parameter
+template <typename T> auto get(minilua::Origin& origin) -> T& { return std::get<T>(origin.raw()); }
+
+template <typename T> auto get(const minilua::Origin& origin) -> const T& {
+    return std::get<T>(origin.raw());
+}
+
+} // namespace std
+
+namespace minilua {
 
 /**
  * Represents a value in lua.
