@@ -38,7 +38,8 @@ auto SourceChangeTree::hint() -> std::string& {
     -> std::vector<SourceChange> {
     std::vector<SourceChange> changes;
 
-    this->visit_left([&changes](const SourceChange& single) { changes.push_back(single); });
+    this->visit_first_alternative(
+        [&changes](const SourceChange& single) { changes.push_back(single); });
 
     return changes;
 }

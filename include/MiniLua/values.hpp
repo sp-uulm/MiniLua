@@ -532,6 +532,8 @@ public:
 
     [[nodiscard]] auto has_origin() const -> bool;
 
+    [[nodiscard]] auto origin() const -> const Origin&;
+
     [[nodiscard]] auto remove_origin() const -> Value;
     [[nodiscard]] auto with_origin(Origin new_origin) const -> Value;
 
@@ -545,7 +547,7 @@ public:
      *
      * This throws an exception if the types of the values didn't match.
      */
-    auto force(Value new_value, std::string origin = "") -> std::optional<SourceChangeTree>;
+    auto force(Value new_value, std::string origin = "") const -> std::optional<SourceChangeTree>;
 
     [[nodiscard]] auto call(CallContext) const -> CallResult;
     [[nodiscard]] auto bind(CallContext) const -> std::function<CallResult(Vallist)>;

@@ -422,6 +422,8 @@ auto Value::raw() const -> const Value::Type& { return impl->val; }
 
 [[nodiscard]] auto Value::has_origin() const -> bool { return !this->impl->origin.is_none(); }
 
+[[nodiscard]] auto Value::origin() const -> const Origin& { return this->impl->origin; }
+
 [[nodiscard]] auto Value::remove_origin() const -> Value {
     return this->with_origin(Origin{NoOrigin()});
 }
@@ -431,7 +433,7 @@ auto Value::raw() const -> const Value::Type& { return impl->val; }
     return new_value;
 }
 
-auto Value::force(Value new_value, std::string origin) -> std::optional<SourceChangeTree> {
+auto Value::force(Value new_value, std::string origin) const -> std::optional<SourceChangeTree> {
     // TODO force value
     return SourceChangeTree(SourceChangeCombination());
 }
