@@ -407,22 +407,52 @@ template <> struct hash<minilua::Function> {
 namespace minilua {
 
 struct NoOrigin {};
+auto operator==(const NoOrigin&, const NoOrigin&) noexcept -> bool;
+auto operator!=(const NoOrigin&, const NoOrigin&) noexcept -> bool;
+auto operator<<(std::ostream&, const NoOrigin&) -> std::ostream&;
+
 struct ExternalOrigin {};
+auto operator==(const ExternalOrigin&, const ExternalOrigin&) noexcept -> bool;
+auto operator!=(const ExternalOrigin&, const ExternalOrigin&) noexcept -> bool;
+auto operator<<(std::ostream&, const ExternalOrigin&) -> std::ostream&;
+
 // Value was created from a literal in code.
 struct LiteralOrigin {
     Range location;
 };
-// Value was created in a binary operation using lhs and rhs.
+
+auto operator==(const LiteralOrigin&, const LiteralOrigin&) noexcept -> bool;
+auto operator!=(const LiteralOrigin&, const LiteralOrigin&) noexcept -> bool;
+auto operator<<(std::ostream&, const LiteralOrigin&) -> std::ostream&;
+
+// Value was created in a binary operation (or some functions with two arguments) using lhs and rhs.
 struct BinaryOrigin {
+    using ReverseFn = std::optional<SourceChangeTree>(const Value&, const Value&, const Value&);
+
     owning_ptr<Value> lhs;
     owning_ptr<Value> rhs;
-    Range location;
+    std::optional<Range> location;
+    // new_value, old_lhs, old_rhs
+    std::function<ReverseFn> reverse;
 };
-// Value was created in a unary operation using val.
+
+auto operator==(const BinaryOrigin&, const BinaryOrigin&) noexcept -> bool;
+auto operator!=(const BinaryOrigin&, const BinaryOrigin&) noexcept -> bool;
+auto operator<<(std::ostream&, const BinaryOrigin&) -> std::ostream&;
+
+// Value was created in a unary operation (or some functions with one argument) using val.
 struct UnaryOrigin {
+    using ReverseFn = std::optional<SourceChangeTree>(const Value&, const Value&);
+
     owning_ptr<Value> val;
-    Range location;
+    std::optional<Range> location;
+    // new_value, old_value
+    std::function<ReverseFn> reverse;
 };
+
+auto operator==(const UnaryOrigin&, const UnaryOrigin&) noexcept -> bool;
+auto operator!=(const UnaryOrigin&, const UnaryOrigin&) noexcept -> bool;
+auto operator<<(std::ostream&, const UnaryOrigin&) -> std::ostream&;
 
 /**
  * The origin of a value.
@@ -436,7 +466,12 @@ private:
 
 public:
     Origin();
-    Origin(Type);
+    explicit Origin(Type);
+    Origin(NoOrigin);
+    Origin(ExternalOrigin);
+    Origin(LiteralOrigin);
+    Origin(BinaryOrigin);
+    Origin(UnaryOrigin);
 
     [[nodiscard]] auto raw() const -> const Type&;
     auto raw() -> Type&;
@@ -446,7 +481,13 @@ public:
     [[nodiscard]] auto is_literal() const -> bool;
     [[nodiscard]] auto is_binary() const -> bool;
     [[nodiscard]] auto is_unary() const -> bool;
+
+    [[nodiscard]] auto force(const Value&) const -> std::optional<SourceChangeTree>;
 };
+
+auto operator==(const Origin&, const Origin&) noexcept -> bool;
+auto operator!=(const Origin&, const Origin&) noexcept -> bool;
+auto operator<<(std::ostream&, const Origin&) -> std::ostream&;
 
 } // namespace minilua
 

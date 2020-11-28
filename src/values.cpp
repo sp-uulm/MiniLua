@@ -336,6 +336,11 @@ void swap(Function& self, Function& other) { std::swap(self.func, other.func); }
 // class Origin
 Origin::Origin() = default;
 Origin::Origin(Type origin) : origin(std::move(origin)) {}
+Origin::Origin(NoOrigin origin) : origin(origin) {}
+Origin::Origin(ExternalOrigin origin) : origin(origin) {}
+Origin::Origin(LiteralOrigin origin) : origin(origin) {}
+Origin::Origin(BinaryOrigin origin) : origin(origin) {}
+Origin::Origin(UnaryOrigin origin) : origin(origin) {}
 
 [[nodiscard]] auto Origin::raw() const -> const Type& { return this->origin; }
 auto Origin::raw() -> Type& { return this->origin; }
@@ -354,6 +359,109 @@ auto Origin::raw() -> Type& { return this->origin; }
 }
 [[nodiscard]] auto Origin::is_unary() const -> bool {
     return std::holds_alternative<UnaryOrigin>(this->raw());
+}
+
+[[nodiscard]] auto Origin::force(const Value& new_value) const -> std::optional<SourceChangeTree> {
+    // TODO maybe also for non numeric types?
+    if (!new_value.is_number()) {
+        return std::nullopt;
+    }
+
+    return std::visit(
+        overloaded{
+            [&new_value](const BinaryOrigin& origin) -> std::optional<SourceChangeTree> {
+                return origin.reverse(new_value, *origin.lhs, *origin.rhs);
+            },
+            [&new_value](const UnaryOrigin& origin) -> std::optional<SourceChangeTree> {
+                return origin.reverse(new_value, *origin.val);
+            },
+            [&new_value](const LiteralOrigin& origin) -> std::optional<SourceChangeTree> {
+                return SourceChange(origin.location, new_value.to_literal());
+            },
+            [](const ExternalOrigin& /*unused*/) -> std::optional<SourceChangeTree> {
+                return std::nullopt;
+            },
+            [](const NoOrigin& /*unused*/) -> std::optional<SourceChangeTree> {
+                return std::nullopt;
+            },
+        },
+        this->origin);
+}
+
+auto operator==(const Origin& lhs, const Origin& rhs) noexcept -> bool {
+    return lhs.raw() == rhs.raw();
+}
+auto operator!=(const Origin& lhs, const Origin& rhs) noexcept -> bool { return !(lhs == rhs); }
+auto operator<<(std::ostream& os, const Origin& self) -> std::ostream& {
+    os << "Origin(";
+    std::visit([&os](const auto& inner) { os << inner; }, self.raw());
+    return os << ")";
+}
+
+// struct NoOrigin
+auto operator==(const NoOrigin&, const NoOrigin&) noexcept -> bool { return true; }
+auto operator!=(const NoOrigin&, const NoOrigin&) noexcept -> bool { return false; }
+auto operator<<(std::ostream& os, const NoOrigin&) -> std::ostream& { return os << "NoOrigin{}"; }
+
+// struct ExternalOrigin
+auto operator==(const ExternalOrigin&, const ExternalOrigin&) noexcept -> bool { return true; }
+auto operator!=(const ExternalOrigin&, const ExternalOrigin&) noexcept -> bool { return true; }
+auto operator<<(std::ostream& os, const ExternalOrigin&) -> std::ostream& {
+    return os << "ExternalOrigin";
+}
+
+// struct LiteralOrigin
+auto operator==(const LiteralOrigin& lhs, const LiteralOrigin& rhs) noexcept -> bool {
+    return lhs.location == rhs.location;
+}
+auto operator!=(const LiteralOrigin& lhs, const LiteralOrigin& rhs) noexcept -> bool {
+    return !(lhs == rhs);
+}
+auto operator<<(std::ostream& os, const LiteralOrigin& self) -> std::ostream& {
+    return os << "LiteralOrigin(" << self.location << ")";
+}
+
+// struct BinaryOrigin
+auto operator==(const BinaryOrigin& lhs, const BinaryOrigin& rhs) noexcept -> bool {
+    return lhs.lhs == rhs.lhs && lhs.rhs == rhs.rhs && lhs.location == rhs.location;
+}
+auto operator!=(const BinaryOrigin& lhs, const BinaryOrigin& rhs) noexcept -> bool {
+    return !(lhs == rhs);
+}
+auto operator<<(std::ostream& os, const BinaryOrigin& self) -> std::ostream& {
+    os << "BinaryOrigin{ "
+       << ".lhs = " << self.lhs << ", "
+       << ".rhs = " << self.rhs << ", "
+       << ".location = ";
+    if (self.location) {
+        os << self.location.value();
+    } else {
+        os << "nullopt";
+    }
+    os << ", .reverse = "
+       << reinterpret_cast<void*>(self.reverse.target<BinaryOrigin::ReverseFn>());
+    return os << " }";
+}
+
+// struct UnaryOrigin
+auto operator==(const UnaryOrigin& lhs, const UnaryOrigin& rhs) noexcept -> bool {
+    return lhs.val == rhs.val && lhs.location == rhs.location;
+}
+auto operator!=(const UnaryOrigin& lhs, const UnaryOrigin& rhs) noexcept -> bool {
+    return !(lhs == rhs);
+}
+auto operator<<(std::ostream& os, const UnaryOrigin& self) -> std::ostream& {
+    os << "UnaryOrigin{ "
+       << ".val = " << self.val << ", "
+       << ".location = ";
+    if (self.location) {
+        os << self.location.value();
+    } else {
+        os << "nullopt";
+    }
+    os << ", .reverse = " << reinterpret_cast<void*>(self.reverse.target<UnaryOrigin::ReverseFn>());
+    os << " }";
+    return os;
 }
 
 // class Value
@@ -434,8 +542,8 @@ auto Value::raw() const -> const Value::Type& { return impl->val; }
 }
 
 auto Value::force(Value new_value, std::string origin) const -> std::optional<SourceChangeTree> {
-    // TODO force value
-    return SourceChangeTree(SourceChangeCombination());
+    // TODO how to integrate origin string?
+    return this->origin().force(new_value);
 }
 
 auto Value::call(CallContext call_context) const -> CallResult {
@@ -500,14 +608,18 @@ Value::operator bool() const {
     return std::visit([](const auto& value) { return bool(value); }, this->impl->val);
 }
 
-#define IMPL_ARITHMETIC(OP, ERR_INFO)                                                              \
+#define IMPL_ARITHMETIC(OP, REVERSE_FUNC, ERR_INFO)                                                \
     auto operator OP(const Value& lhs, const Value& rhs)->Value {                                  \
-        auto origin = Origin(BinaryOrigin{make_owning<Value>(lhs), make_owning<Value>(rhs)});      \
+        auto origin = Origin(BinaryOrigin{                                                         \
+            .lhs = make_owning<Value>(lhs),                                                        \
+            .rhs = make_owning<Value>(rhs),                                                        \
+            .location = std::nullopt,                                                              \
+            .reverse = REVERSE_FUNC});                                                             \
         return std::visit(                                                                         \
             overloaded{                                                                            \
                 [&origin](const Number& lhs, const Number& rhs) -> Value {                         \
                     auto value = Value(lhs OP rhs);                                                \
-                    value.impl->origin = origin;                                                   \
+                    value.impl->origin = std::move(origin);                                        \
                     return value;                                                                  \
                 },                                                                                 \
                 [](const Table& lhs, const Table& rhs) -> Value { /* NOLINT */                     \
@@ -529,14 +641,93 @@ Value::operator bool() const {
             lhs.impl->val, rhs.impl->val);                                                         \
     }
 
-IMPL_ARITHMETIC(+, "add");
-IMPL_ARITHMETIC(-, "subtract");
-IMPL_ARITHMETIC(*, "multiply");
-IMPL_ARITHMETIC(/, "divide");
-IMPL_ARITHMETIC(^, "attempt to pow");
-IMPL_ARITHMETIC(%, "take modulo of");
-IMPL_ARITHMETIC(&, "bitwise and");
-IMPL_ARITHMETIC(|, "bitwise or");
+#define IMPL_REVERSE_BINOP(OP, OP_STR, LHS_CHANGE, RHS_CHANGE)                                     \
+    static auto reverse_##OP(                                                                      \
+        const Value& raw_new_value, const Value& raw_lhs, const Value& raw_rhs)                    \
+        ->std::optional<SourceChangeTree> {                                                        \
+        if (!raw_new_value.is_number() || !raw_lhs.is_number() || !raw_rhs.is_number()) {          \
+            return std::nullopt;                                                                   \
+        }                                                                                          \
+                                                                                                   \
+        const double new_value = std::get<Number>(raw_new_value).value;                            \
+        const double lhs = std::get<Number>(raw_lhs).value;                                        \
+        const double rhs = std::get<Number>(raw_rhs).value;                                        \
+                                                                                                   \
+        auto alt = SourceChangeAlternative();                                                      \
+                                                                                                   \
+        if (raw_lhs.has_origin()) {                                                                \
+            if (auto res = raw_lhs.force(Value(LHS_CHANGE)); res) {                                \
+                alt.add(res.value());                                                              \
+            }                                                                                      \
+        }                                                                                          \
+        if (raw_rhs.has_origin()) {                                                                \
+            if (auto res = raw_rhs.force(Value(RHS_CHANGE)); res) {                                \
+                alt.add(res.value());                                                              \
+            }                                                                                      \
+        }                                                                                          \
+                                                                                                   \
+        if (alt.changes.empty()) {                                                                 \
+            return std::nullopt;                                                                   \
+        }                                                                                          \
+                                                                                                   \
+        alt.origin = OP_STR;                                                                       \
+        return alt;                                                                                \
+    }
+
+IMPL_REVERSE_BINOP(add, "add", new_value - rhs, new_value - lhs)
+IMPL_REVERSE_BINOP(sub, "sub", new_value + rhs, lhs - new_value)
+IMPL_REVERSE_BINOP(mul, "mul", new_value / rhs, new_value / lhs)
+IMPL_REVERSE_BINOP(div, "div", new_value* rhs, lhs / new_value)
+
+static auto reverse_pow(const Value& raw_new_value, const Value& raw_lhs, const Value& raw_rhs)
+    -> std::optional<SourceChangeTree> {
+    if (!raw_new_value.is_number() || !raw_lhs.is_number() || !raw_rhs.is_number()) {
+        return std::nullopt;
+    }
+    const double new_value = std::get<Number>(raw_new_value).value;
+    const double lhs = std::get<Number>(raw_lhs).value;
+    const double rhs = std::get<Number>(raw_rhs).value;
+    auto alt = SourceChangeAlternative();
+    if (raw_lhs.has_origin()) {
+        if (auto res = raw_lhs.force(Value(std::pow(new_value, 1 / rhs))); res) {
+            alt.add(res.value());
+        }
+    }
+    if (raw_rhs.has_origin()) {
+        const Value new_rhs = std::log(new_value) / std::log(lhs);
+        // only generate a source change if the rhs is not nan
+        if (!std::isnan(std::get<Number>(new_rhs).value)) {
+            if (auto res = raw_rhs.force(Value(std::log(new_value) / std::log(lhs))); res) {
+                alt.add(res.value());
+            }
+        }
+    }
+    if (alt.changes.empty()) {
+        return std::nullopt;
+    }
+    alt.origin = "pow";
+    return alt;
+}
+
+// TODO these are bit more complicated
+// IMPL_REVERSE_BINOP(mod, "mod", new_value - rhs, new_value - lhs)
+// IMPL_REVERSE_BINOP(bitand, "bitand", new_value - rhs, new_value - lhs)
+// IMPL_REVERSE_BINOP(bitor, "bitor", new_value - rhs, new_value - lhs)
+
+auto reverse_not_available(
+    const Value& /*unused*/, const Value& /*unused*/, const Value& /*unused*/)
+    -> std::optional<SourceChangeTree> {
+    return std::nullopt;
+}
+
+IMPL_ARITHMETIC(+, reverse_add, "add")
+IMPL_ARITHMETIC(-, reverse_sub, "subtract")
+IMPL_ARITHMETIC(*, reverse_mul, "multiply")
+IMPL_ARITHMETIC(/, reverse_div, "divide")
+IMPL_ARITHMETIC(^, reverse_pow, "attempt to pow")
+IMPL_ARITHMETIC(%, reverse_not_available, "take modulo of") // TODO
+IMPL_ARITHMETIC(&, reverse_not_available, "bitwise and")    // TODO
+IMPL_ARITHMETIC(|, reverse_not_available, "bitwise or")     // TODO
 
 // logic operators
 auto operator&&(const Value& lhs, const Value& rhs) -> Value {

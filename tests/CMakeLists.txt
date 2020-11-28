@@ -5,6 +5,7 @@ add_executable(MiniLua-tests
     public_api/integration_tests.cpp
     public_api/owning_ptr.cpp
     public_api/values.cpp
+    public_api/origin.cpp
     public_api/environment.cpp
     public_api/source_change.cpp
     tree_sitter.cpp)
