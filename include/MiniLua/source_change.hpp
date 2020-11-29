@@ -108,6 +108,7 @@ struct SourceChangeAlternative : public CommonSCInfo {
     SourceChangeAlternative(std::vector<SourceChangeTree> changes);
 
     void add(SourceChangeTree);
+    void add_if_some(std::optional<SourceChangeTree>);
 };
 
 auto operator==(const SourceChangeAlternative& lhs, const SourceChangeAlternative& rhs) noexcept

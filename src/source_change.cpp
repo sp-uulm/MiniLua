@@ -107,6 +107,11 @@ SourceChangeAlternative::SourceChangeAlternative(std::vector<SourceChangeTree> c
     : changes(std::move(changes)) {}
 
 void SourceChangeAlternative::add(SourceChangeTree change) { changes.push_back(std::move(change)); }
+void SourceChangeAlternative::add_if_some(std::optional<SourceChangeTree> change) {
+    if (change) {
+        this->add(change.value());
+    }
+}
 
 auto operator==(const SourceChangeAlternative& lhs, const SourceChangeAlternative& rhs) noexcept
     -> bool {

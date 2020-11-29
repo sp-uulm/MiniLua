@@ -266,7 +266,7 @@ auto operator<<(std::ostream& os, const Table& self) -> std::ostream& {
 
 // class CallContext
 struct CallContext::Impl {
-    Range location;
+    std::optional<Range> location;
     Environment* env; // need to use pointer so we have move assignment operator
     Vallist args;
 };
@@ -280,21 +280,58 @@ auto CallContext::operator=(const CallContext&) -> CallContext& = default;
 auto CallContext::operator=(CallContext&&) -> CallContext& = default;
 CallContext::~CallContext() = default;
 
-[[nodiscard]] auto CallContext::make_new(Vallist args) const -> CallContext {
+[[nodiscard]] auto CallContext::make_new(Vallist args, std::optional<Range> location) const
+    -> CallContext {
     CallContext new_cc{*this};
     new_cc.impl->args = std::move(args);
+    new_cc.impl->location = location;
     return new_cc;
 }
 
-auto CallContext::call_location() const -> Range { return impl->location; }
+auto CallContext::call_location() const -> std::optional<Range> { return impl->location; }
 auto CallContext::environment() const -> Environment& { return *impl->env; }
 auto CallContext::get(const std::string& name) const -> Value& { return impl->env->get(name); }
 auto CallContext::arguments() const -> const Vallist& { return impl->args; }
 
+[[nodiscard]] auto CallContext::unary_numeric_arg_helper() const
+    -> std::tuple<double, UnaryOrigin> {
+    auto arg = this->arguments().get(0);
+    auto num = std::get<minilua::Number>(arg).value;
+
+    auto origin = minilua::UnaryOrigin{
+        .val = minilua::make_owning<minilua::Value>(arg),
+        .location = this->call_location(),
+    };
+
+    return std::make_tuple(num, origin);
+}
+
+[[nodiscard]] auto CallContext::binary_numeric_args_helper() const
+    -> std::tuple<double, double, BinaryOrigin> {
+    auto arg1 = this->arguments().get(0);
+    auto arg2 = this->arguments().get(1);
+    auto num1 = std::get<minilua::Number>(arg1).value;
+    auto num2 = std::get<minilua::Number>(arg2).value;
+
+    auto origin = minilua::BinaryOrigin{
+        .lhs = minilua::make_owning<minilua::Value>(arg1),
+        .rhs = minilua::make_owning<minilua::Value>(arg2),
+        .location = this->call_location(),
+    };
+
+    return std::make_tuple(num1, num2, origin);
+}
+
 auto operator<<(std::ostream& os, const CallContext& self) -> std::ostream& {
-    return os << "CallContext{ location = " << self.impl->location
-              << ", environment = " << self.impl->env << ", arguments = " << self.impl->args
-              << " }";
+    os << "CallContext{ location = ";
+
+    if (self.impl->location) {
+        os << self.impl->location.value();
+    } else {
+        os << "nullopt";
+    }
+    os << ", environment = " << self.impl->env << ", arguments = " << self.impl->args << " }";
+    return os;
 }
 
 // class CallResult
@@ -541,7 +578,8 @@ auto Value::raw() const -> const Value::Type& { return impl->val; }
     return new_value;
 }
 
-auto Value::force(Value new_value, std::string origin) const -> std::optional<SourceChangeTree> {
+[[nodiscard]] auto Value::force(Value new_value, std::string origin) const
+    -> std::optional<SourceChangeTree> {
     // TODO how to integrate origin string?
     return this->origin().force(new_value);
 }

@@ -1,6 +1,7 @@
 #ifndef MINILUA_VALUES_HPP
 #define MINILUA_VALUES_HPP
 
+#include <cmath>
 #include <functional>
 #include <string>
 #include <unordered_map>
@@ -239,6 +240,9 @@ public:
     explicit operator bool() const;
 };
 
+struct BinaryOrigin;
+struct UnaryOrigin;
+
 /**
  * Contains information for use in the implementation of native functions.
  *
@@ -263,16 +267,19 @@ public:
     /**
      * Create a new call context with new arguments but reuse all other information.
      */
-    [[nodiscard]] auto make_new(Vallist) const -> CallContext;
+    [[nodiscard]] auto make_new(Vallist, std::optional<Range> location = std::nullopt) const
+        -> CallContext;
 
-    template <typename... Args> [[nodiscard]] auto make_new(Args... args) const -> CallContext {
-        return this->make_new(Vallist{args...});
+    template <typename... Args>
+    [[nodiscard]] auto make_new(Args... args, std::optional<Range> location = std::nullopt) const
+        -> CallContext {
+        return this->make_new(Vallist{args...}, location);
     }
 
     /**
      * Returns the location of the call.
      */
-    [[nodiscard]] auto call_location() const -> Range;
+    [[nodiscard]] auto call_location() const -> std::optional<Range>;
 
     /**
      * Returns a reference to the global environment.
@@ -289,6 +296,28 @@ public:
      * Returns the arguments given to this function.
      */
     [[nodiscard]] auto arguments() const -> const Vallist&;
+
+    /**
+     * Convenience methods for writing functions one or two numeric arguments
+     * that should track the origin (e.g. sqrt or pow).
+     *
+     * Usage:
+     *
+     * ```cpp
+     * auto [arg, origin] = ctx.unary_numeric_arg_helper();
+     * origin.reverse = unary_num_reverse(...);
+     * // ...
+     * ```
+     *
+     * ```cpp
+     * auto [arg1, arg2, origin] = ctx.binary_numeric_arg_helper();
+     * origin.reverse = binary_num_reverse(...);
+     * // ...
+     * ```
+     */
+    [[nodiscard]] auto unary_numeric_arg_helper() const -> std::tuple<double, UnaryOrigin>;
+    [[nodiscard]] auto binary_numeric_args_helper() const
+        -> std::tuple<double, double, BinaryOrigin>;
 
     friend auto operator<<(std::ostream&, const CallContext&) -> std::ostream&;
 };
@@ -588,7 +617,8 @@ public:
      *
      * This throws an exception if the types of the values didn't match.
      */
-    auto force(Value new_value, std::string origin = "") const -> std::optional<SourceChangeTree>;
+    [[nodiscard]] auto force(Value new_value, std::string origin = "") const
+        -> std::optional<SourceChangeTree>;
 
     [[nodiscard]] auto call(CallContext) const -> CallResult;
     [[nodiscard]] auto bind(CallContext) const -> std::function<CallResult(Vallist)>;
@@ -626,5 +656,75 @@ template <typename T> auto get(const minilua::Value& value) -> const T& {
 }
 
 } // namespace std
+
+namespace minilua {
+
+/**
+ * Helper functions for writing functions that should be forcable.
+ */
+
+template <typename Fn> auto unary_num_reverse(Fn fn) -> decltype(auto) {
+    return [fn](
+               const minilua::Value& new_value,
+               const minilua::Value& old_value) -> std::optional<minilua::SourceChangeTree> {
+        if (!new_value.is_number() || !old_value.is_number()) {
+            return std::nullopt;
+        }
+        double num = std::get<minilua::Number>(new_value).value;
+        return old_value.force(fn(num));
+    };
+}
+
+template <typename FnLeft, typename FnRight>
+auto binary_num_reverse(FnLeft fn_left, FnRight fn_right) -> decltype(auto) {
+    return [fn_left, fn_right](
+               const minilua::Value& new_value, const minilua::Value& old_lhs,
+               const minilua::Value& old_rhs) -> std::optional<minilua::SourceChangeTree> {
+        if (!new_value.is_number() || !old_lhs.is_number() || !old_rhs.is_number()) {
+            return std::nullopt;
+        }
+        double num = std::get<minilua::Number>(new_value).value;
+        double lhs_num = std::get<minilua::Number>(old_lhs).value;
+        double rhs_num = std::get<minilua::Number>(old_rhs).value;
+
+        auto lhs_change = old_lhs.force(fn_left(num, rhs_num));
+        auto rhs_change = old_rhs.force(fn_right(num, lhs_num));
+        minilua::SourceChangeAlternative change;
+        change.add_if_some(lhs_change);
+        change.add_if_some(rhs_change);
+        return change;
+    };
+}
+
+// use by constructing with lambdas directly and immediately invoke with the CallContext
+template <typename Fn, typename Reverse> struct UnaryNumericFunctionHelper {
+    Fn function;     // NOLINT
+    Reverse reverse; // NOLINT
+
+    auto operator()(const CallContext& ctx) -> Value {
+        auto [arg1, origin] = ctx.unary_numeric_arg_helper();
+        origin.reverse = unary_num_reverse(this->reverse);
+        return Value(this->function(arg1)).with_origin(origin);
+    }
+};
+// deduction guide
+template <class... Ts> UnaryNumericFunctionHelper(Ts...) -> UnaryNumericFunctionHelper<Ts...>;
+
+template <typename Fn, typename ReverseLeft, typename ReverseRight>
+struct BinaryNumericFunctionHelper {
+    Fn function;                // NOLINT
+    ReverseLeft reverse_left;   // NOLINT
+    ReverseRight reverse_right; // NOLINT
+
+    auto operator()(const CallContext& ctx) -> Value {
+        auto [arg1, arg2, origin] = ctx.binary_numeric_args_helper();
+        origin.reverse = binary_num_reverse(this->reverse_left, this->reverse_right);
+        return Value(this->function(arg1, arg2)).with_origin(origin);
+    }
+};
+// deduction guide
+template <class... Ts> BinaryNumericFunctionHelper(Ts...) -> BinaryNumericFunctionHelper<Ts...>;
+
+} // namespace minilua
 
 #endif
