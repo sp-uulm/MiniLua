@@ -664,34 +664,36 @@ namespace minilua {
  */
 
 template <typename Fn> auto unary_num_reverse(Fn fn) -> decltype(auto) {
-    return [fn](
-               const minilua::Value& new_value,
-               const minilua::Value& old_value) -> std::optional<minilua::SourceChangeTree> {
+    return [fn](const Value& new_value, const Value& old_value) -> std::optional<SourceChangeTree> {
         if (!new_value.is_number() || !old_value.is_number()) {
             return std::nullopt;
         }
-        double num = std::get<minilua::Number>(new_value).value;
+        double num = std::get<Number>(new_value).value;
         return old_value.force(fn(num));
     };
 }
 
 template <typename FnLeft, typename FnRight>
-auto binary_num_reverse(FnLeft fn_left, FnRight fn_right) -> decltype(auto) {
-    return [fn_left, fn_right](
-               const minilua::Value& new_value, const minilua::Value& old_lhs,
-               const minilua::Value& old_rhs) -> std::optional<minilua::SourceChangeTree> {
+auto binary_num_reverse(FnLeft fn_left, FnRight fn_right, std::string origin = "")
+    -> decltype(auto) {
+    return [fn_left, fn_right, origin = std::move(origin)](
+               const Value& new_value, const Value& old_lhs,
+               const Value& old_rhs) -> std::optional<SourceChangeTree> {
         if (!new_value.is_number() || !old_lhs.is_number() || !old_rhs.is_number()) {
             return std::nullopt;
         }
-        double num = std::get<minilua::Number>(new_value).value;
-        double lhs_num = std::get<minilua::Number>(old_lhs).value;
-        double rhs_num = std::get<minilua::Number>(old_rhs).value;
+        double num = std::get<Number>(new_value).value;
+        double lhs_num = std::get<Number>(old_lhs).value;
+        double rhs_num = std::get<Number>(old_rhs).value;
 
         auto lhs_change = old_lhs.force(fn_left(num, rhs_num));
         auto rhs_change = old_rhs.force(fn_right(num, lhs_num));
-        minilua::SourceChangeAlternative change;
+
+        SourceChangeAlternative change;
         change.add_if_some(lhs_change);
         change.add_if_some(rhs_change);
+
+        change.origin = origin;
         return change;
     };
 }
