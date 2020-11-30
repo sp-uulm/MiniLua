@@ -680,6 +680,7 @@ num_op_helper(const Value& lhs, const Value& rhs, Fn op, std::string err_info, F
         lhs.raw(), rhs.raw());
 }
 
+// arithmetic operators
 auto operator+(const Value& lhs, const Value& rhs) -> Value {
     return num_op_helper(
         lhs, rhs, [](double lhs, double rhs) { return lhs + rhs; }, "add",
@@ -721,6 +722,7 @@ auto operator%(const Value& lhs, const Value& rhs) -> Value {
         lhs, rhs, [](Number lhs, Number rhs) { return lhs % rhs; }, "take modulo of",
         [](auto...) { return std::nullopt; }); // TODO reverse
 }
+// bitwise operators
 auto operator&(const Value& lhs, const Value& rhs) -> Value {
     return num_op_helper(
         lhs, rhs, [](Number lhs, Number rhs) { return lhs & rhs; }, "bitwise and",
@@ -731,12 +733,22 @@ auto operator|(const Value& lhs, const Value& rhs) -> Value {
         lhs, rhs, [](Number lhs, Number rhs) { return lhs | rhs; }, "bitwise or",
         [](auto...) { return std::nullopt; }); // TODO reverse
 }
-
-// TODO it's possible to reverse half of the expression
 // logic operators
 auto operator&&(const Value& lhs, const Value& rhs) -> Value {
     // return lhs if it is falsey and rhs otherwise
-    auto origin = Origin(BinaryOrigin{make_owning<Value>(lhs), make_owning<Value>(rhs)});
+    auto origin = Origin(BinaryOrigin{
+        .lhs = make_owning<Value>(lhs),
+        .rhs = make_owning<Value>(rhs),
+        .location = std::nullopt,
+        .reverse = [](const Value& new_value, const Value& old_lhs,
+                      const Value& old_rhs) -> std::optional<SourceChangeTree> {
+            if (!old_lhs) {
+                return old_lhs.force(new_value);
+            } else {
+                return old_rhs.force(new_value);
+            }
+        }});
+
     if (!lhs) {
         return lhs.with_origin(origin);
     } else {
@@ -745,7 +757,19 @@ auto operator&&(const Value& lhs, const Value& rhs) -> Value {
 }
 auto operator||(const Value& lhs, const Value& rhs) -> Value {
     // return lhs if it is truthy and rhs otherwise
-    auto origin = Origin(BinaryOrigin{make_owning<Value>(lhs), make_owning<Value>(rhs)});
+    auto origin = Origin(BinaryOrigin{
+        .lhs = make_owning<Value>(lhs),
+        .rhs = make_owning<Value>(rhs),
+        .location = std::nullopt,
+        .reverse = [](const Value& new_value, const Value& old_lhs,
+                      const Value& old_rhs) -> std::optional<SourceChangeTree> {
+            if (old_lhs) {
+                return old_lhs.force(new_value);
+            } else {
+                return old_rhs.force(new_value);
+            }
+        }});
+
     if (lhs) {
         return lhs.with_origin(origin);
     } else {
