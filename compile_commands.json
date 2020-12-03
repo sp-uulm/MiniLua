@@ -51,8 +51,18 @@
 },
 {
   "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src",
+  "command": "/usr/bin/c++ -DMiniLua_EXPORTS -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -fPIC -Wall -std=c++17 -o CMakeFiles/MiniLua.dir/core/stdlib.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/stdlib.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/stdlib.cpp"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src",
   "command": "/usr/bin/c++ -DMiniLua_EXPORTS -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -fPIC -Wall -std=c++17 -o CMakeFiles/MiniLua.dir/core/val.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/val.cpp",
   "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/val.cpp"
+},
+{
+  "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src",
+  "command": "/usr/bin/c++ -DMiniLua_EXPORTS -I/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/include -isystem /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/extern/tree-sitter/lib/include -g -fPIC -Wall -std=c++17 -o CMakeFiles/MiniLua.dir/core/values.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/values.cpp",
+  "file": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/values.cpp"
 },
 {
   "directory": "/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src",

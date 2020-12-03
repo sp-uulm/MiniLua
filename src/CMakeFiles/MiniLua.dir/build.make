@@ -180,9 +180,22 @@ src/CMakeFiles/MiniLua.dir/core/sourceexp.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MiniLua.dir/core/sourceexp.cpp.s"
 	cd /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/sourceexp.cpp -o CMakeFiles/MiniLua.dir/core/sourceexp.cpp.s
 
+src/CMakeFiles/MiniLua.dir/core/stdlib.cpp.o: src/CMakeFiles/MiniLua.dir/flags.make
+src/CMakeFiles/MiniLua.dir/core/stdlib.cpp.o: src/core/stdlib.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object src/CMakeFiles/MiniLua.dir/core/stdlib.cpp.o"
+	cd /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MiniLua.dir/core/stdlib.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/stdlib.cpp
+
+src/CMakeFiles/MiniLua.dir/core/stdlib.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MiniLua.dir/core/stdlib.cpp.i"
+	cd /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/stdlib.cpp > CMakeFiles/MiniLua.dir/core/stdlib.cpp.i
+
+src/CMakeFiles/MiniLua.dir/core/stdlib.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MiniLua.dir/core/stdlib.cpp.s"
+	cd /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/stdlib.cpp -o CMakeFiles/MiniLua.dir/core/stdlib.cpp.s
+
 src/CMakeFiles/MiniLua.dir/core/val.cpp.o: src/CMakeFiles/MiniLua.dir/flags.make
 src/CMakeFiles/MiniLua.dir/core/val.cpp.o: src/core/val.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object src/CMakeFiles/MiniLua.dir/core/val.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object src/CMakeFiles/MiniLua.dir/core/val.cpp.o"
 	cd /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MiniLua.dir/core/val.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/val.cpp
 
 src/CMakeFiles/MiniLua.dir/core/val.cpp.i: cmake_force
@@ -193,9 +206,22 @@ src/CMakeFiles/MiniLua.dir/core/val.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MiniLua.dir/core/val.cpp.s"
 	cd /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/val.cpp -o CMakeFiles/MiniLua.dir/core/val.cpp.s
 
+src/CMakeFiles/MiniLua.dir/core/values.cpp.o: src/CMakeFiles/MiniLua.dir/flags.make
+src/CMakeFiles/MiniLua.dir/core/values.cpp.o: src/core/values.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object src/CMakeFiles/MiniLua.dir/core/values.cpp.o"
+	cd /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MiniLua.dir/core/values.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/values.cpp
+
+src/CMakeFiles/MiniLua.dir/core/values.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/MiniLua.dir/core/values.cpp.i"
+	cd /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/values.cpp > CMakeFiles/MiniLua.dir/core/values.cpp.i
+
+src/CMakeFiles/MiniLua.dir/core/values.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/MiniLua.dir/core/values.cpp.s"
+	cd /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/core/values.cpp -o CMakeFiles/MiniLua.dir/core/values.cpp.s
+
 src/CMakeFiles/MiniLua.dir/tree_sitter/edit_helper.cpp.o: src/CMakeFiles/MiniLua.dir/flags.make
 src/CMakeFiles/MiniLua.dir/tree_sitter/edit_helper.cpp.o: src/tree_sitter/edit_helper.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object src/CMakeFiles/MiniLua.dir/tree_sitter/edit_helper.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object src/CMakeFiles/MiniLua.dir/tree_sitter/edit_helper.cpp.o"
 	cd /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MiniLua.dir/tree_sitter/edit_helper.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/tree_sitter/edit_helper.cpp
 
 src/CMakeFiles/MiniLua.dir/tree_sitter/edit_helper.cpp.i: cmake_force
@@ -208,7 +234,7 @@ src/CMakeFiles/MiniLua.dir/tree_sitter/edit_helper.cpp.s: cmake_force
 
 src/CMakeFiles/MiniLua.dir/tree_sitter/tree_sitter.cpp.o: src/CMakeFiles/MiniLua.dir/flags.make
 src/CMakeFiles/MiniLua.dir/tree_sitter/tree_sitter.cpp.o: src/tree_sitter/tree_sitter.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object src/CMakeFiles/MiniLua.dir/tree_sitter/tree_sitter.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object src/CMakeFiles/MiniLua.dir/tree_sitter/tree_sitter.cpp.o"
 	cd /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/MiniLua.dir/tree_sitter/tree_sitter.cpp.o -c /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src/tree_sitter/tree_sitter.cpp
 
 src/CMakeFiles/MiniLua.dir/tree_sitter/tree_sitter.cpp.i: cmake_force
@@ -229,7 +255,9 @@ MiniLua_OBJECTS = \
 "CMakeFiles/MiniLua.dir/core/operators.cpp.o" \
 "CMakeFiles/MiniLua.dir/core/sourcechange.cpp.o" \
 "CMakeFiles/MiniLua.dir/core/sourceexp.cpp.o" \
+"CMakeFiles/MiniLua.dir/core/stdlib.cpp.o" \
 "CMakeFiles/MiniLua.dir/core/val.cpp.o" \
+"CMakeFiles/MiniLua.dir/core/values.cpp.o" \
 "CMakeFiles/MiniLua.dir/tree_sitter/edit_helper.cpp.o" \
 "CMakeFiles/MiniLua.dir/tree_sitter/tree_sitter.cpp.o"
 
@@ -244,7 +272,9 @@ src/libMiniLua.so: src/CMakeFiles/MiniLua.dir/core/luatoken.cpp.o
 src/libMiniLua.so: src/CMakeFiles/MiniLua.dir/core/operators.cpp.o
 src/libMiniLua.so: src/CMakeFiles/MiniLua.dir/core/sourcechange.cpp.o
 src/libMiniLua.so: src/CMakeFiles/MiniLua.dir/core/sourceexp.cpp.o
+src/libMiniLua.so: src/CMakeFiles/MiniLua.dir/core/stdlib.cpp.o
 src/libMiniLua.so: src/CMakeFiles/MiniLua.dir/core/val.cpp.o
+src/libMiniLua.so: src/CMakeFiles/MiniLua.dir/core/values.cpp.o
 src/libMiniLua.so: src/CMakeFiles/MiniLua.dir/tree_sitter/edit_helper.cpp.o
 src/libMiniLua.so: src/CMakeFiles/MiniLua.dir/tree_sitter/tree_sitter.cpp.o
 src/libMiniLua.so: src/CMakeFiles/MiniLua.dir/build.make
@@ -252,7 +282,7 @@ src/libMiniLua.so: extern/tree-sitter/libtree-sitter.a
 src/libMiniLua.so: libTreeSitterLua.a
 src/libMiniLua.so: extern/tree-sitter/libtree-sitter.a
 src/libMiniLua.so: src/CMakeFiles/MiniLua.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Linking CXX shared library libMiniLua.so"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Linking CXX shared library libMiniLua.so"
 	cd /home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/src && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/MiniLua.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
