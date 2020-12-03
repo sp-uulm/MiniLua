@@ -1,3 +1,0 @@
-repository='https://github.com/Azganoth/tree-sitter-lua.git'
-module=''
-tag='origin'

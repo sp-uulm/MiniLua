@@ -1,4 +1,0 @@
-# Hashes of file build rules.
-5dba381a911d48836ed790b5044858de CMakeFiles/TreeSitter_PRIVATE
-93a27c259d46363c7b7c85599451c1c2 examples/gui/moc_gui.cpp
-9957b8268caa44d0c6365e4e76dee97b libtree-sitter.a

@@ -1,3 +1,0 @@
-/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-subbuild/CMakeFiles/rebuild_cache.dir
-/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-subbuild/CMakeFiles/edit_cache.dir
-/home/tim/Documents/Anwendungsprojekt/Bachelor/MiniLua/_deps/tree-sitter-subbuild/CMakeFiles/tree-sitter-populate.dir

@@ -1,2 +1,0 @@
-/usr/bin/ar qc libTreeSitterLua.a CMakeFiles/TreeSitterLua.dir/extern/tree-sitter-lua/src/parser.c.o CMakeFiles/TreeSitterLua.dir/extern/tree-sitter-lua/src/scanner.cc.o
-/usr/bin/ranlib libTreeSitterLua.a
