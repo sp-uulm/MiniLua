@@ -114,24 +114,24 @@ auto main(int argc, char* argv[]) -> int {
                     cout << "New program: " << new_program << endl;
 
                     cout << "Parse [µs]: "
-                         << std::chrono::duration_cast<std::chrono::microseconds>(parse_end -
-                                                                                  parse_start)
+                         << std::chrono::duration_cast<std::chrono::microseconds>(
+                                parse_end - parse_start)
                                 .count()
                          << endl;
                     cout << "Execute [µs]: "
-                         << std::chrono::duration_cast<std::chrono::microseconds>(eval_end -
-                                                                                  eval_start)
+                         << std::chrono::duration_cast<std::chrono::microseconds>(
+                                eval_end - eval_start)
                                 .count()
                          << endl;
                     cout << "Apply SC [µs]: "
-                         << std::chrono::duration_cast<std::chrono::microseconds>(apply_end -
-                                                                                  eval_end)
+                         << std::chrono::duration_cast<std::chrono::microseconds>(
+                                apply_end - eval_end)
                                 .count()
                          << endl;
 
                     cout << "Total time [µs]: "
-                         << std::chrono::duration_cast<std::chrono::microseconds>(apply_end -
-                                                                                  parse_start)
+                         << std::chrono::duration_cast<std::chrono::microseconds>(
+                                apply_end - parse_start)
                                 .count()
                          << endl;
                 }

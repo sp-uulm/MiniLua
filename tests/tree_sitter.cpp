@@ -87,7 +87,7 @@ TEST_CASE("Navigation", "[tree-sitter][.hide]") {
     }
 }
 
-TEST_CASE("Print", "[tree-sitter][.hide]") {
+TEST_CASE("tree-sitter print", "[tree-sitter][.hide]") {
     ts::Parser parser;
 
     std::string source = "print(1+5)";
@@ -109,7 +109,7 @@ TEST_CASE("TestCase for program", "[tree-sitter]"){
     FAIL();
 }
 
-TEST_CASE("Point", "[tree-sitter]") {
+TEST_CASE("ts::Point", "[tree-sitter]") {
     static_assert(std::is_trivially_copyable<ts::Point>());
 
     SECTION("can be equality compared") {
@@ -153,7 +153,7 @@ TEST_CASE("Point", "[tree-sitter]") {
     }
 }
 
-TEST_CASE("Location", "[tree-sitter]") {
+TEST_CASE("ts::Location", "[tree-sitter]") {
     static_assert(std::is_trivially_copyable<ts::Location>());
 
     SECTION("can be equality compared") {
@@ -197,7 +197,7 @@ TEST_CASE("Location", "[tree-sitter]") {
     }
 }
 
-TEST_CASE("Range", "[tree-sitter]") {
+TEST_CASE("ts::Range", "[tree-sitter]") {
     static_assert(std::is_trivially_copyable<ts::Range>());
     SECTION("can be equality compared") {
         ts::Range range1{
@@ -220,7 +220,7 @@ TEST_CASE("Range", "[tree-sitter]") {
     }
 }
 
-TEST_CASE("Edit", "[tree-sitter]") {
+TEST_CASE("ts::Edit", "[tree-sitter]") {
     SECTION("can be equality compared") {
         ts::Edit edit1{
             .range =
@@ -259,7 +259,7 @@ TEST_CASE("Edit", "[tree-sitter]") {
     }
 }
 
-TEST_CASE("Language", "[tree-sitter]") {
+TEST_CASE("ts::Language", "[tree-sitter]") {
     SECTION("can be copied") {
         static_assert(std::is_nothrow_copy_constructible_v<ts::Language>);
         static_assert(std::is_nothrow_copy_assignable_v<ts::Language>);
@@ -614,7 +614,7 @@ TEST_CASE("Tree-Sitter detects errors", "[tree-sitter][parse]") {
     }
 }
 
-TEST_CASE("Query", "[tree-sitter]") {
+TEST_CASE("ts::Query", "[tree-sitter]") {
     static_assert(std::is_nothrow_move_constructible_v<ts::Query>);
     static_assert(std::is_nothrow_move_assignable_v<ts::Query>);
 
@@ -649,7 +649,7 @@ TEST_CASE("Query", "[tree-sitter]") {
     }
 }
 
-TEST_CASE("Cursor", "[tree-sitter]") {
+TEST_CASE("ts::Cursor", "[tree-sitter]") {
     static_assert(std::is_nothrow_copy_constructible_v<ts::Cursor>);
     static_assert(std::is_nothrow_copy_assignable_v<ts::Cursor>);
     static_assert(std::is_nothrow_move_constructible_v<ts::Cursor>);
@@ -722,7 +722,7 @@ TEST_CASE("Cursor", "[tree-sitter]") {
     }
 }
 
-TEST_CASE("Node", "[tree-sitter]") {
+TEST_CASE("ts::Node", "[tree-sitter]") {
     static_assert(std::is_nothrow_copy_constructible_v<ts::Node>);
     static_assert(std::is_nothrow_move_constructible_v<ts::Node>);
     // this makes moves redundant

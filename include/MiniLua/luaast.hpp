@@ -11,14 +11,14 @@
 using namespace std;
 
 #define VISITABLE                                                                                  \
-    virtual lua::rt::eval_result_t accept(const lua::rt::ASTEvaluator& visitor,                    \
-                                          const shared_ptr<lua::rt::Environment>& environment,     \
-                                          const lua::rt::assign_t& assign = nullopt) const
+    virtual lua::rt::eval_result_t accept(                                                         \
+        const lua::rt::ASTEvaluator& visitor, const shared_ptr<lua::rt::Environment>& environment, \
+        const lua::rt::assign_t& assign = nullopt) const
 
 #define VISITABLE_IMPL(T)                                                                          \
-    lua::rt::eval_result_t T::accept(const lua::rt::ASTEvaluator& visitor,                         \
-                                     const shared_ptr<lua::rt::Environment>& environment,          \
-                                     const lua::rt::assign_t& assign) const {                      \
+    lua::rt::eval_result_t T::accept(                                                              \
+        const lua::rt::ASTEvaluator& visitor, const shared_ptr<lua::rt::Environment>& environment, \
+        const lua::rt::assign_t& assign) const {                                                   \
                                                                                                    \
         unsigned count =                                                                           \
             static_cast<unsigned>(get<double>(environment->getvar(string{"__visit_count"})));      \

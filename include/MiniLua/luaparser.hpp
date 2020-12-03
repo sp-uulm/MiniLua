@@ -22,29 +22,31 @@ template <typename Lexer> struct lua_tokens : bs::lex::lexer<Lexer> {
     lua_tokens() {
         // define tokens (the regular expression to match and the corresponding
         // token id) and add them to the lexer
-        this->self.add("\\s+", WS)("--\\[\\[[^\\]]*\\]\\]", LuaToken::Type::BLOCKCOMMENT)("--[^\n]*", LuaToken::Type::COMMENT)
-                ("(\\\"[^\\\"]*\\\")|('[^']*')", LuaToken::Type::STRINGLIT)
-                ("((\\d+\\.?\\d*)|(\\d*\\.?\\d+))(e-?\\d+)?", LuaToken::Type::NUMLIT)("\\+", LuaToken::Type::ADD)(
-            "-", LuaToken::Type::SUB)("\\*", LuaToken::Type::MUL)("\\/", LuaToken::Type::DIV)(
-            "%", LuaToken::Type::MOD)("\\^", LuaToken::Type::POW)("\\#", LuaToken::Type::LEN)(
-            "\\$", LuaToken::Type::STRIP)("\\\\", LuaToken::Type::EVAL)("==", LuaToken::Type::EQ)(
-            "~=", LuaToken::Type::NEQ)("<=", LuaToken::Type::LEQ)(">=", LuaToken::Type::GEQ)(
-            "<", LuaToken::Type::LT)(">", LuaToken::Type::GT)("=", LuaToken::Type::ASSIGN)(
-            "\\{", LuaToken::Type::LCB)("\\}", LuaToken::Type::RCB)("\\(", LuaToken::Type::LRB)(
-            "\\)", LuaToken::Type::RRB)("\\[", LuaToken::Type::LSB)("\\]", LuaToken::Type::RSB)(
-            ";", LuaToken::Type::SEM)(":", LuaToken::Type::COLON)(",", LuaToken::Type::COMMA)(
+        this->self.add("\\s+", WS)("--\\[\\[[^\\]]*\\]\\]", LuaToken::Type::BLOCKCOMMENT)(
+            "--[^\n]*",
+            LuaToken::Type::COMMENT)("(\\\"[^\\\"]*\\\")|('[^']*')", LuaToken::Type::STRINGLIT)(
+            "((\\d+\\.?\\d*)|(\\d*\\.?\\d+))(e-?\\d+)?",
+            LuaToken::Type::NUMLIT)("\\+", LuaToken::Type::ADD)("-", LuaToken::Type::SUB)(
+            "\\*", LuaToken::Type::MUL)("\\/", LuaToken::Type::DIV)("%", LuaToken::Type::MOD)(
+            "\\^", LuaToken::Type::POW)("\\#", LuaToken::Type::LEN)("\\$", LuaToken::Type::STRIP)(
+            "\\\\", LuaToken::Type::EVAL)("==", LuaToken::Type::EQ)("~=", LuaToken::Type::NEQ)(
+            "<=", LuaToken::Type::LEQ)(">=", LuaToken::Type::GEQ)("<", LuaToken::Type::LT)(
+            ">", LuaToken::Type::GT)("=", LuaToken::Type::ASSIGN)("\\{", LuaToken::Type::LCB)(
+            "\\}", LuaToken::Type::RCB)("\\(", LuaToken::Type::LRB)("\\)", LuaToken::Type::RRB)(
+            "\\[", LuaToken::Type::LSB)("\\]", LuaToken::Type::RSB)(";", LuaToken::Type::SEM)(
+            ":", LuaToken::Type::COLON)(",", LuaToken::Type::COMMA)(
             "\\.\\.\\.", LuaToken::Type::ELLIPSE)("\\.\\.", LuaToken::Type::CONCAT)(
             "\\.", LuaToken::Type::DOT)("and\\W", /* \b is not supported :-(*/ LuaToken::Type::AND)(
             "break\\W", LuaToken::Type::BREAK)("do\\W", LuaToken::Type::DO)(
-            "elseif\\W", LuaToken::Type::ELSEIF)("else\\W", LuaToken::Type::ELSE)(
-            "end", LuaToken::Type::END)("false", LuaToken::Type::FALSE)(
-            "for\\W", LuaToken::Type::FOR)("function\\W", LuaToken::Type::FUNCTION)(
-            "if\\W", LuaToken::Type::IF)("in\\W", LuaToken::Type::IN)("local\\W",
-                                                                      LuaToken::Type::LOCAL)(
+            "elseif\\W",
+            LuaToken::Type::ELSEIF)("else\\W", LuaToken::Type::ELSE)("end", LuaToken::Type::END)(
+            "false", LuaToken::Type::FALSE)("for\\W", LuaToken::Type::FOR)(
+            "function\\W", LuaToken::Type::FUNCTION)("if\\W", LuaToken::Type::IF)(
+            "in\\W", LuaToken::Type::IN)("local\\W", LuaToken::Type::LOCAL)(
             "nil", LuaToken::Type::NIL)("not\\W", LuaToken::Type::NOT)("or\\W", LuaToken::Type::OR)(
             "repeat\\W", LuaToken::Type::REPEAT)("return\\W", LuaToken::Type::RETURN)(
-            "then\\W", LuaToken::Type::THEN)("true", LuaToken::Type::TRUE)("until\\W",
-                                                                           LuaToken::Type::UNTIL)(
+            "then\\W",
+            LuaToken::Type::THEN)("true", LuaToken::Type::TRUE)("until\\W", LuaToken::Type::UNTIL)(
             "while\\W", LuaToken::Type::WHILE)("[a-zA-Z_]\\w*", LuaToken::Type::NAME);
     }
 };

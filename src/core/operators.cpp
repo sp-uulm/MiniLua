@@ -12,8 +12,8 @@ eval_result_t op_add(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {
     if (holds_alternative<double>(a) && holds_alternative<double>(b))
         return eval_success({get<double>(a) + get<double>(b), sourcebinop::create(a, b, tok)});
 
-    return string{"could not add values of type other than number (" + a.type() + ", " + b.type() +
-                  ")"};
+    return string{
+        "could not add values of type other than number (" + a.type() + ", " + b.type() + ")"};
 }
 
 eval_result_t op_sub(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {

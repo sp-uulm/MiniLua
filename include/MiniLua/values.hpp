@@ -1,6 +1,7 @@
 #ifndef MINILUA_VALUES_HPP
 #define MINILUA_VALUES_HPP
 
+#include <cmath>
 #include <functional>
 #include <string>
 #include <unordered_map>
@@ -86,7 +87,7 @@ public:
 
     // helper for next method
     template <std::size_t... Is>
-    [[nodiscard]] auto tuple(std::index_sequence<Is...>) const
+    [[nodiscard]] auto tuple(std::index_sequence<Is...> /*unused*/) const
         -> std::tuple<T_<Is, std::reference_wrapper<const Value>>...> {
         return std::make_tuple(std::cref(this->get(Is))...);
     }
@@ -122,12 +123,12 @@ struct Nil {
 
     explicit operator bool() const;
 };
-constexpr auto operator==(Nil, Nil) noexcept -> bool { return true; }
-constexpr auto operator!=(Nil, Nil) noexcept -> bool { return false; }
+constexpr auto operator==(Nil /*unused*/, Nil /*unused*/) noexcept -> bool { return true; }
+constexpr auto operator!=(Nil /*unused*/, Nil /*unused*/) noexcept -> bool { return false; }
 auto operator<<(std::ostream&, Nil) -> std::ostream&;
 
 struct Bool {
-    bool value;
+    bool value; // NOLINT(misc-non-private-member-variables-in-classes)
 
     constexpr static const std::string_view TYPE = "boolean";
 
@@ -147,7 +148,7 @@ DELEGATE_OP(Bool, ||);
 DELEGATE_OP(Bool, ^);
 
 struct Number {
-    double value;
+    double value; // NOLINT(misc-non-private-member-variables-in-classes)
 
     constexpr static const std::string_view TYPE = "number";
 
@@ -184,7 +185,7 @@ auto operator&(Number lhs, Number rhs) -> Number;
 auto operator|(Number lhs, Number rhs) -> Number;
 
 struct String {
-    std::string value;
+    std::string value; // NOLINT(misc-non-private-member-variables-in-classes)
 
     constexpr static const std::string_view TYPE = "string";
 
@@ -239,6 +240,9 @@ public:
     explicit operator bool() const;
 };
 
+struct BinaryOrigin;
+struct UnaryOrigin;
+
 /**
  * Contains information for use in the implementation of native functions.
  *
@@ -263,16 +267,19 @@ public:
     /**
      * Create a new call context with new arguments but reuse all other information.
      */
-    [[nodiscard]] auto make_new(Vallist) const -> CallContext;
+    [[nodiscard]] auto make_new(Vallist, std::optional<Range> location = std::nullopt) const
+        -> CallContext;
 
-    template <typename... Args> [[nodiscard]] auto make_new(Args... args) const -> CallContext {
-        return this->make_new(Vallist{args...});
+    template <typename... Args>
+    [[nodiscard]] auto make_new(Args... args, std::optional<Range> location = std::nullopt) const
+        -> CallContext {
+        return this->make_new(Vallist{args...}, location);
     }
 
     /**
      * Returns the location of the call.
      */
-    [[nodiscard]] auto call_location() const -> Range;
+    [[nodiscard]] auto call_location() const -> std::optional<Range>;
 
     /**
      * Returns a reference to the global environment.
@@ -289,6 +296,28 @@ public:
      * Returns the arguments given to this function.
      */
     [[nodiscard]] auto arguments() const -> const Vallist&;
+
+    /**
+     * Convenience methods for writing functions one or two numeric arguments
+     * that should track the origin (e.g. sqrt or pow).
+     *
+     * Usage:
+     *
+     * ```cpp
+     * auto [arg, origin] = ctx.unary_numeric_arg_helper();
+     * origin.reverse = unary_num_reverse(...);
+     * // ...
+     * ```
+     *
+     * ```cpp
+     * auto [arg1, arg2, origin] = ctx.binary_numeric_arg_helper();
+     * origin.reverse = binary_num_reverse(...);
+     * // ...
+     * ```
+     */
+    [[nodiscard]] auto unary_numeric_arg_helper() const -> std::tuple<double, UnaryOrigin>;
+    [[nodiscard]] auto binary_numeric_args_helper() const
+        -> std::tuple<double, double, BinaryOrigin>;
 
     friend auto operator<<(std::ostream&, const CallContext&) -> std::ostream&;
 };
@@ -364,7 +393,7 @@ public:
     // always throws an exception. just here for convenience.
     [[nodiscard]] auto to_literal() const -> std::string;
 
-    auto call(CallContext) const -> CallResult;
+    [[nodiscard]] auto call(CallContext) const -> CallResult;
 
     explicit operator bool() const;
 
@@ -374,13 +403,6 @@ public:
 };
 
 auto operator<<(std::ostream&, const Function&) -> std::ostream&;
-
-// TODO LuaFunction
-// could maybe share a type with NativeFunction (e.g. by providing lambdas)
-//
-// Requires:
-// - reference to ast of function definition
-// - copy of enclosing environment
 
 } // namespace minilua
 
@@ -414,22 +436,102 @@ template <> struct hash<minilua::Function> {
 namespace minilua {
 
 struct NoOrigin {};
+auto operator==(const NoOrigin&, const NoOrigin&) noexcept -> bool;
+auto operator!=(const NoOrigin&, const NoOrigin&) noexcept -> bool;
+auto operator<<(std::ostream&, const NoOrigin&) -> std::ostream&;
+
 struct ExternalOrigin {};
+auto operator==(const ExternalOrigin&, const ExternalOrigin&) noexcept -> bool;
+auto operator!=(const ExternalOrigin&, const ExternalOrigin&) noexcept -> bool;
+auto operator<<(std::ostream&, const ExternalOrigin&) -> std::ostream&;
+
+// Value was created from a literal in code.
 struct LiteralOrigin {
     Range location;
 };
+
+auto operator==(const LiteralOrigin&, const LiteralOrigin&) noexcept -> bool;
+auto operator!=(const LiteralOrigin&, const LiteralOrigin&) noexcept -> bool;
+auto operator<<(std::ostream&, const LiteralOrigin&) -> std::ostream&;
+
+// Value was created in a binary operation (or some functions with two arguments) using lhs and rhs.
 struct BinaryOrigin {
+    using ReverseFn = std::optional<SourceChangeTree>(const Value&, const Value&, const Value&);
+
     owning_ptr<Value> lhs;
     owning_ptr<Value> rhs;
-    Range location;
+    std::optional<Range> location;
+    // new_value, old_lhs, old_rhs
+    std::function<ReverseFn> reverse;
 };
+
+auto operator==(const BinaryOrigin&, const BinaryOrigin&) noexcept -> bool;
+auto operator!=(const BinaryOrigin&, const BinaryOrigin&) noexcept -> bool;
+auto operator<<(std::ostream&, const BinaryOrigin&) -> std::ostream&;
+
+// Value was created in a unary operation (or some functions with one argument) using val.
 struct UnaryOrigin {
+    using ReverseFn = std::optional<SourceChangeTree>(const Value&, const Value&);
+
     owning_ptr<Value> val;
-    Range location;
+    std::optional<Range> location;
+    // new_value, old_value
+    std::function<ReverseFn> reverse;
 };
-struct Origin {
-    std::variant<NoOrigin, ExternalOrigin, LiteralOrigin, BinaryOrigin, UnaryOrigin> origin;
+
+auto operator==(const UnaryOrigin&, const UnaryOrigin&) noexcept -> bool;
+auto operator!=(const UnaryOrigin&, const UnaryOrigin&) noexcept -> bool;
+auto operator<<(std::ostream&, const UnaryOrigin&) -> std::ostream&;
+
+/**
+ * The origin of a value.
+ */
+class Origin {
+public:
+    using Type = std::variant<NoOrigin, ExternalOrigin, LiteralOrigin, BinaryOrigin, UnaryOrigin>;
+
+private:
+    Type origin;
+
+public:
+    Origin();
+    explicit Origin(Type);
+    Origin(NoOrigin);
+    Origin(ExternalOrigin);
+    Origin(LiteralOrigin);
+    Origin(BinaryOrigin);
+    Origin(UnaryOrigin);
+
+    [[nodiscard]] auto raw() const -> const Type&;
+    auto raw() -> Type&;
+
+    [[nodiscard]] auto is_none() const -> bool;
+    [[nodiscard]] auto is_external() const -> bool;
+    [[nodiscard]] auto is_literal() const -> bool;
+    [[nodiscard]] auto is_binary() const -> bool;
+    [[nodiscard]] auto is_unary() const -> bool;
+
+    [[nodiscard]] auto force(const Value&) const -> std::optional<SourceChangeTree>;
 };
+
+auto operator==(const Origin&, const Origin&) noexcept -> bool;
+auto operator!=(const Origin&, const Origin&) noexcept -> bool;
+auto operator<<(std::ostream&, const Origin&) -> std::ostream&;
+
+} // namespace minilua
+
+namespace std {
+
+// behaves like std::get(std::variant) but only accepts types as template parameter
+template <typename T> auto get(minilua::Origin& origin) -> T& { return std::get<T>(origin.raw()); }
+
+template <typename T> auto get(const minilua::Origin& origin) -> const T& {
+    return std::get<T>(origin.raw());
+}
+
+} // namespace std
+
+namespace minilua {
 
 /**
  * Represents a value in lua.
@@ -500,6 +602,8 @@ public:
 
     [[nodiscard]] auto has_origin() const -> bool;
 
+    [[nodiscard]] auto origin() const -> const Origin&;
+
     [[nodiscard]] auto remove_origin() const -> Value;
     [[nodiscard]] auto with_origin(Origin new_origin) const -> Value;
 
@@ -513,7 +617,8 @@ public:
      *
      * This throws an exception if the types of the values didn't match.
      */
-    auto force(Value new_value, std::string origin = "") -> std::optional<SourceChangeTree>;
+    [[nodiscard]] auto force(Value new_value, std::string origin = "") const
+        -> std::optional<SourceChangeTree>;
 
     [[nodiscard]] auto call(CallContext) const -> CallResult;
     [[nodiscard]] auto bind(CallContext) const -> std::function<CallResult(Vallist)>;
@@ -551,5 +656,77 @@ template <typename T> auto get(const minilua::Value& value) -> const T& {
 }
 
 } // namespace std
+
+namespace minilua {
+
+/**
+ * Helper functions for writing functions that should be forcable.
+ */
+
+template <typename Fn> auto unary_num_reverse(Fn fn) -> decltype(auto) {
+    return [fn](const Value& new_value, const Value& old_value) -> std::optional<SourceChangeTree> {
+        if (!new_value.is_number() || !old_value.is_number()) {
+            return std::nullopt;
+        }
+        double num = std::get<Number>(new_value).value;
+        return old_value.force(fn(num));
+    };
+}
+
+template <typename FnLeft, typename FnRight>
+auto binary_num_reverse(FnLeft fn_left, FnRight fn_right, std::string origin = "")
+    -> decltype(auto) {
+    return [fn_left, fn_right, origin = std::move(origin)](
+               const Value& new_value, const Value& old_lhs,
+               const Value& old_rhs) -> std::optional<SourceChangeTree> {
+        if (!new_value.is_number() || !old_lhs.is_number() || !old_rhs.is_number()) {
+            return std::nullopt;
+        }
+        double num = std::get<Number>(new_value).value;
+        double lhs_num = std::get<Number>(old_lhs).value;
+        double rhs_num = std::get<Number>(old_rhs).value;
+
+        auto lhs_change = old_lhs.force(fn_left(num, rhs_num));
+        auto rhs_change = old_rhs.force(fn_right(num, lhs_num));
+
+        SourceChangeAlternative change;
+        change.add_if_some(lhs_change);
+        change.add_if_some(rhs_change);
+
+        change.origin = origin;
+        return change;
+    };
+}
+
+// use by constructing with lambdas directly and immediately invoke with the CallContext
+template <typename Fn, typename Reverse> struct UnaryNumericFunctionHelper {
+    Fn function;     // NOLINT
+    Reverse reverse; // NOLINT
+
+    auto operator()(const CallContext& ctx) -> Value {
+        auto [arg1, origin] = ctx.unary_numeric_arg_helper();
+        origin.reverse = unary_num_reverse(this->reverse);
+        return Value(this->function(arg1)).with_origin(origin);
+    }
+};
+// deduction guide
+template <class... Ts> UnaryNumericFunctionHelper(Ts...) -> UnaryNumericFunctionHelper<Ts...>;
+
+template <typename Fn, typename ReverseLeft, typename ReverseRight>
+struct BinaryNumericFunctionHelper {
+    Fn function;                // NOLINT
+    ReverseLeft reverse_left;   // NOLINT
+    ReverseRight reverse_right; // NOLINT
+
+    auto operator()(const CallContext& ctx) -> Value {
+        auto [arg1, arg2, origin] = ctx.binary_numeric_args_helper();
+        origin.reverse = binary_num_reverse(this->reverse_left, this->reverse_right);
+        return Value(this->function(arg1, arg2)).with_origin(origin);
+    }
+};
+// deduction guide
+template <class... Ts> BinaryNumericFunctionHelper(Ts...) -> BinaryNumericFunctionHelper<Ts...>;
+
+} // namespace minilua
 
 #endif
