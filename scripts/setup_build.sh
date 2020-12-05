@@ -4,8 +4,8 @@ set -ev
 mkdir -pv build
 pushd build
 
-rm CMakeCache.txt
-rm -r CMakeFiles
+rm -f CMakeCache.txt
+rm -rf CMakeFiles
 
 cmake .. $@
 popd
