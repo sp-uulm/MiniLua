@@ -17,25 +17,27 @@ void DrawWidget::paintEvent(QPaintEvent* event) {
 
         env->assign(
             string{"line"},
-            make_shared<lua::rt::cfunction>([&painter](const lua::rt::vallist& args)
-                                                -> lua::rt::cfunction::result {
-                if (args.size() != 4) {
-                    return lua::rt::vallist{lua::rt::nil(), string{"invalid number of arguments"}};
-                }
-
-                for (int i = 0; i < 4; ++i) {
-                    if (!holds_alternative<double>(args[i])) {
-                        return lua::rt::vallist{lua::rt::nil(),
-                                                string{"invalid type of argument "} +
-                                                    to_string(i + 1) + " (number expected)"};
+            make_shared<lua::rt::cfunction>(
+                [&painter](const lua::rt::vallist& args) -> lua::rt::cfunction::result {
+                    if (args.size() != 4) {
+                        return lua::rt::vallist{
+                            lua::rt::nil(), string{"invalid number of arguments"}};
                     }
-                }
 
-                painter.drawLine(get<double>(args[0]), get<double>(args[1]), get<double>(args[2]),
-                                 get<double>(args[3]));
+                    for (int i = 0; i < 4; ++i) {
+                        if (!holds_alternative<double>(args[i])) {
+                            return lua::rt::vallist{
+                                lua::rt::nil(), string{"invalid type of argument "} +
+                                                    to_string(i + 1) + " (number expected)"};
+                        }
+                    }
 
-                return {};
-            }),
+                    painter.drawLine(
+                        get<double>(args[0]), get<double>(args[1]), get<double>(args[2]),
+                        get<double>(args[3]));
+
+                    return {};
+                }),
             false);
 
         env->assign(
@@ -43,8 +45,8 @@ void DrawWidget::paintEvent(QPaintEvent* event) {
             make_shared<lua::rt::cfunction>(
                 [this](const lua::rt::vallist& args) -> lua::rt::cfunction::result {
                     if (args.size() != 2) {
-                        return lua::rt::vallist{lua::rt::nil(),
-                                                string{"wrong number of arguments (expected 2)"}};
+                        return lua::rt::vallist{
+                            lua::rt::nil(), string{"wrong number of arguments (expected 2)"}};
                     }
 
                     cout << "force " << args[0] << " to be " << args[1] << endl;

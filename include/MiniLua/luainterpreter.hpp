@@ -52,44 +52,53 @@ struct ASTEvaluator {
         return string{"unimplemented10"};
     }
 
-    eval_result_t visit(const _LuaName& chunk, const shared_ptr<Environment>& env,
-                        const assign_t& assign) const;
-    eval_result_t visit(const _LuaOp& chunk, const shared_ptr<Environment>& env,
-                        const assign_t& assign) const;
-    eval_result_t visit(const _LuaUnop& chunk, const shared_ptr<Environment>& env,
-                        const assign_t& assign) const;
-    eval_result_t visit(const _LuaExplist& chunk, const shared_ptr<Environment>& env,
-                        const assign_t& assign) const;
-    eval_result_t visit(const _LuaFunctioncall& chunk, const shared_ptr<Environment>& env,
-                        const assign_t& assign) const;
-    eval_result_t visit(const _LuaAssignment& chunk, const shared_ptr<Environment>& env,
-                        const assign_t& assign) const;
-    eval_result_t visit(const _LuaValue& chunk, const shared_ptr<Environment>& env,
-                        const assign_t& assign) const;
-    eval_result_t visit(const _LuaNameVar& chunk, const shared_ptr<Environment>& env,
-                        const assign_t& assign) const;
-    eval_result_t visit(const _LuaIndexVar& chunk, const shared_ptr<Environment>& env,
-                        const assign_t& assign) const;
-    eval_result_t visit(const _LuaMemberVar& chunk, const shared_ptr<Environment>& env,
-                        const assign_t& assign) const;
-    eval_result_t visit(const _LuaReturnStmt& chunk, const shared_ptr<Environment>& env,
-                        const assign_t& assign) const;
-    eval_result_t visit(const _LuaBreakStmt& chunk, const shared_ptr<Environment>& env,
-                        const assign_t& assign) const;
-    eval_result_t visit(const _LuaForStmt& for_stmt, const shared_ptr<Environment>& env,
-                        const assign_t& assign) const;
-    eval_result_t visit(const _LuaLoopStmt& loop_stmt, const shared_ptr<Environment>& env,
-                        const assign_t& assign) const;
-    eval_result_t visit(const _LuaChunk& chunk, const shared_ptr<Environment>& env,
-                        const assign_t& assign) const;
-    eval_result_t visit(const _LuaTableconstructor& stmt, const shared_ptr<Environment>& env,
-                        const assign_t& assign) const;
-    eval_result_t visit(const _LuaFunction& exp, const shared_ptr<Environment>& env,
-                        const assign_t& assign) const;
-    eval_result_t visit(const _LuaIfStmt& stmt, const shared_ptr<Environment>& env,
-                        const assign_t& assign) const;
-    eval_result_t visit(const _LuaComment& stmt, const shared_ptr<Environment>& env,
-                        const assign_t& assign) const;
+    eval_result_t
+    visit(const _LuaName& chunk, const shared_ptr<Environment>& env, const assign_t& assign) const;
+    eval_result_t
+    visit(const _LuaOp& chunk, const shared_ptr<Environment>& env, const assign_t& assign) const;
+    eval_result_t
+    visit(const _LuaUnop& chunk, const shared_ptr<Environment>& env, const assign_t& assign) const;
+    eval_result_t visit(
+        const _LuaExplist& chunk, const shared_ptr<Environment>& env, const assign_t& assign) const;
+    eval_result_t visit(
+        const _LuaFunctioncall& chunk, const shared_ptr<Environment>& env,
+        const assign_t& assign) const;
+    eval_result_t visit(
+        const _LuaAssignment& chunk, const shared_ptr<Environment>& env,
+        const assign_t& assign) const;
+    eval_result_t
+    visit(const _LuaValue& chunk, const shared_ptr<Environment>& env, const assign_t& assign) const;
+    eval_result_t visit(
+        const _LuaNameVar& chunk, const shared_ptr<Environment>& env, const assign_t& assign) const;
+    eval_result_t visit(
+        const _LuaIndexVar& chunk, const shared_ptr<Environment>& env,
+        const assign_t& assign) const;
+    eval_result_t visit(
+        const _LuaMemberVar& chunk, const shared_ptr<Environment>& env,
+        const assign_t& assign) const;
+    eval_result_t visit(
+        const _LuaReturnStmt& chunk, const shared_ptr<Environment>& env,
+        const assign_t& assign) const;
+    eval_result_t visit(
+        const _LuaBreakStmt& chunk, const shared_ptr<Environment>& env,
+        const assign_t& assign) const;
+    eval_result_t visit(
+        const _LuaForStmt& for_stmt, const shared_ptr<Environment>& env,
+        const assign_t& assign) const;
+    eval_result_t visit(
+        const _LuaLoopStmt& loop_stmt, const shared_ptr<Environment>& env,
+        const assign_t& assign) const;
+    eval_result_t
+    visit(const _LuaChunk& chunk, const shared_ptr<Environment>& env, const assign_t& assign) const;
+    eval_result_t visit(
+        const _LuaTableconstructor& stmt, const shared_ptr<Environment>& env,
+        const assign_t& assign) const;
+    eval_result_t visit(
+        const _LuaFunction& exp, const shared_ptr<Environment>& env, const assign_t& assign) const;
+    eval_result_t
+    visit(const _LuaIfStmt& stmt, const shared_ptr<Environment>& env, const assign_t& assign) const;
+    eval_result_t visit(
+        const _LuaComment& stmt, const shared_ptr<Environment>& env, const assign_t& assign) const;
 };
 
 } // namespace rt

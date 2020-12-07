@@ -50,8 +50,9 @@ vector<LuaToken> ApplySCVisitor::apply_changes(const vector<LuaToken>& tokens) {
     auto new_tokens = tokens;
 
     // sort the collected changes according to their position
-    std::sort(changes.begin(), changes.end(),
-              [](const auto& a, const auto& b) { return a.token.pos > b.token.pos; });
+    std::sort(changes.begin(), changes.end(), [](const auto& a, const auto& b) {
+        return a.token.pos > b.token.pos;
+    });
 
     // apply the changes from back to front
     for (const auto& sc : changes) {

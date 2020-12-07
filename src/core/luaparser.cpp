@@ -392,9 +392,10 @@ auto LuaParser::parse_stat(token_it_t& begin, token_it_t& end) const -> parse_re
     case LuaToken::Type::BLOCKCOMMENT: {
         begin++;
         LuaComment comment = make_shared<_LuaComment>();
-        return move(comment);}
+        return move(comment);
+    }
     default:
-        cout << lua_token_to_string(begin->type)<<endl;
+        cout << lua_token_to_string(begin->type) << endl;
         return "stat: wrong alternative " + begin->match;
     }
 }
@@ -763,9 +764,8 @@ auto LuaParser::parse_prefixexp(token_it_t& begin, token_it_t& end) const
     return move(result);
 }
 
-auto LuaParser::parse_functioncall(token_it_t& begin, token_it_t& end,
-                                   const LuaExp& prefixexp) const
-    -> parse_result_t<LuaFunctioncall> {
+auto LuaParser::parse_functioncall(token_it_t& begin, token_it_t& end, const LuaExp& prefixexp)
+    const -> parse_result_t<LuaFunctioncall> {
     // cout << "functioncall" << endl;
     // functioncall ::=  prefixexp args | prefixexp `:´ Name args
     LuaFunctioncall call = make_shared<_LuaFunctioncall>();
@@ -1043,119 +1043,119 @@ string get_string(const LuaParser::token_list_t& tokens) {
     return ss.str();
 }
 
-auto LuaParser::lua_token_to_string(LuaToken::Type type) const -> std::string{
+auto LuaParser::lua_token_to_string(LuaToken::Type type) const -> std::string {
     switch (type) {
-        case LuaToken::Type::NONE:
-            return "NONE";
-        case LuaToken::Type::ADD:
-            return "ADD";
-        case LuaToken::Type::SUB:
-            return "SUB";
-        case LuaToken::Type::MUL:
-            return "MUL";
-        case LuaToken::Type::DIV:
-            return "DIV";
-        case LuaToken::Type::MOD:
-            return "MOD";
-        case LuaToken::Type::POW:
-            return "POW";
-        case LuaToken::Type::LEN:
-            return "LEN";
-        case LuaToken::Type::STRIP:
-            return "STRIP";
-        case LuaToken::Type::EVAL:
-            return "EVAL";
-        case LuaToken::Type::EQ:
-            return "EQ";
-        case LuaToken::Type::NEQ:
-            return "NEQ";
-        case LuaToken::Type::LEQ:
-            return "LEQ";
-        case LuaToken::Type::GEQ:
-            return "GEQ";
-        case LuaToken::Type::LT:
-            return "LT";
-        case LuaToken::Type::GT:
-            return "GT";
-        case LuaToken::Type::ASSIGN:
-            return "ASSIGN";
-        case LuaToken::Type::LCB:
-            return "LCB";
-        case LuaToken::Type::RCB:
-            return "RCB";
-        case LuaToken::Type::LRB:
-            return "LRB";
-        case LuaToken::Type::RRB:
-            return "RRB";
-        case LuaToken::Type::LSB:
-            return "LSB";
-        case LuaToken::Type::RSB:
-            return "RSB";
-        case LuaToken::Type::SEM:
-            return "SEM";
-        case LuaToken::Type::COLON:
-            return "COLON";
-        case LuaToken::Type::COMMA:
-            return "COMMA";
-        case LuaToken::Type::DOT:
-            return "DOT";
-        case LuaToken::Type::CONCAT:
-            return "CONCAT";
-        case LuaToken::Type::ELLIPSE:
-            return "ELLIPSE";
-        case LuaToken::Type::AND:
-            return "AND";
-        case LuaToken::Type::BREAK:
-            return "BREAK";
-        case LuaToken::Type::DO:
-            return "DO";
-        case LuaToken::Type::ELSE:
-            return "ELSE";
-        case LuaToken::Type::ELSEIF:
-            return "ELSEIF";
-        case LuaToken::Type::END:
-            return "END";
-        case LuaToken::Type::FALSE:
-            return "FALSE";
-        case LuaToken::Type::FOR:
-            return "FOR";
-        case LuaToken::Type::FUNCTION:
-            return "FUNCTION";
-        case LuaToken::Type::IF:
-            return "IF";
-        case LuaToken::Type::IN:
-            return "IN";
-        case LuaToken::Type::LOCAL:
-            return "LOCAL";
-        case LuaToken::Type::NIL:
-            return "NIL";
-        case LuaToken::Type::NOT:
-            return "NOT";
-        case LuaToken::Type::OR:
-            return "OR";
-        case LuaToken::Type::REPEAT:
-            return "REPEAT";
-        case LuaToken::Type::RETURN:
-            return "RETURN";
-        case LuaToken::Type::THEN:
-            return "THEN";
-        case LuaToken::Type::TRUE:
-            return "TRUE";
-        case LuaToken::Type::UNTIL:
-            return "UNTIL";
-        case LuaToken::Type::WHILE:
-            return "WHILE";
-        case LuaToken::Type::NAME:
-            return "NAME";
-        case LuaToken::Type::STRINGLIT:
-            return "STRINGLIT";
-        case LuaToken::Type::NUMLIT:
-            return "NUMLIT";
-        case LuaToken::Type::COMMENT:
-            return "COMMENT";
-        case LuaToken::Type::BLOCKCOMMENT:
-            return "BLOCKCOMMENT";
-        default:
-            return "invalid luaToken-type";
+    case LuaToken::Type::NONE:
+        return "NONE";
+    case LuaToken::Type::ADD:
+        return "ADD";
+    case LuaToken::Type::SUB:
+        return "SUB";
+    case LuaToken::Type::MUL:
+        return "MUL";
+    case LuaToken::Type::DIV:
+        return "DIV";
+    case LuaToken::Type::MOD:
+        return "MOD";
+    case LuaToken::Type::POW:
+        return "POW";
+    case LuaToken::Type::LEN:
+        return "LEN";
+    case LuaToken::Type::STRIP:
+        return "STRIP";
+    case LuaToken::Type::EVAL:
+        return "EVAL";
+    case LuaToken::Type::EQ:
+        return "EQ";
+    case LuaToken::Type::NEQ:
+        return "NEQ";
+    case LuaToken::Type::LEQ:
+        return "LEQ";
+    case LuaToken::Type::GEQ:
+        return "GEQ";
+    case LuaToken::Type::LT:
+        return "LT";
+    case LuaToken::Type::GT:
+        return "GT";
+    case LuaToken::Type::ASSIGN:
+        return "ASSIGN";
+    case LuaToken::Type::LCB:
+        return "LCB";
+    case LuaToken::Type::RCB:
+        return "RCB";
+    case LuaToken::Type::LRB:
+        return "LRB";
+    case LuaToken::Type::RRB:
+        return "RRB";
+    case LuaToken::Type::LSB:
+        return "LSB";
+    case LuaToken::Type::RSB:
+        return "RSB";
+    case LuaToken::Type::SEM:
+        return "SEM";
+    case LuaToken::Type::COLON:
+        return "COLON";
+    case LuaToken::Type::COMMA:
+        return "COMMA";
+    case LuaToken::Type::DOT:
+        return "DOT";
+    case LuaToken::Type::CONCAT:
+        return "CONCAT";
+    case LuaToken::Type::ELLIPSE:
+        return "ELLIPSE";
+    case LuaToken::Type::AND:
+        return "AND";
+    case LuaToken::Type::BREAK:
+        return "BREAK";
+    case LuaToken::Type::DO:
+        return "DO";
+    case LuaToken::Type::ELSE:
+        return "ELSE";
+    case LuaToken::Type::ELSEIF:
+        return "ELSEIF";
+    case LuaToken::Type::END:
+        return "END";
+    case LuaToken::Type::FALSE:
+        return "FALSE";
+    case LuaToken::Type::FOR:
+        return "FOR";
+    case LuaToken::Type::FUNCTION:
+        return "FUNCTION";
+    case LuaToken::Type::IF:
+        return "IF";
+    case LuaToken::Type::IN:
+        return "IN";
+    case LuaToken::Type::LOCAL:
+        return "LOCAL";
+    case LuaToken::Type::NIL:
+        return "NIL";
+    case LuaToken::Type::NOT:
+        return "NOT";
+    case LuaToken::Type::OR:
+        return "OR";
+    case LuaToken::Type::REPEAT:
+        return "REPEAT";
+    case LuaToken::Type::RETURN:
+        return "RETURN";
+    case LuaToken::Type::THEN:
+        return "THEN";
+    case LuaToken::Type::TRUE:
+        return "TRUE";
+    case LuaToken::Type::UNTIL:
+        return "UNTIL";
+    case LuaToken::Type::WHILE:
+        return "WHILE";
+    case LuaToken::Type::NAME:
+        return "NAME";
+    case LuaToken::Type::STRINGLIT:
+        return "STRINGLIT";
+    case LuaToken::Type::NUMLIT:
+        return "NUMLIT";
+    case LuaToken::Type::COMMENT:
+        return "COMMENT";
+    case LuaToken::Type::BLOCKCOMMENT:
+        return "BLOCKCOMMENT";
+    default:
+        return "invalid luaToken-type";
     }
 }
