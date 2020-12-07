@@ -42,6 +42,13 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_TEMPLATE_RELATIONS YES)
     set(DOXYGEN_DOT_IMAGE_FORMAT svg)
     set(DOXYGEN_EXTRACT_ALL YES)
+    set(DOXYGEN_HTML_EXTRA_STYLESHEET
+        ${PROJECT_SOURCE_DIR}/extern/doxygen-dark-theme/custom.css
+        ${PROJECT_SOURCE_DIR}/extern/doxygen-dark-theme/custom_dark_theme.css)
+    set(DOXYGEN_HTML_HEADER
+        ${PROJECT_SOURCE_DIR}/extern/doxygen-dark-theme/html_header.html)
+    set(DOXYGEN_HTML_FOOTER
+        ${PROJECT_SOURCE_DIR}/extern/doxygen-dark-theme/html_footer.html)
 
     doxygen_add_docs(${PROJECT_NAME}-docs
         ${CMAKE_CURRENT_SOURCE_DIR}
