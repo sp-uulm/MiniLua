@@ -355,6 +355,24 @@ public:
 
 auto operator==(const CallResult&, const CallResult&) -> bool;
 
+/**
+ * A function (in lua or implemented natively).
+ *
+ * Notes for implementing native functions:
+ *
+ * You get a `CallContext` as only argument. You can retrieve the actual
+ * arguments and the global environment from the context.
+ *
+ * When using lua `Value`s you can use the normal c++ operators. Note that `^`
+ * performs the pow operation like in lua (and not xor like usually in c++).
+ * These operators will track the origin and can be later forces to a different
+ * value.
+ *
+ * Care must be taken when there are control flow constructs in your native
+ * function (e.g. `if`, `while`, ...). Because this might break the source change
+ * mechanism if you use operators on Values. If you use control flow constructs
+ * you have to remove the origin from the returned Value with `Value::remove_origin`.
+ */
 class Function {
     using FnType = CallResult(CallContext);
 
@@ -638,6 +656,7 @@ public:
     friend auto operator|(const Value&, const Value&) -> Value;
     friend auto operator&&(const Value&, const Value&) -> Value;
     friend auto operator||(const Value&, const Value&) -> Value;
+    friend auto operator!(const Value&) -> Value;
 };
 
 auto operator==(const Value&, const Value&) noexcept -> bool;

@@ -400,8 +400,8 @@ auto Origin::raw() -> Type& { return this->origin; }
 }
 
 [[nodiscard]] auto Origin::force(const Value& new_value) const -> std::optional<SourceChangeTree> {
-    // TODO maybe also for non numeric types?
-    if (!new_value.is_number()) {
+    // TODO maybe also for non numeric/bool types?
+    if (!new_value.is_number() && !new_value.is_bool()) {
         return std::nullopt;
     }
 
@@ -742,6 +742,7 @@ auto operator&&(const Value& lhs, const Value& rhs) -> Value {
         .location = std::nullopt,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {
+            // will not intentially change which side is returned from the expression
             if (!old_lhs) {
                 return old_lhs.force(new_value);
             } else {
@@ -763,6 +764,7 @@ auto operator||(const Value& lhs, const Value& rhs) -> Value {
         .location = std::nullopt,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {
+            // will not intentially change which side is returned from the expression
             if (old_lhs) {
                 return old_lhs.force(new_value);
             } else {
@@ -775,6 +777,26 @@ auto operator||(const Value& lhs, const Value& rhs) -> Value {
     } else {
         return rhs.with_origin(origin);
     }
+}
+auto operator!(const Value& value) -> Value {
+    auto origin = Origin(UnaryOrigin{
+        .val = make_owning<Value>(value),
+        .location = std::nullopt,
+        .reverse = [](const Value& new_value,
+                      const Value& old_value) -> std::optional<SourceChangeTree> {
+            const Value negated_new_value = !bool(new_value);
+            if (!old_value.is_bool() || !new_value.is_bool() || negated_new_value == old_value) {
+                return std::nullopt;
+            }
+
+            if (old_value) { // true -> origin value was false
+                return old_value.force(negated_new_value);
+            } else { // false -> origin value was true
+                return old_value.force(negated_new_value);
+            }
+        }});
+
+    return Value(!bool(value)).with_origin(origin);
 }
 
 } // namespace minilua
