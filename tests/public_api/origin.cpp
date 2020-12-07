@@ -101,3 +101,25 @@ TEST_CASE("define correct origin for binary math functions and force value") {
         },
         [](const auto&) { FAIL("unexpected element"); }});
 }
+
+TEST_CASE("reversing Origin from not") {
+    minilua::Value value = minilua::Value(true) // NOLINT
+                               .with_origin(minilua::LiteralOrigin{.location = minilua::Range()});
+
+    minilua::Value res = !value;
+    REQUIRE(res == false);
+
+    // force 38 to become 27 => -11
+    auto opt_source_changes = res.force(true); // NOLINT
+    REQUIRE(opt_source_changes.has_value());
+    auto source_changes = opt_source_changes.value();
+
+    INFO(source_changes);
+
+    source_changes.visit(minilua::overloaded{
+        [](const minilua::SourceChange& change) {
+            // CHECK(change.origin == "neg");
+            CHECK(change.replacement == "false"); // !false = true
+        },
+        [](const auto&) { FAIL("unexpected element"); }});
+}

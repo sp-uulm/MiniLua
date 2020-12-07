@@ -638,6 +638,7 @@ public:
     friend auto operator|(const Value&, const Value&) -> Value;
     friend auto operator&&(const Value&, const Value&) -> Value;
     friend auto operator||(const Value&, const Value&) -> Value;
+    friend auto operator!(const Value&) -> Value;
 };
 
 auto operator==(const Value&, const Value&) noexcept -> bool;
