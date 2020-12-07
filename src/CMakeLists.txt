@@ -31,3 +31,19 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/
 install(EXPORT ${PROJECT_NAME}
         FILE ${PROJECT_NAME}Config.cmake
         DESTINATION lib/cmake/${PROJECT_NAME})
+
+
+# documentation
+if(DOXYGEN_FOUND)
+    set(DOXYGEN_OUTPUT_DIRECTORY ../docs)
+    set(DOXYGEN_CLANG_ASSISTED_PARSING YES)
+    set(DOXYGEN_CLANG_DATABASE_PATH .)
+    set(DOXYGEN_UML_LOOK YES)
+    set(DOXYGEN_TEMPLATE_RELATIONS YES)
+    set(DOXYGEN_DOT_IMAGE_FORMAT svg)
+    set(DOXYGEN_EXTRACT_ALL YES)
+
+    doxygen_add_docs(${PROJECT_NAME}-docs
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${PROJECT_SOURCE_DIR}/include)
+endif()
