@@ -72,7 +72,7 @@
  * normal `T` (but lives on the heap). It's move, copy and lifetime semantics
  * are identical to the one of `T`.
  *
- * Is is also possible to choose another pointer type like `std::unique_ptr` or
+ * It is also possible to choose another pointer type like `std::unique_ptr` or
  * `std::shared_ptr`. You should probably avoid using raw pointer `T*` because
  * lifetime management is harder with raw pointers.
  */
