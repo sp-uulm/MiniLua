@@ -4,6 +4,8 @@
 
 MiniLua is a small lua interpreter that implements additional features like source location tracking. It is currently used in and developed for the interactive_script rqt plugin.
 
+Also see: [Dokumentation](https://sp-uulm.github.io/MiniLua/)
+
 ## Building MiniLua
 
 Make sure you cloned the repository with submodules (e.g. `git clone --recurse-submodules git@github.com:sp-uulm/MiniLua.git`) or if you already cloned the repository you need to fetch the submodules (e.g. `git submodule update --init --recursive`).
