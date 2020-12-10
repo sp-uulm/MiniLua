@@ -98,7 +98,7 @@ TEST_CASE("tree-sitter print", "[tree-sitter][.hide]") {
     FAIL();
 }
 
-TEST_CASE("TestCase for program", "[tree-sitter]"){
+TEST_CASE("TestCase for program", "[tree-sitter][.hide]"){
     ts::Parser parser;
 
     std::string source = read_input_from_file2("../luaprograms/FragmeentedFurniture.lua");

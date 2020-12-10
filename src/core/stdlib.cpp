@@ -6,7 +6,7 @@
 #include "MiniLua/values.hpp"
 
 namespace minilua {
-static auto splitString(std::string s, char c) -> std::pair<std::string, std::string> {
+static auto split_string(std::string s, char c) -> std::pair<std::string, std::string> {
     std::pair<std::string, std::string> result;
     std::stringstream split(s);
     std::string tmp;
