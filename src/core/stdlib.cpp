@@ -1,9 +1,8 @@
 #include <sstream>
 #include <regex>
-#include <utility>
-#include <typeinfo>
+//#include <typeinfo>
 
-#include "MiniLua/values.hpp"
+#include "MiniLua/stdlib.hpp"
 
 namespace minilua {
 static auto split_string(std::string s, char c) -> std::pair<std::string, std::string> {
@@ -66,14 +65,14 @@ auto to_number(const CallContext& ctx) -> Value {
                 std::regex pattern_exp ("\\s*\\d+\\.\\d*[eE]-?\\d+");
                 //parse number to double
                 if(std::regex_match(number.value, pattern_number) || std::regex_match(number.value, pattern_hex)){
-                    auto parts = splitString(number.value, '.');
+                    auto parts = split_string(number.value, '.');
                     int precomma = std::stoi(parts.first, 0, base.value);
                     int postcomma = std::stoi(parts.second, 0, base.value);
                     return precomma + postcomma * std::pow(base.value, parts.second.size());
                 }else if (std::regex_match(number.value, pattern_exp)) {
-                    auto number_exp = splitString(number.value, 'e');
+                    auto number_exp = split_string(number.value, 'e');
                     int exp = std::stoi(number_exp.second);
-                    auto parts = splitString(number_exp.first, '.');
+                    auto parts = split_string(number_exp.first, '.');
                     int precomma = std::stoi(parts.first, 0, base.value);
                     int postcomma = std::stoi(parts.second, 0, base.value);
                     double number_res = precomma + precomma + postcomma * std::pow(base.value, parts.second.size());
