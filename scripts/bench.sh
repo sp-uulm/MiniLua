@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -ex
 
+source "$(dirname "${BASH_SOURCE[0]}")/_env.sh"
+
 pushd build
 build_type=$(cmake -L .. | grep CMAKE_BUILD_TYPE | sed 's/CMAKE_BUILD_TYPE:STRING=//g')
 popd

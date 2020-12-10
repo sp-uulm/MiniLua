@@ -24,6 +24,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
+# documentation
+find_package(Doxygen)
+
 # dependencies
 find_package(TreeSitter)
 find_package(TreeSitterLua)

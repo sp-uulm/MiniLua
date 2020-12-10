@@ -108,6 +108,7 @@ struct SourceChangeAlternative : public CommonSCInfo {
     SourceChangeAlternative(std::vector<SourceChangeTree> changes);
 
     void add(SourceChangeTree);
+    void add_if_some(std::optional<SourceChangeTree>);
 };
 
 auto operator==(const SourceChangeAlternative& lhs, const SourceChangeAlternative& rhs) noexcept
@@ -177,27 +178,27 @@ public:
             [&visitor](SourceChange& leaf_node) { visitor(leaf_node); },
             [&visitor](SourceChangeCombination& and_node) {
                 for (auto& change : and_node.changes) {
-                    change.visit_left(visitor);
+                    change.visit_first_alternative(visitor);
                 }
             },
             [&visitor](SourceChangeAlternative& or_node) {
                 if (!or_node.changes.empty()) {
-                    or_node.changes[0].visit_left(visitor);
+                    or_node.changes[0].visit_first_alternative(visitor);
                 }
             }});
     }
-    template <typename Visitor> void visit_left(Visitor visitor) const {
+    template <typename Visitor> void visit_first_alternative(Visitor visitor) const {
         static_assert(std::is_invocable_v<Visitor, const SourceChange&>);
         this->visit(overloaded{
             [&visitor](const SourceChange& leaf_node) { visitor(leaf_node); },
             [&visitor](const SourceChangeCombination& and_node) {
                 for (const auto& change : and_node.changes) {
-                    change.visit_left(visitor);
+                    change.visit_first_alternative(visitor);
                 }
             },
             [&visitor](const SourceChangeAlternative& or_node) {
                 if (!or_node.changes.empty()) {
-                    or_node.changes[0].visit_left(visitor);
+                    or_node.changes[0].visit_first_alternative(visitor);
                 }
             }});
     }
@@ -211,12 +212,12 @@ public:
             [&visitor](SourceChange& leaf_node) { visitor(leaf_node); },
             [&visitor](SourceChangeCombination& and_node) {
                 for (auto& change : and_node.changes) {
-                    change.visit_left(visitor);
+                    change.visit_all(visitor);
                 }
             },
             [&visitor](SourceChangeAlternative& or_node) {
                 for (auto& change : or_node.changes) {
-                    change.visit_left(visitor);
+                    change.visit_all(visitor);
                 }
             },
         });
@@ -227,12 +228,12 @@ public:
             [&visitor](const SourceChange& leaf_node) { visitor(leaf_node); },
             [&visitor](const SourceChangeCombination& and_node) {
                 for (const auto& change : and_node.changes) {
-                    change.visit_left(visitor);
+                    change.visit_all(visitor);
                 }
             },
             [&visitor](const SourceChangeAlternative& or_node) {
                 for (const auto& change : or_node.changes) {
-                    change.visit_left(visitor);
+                    change.visit_all(visitor);
                 }
             },
         });

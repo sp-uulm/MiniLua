@@ -1,4 +1,5 @@
 #include "MiniLua/values.hpp"
+#include "MiniLua/utils.hpp"
 
 #include <cmath>
 #include <iostream>
@@ -266,7 +267,7 @@ auto operator<<(std::ostream& os, const Table& self) -> std::ostream& {
 
 // class CallContext
 struct CallContext::Impl {
-    Range location;
+    std::optional<Range> location;
     Environment* env; // need to use pointer so we have move assignment operator
     Vallist args;
 };
@@ -280,21 +281,58 @@ auto CallContext::operator=(const CallContext&) -> CallContext& = default;
 auto CallContext::operator=(CallContext&&) -> CallContext& = default;
 CallContext::~CallContext() = default;
 
-[[nodiscard]] auto CallContext::make_new(Vallist args) const -> CallContext {
+[[nodiscard]] auto CallContext::make_new(Vallist args, std::optional<Range> location) const
+    -> CallContext {
     CallContext new_cc{*this};
     new_cc.impl->args = std::move(args);
+    new_cc.impl->location = location;
     return new_cc;
 }
 
-auto CallContext::call_location() const -> Range { return impl->location; }
+auto CallContext::call_location() const -> std::optional<Range> { return impl->location; }
 auto CallContext::environment() const -> Environment& { return *impl->env; }
 auto CallContext::get(const std::string& name) const -> Value& { return impl->env->get(name); }
 auto CallContext::arguments() const -> const Vallist& { return impl->args; }
 
+[[nodiscard]] auto CallContext::unary_numeric_arg_helper() const
+    -> std::tuple<double, UnaryOrigin> {
+    auto arg = this->arguments().get(0);
+    auto num = std::get<minilua::Number>(arg).value;
+
+    auto origin = minilua::UnaryOrigin{
+        .val = minilua::make_owning<minilua::Value>(arg),
+        .location = this->call_location(),
+    };
+
+    return std::make_tuple(num, origin);
+}
+
+[[nodiscard]] auto CallContext::binary_numeric_args_helper() const
+    -> std::tuple<double, double, BinaryOrigin> {
+    auto arg1 = this->arguments().get(0);
+    auto arg2 = this->arguments().get(1);
+    auto num1 = std::get<minilua::Number>(arg1).value;
+    auto num2 = std::get<minilua::Number>(arg2).value;
+
+    auto origin = minilua::BinaryOrigin{
+        .lhs = minilua::make_owning<minilua::Value>(arg1),
+        .rhs = minilua::make_owning<minilua::Value>(arg2),
+        .location = this->call_location(),
+    };
+
+    return std::make_tuple(num1, num2, origin);
+}
+
 auto operator<<(std::ostream& os, const CallContext& self) -> std::ostream& {
-    return os << "CallContext{ location = " << self.impl->location
-              << ", environment = " << self.impl->env << ", arguments = " << self.impl->args
-              << " }";
+    os << "CallContext{ location = ";
+
+    if (self.impl->location) {
+        os << self.impl->location.value();
+    } else {
+        os << "nullopt";
+    }
+    os << ", environment = " << self.impl->env << ", arguments = " << self.impl->args << " }";
+    return os;
 }
 
 // class CallResult
@@ -336,6 +374,11 @@ void swap(Function& self, Function& other) { std::swap(self.func, other.func); }
 // class Origin
 Origin::Origin() = default;
 Origin::Origin(Type origin) : origin(std::move(origin)) {}
+Origin::Origin(NoOrigin origin) : origin(origin) {}
+Origin::Origin(ExternalOrigin origin) : origin(origin) {}
+Origin::Origin(LiteralOrigin origin) : origin(origin) {}
+Origin::Origin(BinaryOrigin origin) : origin(origin) {}
+Origin::Origin(UnaryOrigin origin) : origin(origin) {}
 
 [[nodiscard]] auto Origin::raw() const -> const Type& { return this->origin; }
 auto Origin::raw() -> Type& { return this->origin; }
@@ -354,6 +397,109 @@ auto Origin::raw() -> Type& { return this->origin; }
 }
 [[nodiscard]] auto Origin::is_unary() const -> bool {
     return std::holds_alternative<UnaryOrigin>(this->raw());
+}
+
+[[nodiscard]] auto Origin::force(const Value& new_value) const -> std::optional<SourceChangeTree> {
+    // TODO maybe also for non numeric/bool types?
+    if (!new_value.is_number() && !new_value.is_bool()) {
+        return std::nullopt;
+    }
+
+    return std::visit(
+        overloaded{
+            [&new_value](const BinaryOrigin& origin) -> std::optional<SourceChangeTree> {
+                return origin.reverse(new_value, *origin.lhs, *origin.rhs);
+            },
+            [&new_value](const UnaryOrigin& origin) -> std::optional<SourceChangeTree> {
+                return origin.reverse(new_value, *origin.val);
+            },
+            [&new_value](const LiteralOrigin& origin) -> std::optional<SourceChangeTree> {
+                return SourceChange(origin.location, new_value.to_literal());
+            },
+            [](const ExternalOrigin& /*unused*/) -> std::optional<SourceChangeTree> {
+                return std::nullopt;
+            },
+            [](const NoOrigin& /*unused*/) -> std::optional<SourceChangeTree> {
+                return std::nullopt;
+            },
+        },
+        this->origin);
+}
+
+auto operator==(const Origin& lhs, const Origin& rhs) noexcept -> bool {
+    return lhs.raw() == rhs.raw();
+}
+auto operator!=(const Origin& lhs, const Origin& rhs) noexcept -> bool { return !(lhs == rhs); }
+auto operator<<(std::ostream& os, const Origin& self) -> std::ostream& {
+    os << "Origin(";
+    std::visit([&os](const auto& inner) { os << inner; }, self.raw());
+    return os << ")";
+}
+
+// struct NoOrigin
+auto operator==(const NoOrigin&, const NoOrigin&) noexcept -> bool { return true; }
+auto operator!=(const NoOrigin&, const NoOrigin&) noexcept -> bool { return false; }
+auto operator<<(std::ostream& os, const NoOrigin&) -> std::ostream& { return os << "NoOrigin{}"; }
+
+// struct ExternalOrigin
+auto operator==(const ExternalOrigin&, const ExternalOrigin&) noexcept -> bool { return true; }
+auto operator!=(const ExternalOrigin&, const ExternalOrigin&) noexcept -> bool { return true; }
+auto operator<<(std::ostream& os, const ExternalOrigin&) -> std::ostream& {
+    return os << "ExternalOrigin";
+}
+
+// struct LiteralOrigin
+auto operator==(const LiteralOrigin& lhs, const LiteralOrigin& rhs) noexcept -> bool {
+    return lhs.location == rhs.location;
+}
+auto operator!=(const LiteralOrigin& lhs, const LiteralOrigin& rhs) noexcept -> bool {
+    return !(lhs == rhs);
+}
+auto operator<<(std::ostream& os, const LiteralOrigin& self) -> std::ostream& {
+    return os << "LiteralOrigin(" << self.location << ")";
+}
+
+// struct BinaryOrigin
+auto operator==(const BinaryOrigin& lhs, const BinaryOrigin& rhs) noexcept -> bool {
+    return lhs.lhs == rhs.lhs && lhs.rhs == rhs.rhs && lhs.location == rhs.location;
+}
+auto operator!=(const BinaryOrigin& lhs, const BinaryOrigin& rhs) noexcept -> bool {
+    return !(lhs == rhs);
+}
+auto operator<<(std::ostream& os, const BinaryOrigin& self) -> std::ostream& {
+    os << "BinaryOrigin{ "
+       << ".lhs = " << self.lhs << ", "
+       << ".rhs = " << self.rhs << ", "
+       << ".location = ";
+    if (self.location) {
+        os << self.location.value();
+    } else {
+        os << "nullopt";
+    }
+    os << ", .reverse = "
+       << reinterpret_cast<void*>(self.reverse.target<BinaryOrigin::ReverseFn>());
+    return os << " }";
+}
+
+// struct UnaryOrigin
+auto operator==(const UnaryOrigin& lhs, const UnaryOrigin& rhs) noexcept -> bool {
+    return lhs.val == rhs.val && lhs.location == rhs.location;
+}
+auto operator!=(const UnaryOrigin& lhs, const UnaryOrigin& rhs) noexcept -> bool {
+    return !(lhs == rhs);
+}
+auto operator<<(std::ostream& os, const UnaryOrigin& self) -> std::ostream& {
+    os << "UnaryOrigin{ "
+       << ".val = " << self.val << ", "
+       << ".location = ";
+    if (self.location) {
+        os << self.location.value();
+    } else {
+        os << "nullopt";
+    }
+    os << ", .reverse = " << reinterpret_cast<void*>(self.reverse.target<UnaryOrigin::ReverseFn>());
+    os << " }";
+    return os;
 }
 
 // class Value
@@ -422,6 +568,8 @@ auto Value::raw() const -> const Value::Type& { return impl->val; }
 
 [[nodiscard]] auto Value::has_origin() const -> bool { return !this->impl->origin.is_none(); }
 
+[[nodiscard]] auto Value::origin() const -> const Origin& { return this->impl->origin; }
+
 [[nodiscard]] auto Value::remove_origin() const -> Value {
     return this->with_origin(Origin{NoOrigin()});
 }
@@ -431,9 +579,10 @@ auto Value::raw() const -> const Value::Type& { return impl->val; }
     return new_value;
 }
 
-auto Value::force(Value new_value, std::string origin) -> std::optional<SourceChangeTree> {
-    // TODO force value
-    return SourceChangeTree(SourceChangeCombination());
+[[nodiscard]] auto Value::force(Value new_value, std::string origin) const
+    -> std::optional<SourceChangeTree> {
+    // TODO how to integrate origin string?
+    return this->origin().force(new_value);
 }
 
 auto Value::call(CallContext call_context) const -> CallResult {
@@ -498,70 +647,156 @@ Value::operator bool() const {
     return std::visit([](const auto& value) { return bool(value); }, this->impl->val);
 }
 
-#define IMPL_ARITHMETIC(OP, ERR_INFO)                                                              \
-    auto operator OP(const Value& lhs, const Value& rhs)->Value {                                  \
-        auto origin = Origin(BinaryOrigin{make_owning<Value>(lhs), make_owning<Value>(rhs)});      \
-        return std::visit(                                                                         \
-            overloaded{                                                                            \
-                [&origin](const Number& lhs, const Number& rhs) -> Value {                         \
-                    auto value = Value(lhs OP rhs);                                                \
-                    value.impl->origin = origin;                                                   \
-                    return value;                                                                  \
-                },                                                                                 \
-                [](const Table& lhs, const Table& rhs) -> Value { /* NOLINT */                     \
-                                                                  /* TODO tables with metatables   \
-                                                                   */                              \
-                                                                  throw std::runtime_error(        \
-                                                                      "unimplemented");            \
-                },                                                                                 \
-                [](const auto& lhs, const auto& rhs) -> Value {                                    \
-                    std::string msg = "Can not ";                                                  \
-                    msg.append(ERR_INFO);                                                          \
-                    msg.append(" values of type ");                                                \
-                    msg.append(lhs.TYPE);                                                          \
-                    msg.append(" and ");                                                           \
-                    msg.append(rhs.TYPE);                                                          \
-                    msg.append(".");                                                               \
-                    throw std::runtime_error(msg);                                                 \
-                }},                                                                                \
-            lhs.impl->val, rhs.impl->val);                                                         \
-    }
+template <typename Fn, typename FnRev>
+static inline auto
+num_op_helper(const Value& lhs, const Value& rhs, Fn op, std::string err_info, FnRev reverse)
+    -> Value {
+    auto origin = Origin(BinaryOrigin{
+        .lhs = make_owning<Value>(lhs),
+        .rhs = make_owning<Value>(rhs),
+        .location = std::nullopt,
+        .reverse = reverse,
+    });
 
-IMPL_ARITHMETIC(+, "add");
-IMPL_ARITHMETIC(-, "subtract");
-IMPL_ARITHMETIC(*, "multiply");
-IMPL_ARITHMETIC(/, "divide");
-IMPL_ARITHMETIC(^, "attempt to pow");
-IMPL_ARITHMETIC(%, "take modulo of");
-IMPL_ARITHMETIC(&, "bitwise and");
-IMPL_ARITHMETIC(|, "bitwise or");
+    return std::visit(
+        overloaded{
+            [op, &origin](const Number& lhs, const Number& rhs) -> Value {
+                return Value(op(lhs.value, rhs.value)).with_origin(origin);
+            },
+            [&origin](const Table& lhs, const Table& rhs) -> Value {
+                // TODO tables with metatables
+                throw std::runtime_error("unimplemented");
+            },
+            [&err_info](const auto& lhs, const auto& rhs) -> Value {
+                std::string msg = "Can not ";
+                msg.append(err_info);
+                msg.append(" values of type ");
+                msg.append(lhs.TYPE);
+                msg.append(" and ");
+                msg.append(rhs.TYPE);
+                msg.append(".");
+                throw std::runtime_error(msg);
+            }},
+        lhs.raw(), rhs.raw());
+}
 
+// arithmetic operators
+auto operator+(const Value& lhs, const Value& rhs) -> Value {
+    return num_op_helper(
+        lhs, rhs, [](double lhs, double rhs) { return lhs + rhs; }, "add",
+        binary_num_reverse(
+            [](double new_value, double rhs) { return new_value - rhs; },
+            [](double new_value, double lhs) { return new_value - lhs; }, "add"));
+}
+auto operator-(const Value& lhs, const Value& rhs) -> Value {
+    return num_op_helper(
+        lhs, rhs, [](double lhs, double rhs) { return lhs - rhs; }, "subtract",
+        binary_num_reverse(
+            [](double new_value, double rhs) { return new_value + rhs; },
+            [](double new_value, double lhs) { return lhs - new_value; }, "sub"));
+}
+auto operator*(const Value& lhs, const Value& rhs) -> Value {
+    return num_op_helper(
+        lhs, rhs, [](double lhs, double rhs) { return lhs * rhs; }, "multiply",
+        binary_num_reverse(
+            [](double new_value, double rhs) { return new_value / rhs; },
+            [](double new_value, double lhs) { return new_value / lhs; }, "mul"));
+}
+auto operator/(const Value& lhs, const Value& rhs) -> Value {
+    return num_op_helper(
+        lhs, rhs, [](double lhs, double rhs) { return lhs / rhs; }, "divide",
+        binary_num_reverse(
+            [](double new_value, double rhs) { return new_value * rhs; },
+            [](double new_value, double lhs) { return lhs / new_value; }, "div"));
+}
+auto operator^(const Value& lhs, const Value& rhs) -> Value {
+    return num_op_helper(
+        lhs, rhs, [](double lhs, double rhs) { return std::pow(lhs, rhs); }, "attempt to pow",
+        binary_num_reverse(
+            [](double new_value, double rhs) { return std::pow(new_value, 1 / rhs); },
+            [](double new_value, double lhs) { return std::log(new_value) / std::log(lhs); },
+            "pow"));
+}
+auto operator%(const Value& lhs, const Value& rhs) -> Value {
+    return num_op_helper(
+        lhs, rhs, [](Number lhs, Number rhs) { return lhs % rhs; }, "take modulo of",
+        [](auto...) { return std::nullopt; }); // TODO reverse
+}
+// bitwise operators
+auto operator&(const Value& lhs, const Value& rhs) -> Value {
+    return num_op_helper(
+        lhs, rhs, [](Number lhs, Number rhs) { return lhs & rhs; }, "bitwise and",
+        [](auto...) { return std::nullopt; }); // TODO reverse
+}
+auto operator|(const Value& lhs, const Value& rhs) -> Value {
+    return num_op_helper(
+        lhs, rhs, [](Number lhs, Number rhs) { return lhs | rhs; }, "bitwise or",
+        [](auto...) { return std::nullopt; }); // TODO reverse
+}
 // logic operators
 auto operator&&(const Value& lhs, const Value& rhs) -> Value {
     // return lhs if it is falsey and rhs otherwise
-    auto origin = Origin(BinaryOrigin{make_owning<Value>(lhs), make_owning<Value>(rhs)});
+    auto origin = Origin(BinaryOrigin{
+        .lhs = make_owning<Value>(lhs),
+        .rhs = make_owning<Value>(rhs),
+        .location = std::nullopt,
+        .reverse = [](const Value& new_value, const Value& old_lhs,
+                      const Value& old_rhs) -> std::optional<SourceChangeTree> {
+            // will not intentially change which side is returned from the expression
+            if (!old_lhs) {
+                return old_lhs.force(new_value);
+            } else {
+                return old_rhs.force(new_value);
+            }
+        }});
+
     if (!lhs) {
-        auto value = Value(lhs);
-        value.impl->origin = origin;
-        return value;
+        return lhs.with_origin(origin);
     } else {
-        auto value = Value(rhs);
-        value.impl->origin = origin;
-        return value;
+        return rhs.with_origin(origin);
     }
 }
 auto operator||(const Value& lhs, const Value& rhs) -> Value {
     // return lhs if it is truthy and rhs otherwise
-    auto origin = Origin(BinaryOrigin{make_owning<Value>(lhs), make_owning<Value>(rhs)});
+    auto origin = Origin(BinaryOrigin{
+        .lhs = make_owning<Value>(lhs),
+        .rhs = make_owning<Value>(rhs),
+        .location = std::nullopt,
+        .reverse = [](const Value& new_value, const Value& old_lhs,
+                      const Value& old_rhs) -> std::optional<SourceChangeTree> {
+            // will not intentially change which side is returned from the expression
+            if (old_lhs) {
+                return old_lhs.force(new_value);
+            } else {
+                return old_rhs.force(new_value);
+            }
+        }});
+
     if (lhs) {
-        auto value = Value(lhs);
-        value.impl->origin = origin;
-        return value;
+        return lhs.with_origin(origin);
     } else {
-        auto value = Value(rhs);
-        value.impl->origin = origin;
-        return value;
+        return rhs.with_origin(origin);
     }
+}
+auto operator!(const Value& value) -> Value {
+    auto origin = Origin(UnaryOrigin{
+        .val = make_owning<Value>(value),
+        .location = std::nullopt,
+        .reverse = [](const Value& new_value,
+                      const Value& old_value) -> std::optional<SourceChangeTree> {
+            const Value negated_new_value = !bool(new_value);
+            if (!old_value.is_bool() || !new_value.is_bool() || negated_new_value == old_value) {
+                return std::nullopt;
+            }
+
+            if (old_value) { // true -> origin value was false
+                return old_value.force(negated_new_value);
+            } else { // false -> origin value was true
+                return old_value.force(negated_new_value);
+            }
+        }});
+
+    return Value(!bool(value)).with_origin(origin);
 }
 
 } // namespace minilua
