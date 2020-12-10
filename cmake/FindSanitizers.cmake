@@ -11,7 +11,7 @@ set(CMAKE_CXX_FLAGS_ASAN
 # detects uninitialized reads (may have false positives)
 # does not work with gcc only clang
 set(CMAKE_CXX_FLAGS_MSAN
-    "-fsanitize=memory -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fno-omit-frame-pointer -g -O2"
+    "-fsanitize=memory -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2 -fsanitize-memory-use-after-dtor -fno-omit-frame-pointer -g -O1"
     CACHE STRING "Flags used by the C++ compiler during MemorySanitizer builds."
     FORCE)
 
