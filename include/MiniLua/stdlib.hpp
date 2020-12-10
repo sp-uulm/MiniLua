@@ -14,6 +14,8 @@ auto to_string(const CallContext& ctx) -> Value;
 auto to_number(const CallContext& ctx) -> Value;
 
 auto type(const CallContext& ctx) -> Value;
+
+auto assert(const CallContext& ctx) -> Value;
 }
 
 #endif
