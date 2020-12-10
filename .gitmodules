@@ -7,3 +7,6 @@
 [submodule "extern/catch2"]
 	path = extern/catch2
 	url = ../../catchorg/Catch2.git
+[submodule "extern/doxygen-dark-theme"]
+	path = extern/doxygen-dark-theme
+	url = ../../Lythenas/doxygen-dark-theme
