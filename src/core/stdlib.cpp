@@ -1,8 +1,10 @@
 #include <sstream>
 #include <regex>
+#include <variant>
 //#include <typeinfo>
 
 #include "MiniLua/stdlib.hpp"
+#include "MiniLua/values.hpp"
 
 namespace minilua {
 static auto split_string(std::string s, char c) -> std::pair<std::string, std::string> {
@@ -87,5 +89,20 @@ auto to_number(const CallContext& ctx) -> Value {
         },
         [](auto a, auto b) -> Value { return Nil();}
     }, number.raw(), base.raw());
+}
+
+auto type(const CallContext& ctx) -> Value {
+    auto v = ctx.arguments().get(0);
+
+    //TODO: Change return to static variable of Struct of type
+    return std::visit(overloaded{
+        [](Bool /*b*/) -> Value { return "boolean"; },
+        [](Number  /*n*/) -> Value { return "number"; },
+        [](String  /*s*/) -> Value { return "string"; },
+        [](Table  /*t*/) -> Value { return "table"; },
+        [](Function  /*f*/) -> Value { return "function"; },
+        [](Nil  /*nil*/) -> Value { return "nil"; }
+        //TODO: add type for metatables
+    }, v.raw());
 }
 }

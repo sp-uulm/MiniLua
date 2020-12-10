@@ -12,6 +12,8 @@ static auto split_string(std::string s, char c) -> std::pair<std::string, std::s
 auto to_string(const CallContext& ctx) -> Value;
 
 auto to_number(const CallContext& ctx) -> Value;
+
+auto type(const CallContext& ctx) -> Value;
 }
 
 #endif
