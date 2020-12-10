@@ -125,6 +125,10 @@ jobs:
       CC: clang-10
       CXX: clang++-10
 
+    # the memory sanitizer produces very likely false positives
+    # when libstdc++ is not complied with it
+    continue-on-error: true
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2

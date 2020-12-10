@@ -16,7 +16,9 @@ jobs:
         with:
           submodules: true
       - name: Setup VM
-        run: ./.github/workflows/install_packages.sh
+        run: |
+          ./.github/workflows/install_packages.sh
+          sudo apt-get install doxygen
       - name: Setup CMake
         run: ./scripts/setup_build.sh
       - name: Build Documentation
