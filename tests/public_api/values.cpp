@@ -384,17 +384,27 @@ TEST_CASE("function Value to literal") {
 }
 
 TEST_CASE("calling a function from a function") {
-    minilua::Value simple_fn{[](minilua::CallContext) { return 1; }}; // NOLINT
-    auto lambda = [](minilua::CallContext ctx) {                      // NOLINT
-        const auto& [callback] = ctx.arguments().tuple<1>();
-        return callback.get().bind(ctx)({});
+    minilua::Value simple_fn{
+        [](const minilua::CallContext& ctx) { return ctx.arguments().get(0); }}; // NOLINT
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    REQUIRE(simple_fn.call(ctx, 1) == minilua::CallResult({1}));
+
+    auto lambda = [](minilua::CallContext ctx) -> minilua::CallResult { // NOLINT
+        const auto& callback = ctx.arguments().get(0);
+
+        auto x = callback.bind(ctx)({1});
+        auto y = callback.call(ctx, 1);
+        auto z = callback.call(ctx, 1, "unues_arg");
+
+        return minilua::CallResult({x.values().get(0) + y.values().get(0) + z.values().get(0)});
     };
     minilua::Value value{minilua::Function(lambda)};
 
-    minilua::Environment env;
-    minilua::CallContext ctx(&env);
-    REQUIRE(simple_fn.call(ctx) == minilua::CallResult({1}));
-    CHECK(value.bind(ctx)({simple_fn}) == minilua::CallResult({1}));
+    auto res = value.bind(ctx)({simple_fn});
+    INFO(res);
+    CHECK(res == minilua::CallResult({3}));
 }
 
 TEST_CASE("addition of two Values") {

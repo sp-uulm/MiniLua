@@ -354,6 +354,7 @@ public:
 };
 
 auto operator==(const CallResult&, const CallResult&) -> bool;
+auto operator<<(std::ostream&, const CallResult&) -> std::ostream&;
 
 /**
  * A function (in lua or implemented natively).
@@ -640,6 +641,11 @@ public:
 
     [[nodiscard]] auto call(CallContext) const -> CallResult;
     [[nodiscard]] auto bind(CallContext) const -> std::function<CallResult(Vallist)>;
+
+    template <typename... Args>
+    [[nodiscard]] auto call(const CallContext& ctx, Args... args) const {
+        return this->call(ctx.make_new({args...}));
+    }
 
     auto operator[](const Value&) -> Value&;
     auto operator[](const Value&) const -> const Value&;
