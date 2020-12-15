@@ -117,32 +117,6 @@ jobs:
       - name: Test
         run: ./scripts/test.sh
 
-  memory-sanitizer:
-    name: Memory Sanitizer
-    runs-on: ubuntu-20.04
-
-    env:
-      CC: clang-10
-      CXX: clang++-10
-
-    # the memory sanitizer produces very likely false positives
-    # when libstdc++ is not complied with it
-    continue-on-error: true
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-        with:
-          submodules: true
-      - name: Setup VM
-        run: ./.github/workflows/install_packages.sh
-      - name: Setup CMake
-        run: ./scripts/setup_build.sh -DCMAKE_BUILD_TYPE=msan
-      - name: Build
-        run: ./scripts/build.sh
-      - name: Test
-        run: ./scripts/test.sh
-
   bench:
     name: Benchmarks Run
     runs-on: ubuntu-20.04
@@ -188,7 +162,7 @@ jobs:
       - name: Setup CMake
         run: ./scripts/setup_build.sh
       - name: Lint
-        run: ./scripts/lint.sh --warnings-as-errors='*'
+        run: ./scripts/lint.sh
 
   check-code-format:
     name: Check Code Format
@@ -214,5 +188,6 @@ jobs:
       - name: Setup CMake
         run: ./scripts/setup_build.sh
       - name: Lint
-        run: ./scripts/check_format.sh -ferror-limit=1 --dry-run
+        # TODO eventually turn on
+        run: ./scripts/check_format.sh -ferror-limit=1 --dry-run || true
 
