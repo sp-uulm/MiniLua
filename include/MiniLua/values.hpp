@@ -646,6 +646,35 @@ public:
 
     explicit operator bool() const;
 
+    /**
+     * Source location tracking versions of the c++ operators.
+     *
+     * Can be used in the interpreter to add the source location of the operation.
+     */
+    [[nodiscard]] auto add(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    [[nodiscard]] auto sub(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    [[nodiscard]] auto mul(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    [[nodiscard]] auto div(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    [[nodiscard]] auto pow(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    [[nodiscard]] auto mod(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    // We can't give these methods propert names because C++ has alternate operator tokens
+    // In particular using bitand, bitor, and, or and not is illegal syntax
+    [[nodiscard]] auto bit_and(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    [[nodiscard]] auto bit_or(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    [[nodiscard]] auto
+    logic_and(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
+    [[nodiscard]] auto
+    logic_or(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
+    [[nodiscard]] auto negate(std::optional<Range> location = std::nullopt) const -> Value;
+
     friend auto operator+(const Value&, const Value&) -> Value;
     friend auto operator-(const Value&, const Value&) -> Value;
     friend auto operator*(const Value&, const Value&) -> Value;
