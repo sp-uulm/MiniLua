@@ -594,3 +594,23 @@ TEST_CASE("destructuring of Vallist") {
         CHECK(nil2 == minilua::Nil());
     }
 }
+
+TEST_CASE("next(table [, index]") {
+    SECTION("empty table") {
+        const minilua::Table value;
+        CHECK(value.next(minilua::Nil()) == minilua::Vallist());
+    }
+    SECTION("filled table") {
+        const minilua::Table value{{"key1", 22}, {1, "Hallo "}, {2, "Welt!"}, {100, 42}};
+        SECTION("access last element of table") {
+            CHECK(value.next(minilua::Value("key1")) == minilua::Vallist());
+        }
+        SECTION("access a non existent key") { CHECK_THROWS(value.next(minilua::Value(42))); }
+        SECTION("access an element of the table") {
+            CHECK(value.next(minilua::Value(2)) == minilua::Vallist({1, "Hallo "}));
+        }
+        SECTION("access the first element of the table") {
+            CHECK(value.next(minilua::Nil()) == minilua::Vallist({100, 42}));
+        }
+    }
+}
