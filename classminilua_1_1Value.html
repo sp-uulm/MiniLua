@@ -166,6 +166,9 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ae10aac66ca5c9f70c8f78b1fcd32044f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad98ca9b0d0dd01e393b0d85ffe2f1a3e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Value.html#ad98ca9b0d0dd01e393b0d85ffe2f1a3e">bind</a> (<a class="el" href="classminilua_1_1CallContext.html">CallContext</a>) const -&gt; std::function&lt; <a class="el" href="classminilua_1_1CallResult.html">CallResult</a>(<a class="el" href="classminilua_1_1Vallist.html">Vallist</a>)&gt;</td></tr>
 <tr class="separator:ad98ca9b0d0dd01e393b0d85ffe2f1a3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a798ba10630b4f2b494de0ee21fc4caae"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
+<tr class="memitem:a798ba10630b4f2b494de0ee21fc4caae"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classminilua_1_1Value.html#a798ba10630b4f2b494de0ee21fc4caae">call</a> (const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;ctx, Args... args) const</td></tr>
+<tr class="separator:a798ba10630b4f2b494de0ee21fc4caae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adf1d05cb89a08348c770f3abe1a11891"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Value.html#adf1d05cb89a08348c770f3abe1a11891">operator[]</a> (const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;) -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;</td></tr>
 <tr class="separator:adf1d05cb89a08348c770f3abe1a11891"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a64b4e4b0ab33a2d42b529bc3f1450f95"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Value.html#a64b4e4b0ab33a2d42b529bc3f1450f95">operator[]</a> (const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;) const -&gt; const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;</td></tr>
@@ -694,7 +697,7 @@ template&lt;typename Fn , typename  = std::enable_if_t&lt;std::is_invocable_v&lt
 </div>
 </div>
 <a id="ae10aac66ca5c9f70c8f78b1fcd32044f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae10aac66ca5c9f70c8f78b1fcd32044f">&#9670;&nbsp;</a></span>call()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ae10aac66ca5c9f70c8f78b1fcd32044f">&#9670;&nbsp;</a></span>call() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -707,6 +710,44 @@ template&lt;typename Fn , typename  = std::enable_if_t&lt;std::is_invocable_v&lt
           <td> const -&gt; <a class="el" href="classminilua_1_1CallResult.html">CallResult</a></td>
         </tr>
       </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a798ba10630b4f2b494de0ee21fc4caae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a798ba10630b4f2b494de0ee21fc4caae">&#9670;&nbsp;</a></span>call() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename... Args&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::Value::call </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;&#160;</td>
+          <td class="paramname"><em>ctx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Args...&#160;</td>
+          <td class="paramname"><em>args</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>
