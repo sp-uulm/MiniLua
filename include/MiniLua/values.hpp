@@ -229,11 +229,18 @@ public:
     void set(Value&& key, Value value);
 
     [[nodiscard]] auto to_literal() const -> std::string;
+    /**
+     * @brief next returns the next index of the table and its associated value after index. If
+     * there is no value at the index an error is thrown.
+     * @param key is the index you want to get the next element. Key is the index
+     * @return nil when called with the last index or an the empty table. Else it returns the next
+     * index and its associated value after the value at index.
+     */
+    [[nodiscard]] auto next(const Value& key) const -> Vallist;
 
     friend auto operator==(const Table&, const Table&) noexcept -> bool;
     friend auto operator!=(const Table&, const Table&) noexcept -> bool;
     friend auto operator<<(std::ostream&, const Table&) -> std::ostream&;
-    [[nodiscard]] auto next(const Value& key) const -> Vallist;
 
     friend struct std::hash<Table>;
 

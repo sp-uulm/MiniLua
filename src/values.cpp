@@ -275,14 +275,21 @@ auto Table::next(const Value& key) const -> Vallist {
                     std::pair<Value, Value> p = *it;
                     return Vallist({p.first, p.second});
                 } else {
-                    return Vallist({Nil()});
+                    return Vallist();
                 }
             },
             [this](auto key) {
                 auto it = impl->value.find(key);
-                if (it != impl->value.end() && ++it != impl->value.end()) {
-                    std::pair<Value, Value> p = *it;
-                    return Vallist({p.first, p.second});
+                if (it != impl->value.end()) {
+                    // key in table, but last eleement of table
+                    if (++it == impl->value.end()) {
+                        return Vallist();
+                    } else {
+                        // key is somewhere in the table
+                        std::pair<Value, Value> p = *it;
+                        return Vallist({p.first, p.second});
+                    }
+                    // Key not in table
                 } else {
                     throw std::runtime_error("Invalid key to 'next'");
                 }

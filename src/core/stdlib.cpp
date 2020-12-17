@@ -4,14 +4,12 @@
 #include <stdexcept>
 #include <string>
 #include <variant>
-//#include <typeinfo>
 
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/utils.hpp"
 #include "MiniLua/values.hpp"
 
 namespace minilua {
-using std::get;
 
 /**
 Splits a string into two parts. the split happens at the character c which is not included in the
@@ -20,7 +18,6 @@ result.
 Example:
 split_string("123.456", '.') = (123, 456)
 */
-
 static auto split_string(const std::string& s, char c) -> std::pair<std::string, std::string> {
     std::pair<std::string, std::string> result;
     std::stringstream split(s);
