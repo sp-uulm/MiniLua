@@ -56,9 +56,11 @@ auto to_number(const CallContext& ctx) -> Value {
             std::regex pattern_hex (R"(\s*0[xX][\dA-Fa-f]+\.?[\dA-Fa-f]*)");
             std::regex pattern_exp (R"(\s*\d+\.?\d*[eE]-?\d+)");
 
-            if(std::regex_match(number.value, pattern_number) || std::regex_match(number.value, pattern_hex) || std::regex_match(number.value, pattern_exp)){
+            if (std::regex_match(number.value, pattern_number) ||
+                std::regex_match(number.value, pattern_hex) ||
+                std::regex_match(number.value, pattern_exp)) {
                 return std::stod(number.value);
-            }else{
+            } else {
                 return Nil();
             }
         },
@@ -76,7 +78,7 @@ auto to_number(const CallContext& ctx) -> Value {
                     int precomma = std::stoi(parts.first, nullptr, base.value);
                     int postcomma = std::stoi(parts.second, nullptr, base.value);
                     return precomma + postcomma * std::pow(base.value, parts.second.size());
-                }else if (std::regex_match(number.value, pattern_exp)) {
+                } else if (std::regex_match(number.value, pattern_exp)) {
                     auto number_exp = split_string(number.value, 'e');
                     int exp = std::stoi(number_exp.second);
                     auto parts = split_string(number_exp.first, '.');
@@ -99,15 +101,8 @@ auto to_number(const CallContext& ctx) -> Value {
 auto type(const CallContext& ctx) -> Value {
     auto v = ctx.arguments().get(0);
 
-    //TODO: Change return to static variable of Struct of type
     return std::visit(overloaded{
-        [](Bool /*b*/) -> Value { return "boolean"; },
-        [](Number  /*n*/) -> Value { return "number"; },
-        [](const String&  /*s*/) -> Value { return "string"; },
-        [](const Table&  /*t*/) -> Value { return "table"; },
-        [](const Function&  /*f*/) -> Value { return "function"; },
-        [](Nil  /*nil*/) -> Value { return "nil"; }
-        //TODO: add type for metatables
+        [](auto value) -> Value { return std::string(value.TYPE); }
     }, v.raw());
 }
 
