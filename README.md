@@ -1,4 +1,4 @@
-# MiniLua
+#MiniLua
 
 [![Build Status](https://travis-ci.com/sp-uulm/MiniLua.svg?branch=master)](https://travis-ci.com/sp-uulm/MiniLua)
 
@@ -52,5 +52,3 @@ For a more up-to-date example take a look at the *interactive_script plugin for 
 **TODO**
 
 You would need to create a `LuaFunctioncall` from the `lfunction` and then visit it using the interpreters ASTEvaluator. No idea on the details currently. I have never tried it.
-
-

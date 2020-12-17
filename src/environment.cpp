@@ -26,7 +26,7 @@ Environment::Environment(Environment&&) = default;
 Environment::~Environment() = default;
 auto Environment::operator=(const Environment&) -> Environment& = default;
 // NOLINTNEXTLINE
-auto Environment::operator=(Environment &&) -> Environment& = default;
+auto Environment::operator=(Environment&&) -> Environment& = default;
 void swap(Environment& a, Environment& b) { swap(a.impl, b.impl); }
 
 void Environment::add_default_stdlib() {
