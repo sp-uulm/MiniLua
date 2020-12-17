@@ -10,6 +10,7 @@
 #include <string>
 #include <utility>
 #include <variant>
+#include <vector>
 
 namespace minilua {
 
@@ -263,6 +264,38 @@ auto operator<<(std::ostream& os, const Table& self) -> std::ostream& {
         os << "[" << key << "] = " << value << ", ";
     }
     return os << " }";
+}
+
+auto Table::next(const CallContext& ctx) -> Vallist {
+    auto tab = ctx.arguments().get(0);
+    auto index = ctx.arguments().get(1);
+    std::visit(
+        overloaded{
+            [](const Table& t, Nil /*unused*/) {
+                auto it = t.impl->value.begin();
+                if (it != t.impl->value.end()) {
+                    std::pair<Value, Value> p = *it;
+                    std::vector<Value> v = {p.first, p.second};
+                    return Vallist(v);
+                } else {
+                    return Vallist({Nil()});
+                }
+            },
+            [](const Table& t, auto key) {
+                auto it = t.impl->value.find(key);
+                if (it != t.impl->value.end() && ++it != t.impl->value.end()) {
+                    std::pair<Value, Value> p = *it;
+                    std::vector<Value> v = {p.first, p.second};
+                    return Vallist(v);
+                } else {
+                    throw std::runtime_error("Invalid key to 'next'");
+                }
+            },
+            [](auto a, auto /*b*/) -> Vallist {
+                throw std::runtime_error(
+                    "bad argument #1 to 'next' (table expected, got " + std::string(a.TYPE) + ")");
+            }},
+        tab.raw(), index.raw());
 }
 
 // class CallContext

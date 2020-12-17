@@ -203,6 +203,9 @@ auto operator==(const String& a, const String& b) noexcept -> bool;
 auto operator!=(const String& a, const String& b) noexcept -> bool;
 auto operator<<(std::ostream&, const String&) -> std::ostream&;
 
+// Forward declaration
+class CallContext;
+
 class Table {
     struct Impl;
     std::shared_ptr<Impl> impl;
@@ -230,6 +233,7 @@ public:
     friend auto operator==(const Table&, const Table&) noexcept -> bool;
     friend auto operator!=(const Table&, const Table&) noexcept -> bool;
     friend auto operator<<(std::ostream&, const Table&) -> std::ostream&;
+    auto next(const CallContext& ctx) -> Vallist;
 
     friend struct std::hash<Table>;
 
