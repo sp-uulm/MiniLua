@@ -18,9 +18,6 @@ class Value;
  *
  * The default constructor initializes an empty environment with the standard
  * c++ I/O streams (std::cin, etc).
- *
- * NOTE: This will not directly be used by the interpreter so you can just
- * reuse an existing environment without resetting it.
  */
 class Environment {
     struct Impl;
@@ -36,7 +33,7 @@ public:
     auto operator=(const Environment&) -> Environment&;
     // can't use noexcept = default in older compilers (pre c++20 compilers)
     // NOLINTNEXTLINE
-    auto operator=(Environment &&) -> Environment&;
+    auto operator=(Environment&&) -> Environment&;
     friend void swap(Environment&, Environment&);
 
     /**

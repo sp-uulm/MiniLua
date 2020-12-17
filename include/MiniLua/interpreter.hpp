@@ -74,6 +74,9 @@ public:
 
     /**
      * Returns the environment for modification.
+     *
+     * NOTE: This will not directly be used by the interpreter so you can just
+     * reuse an existing interpreter/environment without resetting it.
      */
     [[nodiscard]] auto environment() const -> Environment&;
 
