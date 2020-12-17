@@ -233,7 +233,7 @@ public:
     friend auto operator==(const Table&, const Table&) noexcept -> bool;
     friend auto operator!=(const Table&, const Table&) noexcept -> bool;
     friend auto operator<<(std::ostream&, const Table&) -> std::ostream&;
-    auto next(const CallContext& ctx) -> Vallist;
+    [[nodiscard]] auto next(const Value& key) const -> Vallist;
 
     friend struct std::hash<Table>;
 
@@ -628,6 +628,7 @@ public:
 
     [[nodiscard]] auto remove_origin() const -> Value;
     [[nodiscard]] auto with_origin(Origin new_origin) const -> Value;
+    auto type() const -> std::string;
 
     /**
      * Forces this value to become 'new_value'. Does not actually change the

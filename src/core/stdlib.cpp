@@ -1,3 +1,4 @@
+#include <exception>
 #include <regex>
 #include <sstream>
 #include <stdexcept>
@@ -20,7 +21,7 @@ Example:
 split_string("123.456", '.') = (123, 456)
 */
 
-static auto split_string(std::string s, char c) -> std::pair<std::string, std::string> {
+static auto split_string(const std::string& s, char c) -> std::pair<std::string, std::string> {
     std::pair<std::string, std::string> result;
     std::stringstream split(s);
     std::string tmp;
@@ -79,7 +80,9 @@ auto to_number(const CallContext& ctx) -> Value {
             },
             [](const String& number, Number base) -> Value {
                 // match again with pattern, but this time with 1 .
-                if (base < 2 || base > 36) {
+                // Interval of base, with strings only numbers bezween base 2 and base 36 are
+                // possible to show
+                if (base < 2 || base > 36) { // NOLINT
                     throw std::runtime_error("base is to high. base must be >= 2 and <= 36");
                 } else {
                     std::regex pattern_number(R"(\s*\d+\.\d*)");
@@ -114,8 +117,7 @@ auto to_number(const CallContext& ctx) -> Value {
 auto type(const CallContext& ctx) -> Value {
     auto v = ctx.arguments().get(0);
 
-    return std::visit(
-        overloaded{[](auto value) -> Value { return std::string(value.TYPE); }}, v.raw());
+    return v.type();
 }
 
 auto assert(const CallContext& ctx) -> Value {
@@ -128,6 +130,18 @@ auto assert(const CallContext& ctx) -> Value {
         // TODO: improve error behaviour
         throw std::runtime_error(
             message == Nil() ? std::string("assertion failed") : get<String>(message).value);
+    }
+}
+
+auto next(const CallContext& ctx) -> Vallist {
+    try {
+        Table t = std::get<Table>(ctx.arguments().get(0));
+        auto index = ctx.arguments().get(1);
+        return t.next(index);
+    } catch (std::bad_variant_access&) {
+        auto a = ctx.arguments().get(0);
+        throw std::runtime_error(
+            "bad argument #1 to 'next' (table expected, got " + a.type() + ")");
     }
 }
 } // namespace minilua

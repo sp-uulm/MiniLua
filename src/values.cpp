@@ -266,36 +266,28 @@ auto operator<<(std::ostream& os, const Table& self) -> std::ostream& {
     return os << " }";
 }
 
-auto Table::next(const CallContext& ctx) -> Vallist {
-    auto tab = ctx.arguments().get(0);
-    auto index = ctx.arguments().get(1);
-    std::visit(
+auto Table::next(const Value& key) const -> Vallist {
+    return std::visit(
         overloaded{
-            [](const Table& t, Nil /*unused*/) {
-                auto it = t.impl->value.begin();
-                if (it != t.impl->value.end()) {
+            [this](Nil /*unused*/) {
+                auto it = impl->value.begin();
+                if (it != impl->value.end()) {
                     std::pair<Value, Value> p = *it;
-                    std::vector<Value> v = {p.first, p.second};
-                    return Vallist(v);
+                    return Vallist({p.first, p.second});
                 } else {
                     return Vallist({Nil()});
                 }
             },
-            [](const Table& t, auto key) {
-                auto it = t.impl->value.find(key);
-                if (it != t.impl->value.end() && ++it != t.impl->value.end()) {
+            [this](auto key) {
+                auto it = impl->value.find(key);
+                if (it != impl->value.end() && ++it != impl->value.end()) {
                     std::pair<Value, Value> p = *it;
-                    std::vector<Value> v = {p.first, p.second};
-                    return Vallist(v);
+                    return Vallist({p.first, p.second});
                 } else {
                     throw std::runtime_error("Invalid key to 'next'");
                 }
-            },
-            [](auto a, auto /*b*/) -> Vallist {
-                throw std::runtime_error(
-                    "bad argument #1 to 'next' (table expected, got " + std::string(a.TYPE) + ")");
             }},
-        tab.raw(), index.raw());
+        key.raw());
 }
 
 // class CallContext
@@ -645,6 +637,10 @@ auto Value::bind(CallContext call_context) const -> std::function<CallResult(Val
             },
         },
         this->raw());
+}
+
+auto Value::type() const -> std::string {
+    return std::visit([](auto value) { return std::string(value.TYPE); }, this->raw());
 }
 
 auto operator==(const Value& a, const Value& b) noexcept -> bool { return a.raw() == b.raw(); }
