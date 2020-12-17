@@ -7,6 +7,7 @@
 using namespace std;
 
 struct LuaToken {
+    // clang-format off
     enum Type {
         NONE,
         ADD, SUB, MUL, DIV, MOD, POW, LEN, STRIP, EVAL, //+, -, *, /, %, ^, #, $, "\"
@@ -19,8 +20,9 @@ struct LuaToken {
         IN, LOCAL, NIL, NOT, OR,
         REPEAT, RETURN, THEN, TRUE, UNTIL, WHILE,
 
-        NAME, STRINGLIT, NUMLIT, COMMENT
+        NAME, STRINGLIT, NUMLIT, COMMENT, BLOCKCOMMENT
     } type;
+    //clang-format on
     string match;
     long pos = string::npos;
     long length = 0;

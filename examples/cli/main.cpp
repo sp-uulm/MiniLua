@@ -1,11 +1,11 @@
-#include "MiniLua/luaparser.hpp"
 #include "MiniLua/luainterpreter.hpp"
+#include "MiniLua/luaparser.hpp"
 #include <chrono>
 #include <vector>
 
 using namespace std;
 
-auto main(int argc, char *argv[]) -> int {
+auto main(int argc, char* argv[]) -> int {
 
     vector<string> programs = {
         "for i=1, 10, 1 do \n    print('hello world ', i)\nend",
@@ -113,11 +113,27 @@ auto main(int argc, char *argv[]) -> int {
                     cout << "Source changes: " << (*sc)->to_string() << endl;
                     cout << "New program: " << new_program << endl;
 
-                    cout << "Parse [µs]: " << std::chrono::duration_cast<std::chrono::microseconds>(parse_end - parse_start).count() << endl;
-                    cout << "Execute [µs]: " << std::chrono::duration_cast<std::chrono::microseconds>(eval_end - eval_start).count() << endl;
-                    cout << "Apply SC [µs]: " << std::chrono::duration_cast<std::chrono::microseconds>(apply_end - eval_end).count() << endl;
+                    cout << "Parse [µs]: "
+                         << std::chrono::duration_cast<std::chrono::microseconds>(
+                                parse_end - parse_start)
+                                .count()
+                         << endl;
+                    cout << "Execute [µs]: "
+                         << std::chrono::duration_cast<std::chrono::microseconds>(
+                                eval_end - eval_start)
+                                .count()
+                         << endl;
+                    cout << "Apply SC [µs]: "
+                         << std::chrono::duration_cast<std::chrono::microseconds>(
+                                apply_end - eval_end)
+                                .count()
+                         << endl;
 
-                    cout << "Total time [µs]: " << std::chrono::duration_cast<std::chrono::microseconds>(apply_end - parse_start).count() << endl;
+                    cout << "Total time [µs]: "
+                         << std::chrono::duration_cast<std::chrono::microseconds>(
+                                apply_end - parse_start)
+                                .count()
+                         << endl;
                 }
             }
 

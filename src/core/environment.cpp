@@ -1,6 +1,6 @@
 #include "MiniLua/environment.hpp"
-#include "MiniLua/sourceexp.hpp"
 #include "MiniLua/operators.hpp"
+#include "MiniLua/sourceexp.hpp"
 
 #include <cmath>
 
@@ -22,7 +22,7 @@ auto print(const vallist& args) -> cfunction::result {
 
 auto type(const vallist& args) -> cfunction::result {
     if (args.size() != 1) {
-        return vallist{nil(), string {"type: one argument expected"}};
+        return vallist{nil(), string{"type: one argument expected"}};
     }
 
     return {val(args[0].type())};
@@ -30,7 +30,7 @@ auto type(const vallist& args) -> cfunction::result {
 
 auto sin(const vallist& args) -> cfunction::result {
     if (args.size() != 1 || args[0].type() != "number") {
-        return vallist{nil(), string {"sin: one number argument expected"}};
+        return vallist{nil(), string{"sin: one number argument expected"}};
     }
 
     val result = std::sin(get<double>(args[0]));
@@ -38,7 +38,7 @@ auto sin(const vallist& args) -> cfunction::result {
         struct sin_exp : sourceexp {
             sin_exp(const val& v) : v(v) {}
 
-            optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override{
+            optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override {
                 if (newval.isnumber())
                     if (double x = std::asin(get<double>(newval)); isfinite(x))
                         return v.forceValue(x);
@@ -52,9 +52,7 @@ auto sin(const vallist& args) -> cfunction::result {
                 return string{"sin can only be applied to a number"};
             }
 
-            bool isDirty() const override {
-                return v.source && v.source->isDirty();
-            }
+            bool isDirty() const override { return v.source && v.source->isDirty(); }
 
             vector<LuaToken> get_all_tokens() const override {
                 if (v.source)
@@ -73,7 +71,7 @@ auto sin(const vallist& args) -> cfunction::result {
 
 auto cos(const vallist& args) -> cfunction::result {
     if (args.size() != 1 || args[0].type() != "number") {
-        return vallist{nil(), string {"cos: one number argument expected"}};
+        return vallist{nil(), string{"cos: one number argument expected"}};
     }
 
     val result = std::cos(get<double>(args[0]));
@@ -81,7 +79,7 @@ auto cos(const vallist& args) -> cfunction::result {
         struct cos_exp : sourceexp {
             cos_exp(const val& v) : v(v) {}
 
-            optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override{
+            optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override {
                 if (newval.isnumber())
                     if (double x = std::acos(get<double>(newval)); isfinite(x))
                         return v.forceValue(x);
@@ -95,9 +93,7 @@ auto cos(const vallist& args) -> cfunction::result {
                 return string{"cos can only be applied to a number"};
             }
 
-            bool isDirty() const override {
-                return v.source && v.source->isDirty();
-            }
+            bool isDirty() const override { return v.source && v.source->isDirty(); }
 
             vector<LuaToken> get_all_tokens() const override {
                 if (v.source)
@@ -116,7 +112,7 @@ auto cos(const vallist& args) -> cfunction::result {
 
 auto tan(const vallist& args) -> cfunction::result {
     if (args.size() != 1 || args[0].type() != "number") {
-        return vallist{nil(), string {"tan: one number argument expected"}};
+        return vallist{nil(), string{"tan: one number argument expected"}};
     }
 
     val result = std::tan(get<double>(args[0]));
@@ -124,7 +120,7 @@ auto tan(const vallist& args) -> cfunction::result {
         struct tan_exp : sourceexp {
             tan_exp(const val& v) : v(v) {}
 
-            optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override{
+            optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override {
                 if (newval.isnumber())
                     if (double x = std::atan(get<double>(newval)); isfinite(x))
                         return v.forceValue(x);
@@ -138,9 +134,7 @@ auto tan(const vallist& args) -> cfunction::result {
                 return string{"sin can only be applied to a number"};
             }
 
-            bool isDirty() const override {
-                return v.source && v.source->isDirty();
-            }
+            bool isDirty() const override { return v.source && v.source->isDirty(); }
 
             vector<LuaToken> get_all_tokens() const override {
                 if (v.source)
@@ -159,7 +153,7 @@ auto tan(const vallist& args) -> cfunction::result {
 
 auto atan(const vallist& args) -> cfunction::result {
     if (args.size() != 1 || !args[0].isnumber()) {
-        return vallist{nil(), string {"atan: one number argument expected"}};
+        return vallist{nil(), string{"atan: one number argument expected"}};
     }
 
     val result = std::atan(get<double>(args[0]));
@@ -167,7 +161,7 @@ auto atan(const vallist& args) -> cfunction::result {
         struct atan_exp : sourceexp {
             atan_exp(const val& x) : x(x) {}
 
-            optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override{
+            optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override {
                 if (newval.isnumber())
                     if (double result = std::tan(get<double>(newval)); isfinite(result))
                         return x.forceValue(result);
@@ -181,9 +175,7 @@ auto atan(const vallist& args) -> cfunction::result {
                 return string{"atan can only be applied to numbers"};
             }
 
-            bool isDirty() const override {
-                return (x.source && x.source->isDirty());
-            }
+            bool isDirty() const override { return (x.source && x.source->isDirty()); }
 
             vector<LuaToken> get_all_tokens() const override {
                 vector<LuaToken> result;
@@ -205,7 +197,7 @@ auto atan(const vallist& args) -> cfunction::result {
 
 auto acos(const vallist& args) -> cfunction::result {
     if (args.size() != 1 || !args[0].isnumber()) {
-        return vallist{nil(), string {"acos: one number argument expected"}};
+        return vallist{nil(), string{"acos: one number argument expected"}};
     }
 
     val result = std::acos(get<double>(args[0]));
@@ -213,7 +205,7 @@ auto acos(const vallist& args) -> cfunction::result {
         struct acos_exp : sourceexp {
             acos_exp(const val& x) : x(x) {}
 
-            optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override{
+            optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override {
                 if (newval.isnumber())
                     if (double result = std::cos(get<double>(newval)); isfinite(result))
                         return x.forceValue(result);
@@ -227,9 +219,7 @@ auto acos(const vallist& args) -> cfunction::result {
                 return string{"acos can only be applied to numbers"};
             }
 
-            bool isDirty() const override {
-                return (x.source && x.source->isDirty());
-            }
+            bool isDirty() const override { return (x.source && x.source->isDirty()); }
 
             vector<LuaToken> get_all_tokens() const override {
                 vector<LuaToken> result;
@@ -251,7 +241,7 @@ auto acos(const vallist& args) -> cfunction::result {
 
 auto asin(const vallist& args) -> cfunction::result {
     if (args.size() != 1 || !args[0].isnumber()) {
-        return vallist{nil(), string {"asin: one number argument expected"}};
+        return vallist{nil(), string{"asin: one number argument expected"}};
     }
 
     val result = std::asin(get<double>(args[0]));
@@ -259,7 +249,7 @@ auto asin(const vallist& args) -> cfunction::result {
         struct asin_exp : sourceexp {
             asin_exp(const val& x) : x(x) {}
 
-            optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override{
+            optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override {
                 if (newval.isnumber())
                     if (double result = std::sin(get<double>(newval)); isfinite(result))
                         return x.forceValue(result);
@@ -273,9 +263,7 @@ auto asin(const vallist& args) -> cfunction::result {
                 return string{"asin can only be applied to numbers"};
             }
 
-            bool isDirty() const override {
-                return (x.source && x.source->isDirty());
-            }
+            bool isDirty() const override { return (x.source && x.source->isDirty()); }
 
             vector<LuaToken> get_all_tokens() const override {
                 vector<LuaToken> result;
@@ -297,7 +285,7 @@ auto asin(const vallist& args) -> cfunction::result {
 
 auto atan2(const vallist& args) -> cfunction::result {
     if (args.size() != 2 || !args[0].isnumber() || !args[1].isnumber()) {
-        return vallist{nil(), string {"atan2: two number arguments expected"}};
+        return vallist{nil(), string{"atan2: two number arguments expected"}};
     }
 
     val result = std::atan2(get<double>(args[0]), get<double>(args[1]));
@@ -305,16 +293,17 @@ auto atan2(const vallist& args) -> cfunction::result {
         struct atan2_exp : sourceexp {
             atan2_exp(const val& y, const val& x) : y(y), x(x) {}
 
-            optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override{
+            optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override {
                 if (newval.isnumber())
                     if (double result = std::tan(get<double>(newval)); isfinite(result))
-                        return (y/x).forceValue(result);
+                        return (y / x).forceValue(result);
                 return nullopt;
             }
 
             eval_result_t reevaluate() override {
                 if (holds_alternative<double>(y) && holds_alternative<double>(x)) {
-                    return eval_success(std::atan2(get<double>(y.reevaluate()), get<double>(x.reevaluate())));
+                    return eval_success(
+                        std::atan2(get<double>(y.reevaluate()), get<double>(x.reevaluate())));
                 }
                 return string{"atan2 can only be applied to numbers"};
             }
@@ -347,7 +336,7 @@ auto atan2(const vallist& args) -> cfunction::result {
 
 auto sqrt(const vallist& args) -> cfunction::result {
     if (args.size() != 1 || args[0].type() != "number") {
-        return vallist{nil(), string {"sqrt: one number argument expected"}};
+        return vallist{nil(), string{"sqrt: one number argument expected"}};
     }
 
     val result = unwrap(op_sqrt(args[0]));
@@ -356,7 +345,7 @@ auto sqrt(const vallist& args) -> cfunction::result {
 
 auto abs(const vallist& args) -> cfunction::result {
     if (args.size() != 1 || !args[0].isnumber()) {
-        return vallist{nil(), string {"abs: one number argument expected"}};
+        return vallist{nil(), string{"abs: one number argument expected"}};
     }
 
     val result = fabs(get<double>(args[0]));
@@ -364,7 +353,7 @@ auto abs(const vallist& args) -> cfunction::result {
         struct abs_exp : sourceexp {
             abs_exp(const val& v) : v(v) {}
 
-            optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override{
+            optional<shared_ptr<SourceChange>> forceValue(const val& newval) const override {
                 if (newval.isnumber() && get<double>(newval) >= 0) {
                     if (get<double>(v) >= 0) {
                         return v.forceValue(newval);
@@ -382,9 +371,7 @@ auto abs(const vallist& args) -> cfunction::result {
                 return string{"abs can only be applied to a number"};
             }
 
-            bool isDirty() const override {
-                return v.source && v.source->isDirty();
-            }
+            bool isDirty() const override { return v.source && v.source->isDirty(); }
 
             vector<LuaToken> get_all_tokens() const override {
                 if (v.source)
@@ -403,7 +390,7 @@ auto abs(const vallist& args) -> cfunction::result {
 
 auto floor(const vallist& args) -> cfunction::result {
     if (args.size() != 1 || !args[0].isnumber()) {
-        return vallist{nil(), string {"floor: one number argument expected"}};
+        return vallist{nil(), string{"floor: one number argument expected"}};
     }
 
     val result = std::floor(get<double>(args[0]));
@@ -412,7 +399,7 @@ auto floor(const vallist& args) -> cfunction::result {
     return {result};
 }
 
-}
+} // namespace stdlib
 
 void Environment::assign(const val& var, const val& newval, bool is_local) {
     // cout << "assignment " << var << "=" << newval << (is_local ? " (local)" : "") << endl;
@@ -427,7 +414,7 @@ void Environment::assign(const val& var, const val& newval, bool is_local) {
     }
 
     // search environments for variable
-    for (Environment *env = this; env != nullptr; env = env->parent.get()) {
+    for (Environment* env = this; env != nullptr; env = env->parent.get()) {
         if (env->t.count(var)) {
             env->t[var] = newval;
             return;
@@ -440,7 +427,7 @@ void Environment::assign(const val& var, const val& newval, bool is_local) {
 
 val Environment::getvar(const val& var) {
     // search environments for variable
-    for (Environment *env = this; env != nullptr; env = env->parent.get()) {
+    for (Environment* env = this; env != nullptr; env = env->parent.get()) {
         if (env->t.count(var)) {
             return env->t[var];
         }
@@ -449,28 +436,28 @@ val Environment::getvar(const val& var) {
 }
 
 void Environment::populate_stdlib() {
-    t["print"]       = function(stdlib::print);
-    t["type"]        = function(stdlib::type);
+    t["print"] = function(stdlib::print);
+    t["type"] = function(stdlib::type);
 
     auto math = make_shared<table>();
     t["math"] = math;
-    (*math)["sin"]   = function(stdlib::sin);
-    (*math)["cos"]   = function(stdlib::cos);
-    (*math)["tan"]   = function(stdlib::tan);
-    (*math)["atan"]  = function(stdlib::atan);
-    (*math)["acos"]  = function(stdlib::acos);
-    (*math)["asin"]  = function(stdlib::asin);
+    (*math)["sin"] = function(stdlib::sin);
+    (*math)["cos"] = function(stdlib::cos);
+    (*math)["tan"] = function(stdlib::tan);
+    (*math)["atan"] = function(stdlib::atan);
+    (*math)["acos"] = function(stdlib::acos);
+    (*math)["asin"] = function(stdlib::asin);
     (*math)["atan2"] = function(stdlib::atan2);
-    (*math)["sqrt"]  = function(stdlib::sqrt);
-    (*math)["abs"]   = function(stdlib::abs);
+    (*math)["sqrt"] = function(stdlib::sqrt);
+    (*math)["abs"] = function(stdlib::abs);
     (*math)["floor"] = function(stdlib::floor);
-    (*math)["pi"]    = 3.1415926;
+    (*math)["pi"] = 3.1415926;
 
-    t["_G"] = shared_ptr<table>(shared_from_this(), &t);
+    // t["_G"] = shared_ptr<table>(shared_from_this(), &t);
 
     t["__visit_count"] = 0.0;
     t["__visit_limit"] = 500.0;
 }
 
-}
-}
+} // namespace rt
+} // namespace lua

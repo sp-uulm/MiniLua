@@ -1,8 +1,8 @@
 #ifndef SOURCEEXP_H
 #define SOURCEEXP_H
 
-#include "val.hpp"
 #include "luatoken.hpp"
+#include "val.hpp"
 
 namespace lua {
 namespace rt {
@@ -34,9 +34,7 @@ struct sourceval : sourceexp {
     eval_result_t reevaluate() override;
     bool isDirty() const override;
 
-    vector<LuaToken> get_all_tokens() const override {
-        return location;
-    }
+    vector<LuaToken> get_all_tokens() const override { return location; }
 
     vector<LuaToken> location;
 };
@@ -103,7 +101,7 @@ struct sourceunop : sourceexp {
     LuaToken op;
 };
 
-}
-}
+} // namespace rt
+} // namespace lua
 
 #endif

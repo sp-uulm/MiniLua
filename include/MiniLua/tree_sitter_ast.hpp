@@ -156,7 +156,7 @@ class VariableDeclarator {
     ts::Node dec;
 public:
     VariableDeclarator(ts::Node node);
-    auto var() -> std::variant<Identifier,FieldExpression,TableIndex>;
+    auto var() -> std::variant<Identifier, FieldExpression, TableIndex>;
 };
 class VariableDeclaration {
     ts::Node var_dec;
@@ -237,13 +237,22 @@ class FunctionCall {
 };
 enum GV { _G, _VERSION };
 class GlobalVariable {
-    GV type;
+    ts::Node g_var;
+public:
+    GlobalVariable(ts::Node);
+    auto type() -> GV;
+};
+class Field{
+    ts::Node field;
+public:
+    Field(ts::Node);
+
 };
 class Table {
     ts::Node table;
 public:
     Table(ts::Node);
-    auto
+    auto fields() -> std::vector<Field>;
 };
 class Spread {};
 class Self {};
@@ -266,7 +275,7 @@ class Expression {
 public:
     Expression(ts::Node);
     auto options() -> std::variant<
-        Spread, Prefix, Next, Function, Table, BinaryOperation, UnaryOperation, String, Number, Nil,
+        Spread, Prefix, Next, FunctionDefinition, Table, BinaryOperation, UnaryOperation, String, Number, Nil,
         True, False, Identifier>;
 };
 class Break {};
@@ -278,8 +287,8 @@ public:
     Statement(ts::Node);
     auto options() -> std::variant<
         VariableDeclaration, LocalVariableDeclaration, DoStatement, IfStatement, WhileStatement,
-        RepeatStatement, ForStatement, ForInStatement, GoTo, Break, Label, Empty, Function,
-        LocalFunction, FunctionCall, Expression>;
+        RepeatStatement, ForStatement, ForInStatement, GoTo, Break, Label, Empty, FunctionStatement,
+        LocalFunctionStatement, FunctionCall, Expression>;
 };
 }
 }

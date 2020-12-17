@@ -1,34 +1,55 @@
 # MiniLua
 
+![MiniLua](https://github.com/sp-uulm/MiniLua/workflows/MiniLua/badge.svg)
+
 MiniLua is a small lua interpreter that implements additional features like source location tracking. It is currently used in and developed for the interactive_script rqt plugin.
+
+Also see: [Dokumentation](https://sp-uulm.github.io/MiniLua/)
 
 ## Building MiniLua
 
-```
-mkdir build && cd build
+Make sure you cloned the repository with submodules (e.g. `git clone --recurse-submodules git@github.com:sp-uulm/MiniLua.git`) or if you already cloned the repository you need to fetch the submodules (e.g. `git submodule update --init --recursive`).
+
+Now you can use it like any other CMake project:
+
+```sh
+mkdir build
+cd build
 cmake ..
-make -j4
+make
 ```
 
-## Usage of MiniLua-cli and MiniLua-gui
+Alternatively you can use the included scripts:
 
-MiniLua-cli executes some test strings, defined in `src/cli/main.cpp`.
-It currently does not support executing scripts or an interactive mode.
+```sh
+./scripts/setup_build.sh # will forward arguments to cmake
+./scripts/build.sh # will forward arguments to make
+```
 
-MiniLua-gui opens a window with an editor and a preview. The editor contains a small example program.
-It highlights positions that would be changed due to forcing values but does not actually change them. The preview is currently completely non-interactive.
+## Using MiniLua
 
-MiniLua-gui currently doesn't use the `eval_result_t` to get the source changes. This is deprecated and highly discouraged. The interactive_script plugin for rqt is a much better and more current example of MiniLua's usage.
+### Example Applications
 
-# Embedding MiniLua
+There are two included example applications (possibly out of date). They can be found in the `examples` directory.
 
-Both MiniLua-cli and MiniLua-gui show how libMiniLua can be used. 
+- MiniLua-cli: Executes some test strings.
+- MiniLua-gui: Opens a window with an editor and a preview. The editor highlights positions that would be changed due to forcing the values. The preview is completely non-interactive.
 
-## Calling C++ Functions from Lua
+For a more up-to-date example take a look at the *interactive_script plugin for rqt*.
+
+### Embedding MiniLua
+
+**TODO**
+
+### Calling C++ Functions from Lua
+
+**TODO**
 
 `gui.cpp` shows how additional functions can be registered.
 
-## Calling Lua Functions from C++
+### Calling Lua Functions from C++
+
+**TODO**
 
 You would need to create a `LuaFunctioncall` from the `lfunction` and then visit it using the interpreters ASTEvaluator. No idea on the details currently. I have never tried it.
 
