@@ -1,14 +1,14 @@
 #include <catch2/catch.hpp>
 #include <cstring>
-#include <fstream>
 #include <iostream>
+#include <fstream>
 #include <type_traits>
 
 #include "tree_sitter/tree_sitter.hpp"
 
 using namespace std::string_literals;
 
-std::string read_input_from_file2(std::string path) {
+std::string read_input_from_file2(std::string path){
     std::ifstream ifs;
     ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     ifs.open(path);
@@ -93,18 +93,18 @@ TEST_CASE("tree-sitter print", "[tree-sitter][.hide]") {
     std::string source = "print(1+5)";
     ts::Tree tree = parser.parse_string(source);
     ts::Node root = tree.root_node();
-
+    
     INFO(root.as_s_expr());
     FAIL();
 }
 
-TEST_CASE("TestCase for program", "[tree-sitter][.hide]") {
+TEST_CASE("TestCase for program", "[tree-sitter][.hide]"){
     ts::Parser parser;
 
     std::string source = read_input_from_file2("../luaprograms/FragmeentedFurniture.lua");
     ts::Tree tree = parser.parse_string(source);
     ts::Node root = tree.root_node();
-
+    
     INFO(root.as_s_expr());
     FAIL();
 }
