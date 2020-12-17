@@ -36,7 +36,7 @@ public:
     auto operator=(const Environment&) -> Environment&;
     // can't use noexcept = default in older compilers (pre c++20 compilers)
     // NOLINTNEXTLINE
-    auto operator=(Environment &&) -> Environment&;
+    auto operator=(Environment&&) -> Environment&;
     friend void swap(Environment&, Environment&);
 
     /**
