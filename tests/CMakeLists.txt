@@ -10,7 +10,8 @@ add_executable(MiniLua-tests
     main.cpp
     unit_tests.cpp
     integration_tests.cpp
-    tree_sitter.cpp tree_sitter_ast_tests.cpp)
+    tree_sitter.cpp
+    tree_sitter_ast_tests.cpp)
 target_include_directories(MiniLua-tests PRIVATE ${tree-sitter_SOURCE_DIR}/lib/include)
 target_link_libraries(MiniLua-tests
     PRIVATE Catch2::Catch2 MiniLua
