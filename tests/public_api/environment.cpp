@@ -98,22 +98,36 @@ TEST_CASE("Environment contains the inserted value") {
     SECTION("from mass insertion") {
         minilua::Environment env;
 
-        env.add_all({
-            {"val1", 24}, // NOLINT
-            {"val2", 35}, // NOLINT
-        });
-        REQUIRE(env.size() == 2);
-        REQUIRE(env.get("val1") == 24);
-        REQUIRE(env.get("val2") == 35);
+        SECTION("via initializer list of pairs") {
+            env.add_all({
+                {"val1", 24}, // NOLINT
+                {"val2", 35}, // NOLINT
+            });
+            REQUIRE(env.size() == 2);
+            REQUIRE(env.get("val1") == 24);
+            REQUIRE(env.get("val2") == 35);
+        }
 
-        std::unordered_map<std::string, minilua::Value> map{
-            {"val3", 66}, // NOLINT
-            {"val4", 17}, // NOLINT
-        };
-        env.add_all(map);
-        REQUIRE(env.size() == 4);
-        REQUIRE(env.get("val3") == 66);
-        REQUIRE(env.get("val4") == 17);
+        SECTION("via unordered_map") {
+            std::unordered_map<std::string, minilua::Value> map{
+                {"val3", 66}, // NOLINT
+                {"val4", 17}, // NOLINT
+            };
+            env.add_all(map);
+            REQUIRE(env.size() == 2);
+            REQUIRE(env.get("val3") == 66);
+            REQUIRE(env.get("val4") == 17);
+        }
+
+        SECTION("via vector of pairs") {
+            env.add_all(std::vector<std::pair<std::string, minilua::Value>>{
+                std::make_pair("val5", 226), // NOLINT
+                std::make_pair("val6", 16),  // NOLINT
+            });
+            REQUIRE(env.size() == 2);
+            REQUIRE(env.get("val5") == 226);
+            REQUIRE(env.get("val6") == 16);
+        }
     }
 }
 
