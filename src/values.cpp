@@ -182,15 +182,24 @@ Table::Table(std::initializer_list<std::pair<const Value, Value>> values) : Tabl
 }
 
 Table::Table(const Table& other) = default;
-Table::Table(Table&& other) noexcept = default;
+Table::Table(Table&& other) noexcept {
+    std::swap(this->impl, other.impl);
+    other.impl = std::make_shared<Table::Impl>();
+};
 Table::~Table() noexcept = default;
 auto Table::operator=(const Table& other) -> Table& = default;
-auto Table::operator=(Table&& other) noexcept -> Table& = default;
+auto Table::operator=(Table&& other) noexcept -> Table& {
+    std::swap(this->impl, other.impl);
+    other.impl = std::make_shared<Table::Impl>();
+    return *this;
+};
 void swap(Table& self, Table& other) { std::swap(self.impl, other.impl); }
 
-auto Table::get(const Value& key) -> Value { return impl->value.at(key); }
+auto Table::get(const Value& key) -> Value { return Value(impl->value.at(key)); }
+auto Table::has(const Value& key) -> bool { return impl->value.find(key) != impl->value.end(); }
 void Table::set(const Value& key, Value value) { impl->value[key] = std::move(value); }
 void Table::set(Value&& key, Value value) { impl->value[key] = std::move(value); }
+[[nodiscard]] auto Table::size() const -> size_t { return impl->value.size(); }
 
 [[nodiscard]] auto Table::to_literal() const -> std::string {
     // NOTE: recursive table check needs to be in a lambda because Table::Impl is private and we
@@ -291,7 +300,7 @@ CallContext::~CallContext() = default;
 
 auto CallContext::call_location() const -> std::optional<Range> { return impl->location; }
 auto CallContext::environment() const -> Environment& { return *impl->env; }
-auto CallContext::get(const std::string& name) const -> Value& { return impl->env->get(name); }
+auto CallContext::get(const std::string& name) const -> Value { return impl->env->get(name); }
 auto CallContext::arguments() const -> const Vallist& { return impl->args; }
 
 [[nodiscard]] auto CallContext::unary_numeric_arg_helper() const

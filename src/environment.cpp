@@ -1,6 +1,8 @@
 #include "MiniLua/environment.hpp"
 
+#include <algorithm>
 #include <string>
+#include <utility>
 
 #include "MiniLua/values.hpp"
 #include "internal_env.hpp"
@@ -22,20 +24,45 @@ void Environment::add_default_stdlib() {
     // TODO add actual stdlib
 }
 void Environment::add(const std::string& name, Value value) {
-    impl->inner.global().insert_or_assign(name, value);
+    impl->inner.global().set(name, std::move(value));
 }
 void Environment::add(std::string&& name, Value value) {
-    impl->inner.global().insert_or_assign(std::move(name), value);
+    impl->inner.global().set(std::move(name), std::move(value));
+}
+
+// helper for the Environment::add_all methods
+template <typename I>
+static auto transform_values(I begin, I end) -> std::vector<std::pair<Value, Value>> {
+    std::vector<std::pair<Value, Value>> to_insert;
+    to_insert.reserve(std::distance(begin, end));
+
+    std::transform(begin, end, std::back_inserter(to_insert), [](auto pair) {
+        return std::make_pair(Value(std::move(pair.first)), Value(std::move(pair.second)));
+    });
+
+    return to_insert;
 }
 
 void Environment::add_all(std::unordered_map<std::string, Value> values) {
-    impl->inner.global().insert(values.begin(), values.end());
+    for (auto [key, value] : std::move(values)) {
+        // NOTE: can't move key because that would change the structure of the map
+        impl->inner.global().set(key, std::move(value));
+    }
 }
-void Environment::add_all(std::initializer_list<std::pair<const std::string, Value>> values) {
-    impl->inner.global().insert(values);
+void Environment::add_all(std::initializer_list<std::pair<std::string, Value>> values) {
+    for (auto [key, value] : values) {
+        impl->inner.global().set(key, std::move(value));
+    }
+}
+void Environment::add_all(std::vector<std::pair<std::string, Value>> values) {
+    for (auto [key, value] : std::move(values)) {
+        impl->inner.global().set(std::move(key), std::move(value));
+    }
 }
 
-auto Environment::get(const std::string& name) -> Value& { return impl->inner.global().at(name); }
+auto Environment::get(const std::string& name) -> Value { return impl->inner.global().get(name); }
+
+auto Environment::has(const std::string& name) -> bool { return impl->inner.global().has(name); }
 
 void Environment::set_stdin(std::istream* in) { impl->inner.set_stdin(in); }
 void Environment::set_stdout(std::ostream* out) { impl->inner.set_stdout(out); }
@@ -52,11 +79,7 @@ auto operator==(const Environment& a, const Environment& b) noexcept -> bool {
 }
 auto operator!=(const Environment& a, const Environment& b) noexcept -> bool { return !(a == b); }
 auto operator<<(std::ostream& os, const Environment& self) -> std::ostream& {
-    os << "Environment{";
-    for (const auto& [key, value] : self.impl->inner.global()) {
-        os << "[\"" << key << "\"] = " << value << ", ";
-    }
-    return os << "}";
+    return os << "Environment{" << self.impl->inner.global() << "}";
 }
 
 }; // namespace minilua

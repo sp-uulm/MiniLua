@@ -11,8 +11,7 @@ namespace minilua {
  * Environment for use in the interpreter.
  */
 class Env {
-    // TODO replace by Table
-    std::unordered_map<std::string, Value> table;
+    Table table;
     // iostreams
     std::istream* in;
     std::ostream* out;
@@ -24,8 +23,8 @@ public:
     /**
      * Returns the table for the global environment.
      */
-    auto global() -> std::unordered_map<std::string, Value>&;
-    auto global() const -> const std::unordered_map<std::string, Value>&;
+    auto global() -> Table&;
+    [[nodiscard]] auto global() const -> const Table&;
 
     /**
      * Sets stdin/out/err stream to use in lua code.

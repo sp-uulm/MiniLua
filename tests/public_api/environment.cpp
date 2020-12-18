@@ -46,8 +46,13 @@ TEST_CASE("Environment can be moved") {
         minilua::Environment env;
         env.add("val1", 24); // NOLINT
 
+        INFO(env);
+
         minilua::Environment env2{std::move(env)}; // NOLINT
-        REQUIRE_THROWS_AS(env.get("val1"), std::out_of_range);
+
+        REQUIRE(!env.has("val1"));
+        REQUIRE_THROWS(env.get("val1"));
+        REQUIRE(env2.has("val1"));
         REQUIRE(env2.get("val1") == 24);
         REQUIRE(env != env2);
     }

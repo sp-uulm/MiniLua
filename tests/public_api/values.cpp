@@ -227,6 +227,7 @@ TEST_CASE("table Value is constructable") {
 
         SECTION("contains initial values") {
             minilua::Value value{minilua::Table{{5, 22}, {"key1", 17}, {true, 12}}}; // NOLINT
+            INFO(value);
             CHECK(value[5] == 22);
             CHECK(value["key1"] == 17);
             CHECK(value[true] == 12);

@@ -4,8 +4,8 @@ namespace minilua {
 
 Env::Env() : table(), in(&std::cin), out(&std::cout), err(&std::cerr) {}
 
-auto Env::global() -> std::unordered_map<std::string, Value>& { return this->table; }
-auto Env::global() const -> const std::unordered_map<std::string, Value>& { return this->table; }
+auto Env::global() -> Table& { return this->table; }
+auto Env::global() const -> const Table& { return this->table; }
 
 void Env::set_stdin(std::istream* in) {
     if (in == nullptr) {
