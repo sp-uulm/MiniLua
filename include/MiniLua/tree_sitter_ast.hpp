@@ -1,8 +1,9 @@
 
 #ifndef MINILUA_TREE_SITTER_AST_HPP
 #define MINILUA_TREE_SITTER_AST_HPP
+#include "values.hpp"
 #include <tree_sitter/tree_sitter.hpp>
-#include<variant>
+#include <variant>
 namespace minilua{
 namespace details {
 class Expression;
@@ -257,11 +258,6 @@ public:
 class Spread {};
 class Self {};
 class Next {};
-class String {};
-class Number {};
-class Nil {};
-class True {};
-class False {};
 
 class Prefix {
     ts::Node prefix;
@@ -275,8 +271,7 @@ class Expression {
 public:
     Expression(ts::Node);
     auto options() -> std::variant<
-        Spread, Prefix, Next, FunctionDefinition, Table, BinaryOperation, UnaryOperation, String, Number, Nil,
-        True, False, Identifier>;
+        Spread, Prefix, Next, FunctionDefinition, Table, BinaryOperation, UnaryOperation, minilua::Value, Identifier>;
 };
 class Break {};
 class Empty {};

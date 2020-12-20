@@ -435,24 +435,40 @@ ts::NODE_GLOBAL_VARIABLE || node.type_id() == ts::NODE_FUNCTION_CALL || node.chi
 "("))){ throw std::runtime_error("Not an expression-node");
     }
 }
-auto Expression::options() -> std::variant<Spread, Prefix, Next, Function, Table, BinaryOperation,
-UnaryOperation, String, Number, Nil, True, False, Identifier> { if(exp.type_id() ==
-ts::NODE_SPREAD){ return Spread(); }else if(exp.type_id() == ts::NODE_NEXT){ return Next(); }else
-if(exp.type_id() == ts::NODE_FUNCTION_DEFINITION){ return Function(exp); }else if(exp.type_id() ==
-ts::NODE_TABLE){ return Table(exp); }else if(exp.type_id() == ts::NODE_BINARY_OPERATION){ return
-BinaryOperation(exp); }else if(exp.type_id() == ts::NODE_UNARY_OPERATION){ return
-UnaryOperation(exp); }else if(exp.type_id() == ts::NODE_STRING){ return String(exp); }else
-if(exp.type_id() == ts::NODE_NUMBER){ return Number(exp); }else if(exp.type_id() == ts::NODE_NIL){
-        return Nil();
-    }else if(exp.type_id() == ts::NODE_TRUE){
-        return True();
-    }else if(exp.type_id() == ts::NODE_FALSE){
-        return False();
-    }else if(exp.type_id() == ts::NODE_IDENTIFIER){
+auto Expression::options() -> std::variant<
+    Spread, Prefix, Next, FunctionDefinition, Table, BinaryOperation, UnaryOperation,
+    minilua::Value, Identifier> {
+    if (exp.type_id() == ts::NODE_SPREAD) {
+        return Spread();
+    } else if (exp.type_id() == ts::NODE_NEXT) {
+        return Next();
+    } else if (exp.type_id() == ts::NODE_FUNCTION_DEFINITION) {
+        return FunctionDefinition(exp);
+    } else if (exp.type_id() == ts::NODE_TABLE) {
+        return Table(exp);
+    } else if (exp.type_id() == ts::NODE_BINARY_OPERATION) {
+        return BinaryOperation(exp);
+    } else if (exp.type_id() == ts::NODE_UNARY_OPERATION) {
+        return UnaryOperation(exp);
+    } else if (exp.type_id() == ts::NODE_STRING) {
+        return minilua::Value(exp.text());
+    } else if (exp.type_id() == ts::NODE_NUMBER) {
+        return minilua::Value();//TODO parse number and put into value
+    } else if (exp.type_id() == ts::NODE_NIL) {
+        return minilua::Value(Nil());
+    } else if (exp.type_id() == ts::NODE_TRUE) {
+        return minilua::Value(true);
+    } else if (exp.type_id() == ts::NODE_FALSE) {
+        return minilua::Value(false);
+    } else if (exp.type_id() == ts::NODE_IDENTIFIER) {
         return Identifier(exp);
-    }else if(exp.type_id() == ts::NODE_SELF || exp.type_id() == ts::NODE_FUNCTION_CALL ||
-exp.type_id() == ts::NODE_GLOBAL_VARIABLE || (exp.child(0).has_value() && exp.child(0) -> text() ==
-"(")){ return Prefix(exp); }else{ throw std::runtime_error("Not an expression-node");
+    } else if (
+        exp.type_id() == ts::NODE_SELF || exp.type_id() == ts::NODE_FUNCTION_CALL ||
+        exp.type_id() == ts::NODE_GLOBAL_VARIABLE ||
+        (exp.child(0).has_value() && exp.child(0)->text() == "(")) {
+        return Prefix(exp);
+    } else {
+        throw std::runtime_error("Not an expression-node");
     }
 }
 //Statement
@@ -470,7 +486,7 @@ std::runtime_error("Not a statement-node");
 }
 auto Statement::options() -> std::variant<VariableDeclaration, LocalVariableDeclaration,
 DoStatement, IfStatement, WhileStatement, RepeatStatement, ForStatement, ForInStatement, GoTo,
-Break, Label, Empty, Function, LocalFunction, FunctionCall, Expression> { if(statement.type_id() ==
+Break, Label, Empty, FunctionStatement, LocalFunctionStatement, FunctionCall, Expression> { if(statement.type_id() ==
 ts::NODE_EXPRESSION){ return Expression(statement.named_child(0).value()); }else
 if(statement.type_id() == ts::NODE_VARIABLE_DECLARATION){ return VariableDeclaration(statement);
     }else if(statement.type_id() == ts::NODE_LOCAL_VARIABLE_DECLARATION){
@@ -494,9 +510,9 @@ if(statement.type_id() == ts::NODE_VARIABLE_DECLARATION){ return VariableDeclara
     }else if(statement.type_id() == ts::NODE_LABEL_STATEMENT){
         return Label(statement);
     }else if(statement.type_id() == ts::NODE_FUNCTION){
-        return Function(statement);
+        return FunctionStatement(statement);
     }else if(statement.type_id() == ts::NODE_LOCAL_FUNCTION){
-        return LocalFunction(statement);
+        return LocalFunctionStatement(statement);
     }else if(statement.type_id() == ts::NODE_FUNCTION_CALL){
         return FunctionCall(statement);
     }else if((statement.child(0).has_value() && statement.child(0) -> text() == ";")){
