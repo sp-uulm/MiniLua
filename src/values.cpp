@@ -172,6 +172,68 @@ auto operator<<(std::ostream& os, const String& self) -> std::ostream& {
 struct Table::Impl {
     std::unordered_map<Value, Value> value;
 };
+
+struct Table::iterator::Impl {
+    std::unordered_map<Value, Value>::iterator iter;
+};
+Table::iterator::iterator() = default;
+Table::iterator::iterator(const Table::iterator&) = default;
+Table::iterator::~iterator() = default;
+
+auto Table::iterator::operator=(const Table::iterator&) -> Table::iterator& = default;
+auto Table::iterator::operator==(const Table::iterator& other) const -> bool {
+    return this->impl->iter == other.impl->iter;
+}
+auto Table::iterator::operator!=(const Table::iterator& other) const -> bool {
+    return !(*this == other);
+}
+auto Table::iterator::operator++() -> Table::iterator& {
+    this->impl->iter++;
+    return *this;
+}
+auto Table::iterator::operator++(int) -> Table::iterator {
+    auto tmp = *this;
+    ++(this->impl->iter);
+    return tmp;
+}
+
+auto Table::iterator::operator*() const -> Table::iterator::reference { return *this->impl->iter; }
+auto Table::iterator::operator->() const -> Table::iterator::pointer {
+    return this->impl->iter.operator->();
+}
+
+struct Table::const_iterator::Impl {
+    std::unordered_map<Value, Value>::const_iterator iter;
+};
+Table::const_iterator::const_iterator() = default;
+Table::const_iterator::const_iterator(const Table::const_iterator&) = default;
+Table::const_iterator::~const_iterator() = default;
+
+auto Table::const_iterator::operator=(const Table::const_iterator&)
+    -> Table::const_iterator& = default;
+auto Table::const_iterator::operator==(const Table::const_iterator& other) const -> bool {
+    return this->impl->iter == other.impl->iter;
+}
+auto Table::const_iterator::operator!=(const Table::const_iterator& other) const -> bool {
+    return !(*this == other);
+}
+auto Table::const_iterator::operator++() -> Table::const_iterator& {
+    this->impl->iter++;
+    return *this;
+}
+auto Table::const_iterator::operator++(int) -> Table::const_iterator {
+    auto tmp = *this;
+    ++(this->impl->iter);
+    return tmp;
+}
+
+auto Table::const_iterator::operator*() const -> Table::const_iterator::reference {
+    return *this->impl->iter;
+}
+auto Table::const_iterator::operator->() const -> Table::const_iterator::pointer {
+    return this->impl->iter.operator->();
+}
+
 Table::Table() : impl(std::make_shared<Impl>()){};
 Table::Table(std::unordered_map<Value, Value> value)
     : impl(std::make_shared<Impl>(Impl{.value = std::move(value)})) {}
@@ -191,6 +253,26 @@ void swap(Table& self, Table& other) { std::swap(self.impl, other.impl); }
 auto Table::get(const Value& key) -> Value { return impl->value.at(key); }
 void Table::set(const Value& key, Value value) { impl->value[key] = std::move(value); }
 void Table::set(Value&& key, Value value) { impl->value[key] = std::move(value); }
+
+auto Table::begin() -> Table::iterator {
+    Table::iterator iterator;
+    iterator.impl->iter = this->impl->value.begin();
+    return iterator;
+}
+[[nodiscard]] auto Table::begin() const -> Table::const_iterator {
+    Table::const_iterator iterator;
+    iterator.impl->iter = this->impl->value.cbegin();
+    return iterator;
+}
+[[nodiscard]] auto Table::cbegin() const -> Table::const_iterator {
+    Table::const_iterator iterator;
+    iterator.impl->iter = this->impl->value.cbegin();
+    return iterator;
+}
+
+auto Table::end() -> Table::iterator { return Table::iterator(); }
+[[nodiscard]] auto Table::end() const -> Table::const_iterator { return Table::const_iterator(); }
+[[nodiscard]] auto Table::cend() const -> Table::const_iterator { return Table::const_iterator(); }
 
 [[nodiscard]] auto Table::to_literal() const -> std::string {
     // NOTE: recursive table check needs to be in a lambda because Table::Impl is private and we

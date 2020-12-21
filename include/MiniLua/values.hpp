@@ -208,6 +208,74 @@ class Table {
     std::shared_ptr<Impl> impl;
 
 public:
+    // iterator definitions
+    //
+    // NOTE: it's not possible to use the underlying std::unordered_map<Value, Value>::iterator
+    // because Value is not a complete type at this location. This means we can't
+    // use it directly for begin() and end() and we can't use it in the definition
+    // of iterator/const_iterator.
+    using allocator_type = std::allocator<std::pair<const Value, Value>>;
+    using value_type = allocator_type::value_type;
+    using reference = allocator_type::reference;
+    using const_reference = allocator_type::const_reference;
+    using size_type = allocator_type::size_type;
+
+    class iterator {
+        friend class Table;
+
+        struct Impl;
+        owning_ptr<Impl> impl;
+
+    public:
+        using difference_type = allocator_type::difference_type;
+        using value_type = allocator_type::value_type;
+        using reference = allocator_type::reference;
+        using pointer = allocator_type::pointer;
+        using iterator_category = std::forward_iterator_tag;
+
+        iterator();
+        iterator(const iterator&);
+        ~iterator();
+
+        auto operator=(const iterator&) -> iterator&;
+        auto operator==(const iterator&) const -> bool;
+        auto operator!=(const iterator&) const -> bool;
+
+        auto operator++() -> iterator&;
+        auto operator++(int) -> iterator;
+
+        auto operator*() const -> reference;
+        auto operator->() const -> pointer;
+    };
+
+    class const_iterator {
+        friend class Table;
+
+        struct Impl;
+        owning_ptr<Impl> impl;
+
+    public:
+        using difference_type = allocator_type::difference_type;
+        using value_type = allocator_type::value_type;
+        using reference = allocator_type::const_reference;
+        using pointer = allocator_type::const_pointer;
+        using iterator_category = std::forward_iterator_tag;
+
+        const_iterator();
+        const_iterator(const const_iterator&);
+        ~const_iterator();
+
+        auto operator=(const const_iterator&) -> const_iterator&;
+        auto operator==(const const_iterator&) const -> bool;
+        auto operator!=(const const_iterator&) const -> bool;
+
+        auto operator++() -> const_iterator&;
+        auto operator++(int) -> const_iterator;
+
+        auto operator*() const -> reference;
+        auto operator->() const -> pointer;
+    };
+
     constexpr static const std::string_view TYPE = "table";
 
     Table();
@@ -224,6 +292,14 @@ public:
     auto get(const Value& key) -> Value;
     void set(const Value& key, Value value);
     void set(Value&& key, Value value);
+
+    // iterators for Table
+    auto begin() -> iterator;
+    [[nodiscard]] auto begin() const -> const_iterator;
+    [[nodiscard]] auto cbegin() const -> const_iterator;
+    auto end() -> iterator;
+    [[nodiscard]] auto end() const -> const_iterator;
+    [[nodiscard]] auto cend() const -> const_iterator;
 
     [[nodiscard]] auto to_literal() const -> std::string;
 

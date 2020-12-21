@@ -1,4 +1,5 @@
 #include <MiniLua/values.hpp>
+#include <algorithm>
 #include <catch2/catch.hpp>
 
 // functions for use in testing NativeFunction
@@ -244,6 +245,48 @@ TEST_CASE("table Value to literal") {
     // TODO check by parsing the resulting literal
     // minilua::Value value4{minilua::Table{{5, 22}, {"key1", 17}, {true, 12.5}}}; // NOLINT
     // CHECK(value4.to_literal() == R"({ key1 = 17, [true] = 12.5, [5] = 22 })");
+}
+
+TEST_CASE("table is iterable") {
+    minilua::Table table{{1, 25}, {"hi", 17}, {17, 21}}; // NOLINT
+    const std::vector<std::pair<const minilua::Value, minilua::Value>> expected{
+        {1, 25}, {"hi", 17}, {17, 21}}; // NOLINT
+
+    SECTION("increment") {
+        auto iter = table.begin();
+        CHECK(iter == iter);
+        auto iter2 = iter;
+        iter++;
+        CHECK(iter2 != iter);
+        CHECK(++iter2 == iter);
+    }
+
+    SECTION("derefence") {
+        auto iter = table.begin();
+
+        CHECK(std::find(expected.begin(), expected.end(), *iter) != expected.end());
+        CHECK(iter->second.is_number());
+    }
+
+    SECTION("const iteration") {
+        std::vector<std::pair<const minilua::Value, minilua::Value>> pairs{};
+        std::copy(table.cbegin(), table.cend(), std::back_inserter(pairs));
+
+        CHECK_THAT(pairs, Catch::Matchers::UnorderedEquals(expected));
+    }
+
+    SECTION("mutating iteration") {
+        for (auto& [key, value] : table) {
+            value = value + 1;
+        }
+
+        std::vector<std::pair<minilua::Value, minilua::Value>> pairs{};
+        std::copy(table.begin(), table.end(), std::back_inserter(pairs));
+
+        std::vector<std::pair<minilua::Value, minilua::Value>> expected{
+            {1, 26}, {"hi", 18}, {17, 22}}; // NOLINT
+        CHECK_THAT(pairs, Catch::Matchers::UnorderedEquals(expected));
+    }
 }
 
 TEST_CASE("function Value is constructable") {
