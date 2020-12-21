@@ -132,7 +132,7 @@ auto assert(const CallContext& ctx) -> Value {
 
 auto next(const CallContext& ctx) -> Vallist {
     try {
-        Table t = std::get<Table>(ctx.arguments().get(0));
+        const auto& t = std::get<Table>(ctx.arguments().get(0));
         auto index = ctx.arguments().get(1);
         return t.next(index);
     } catch (std::bad_variant_access&) {
