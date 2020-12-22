@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['eval_5fresult_5ft_1153',['eval_result_t',['../namespacelua_1_1rt.html#ab1a1b267c263544e01762cd216aea04b',1,'lua::rt']]],
-  ['eval_5fsuccess_5ft_1154',['eval_success_t',['../namespacelua_1_1rt.html#ad9e0a06f414f97877cfebfd571397c15',1,'lua::rt']]]
+  ['difference_5ftype_1185',['difference_type',['../classminilua_1_1Table_1_1iterator.html#a789ceb13a1e674fa8a8a592d0aa21b87',1,'minilua::Table::iterator::difference_type()'],['../classminilua_1_1Table_1_1const__iterator.html#a380b2516ae10a05026e8a637ded4875e',1,'minilua::Table::const_iterator::difference_type()']]]
 ];

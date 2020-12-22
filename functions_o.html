@@ -92,6 +92,8 @@ $(function() {
 <li>operator!=
 : <a class="el" href="classminilua_1_1Environment.html#a70323fa83d1f93dc60962ff603d61e29">minilua::Environment</a>
 , <a class="el" href="classminilua_1_1owning__ptr.html#a6e7361c21d3d857265febb1fe889f66b">minilua::owning_ptr&lt; T &gt;</a>
+, <a class="el" href="classminilua_1_1Table_1_1const__iterator.html#ad340bca15ce5dbd8227967a490af66dc">minilua::Table::const_iterator</a>
+, <a class="el" href="classminilua_1_1Table_1_1iterator.html#ab92c9a463c2ef8fdec4a5b1b18c33b57">minilua::Table::iterator</a>
 , <a class="el" href="classminilua_1_1Table.html#a12588b92193b225836975cb4656910e2">minilua::Table</a>
 </li>
 <li>operator%
@@ -118,10 +120,16 @@ $(function() {
 <li>operator*()
 : <a class="el" href="classminilua_1_1owning__ptr.html#a9ca69cd95f0b5a6fa54c54ec57ac3a70">minilua::owning_ptr&lt; T &gt;</a>
 , <a class="el" href="classminilua_1_1SourceChangeTree.html#aec470980a60b2e43edf12c5e20119368">minilua::SourceChangeTree</a>
+, <a class="el" href="classminilua_1_1Table_1_1const__iterator.html#a70c743c5eb76584f9aa95ccc4c533291">minilua::Table::const_iterator</a>
+, <a class="el" href="classminilua_1_1Table_1_1iterator.html#a2f60b35971edd3e010445f68dee40dc8">minilua::Table::iterator</a>
 , <a class="el" href="classminilua_1_1Value.html#aa2655f3437d5e6ba5085efa64469cedb">minilua::Value</a>
 </li>
 <li>operator+
 : <a class="el" href="classminilua_1_1Value.html#affeecb1ede5b9a2456f3934bf8de78a5">minilua::Value</a>
+</li>
+<li>operator++()
+: <a class="el" href="classminilua_1_1Table_1_1const__iterator.html#a0af388e95f9e40c813e76e404d1137a8">minilua::Table::const_iterator</a>
+, <a class="el" href="classminilua_1_1Table_1_1iterator.html#a0755bca78184911ddc0eda5c47161934">minilua::Table::iterator</a>
 </li>
 <li>operator-
 : <a class="el" href="classminilua_1_1Value.html#a6aa9466c0a499bec57cea627398e8a0f">minilua::Value</a>
@@ -129,6 +137,8 @@ $(function() {
 <li>operator-&gt;()
 : <a class="el" href="classminilua_1_1owning__ptr.html#a0bf21f21ef44fa1f04b024f73958c387">minilua::owning_ptr&lt; T &gt;</a>
 , <a class="el" href="classminilua_1_1SourceChangeTree.html#a8a2f17e760a6a19d9411b68399af0109">minilua::SourceChangeTree</a>
+, <a class="el" href="classminilua_1_1Table_1_1const__iterator.html#a83ebd1d65a01ae066a7b2cd095d4fa11">minilua::Table::const_iterator</a>
+, <a class="el" href="classminilua_1_1Table_1_1iterator.html#a5501738624be21fc6f695d7d6226d1c2">minilua::Table::iterator</a>
 </li>
 <li>operator/
 : <a class="el" href="classminilua_1_1Value.html#a1cbed4e8653d2180d7fe241c4f8e0ba0">minilua::Value</a>
@@ -146,23 +156,27 @@ $(function() {
 , <a class="el" href="classminilua_1_1CallContext.html#af2863ce0add27da94c5fa2503f7fcf6a">minilua::CallContext</a>
 , <a class="el" href="classminilua_1_1Environment.html#a7e8f774f623a04d280bdd587dc96a412">minilua::Environment</a>
 , <a class="el" href="classminilua_1_1owning__ptr.html#af4391792fab12e6f164e990fb069cb27">minilua::owning_ptr&lt; T &gt;</a>
+, <a class="el" href="classminilua_1_1Table_1_1const__iterator.html#a45cefe71200feccdceb8663bbaeed0d2">minilua::Table::const_iterator</a>
+, <a class="el" href="classminilua_1_1Table_1_1iterator.html#afb2d47e4794cb3b44b720d9afcd97b3a">minilua::Table::iterator</a>
 , <a class="el" href="classminilua_1_1Table.html#a7a04d2afd0e39b7de02bb76cdfcf650f">minilua::Table</a>
 , <a class="el" href="classminilua_1_1Vallist.html#af3d8cbd9523f87d8fd00eac0e9c373c5">minilua::Vallist</a>
 , <a class="el" href="classminilua_1_1Value.html#adf53fd4e396ad9ba78fae1e4fa48e19f">minilua::Value</a>
 , <a class="el" href="classts_1_1Cursor.html#a1d7f65110294708fec70bde30c7be98e">ts::Cursor</a>
-, <a class="el" href="classts_1_1Query.html#a85d006f1f8d0c5d27444c06a8173678f">ts::Query</a>
+, <a class="el" href="classts_1_1Query.html#a8bdf773a94a6d0a8ce42e1c485fe31bd">ts::Query</a>
 , <a class="el" href="classts_1_1QueryCursor.html#aa5f923e1a63e794e00192e9acdb0af75">ts::QueryCursor</a>
 , <a class="el" href="classts_1_1Tree.html#a74e2218dfcf5a68c41c753d3c1eb14cb">ts::Tree</a>
 </li>
 <li>operator==
 : <a class="el" href="classminilua_1_1Environment.html#a42bda29c869437c7dda99d88caca53b3">minilua::Environment</a>
 , <a class="el" href="classminilua_1_1owning__ptr.html#a35bde34e952c1b9ae1668d7c9679d002">minilua::owning_ptr&lt; T &gt;</a>
+, <a class="el" href="classminilua_1_1Table_1_1const__iterator.html#a862c932e4d4a88b7f8c2bb28f0075c1e">minilua::Table::const_iterator</a>
+, <a class="el" href="classminilua_1_1Table_1_1iterator.html#ac8c247096bc4529b51567deeb7496b5a">minilua::Table::iterator</a>
 , <a class="el" href="classminilua_1_1Table.html#a30af2c4e24e14a4cf1ebfee3aa3b593f">minilua::Table</a>
 , <a class="el" href="classminilua_1_1Vallist.html#a9e2986b7115f150802bb7b005481f881">minilua::Vallist</a>
 </li>
 <li>operator[]()
-: <a class="el" href="classminilua_1_1Table.html#a69d175bf7290df751a3875e8fd1fd11f">minilua::Table</a>
-, <a class="el" href="classminilua_1_1Value.html#adf1d05cb89a08348c770f3abe1a11891">minilua::Value</a>
+: <a class="el" href="classminilua_1_1Table.html#acf0832aaae3c493a8411ffc899cb9f8a">minilua::Table</a>
+, <a class="el" href="classminilua_1_1Value.html#a64b4e4b0ab33a2d42b529bc3f1450f95">minilua::Value</a>
 </li>
 <li>operator^
 : <a class="el" href="classminilua_1_1Value.html#a1c16c4cb385e4ee0f76aea8f3be4db66">minilua::Value</a>
@@ -183,10 +197,10 @@ $(function() {
 : <a class="el" href="structminilua_1_1CommonSCInfo.html#a384a106ebc11273ef070206418ff6002">minilua::CommonSCInfo</a>
 </li>
 <li>Origin()
-: <a class="el" href="classminilua_1_1Origin.html#a0e43c7add3c738e3c01f35c7ab9266cf">minilua::Origin</a>
+: <a class="el" href="classminilua_1_1Origin.html#a8c92beab36e1b5d0607e185f15948942">minilua::Origin</a>
 </li>
 <li>origin()
-: <a class="el" href="classminilua_1_1SourceChangeTree.html#a09e5f4f5798c05913f2068952bb17e69">minilua::SourceChangeTree</a>
+: <a class="el" href="classminilua_1_1SourceChangeTree.html#a3aad9aad08437659f2862a61722af25c">minilua::SourceChangeTree</a>
 , <a class="el" href="structminilua_1_1Value_1_1Impl.html#aed0e3e85e01f1f608db2e09f8242afd6">minilua::Value::Impl</a>
 , <a class="el" href="classminilua_1_1Value.html#a39b6e52217ad1306092b570feea3ae58">minilua::Value</a>
 </li>
@@ -224,7 +238,7 @@ $(function() {
 , <a class="el" href="struct__LuaVar.html#a61572f2be4bccaa757121e0ec805dc2d">_LuaVar</a>
 </li>
 <li>owning_ptr()
-: <a class="el" href="classminilua_1_1owning__ptr.html#abe713b2a39ed659af28885ac61d60770">minilua::owning_ptr&lt; T &gt;</a>
+: <a class="el" href="classminilua_1_1owning__ptr.html#aaf4f2196c5db84ed5da0ac79876f7a1e">minilua::owning_ptr&lt; T &gt;</a>
 </li>
 </ul>
 </div><!-- contents -->

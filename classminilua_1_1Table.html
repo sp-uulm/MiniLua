@@ -70,6 +70,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="#friends">Friends</a> &#124;
@@ -83,8 +84,25 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table_1_1const__iterator.html">const_iterator</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1Table_1_1Impl.html">Impl</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table_1_1iterator.html">iterator</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:a65bad9cf1446566da051f55c21c460aa"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#a65bad9cf1446566da051f55c21c460aa">allocator_type</a> = std::allocator&lt; std::pair&lt; const <a class="el" href="classminilua_1_1Value.html">Value</a>, <a class="el" href="classminilua_1_1Value.html">Value</a> &gt; &gt;</td></tr>
+<tr class="separator:a65bad9cf1446566da051f55c21c460aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae8c380e718164f8e1bfa65c89a813563"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#ae8c380e718164f8e1bfa65c89a813563">value_type</a> = allocator_type::value_type</td></tr>
+<tr class="separator:ae8c380e718164f8e1bfa65c89a813563"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7427451290de54c20be4077bd50895ee"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#a7427451290de54c20be4077bd50895ee">reference</a> = allocator_type::reference</td></tr>
+<tr class="separator:a7427451290de54c20be4077bd50895ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a923030414e389b2a803723062aee35b0"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#a923030414e389b2a803723062aee35b0">const_reference</a> = allocator_type::const_reference</td></tr>
+<tr class="separator:a923030414e389b2a803723062aee35b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af14d1d88356efa3e1a4b33cb01c7c811"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#af14d1d88356efa3e1a4b33cb01c7c811">size_type</a> = allocator_type::size_type</td></tr>
+<tr class="separator:af14d1d88356efa3e1a4b33cb01c7c811"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -110,6 +128,18 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a5fd1e57f9b412ab762e0286fe7c3871d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8e8326d887af99c766ec3eed60051a1b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#a8e8326d887af99c766ec3eed60051a1b">set</a> (<a class="el" href="classminilua_1_1Value.html">Value</a> &amp;&amp;key, <a class="el" href="classminilua_1_1Value.html">Value</a> value)</td></tr>
 <tr class="separator:a8e8326d887af99c766ec3eed60051a1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ace5d1921ef6663dec23c27fe30abe385"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#ace5d1921ef6663dec23c27fe30abe385">begin</a> () -&gt; <a class="el" href="classminilua_1_1Table_1_1iterator.html">iterator</a></td></tr>
+<tr class="separator:ace5d1921ef6663dec23c27fe30abe385"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abfc40f3ad104551eaf7e36afe3182314"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#abfc40f3ad104551eaf7e36afe3182314">begin</a> () const -&gt; <a class="el" href="classminilua_1_1Table_1_1const__iterator.html">const_iterator</a></td></tr>
+<tr class="separator:abfc40f3ad104551eaf7e36afe3182314"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8f31dfb77fcbcca609296bde84bc5405"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#a8f31dfb77fcbcca609296bde84bc5405">cbegin</a> () const -&gt; <a class="el" href="classminilua_1_1Table_1_1const__iterator.html">const_iterator</a></td></tr>
+<tr class="separator:a8f31dfb77fcbcca609296bde84bc5405"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3cdc084eee7ed6e74b5ad408afea036d"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#a3cdc084eee7ed6e74b5ad408afea036d">end</a> () -&gt; <a class="el" href="classminilua_1_1Table_1_1iterator.html">iterator</a></td></tr>
+<tr class="separator:a3cdc084eee7ed6e74b5ad408afea036d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acd0328c3f7b20e287ce9d6ba645fd667"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#acd0328c3f7b20e287ce9d6ba645fd667">end</a> () const -&gt; <a class="el" href="classminilua_1_1Table_1_1const__iterator.html">const_iterator</a></td></tr>
+<tr class="separator:acd0328c3f7b20e287ce9d6ba645fd667"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec47c6ae558f4802d3d9e02dcf5d84e9"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#aec47c6ae558f4802d3d9e02dcf5d84e9">cend</a> () const -&gt; <a class="el" href="classminilua_1_1Table_1_1const__iterator.html">const_iterator</a></td></tr>
+<tr class="separator:aec47c6ae558f4802d3d9e02dcf5d84e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7f34be5b06ff1aa2e56a362a02bf09eb"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#a7f34be5b06ff1aa2e56a362a02bf09eb">to_literal</a> () const -&gt; std::string</td></tr>
 <tr class="separator:a7f34be5b06ff1aa2e56a362a02bf09eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acf0832aaae3c493a8411ffc899cb9f8a"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#acf0832aaae3c493a8411ffc899cb9f8a">operator[]</a> (const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;) -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;</td></tr>
@@ -137,6 +167,77 @@ Friends</h2></td></tr>
 <tr class="memitem:a65cb4e1cc32ae3f0dc75c7054a9f75b6"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#a65cb4e1cc32ae3f0dc75c7054a9f75b6">operator&lt;&lt;</a> (std::ostream &amp;, const <a class="el" href="classminilua_1_1Table.html">Table</a> &amp;) -&gt; std::ostream &amp;</td></tr>
 <tr class="separator:a65cb4e1cc32ae3f0dc75c7054a9f75b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Member Typedef Documentation</h2>
+<a id="a65bad9cf1446566da051f55c21c460aa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a65bad9cf1446566da051f55c21c460aa">&#9670;&nbsp;</a></span>allocator_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="classminilua_1_1Table.html#a65bad9cf1446566da051f55c21c460aa">minilua::Table::allocator_type</a> =  std::allocator&lt;std::pair&lt;const <a class="el" href="classminilua_1_1Value.html">Value</a>, <a class="el" href="classminilua_1_1Value.html">Value</a>&gt; &gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a923030414e389b2a803723062aee35b0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a923030414e389b2a803723062aee35b0">&#9670;&nbsp;</a></span>const_reference</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="classminilua_1_1Table.html#a923030414e389b2a803723062aee35b0">minilua::Table::const_reference</a> =  allocator_type::const_reference</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7427451290de54c20be4077bd50895ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7427451290de54c20be4077bd50895ee">&#9670;&nbsp;</a></span>reference</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="classminilua_1_1Table.html#a7427451290de54c20be4077bd50895ee">minilua::Table::reference</a> =  allocator_type::reference</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af14d1d88356efa3e1a4b33cb01c7c811"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af14d1d88356efa3e1a4b33cb01c7c811">&#9670;&nbsp;</a></span>size_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="classminilua_1_1Table.html#af14d1d88356efa3e1a4b33cb01c7c811">minilua::Table::size_type</a> =  allocator_type::size_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae8c380e718164f8e1bfa65c89a813563"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae8c380e718164f8e1bfa65c89a813563">&#9670;&nbsp;</a></span>value_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="classminilua_1_1Table.html#ae8c380e718164f8e1bfa65c89a813563">minilua::Table::value_type</a> =  allocator_type::value_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="adc8e870244286ae4740a41fca3ccf993"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adc8e870244286ae4740a41fca3ccf993">&#9670;&nbsp;</a></span>Table() <span class="overload">[1/5]</span></h2>
@@ -269,6 +370,108 @@ Friends</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="ace5d1921ef6663dec23c27fe30abe385"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ace5d1921ef6663dec23c27fe30abe385">&#9670;&nbsp;</a></span>begin() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::Table::begin </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> -&gt; <a class="el" href="classminilua_1_1Table_1_1iterator.html">iterator</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abfc40f3ad104551eaf7e36afe3182314"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abfc40f3ad104551eaf7e36afe3182314">&#9670;&nbsp;</a></span>begin() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::Table::begin </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt;  <a class="el" href="classminilua_1_1Table_1_1const__iterator.html">const_iterator</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8f31dfb77fcbcca609296bde84bc5405"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8f31dfb77fcbcca609296bde84bc5405">&#9670;&nbsp;</a></span>cbegin()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::Table::cbegin </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; <a class="el" href="classminilua_1_1Table_1_1const__iterator.html">const_iterator</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aec47c6ae558f4802d3d9e02dcf5d84e9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec47c6ae558f4802d3d9e02dcf5d84e9">&#9670;&nbsp;</a></span>cend()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::Table::cend </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; <a class="el" href="classminilua_1_1Table_1_1const__iterator.html">const_iterator</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3cdc084eee7ed6e74b5ad408afea036d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3cdc084eee7ed6e74b5ad408afea036d">&#9670;&nbsp;</a></span>end() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::Table::end </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> -&gt; <a class="el" href="classminilua_1_1Table_1_1iterator.html">iterator</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="acd0328c3f7b20e287ce9d6ba645fd667"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acd0328c3f7b20e287ce9d6ba645fd667">&#9670;&nbsp;</a></span>end() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::Table::end </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt;  <a class="el" href="classminilua_1_1Table_1_1const__iterator.html">const_iterator</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="af36ca64fc48e8262bb4e4a805218ef03"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af36ca64fc48e8262bb4e4a805218ef03">&#9670;&nbsp;</a></span>get()</h2>
 

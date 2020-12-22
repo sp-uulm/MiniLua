@@ -1,9 +1,6 @@
 var searchData=
 [
-  ['t_5f_1186',['T_',['../namespaceminilua.html#adc1e0e5165540ba374f7996290d3950f',1,'minilua']]],
-  ['table_5fp_1187',['table_p',['../namespacelua_1_1rt.html#a50f0683146ba48489740a6fd2c21b433',1,'lua::rt']]],
-  ['token_5fit_5ft_1188',['token_it_t',['../classLuaParser.html#a525a5384def9d333fff63b0fdad72828',1,'LuaParser']]],
-  ['token_5flist_5ft_1189',['token_list_t',['../classLuaParser.html#a8c6cb2b50a375592fa2e64b1c6529463',1,'LuaParser']]],
-  ['type_1190',['Type',['../classminilua_1_1Origin.html#af088a2e83bc4ea0ff002ac6b32d1cc24',1,'minilua::Origin::Type()'],['../classminilua_1_1Value.html#a0f957d64de1619ed762890a5f50b01dc',1,'minilua::Value::Type()'],['../classminilua_1_1SourceChangeTree.html#a169784327bb97b1f49ef48b49155d08a',1,'minilua::SourceChangeTree::Type()']]],
-  ['typeid_1191',['TypeId',['../namespacets.html#a51f4186042d79f66c64450dcedb18fd3',1,'ts']]]
+  ['reference_1218',['reference',['../classminilua_1_1Table.html#a7427451290de54c20be4077bd50895ee',1,'minilua::Table::reference()'],['../classminilua_1_1Table_1_1iterator.html#af9427a47cb0ddd6bbb5059bf6ce015ac',1,'minilua::Table::iterator::reference()'],['../classminilua_1_1Table_1_1const__iterator.html#ab01ecbe31f2e0c0f52f450b290d876c0',1,'minilua::Table::const_iterator::reference()']]],
+  ['result_1219',['result',['../structlua_1_1rt_1_1cfunction.html#a1c34aa209d7821527e2b314100b474b9',1,'lua::rt::cfunction']]],
+  ['reversefn_1220',['ReverseFn',['../structminilua_1_1BinaryOrigin.html#a26d29cdd4b864d97db9d974877496877',1,'minilua::BinaryOrigin::ReverseFn()'],['../structminilua_1_1UnaryOrigin.html#a3752fc1164677468263fe50f70567d57',1,'minilua::UnaryOrigin::ReverseFn()']]]
 ];

@@ -165,7 +165,8 @@ var menudata={children:[
 {text:"w",url:"functions_eval.html#index_w"}]},
 {text:"Related Functions",url:"functions_rela.html",children:[
 {text:"o",url:"functions_rela.html#index_o"},
-{text:"s",url:"functions_rela.html#index_s"}]}]}]},
+{text:"s",url:"functions_rela.html#index_s"},
+{text:"t",url:"functions_rela.html#index_t"}]}]}]},
 {text:"Files",url:"files.html",children:[
 {text:"File List",url:"files.html"},
 {text:"File Members",url:"globals.html",children:[
