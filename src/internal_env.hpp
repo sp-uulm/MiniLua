@@ -21,8 +21,12 @@ namespace minilua {
  * shared_ptr is used for the value because we need to be able to assign to the
  * variable.
  *
+ * Usage: When a new block is started (e.g. the body of a for loop) the local
+ * environment shoule be copied so it can be extended with new local variables
+ * without changing the old environment.
+ *
  * TODO potential memory and performance improvements by nesting multiple local
- * environments
+ * environments (lower memory footprint, faster creation, slower lookup)
  *
  * TODO maybe replace the shared_ptr<Value> by something else we also use in the
  * interpreter
@@ -70,9 +74,19 @@ public:
     void set_local(const std::string&, Value);
 
     /**
-     * Get a locally defined value.
+     * Get a locally defined value, if it exists.
      */
     auto get_local(const std::string&) -> std::optional<Value>;
+
+    /**
+     * Sets the value of a global variable.
+     */
+    void set_global(const std::string&, Value);
+
+    /**
+     * Gets the value of a local variable or Nil if it was not defined.
+     */
+    auto get_global(const std::string&) -> Value;
 
     /**
      * Sets stdin/out/err stream to use in lua code.
