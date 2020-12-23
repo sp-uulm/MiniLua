@@ -26,11 +26,29 @@ auto Env::get_local(const std::string& name) -> std::optional<Value> {
         return *this->local().at(name);
     }
 }
+auto Env::is_local(const std::string& name) -> bool {
+    return this->local().find(name) != this->local().end();
+}
 
 void Env::set_global(const std::string& name, Value value) {
     this->global().set(name, std::move(value));
 }
 auto Env::get_global(const std::string& name) -> Value { return this->global().get(name); }
+
+void Env::set_var(const std::string& name, Value value) {
+    if (this->is_local(name)) {
+        this->set_local(name, std::move(value));
+    } else {
+        this->set_global(name, std::move(value));
+    }
+}
+auto Env::get_var(const std::string& name) -> Value {
+    if (auto value = this->get_local(name)) {
+        return *value;
+    } else {
+        return this->get_global(name);
+    }
+}
 
 void Env::set_stdin(std::istream* in) {
     if (in == nullptr) {

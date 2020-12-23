@@ -8,7 +8,7 @@ TEST_CASE("Internal Env is copyable") {
     static_assert(std::is_copy_constructible_v<minilua::Env>);
 }
 
-TEST_CASE("Internal Env local environment get/set") {
+TEST_CASE("Internal Env get/set local variables") {
     minilua::Env env;
     env.set_local("local_var", 2);
     REQUIRE(env.get_local("local_var") == 2);
@@ -33,8 +33,20 @@ TEST_CASE("Internal Env local environment get/set") {
     }
 }
 
-TEST_CASE("Internal Env global environment get/set") {
+TEST_CASE("Internal Env get/set global variables") {
     minilua::Env env;
     env.set_global("var", 2);
     REQUIRE(env.get_global("var") == 2);
+}
+
+TEST_CASE("Internal Env get/set variables") {
+    minilua::Env env;
+    env.set_var("var1", 22); // NOLINT
+    REQUIRE(env.get_global("var1") == 22);
+    CHECK(env.get_var("var1") == 22);
+
+    env.declare_local("var2");
+    env.set_var("var2", 17); // NOLINT
+    REQUIRE(env.get_local("var2") == 17);
+    CHECK(env.get_var("var2") == 17);
 }

@@ -79,6 +79,11 @@ public:
     auto get_local(const std::string&) -> std::optional<Value>;
 
     /**
+     * Check if a local variable with the name `name` is declared.
+     */
+    auto is_local(const std::string&) -> bool;
+
+    /**
      * Sets the value of a global variable.
      */
     void set_global(const std::string&, Value);
@@ -87,6 +92,20 @@ public:
      * Gets the value of a local variable or Nil if it was not defined.
      */
     auto get_global(const std::string&) -> Value;
+
+    /**
+     * Set a variable named `name` to `value`.
+     *
+     * If `name` is declared as a local variable the value of that variable will
+     * be changed. Otherwise the value of the global variable named `name` will
+     * be changed/set.
+     */
+    void set_var(const std::string& name, Value value);
+
+    /**
+     * Get the value of a variable `name` or Nil if it is not set.
+     */
+    auto get_var(const std::string& name) -> Value;
 
     /**
      * Sets stdin/out/err stream to use in lua code.
