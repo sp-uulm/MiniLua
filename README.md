@@ -1,6 +1,6 @@
 # MiniLua
 
-[![Build Status](https://travis-ci.com/sp-uulm/MiniLua.svg?branch=master)](https://travis-ci.com/sp-uulm/MiniLua)
+![MiniLua](https://github.com/sp-uulm/MiniLua/workflows/MiniLua/badge.svg)
 
 MiniLua is a small lua interpreter that implements additional features like source location tracking. It is currently used in and developed for the interactive_script rqt plugin.
 

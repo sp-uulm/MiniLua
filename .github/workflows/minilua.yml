@@ -1,0 +1,193 @@
+name: MiniLua
+
+on: [push, pull_request]
+
+jobs:
+  test-gcc-with-coverage:
+    name: Build & Test with Coverage on GCC
+    runs-on: ubuntu-20.04
+
+    env:
+      CC: gcc
+      CXX: g++
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Setup VM
+        run: ./.github/workflows/install_packages.sh
+      - name: Setup CMake
+        run: ./scripts/setup_build.sh -DCMAKE_BUILD_TYPE=Coverage
+      - name: Build
+        run: ./scripts/build.sh
+      - name: Test with Coverage
+        run: ./scripts/test_coverage.sh
+      - name: Upload coverage
+        run: ./scripts/upload_coverage.sh
+
+  test-gcc-75:
+    name: Build & Test on GCC 7.5.0
+    runs-on: ubuntu-20.04
+
+    env:
+      CC: gcc-7
+      CXX: g++-7
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Setup VM
+        run: ./.github/workflows/install_packages.sh
+      - name: Setup CMake
+        run: ./scripts/setup_build.sh -DCMAKE_BUILD_TYPE=Coverage
+      - name: Build
+        run: ./scripts/build.sh
+      - name: Test
+        run: ./scripts/test.sh
+
+
+  test-clang:
+    name: Build & Test on Clang
+    runs-on: ubuntu-20.04
+
+    env:
+      CC: clang-10
+      CXX: clang++-10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Setup VM
+        run: ./.github/workflows/install_packages.sh
+      - name: Setup CMake
+        run: ./scripts/setup_build.sh -DCMAKE_BUILD_TYPE=Debug
+      - name: Build
+        run: ./scripts/build.sh
+      - name: Test
+        run: ./scripts/test.sh
+
+  address-sanitizer:
+    name: Address Sanitizer
+    runs-on: ubuntu-20.04
+
+    env:
+      CC: clang-10
+      CXX: clang++-10
+      # ASAN_SYMBOLIZER_PATH: llvm-symbolizer-10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Setup VM
+        run: ./.github/workflows/install_packages.sh
+      - name: Setup CMake
+        run: ./scripts/setup_build.sh -DCMAKE_BUILD_TYPE=asan
+      - name: Build
+        run: ./scripts/build.sh
+      - name: Test
+        run: ./scripts/test.sh "~[leaks]~[hide]"
+
+  undefined-behaviour-sanitizer:
+    name: Undefined Behaviour Sanitizer
+    runs-on: ubuntu-20.04
+
+    env:
+      CC: clang-10
+      CXX: clang++-10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Setup VM
+        run: ./.github/workflows/install_packages.sh
+      - name: Setup CMake
+        run: ./scripts/setup_build.sh -DCMAKE_BUILD_TYPE=ubsan
+      - name: Build
+        run: ./scripts/build.sh
+      - name: Test
+        run: ./scripts/test.sh
+
+  bench:
+    name: Benchmarks Run
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Setup VM
+        run: ./.github/workflows/install_packages.sh
+      - name: Setup CMake
+        run: ./scripts/setup_build.sh -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: ./scripts/build.sh
+      - name: Run
+        run: |
+          ./scripts/bench.sh \
+            --benchmark-samples=10 \
+            --benchmark-warmup-time=0 \
+            && echo "DON'T RELY ON THESE PERFORMANCE NUMBERS"
+
+  lint:
+    name: Linting
+    runs-on: ubuntu-20.04
+
+    env:
+      CC: clang-10
+      CXX: clang++-10
+      CLANG_TIDY: clang-tidy-10
+
+    continue-on-error: true
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Setup VM
+        run: |
+          ./.github/workflows/install_packages.sh
+          sudo apt-get install clang-tidy
+      - name: Setup CMake
+        run: ./scripts/setup_build.sh
+      - name: Lint
+        run: ./scripts/lint.sh
+
+  check-code-format:
+    name: Check Code Format
+    runs-on: ubuntu-20.04
+
+    env:
+      CC: clang-10
+      CXX: clang++-10
+      CLANG_FORMAT: clang-format-10
+
+    # TODO eventually turn off
+    continue-on-error: true
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Setup VM
+        run: |
+          ./.github/workflows/install_packages.sh
+          sudo apt-get install clang-format
+      - name: Setup CMake
+        run: ./scripts/setup_build.sh
+      - name: Lint
+        # TODO eventually turn on
+        run: ./scripts/check_format.sh -ferror-limit=1 --dry-run || true
+

@@ -173,6 +173,68 @@ auto operator<<(std::ostream& os, const String& self) -> std::ostream& {
 struct Table::Impl {
     std::unordered_map<Value, Value> value;
 };
+
+struct Table::iterator::Impl {
+    std::unordered_map<Value, Value>::iterator iter;
+};
+Table::iterator::iterator() = default;
+Table::iterator::iterator(const Table::iterator&) = default;
+Table::iterator::~iterator() = default;
+
+auto Table::iterator::operator=(const Table::iterator&) -> Table::iterator& = default;
+auto Table::iterator::operator==(const Table::iterator& other) const -> bool {
+    return this->impl->iter == other.impl->iter;
+}
+auto Table::iterator::operator!=(const Table::iterator& other) const -> bool {
+    return !(*this == other);
+}
+auto Table::iterator::operator++() -> Table::iterator& {
+    this->impl->iter++;
+    return *this;
+}
+auto Table::iterator::operator++(int) -> Table::iterator {
+    auto tmp = *this;
+    ++(this->impl->iter);
+    return tmp;
+}
+
+auto Table::iterator::operator*() const -> Table::iterator::reference { return *this->impl->iter; }
+auto Table::iterator::operator->() const -> Table::iterator::pointer {
+    return this->impl->iter.operator->();
+}
+
+struct Table::const_iterator::Impl {
+    std::unordered_map<Value, Value>::const_iterator iter;
+};
+Table::const_iterator::const_iterator() = default;
+Table::const_iterator::const_iterator(const Table::const_iterator&) = default;
+Table::const_iterator::~const_iterator() = default;
+
+auto Table::const_iterator::operator=(const Table::const_iterator&)
+    -> Table::const_iterator& = default;
+auto Table::const_iterator::operator==(const Table::const_iterator& other) const -> bool {
+    return this->impl->iter == other.impl->iter;
+}
+auto Table::const_iterator::operator!=(const Table::const_iterator& other) const -> bool {
+    return !(*this == other);
+}
+auto Table::const_iterator::operator++() -> Table::const_iterator& {
+    this->impl->iter++;
+    return *this;
+}
+auto Table::const_iterator::operator++(int) -> Table::const_iterator {
+    auto tmp = *this;
+    ++(this->impl->iter);
+    return tmp;
+}
+
+auto Table::const_iterator::operator*() const -> Table::const_iterator::reference {
+    return *this->impl->iter;
+}
+auto Table::const_iterator::operator->() const -> Table::const_iterator::pointer {
+    return this->impl->iter.operator->();
+}
+
 Table::Table() : impl(std::make_shared<Impl>()){};
 Table::Table(std::unordered_map<Value, Value> value)
     : impl(std::make_shared<Impl>(Impl{.value = std::move(value)})) {}
@@ -192,6 +254,26 @@ void swap(Table& self, Table& other) { std::swap(self.impl, other.impl); }
 auto Table::get(const Value& key) -> Value { return impl->value.at(key); }
 void Table::set(const Value& key, Value value) { impl->value[key] = std::move(value); }
 void Table::set(Value&& key, Value value) { impl->value[key] = std::move(value); }
+
+auto Table::begin() -> Table::iterator {
+    Table::iterator iterator;
+    iterator.impl->iter = this->impl->value.begin();
+    return iterator;
+}
+[[nodiscard]] auto Table::begin() const -> Table::const_iterator {
+    Table::const_iterator iterator;
+    iterator.impl->iter = this->impl->value.cbegin();
+    return iterator;
+}
+[[nodiscard]] auto Table::cbegin() const -> Table::const_iterator {
+    Table::const_iterator iterator;
+    iterator.impl->iter = this->impl->value.cbegin();
+    return iterator;
+}
+
+auto Table::end() -> Table::iterator { return Table::iterator(); }
+[[nodiscard]] auto Table::end() const -> Table::const_iterator { return Table::const_iterator(); }
+[[nodiscard]] auto Table::cend() const -> Table::const_iterator { return Table::const_iterator(); }
 
 [[nodiscard]] auto Table::to_literal() const -> std::string {
     // NOTE: recursive table check needs to be in a lambda because Table::Impl is private and we
@@ -386,6 +468,15 @@ CallResult::CallResult(Vallist vallist, std::optional<SourceChangeTree> sc)
 
 auto operator==(const CallResult& lhs, const CallResult& rhs) -> bool {
     return lhs.values() == rhs.values(); // && lhs.source_change() == rhs.source_change();
+}
+auto operator<<(std::ostream& os, const CallResult& self) -> std::ostream& {
+    os << "CallResult{ .values = " << self.values() << ", .source_change = ";
+    if (self.source_change()) {
+        os << self.source_change();
+    } else {
+        os << "nullopt";
+    }
+    return os << " }";
 }
 
 // struct NativeFunction
@@ -684,13 +775,13 @@ Value::operator bool() const {
 }
 
 template <typename Fn, typename FnRev>
-static inline auto
-num_op_helper(const Value& lhs, const Value& rhs, Fn op, std::string err_info, FnRev reverse)
-    -> Value {
+static inline auto num_op_helper(
+    const Value& lhs, const Value& rhs, Fn op, std::string err_info, FnRev reverse,
+    std::optional<Range> location) -> Value {
     auto origin = Origin(BinaryOrigin{
         .lhs = make_owning<Value>(lhs),
         .rhs = make_owning<Value>(rhs),
-        .location = std::nullopt,
+        .location = location,
         .reverse = reverse,
     });
 
@@ -716,66 +807,72 @@ num_op_helper(const Value& lhs, const Value& rhs, Fn op, std::string err_info, F
         lhs.raw(), rhs.raw());
 }
 
-// arithmetic operators
-auto operator+(const Value& lhs, const Value& rhs) -> Value {
+[[nodiscard]] auto Value::add(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        lhs, rhs, [](double lhs, double rhs) { return lhs + rhs; }, "add",
+        *this, rhs, [](double lhs, double rhs) { return lhs + rhs; }, "add",
         binary_num_reverse(
             [](double new_value, double rhs) { return new_value - rhs; },
-            [](double new_value, double lhs) { return new_value - lhs; }, "add"));
+            [](double new_value, double lhs) { return new_value - lhs; }, "add"),
+        location);
 }
-auto operator-(const Value& lhs, const Value& rhs) -> Value {
+[[nodiscard]] auto Value::sub(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        lhs, rhs, [](double lhs, double rhs) { return lhs - rhs; }, "subtract",
+        *this, rhs, [](double lhs, double rhs) { return lhs - rhs; }, "subtract",
         binary_num_reverse(
             [](double new_value, double rhs) { return new_value + rhs; },
-            [](double new_value, double lhs) { return lhs - new_value; }, "sub"));
+            [](double new_value, double lhs) { return lhs - new_value; }, "sub"),
+        location);
 }
-auto operator*(const Value& lhs, const Value& rhs) -> Value {
+[[nodiscard]] auto Value::mul(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        lhs, rhs, [](double lhs, double rhs) { return lhs * rhs; }, "multiply",
+        *this, rhs, [](double lhs, double rhs) { return lhs * rhs; }, "multiply",
         binary_num_reverse(
             [](double new_value, double rhs) { return new_value / rhs; },
-            [](double new_value, double lhs) { return new_value / lhs; }, "mul"));
+            [](double new_value, double lhs) { return new_value / lhs; }, "mul"),
+        location);
 }
-auto operator/(const Value& lhs, const Value& rhs) -> Value {
+[[nodiscard]] auto Value::div(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        lhs, rhs, [](double lhs, double rhs) { return lhs / rhs; }, "divide",
+        *this, rhs, [](double lhs, double rhs) { return lhs / rhs; }, "divide",
         binary_num_reverse(
             [](double new_value, double rhs) { return new_value * rhs; },
-            [](double new_value, double lhs) { return lhs / new_value; }, "div"));
+            [](double new_value, double lhs) { return lhs / new_value; }, "div"),
+        location);
 }
-auto operator^(const Value& lhs, const Value& rhs) -> Value {
+[[nodiscard]] auto Value::pow(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        lhs, rhs, [](double lhs, double rhs) { return std::pow(lhs, rhs); }, "attempt to pow",
+        *this, rhs, [](double lhs, double rhs) { return std::pow(lhs, rhs); }, "attempt to pow",
         binary_num_reverse(
             [](double new_value, double rhs) { return std::pow(new_value, 1 / rhs); },
             [](double new_value, double lhs) { return std::log(new_value) / std::log(lhs); },
-            "pow"));
+            "pow"),
+        location);
 }
-auto operator%(const Value& lhs, const Value& rhs) -> Value {
+[[nodiscard]] auto Value::mod(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        lhs, rhs, [](Number lhs, Number rhs) { return lhs % rhs; }, "take modulo of",
-        [](auto...) { return std::nullopt; }); // TODO reverse
+        *this, rhs, [](Number lhs, Number rhs) { return lhs % rhs; }, "take modulo of",
+        [](auto...) { return std::nullopt; },
+        location); // TODO reverse
 }
-// bitwise operators
-auto operator&(const Value& lhs, const Value& rhs) -> Value {
+[[nodiscard]] auto Value::bit_and(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        lhs, rhs, [](Number lhs, Number rhs) { return lhs & rhs; }, "bitwise and",
-        [](auto...) { return std::nullopt; }); // TODO reverse
+        *this, rhs, [](Number lhs, Number rhs) { return lhs & rhs; }, "bitwise and",
+        [](auto...) { return std::nullopt; },
+        location); // TODO reverse
 }
-auto operator|(const Value& lhs, const Value& rhs) -> Value {
+[[nodiscard]] auto Value::bit_or(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        lhs, rhs, [](Number lhs, Number rhs) { return lhs | rhs; }, "bitwise or",
-        [](auto...) { return std::nullopt; }); // TODO reverse
+        *this, rhs, [](Number lhs, Number rhs) { return lhs | rhs; }, "bitwise or",
+        [](auto...) { return std::nullopt; },
+        location); // TODO reverse
 }
-// logic operators
-auto operator&&(const Value& lhs, const Value& rhs) -> Value {
+[[nodiscard]] auto Value::logic_and(const Value& rhs, std::optional<Range> location) const
+    -> Value {
     // return lhs if it is falsey and rhs otherwise
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(lhs),
+        .lhs = make_owning<Value>(*this),
         .rhs = make_owning<Value>(rhs),
-        .location = std::nullopt,
+        .location = location,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {
             // will not intentially change which side is returned from the expression
@@ -786,18 +883,18 @@ auto operator&&(const Value& lhs, const Value& rhs) -> Value {
             }
         }});
 
-    if (!lhs) {
-        return lhs.with_origin(origin);
+    if (!*this) {
+        return this->with_origin(origin);
     } else {
         return rhs.with_origin(origin);
     }
 }
-auto operator||(const Value& lhs, const Value& rhs) -> Value {
+[[nodiscard]] auto Value::logic_or(const Value& rhs, std::optional<Range> location) const -> Value {
     // return lhs if it is truthy and rhs otherwise
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(lhs),
+        .lhs = make_owning<Value>(*this),
         .rhs = make_owning<Value>(rhs),
-        .location = std::nullopt,
+        .location = location,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {
             // will not intentially change which side is returned from the expression
@@ -808,16 +905,16 @@ auto operator||(const Value& lhs, const Value& rhs) -> Value {
             }
         }});
 
-    if (lhs) {
-        return lhs.with_origin(origin);
+    if (*this) {
+        return this->with_origin(origin);
     } else {
         return rhs.with_origin(origin);
     }
 }
-auto operator!(const Value& value) -> Value {
+[[nodiscard]] auto Value::negate(std::optional<Range> location) const -> Value {
     auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(value),
-        .location = std::nullopt,
+        .val = make_owning<Value>(*this),
+        .location = location,
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
             const Value negated_new_value = !bool(new_value);
@@ -832,8 +929,23 @@ auto operator!(const Value& value) -> Value {
             }
         }});
 
-    return Value(!bool(value)).with_origin(origin);
+    return Value(!bool(*this)).with_origin(origin);
 }
+
+// arithmetic operators
+auto operator+(const Value& lhs, const Value& rhs) -> Value { return lhs.add(rhs); }
+auto operator-(const Value& lhs, const Value& rhs) -> Value { return lhs.sub(rhs); }
+auto operator*(const Value& lhs, const Value& rhs) -> Value { return lhs.mul(rhs); }
+auto operator/(const Value& lhs, const Value& rhs) -> Value { return lhs.div(rhs); }
+auto operator^(const Value& lhs, const Value& rhs) -> Value { return lhs.pow(rhs); }
+auto operator%(const Value& lhs, const Value& rhs) -> Value { return lhs.mod(rhs); }
+// bitwise operators
+auto operator&(const Value& lhs, const Value& rhs) -> Value { return lhs.bit_and(rhs); }
+auto operator|(const Value& lhs, const Value& rhs) -> Value { return lhs.bit_or(rhs); }
+// logic operators
+auto operator&&(const Value& lhs, const Value& rhs) -> Value { return lhs.logic_and(rhs); }
+auto operator||(const Value& lhs, const Value& rhs) -> Value { return lhs.logic_or(rhs); }
+auto operator!(const Value& value) -> Value { return value.negate(); }
 
 } // namespace minilua
 

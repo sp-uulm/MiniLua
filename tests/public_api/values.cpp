@@ -1,4 +1,5 @@
 #include <MiniLua/values.hpp>
+#include <algorithm>
 #include <catch2/catch.hpp>
 
 // functions for use in testing NativeFunction
@@ -246,6 +247,48 @@ TEST_CASE("table Value to literal") {
     // CHECK(value4.to_literal() == R"({ key1 = 17, [true] = 12.5, [5] = 22 })");
 }
 
+TEST_CASE("table is iterable") {
+    minilua::Table table{{1, 25}, {"hi", 17}, {17, 21}}; // NOLINT
+    const std::vector<std::pair<const minilua::Value, minilua::Value>> expected{
+        {1, 25}, {"hi", 17}, {17, 21}}; // NOLINT
+
+    SECTION("increment") {
+        auto iter = table.begin();
+        CHECK(iter == iter);
+        auto iter2 = iter;
+        iter++;
+        CHECK(iter2 != iter);
+        CHECK(++iter2 == iter);
+    }
+
+    SECTION("derefence") {
+        auto iter = table.begin();
+
+        CHECK(std::find(expected.begin(), expected.end(), *iter) != expected.end());
+        CHECK(iter->second.is_number());
+    }
+
+    SECTION("const iteration") {
+        std::vector<std::pair<const minilua::Value, minilua::Value>> pairs{};
+        std::copy(table.cbegin(), table.cend(), std::back_inserter(pairs));
+
+        CHECK_THAT(pairs, Catch::Matchers::UnorderedEquals(expected));
+    }
+
+    SECTION("mutating iteration") {
+        for (auto& [key, value] : table) {
+            value = value + 1;
+        }
+
+        std::vector<std::pair<minilua::Value, minilua::Value>> pairs{};
+        std::copy(table.begin(), table.end(), std::back_inserter(pairs));
+
+        std::vector<std::pair<minilua::Value, minilua::Value>> expected{
+            {1, 26}, {"hi", 18}, {17, 22}}; // NOLINT
+        CHECK_THAT(pairs, Catch::Matchers::UnorderedEquals(expected));
+    }
+}
+
 TEST_CASE("function Value is constructable") {
     static_assert(std::is_nothrow_move_constructible<minilua::Function>());
     static_assert(std::is_nothrow_move_assignable<minilua::Function>());
@@ -384,29 +427,48 @@ TEST_CASE("function Value to literal") {
 }
 
 TEST_CASE("calling a function from a function") {
-    minilua::Value simple_fn{[](minilua::CallContext) { return 1; }}; // NOLINT
-    auto lambda = [](minilua::CallContext ctx) {                      // NOLINT
-        const auto& [callback] = ctx.arguments().tuple<1>();
-        return callback.get().bind(ctx)({});
+    minilua::Value simple_fn{
+        [](const minilua::CallContext& ctx) { return ctx.arguments().get(0); }}; // NOLINT
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    REQUIRE(simple_fn.call(ctx, 1) == minilua::CallResult({1}));
+
+    auto lambda = [](minilua::CallContext ctx) -> minilua::CallResult { // NOLINT
+        const auto& callback = ctx.arguments().get(0);
+
+        auto x = callback.bind(ctx)({1});
+        auto y = callback.call(ctx, 1);
+        auto z = callback.call(ctx, 1, "unues_arg");
+
+        return minilua::CallResult({x.values().get(0) + y.values().get(0) + z.values().get(0)});
     };
     minilua::Value value{minilua::Function(lambda)};
 
-    minilua::Environment env;
-    minilua::CallContext ctx(&env);
-    REQUIRE(simple_fn.call(ctx) == minilua::CallResult({1}));
-    CHECK(value.bind(ctx)({simple_fn}) == minilua::CallResult({1}));
+    auto res = value.bind(ctx)({simple_fn});
+    INFO(res);
+    CHECK(res == minilua::CallResult({3}));
 }
 
 TEST_CASE("addition of two Values") {
     SECTION("can add two numbers") {
         minilua::Value value1{4};
         minilua::Value value2{3};
+
         REQUIRE(value1 + value2 == minilua::Value(7));
+        REQUIRE(value1.add(value2) == minilua::Value(7));
+
+        auto range = minilua::Range{{0, 0, 0}, {0, 10, 10}}; // NOLINT
+        REQUIRE(
+            value1.add(value2, range) ==
+            minilua::Value(7).with_origin(minilua::LiteralOrigin{range}));
     }
     SECTION("can't add two non numbers") {
         minilua::Value value1{"hi"};
         minilua::Value value2{minilua::Nil()};
         REQUIRE_THROWS(value1 + value2);
+        REQUIRE_THROWS(value1.add(value2));
+        REQUIRE_THROWS(value1.add(value2, minilua::Range()));
     }
     // TODO metatables
 }
@@ -415,12 +477,21 @@ TEST_CASE("subtraction of two Values") {
     SECTION("can sub two numbers") {
         minilua::Value value1{4};
         minilua::Value value2{3};
+
         REQUIRE(value1 - value2 == minilua::Value(1));
+        REQUIRE(value1.sub(value2) == minilua::Value(1));
+
+        auto range = minilua::Range{{0, 0, 0}, {0, 10, 10}}; // NOLINT
+        REQUIRE(
+            value1.sub(value2, range) ==
+            minilua::Value(1).with_origin(minilua::LiteralOrigin{range}));
     }
     SECTION("can't sub two non numbers") {
         minilua::Value value1{"hi"};
         minilua::Value value2{minilua::Nil()};
         REQUIRE_THROWS(value1 - value2);
+        REQUIRE_THROWS(value1.sub(value2));
+        REQUIRE_THROWS(value1.sub(value2, minilua::Range()));
     }
     // TODO metatables
 }
@@ -429,26 +500,44 @@ TEST_CASE("multiplication of two Values") {
     SECTION("can multiply two numbers") {
         minilua::Value value1{4};
         minilua::Value value2{3};
+
         REQUIRE(value1 * value2 == minilua::Value(12));
+        REQUIRE(value1.mul(value2) == minilua::Value(12));
+
+        auto range = minilua::Range{{0, 0, 0}, {0, 10, 10}}; // NOLINT
+        REQUIRE(
+            value1.mul(value2, range) ==
+            minilua::Value(12).with_origin(minilua::LiteralOrigin{range}));
     }
     SECTION("can't multiply two non numbers") {
         minilua::Value value1{"hi"};
         minilua::Value value2{minilua::Nil()};
         REQUIRE_THROWS(value1 * value2);
+        REQUIRE_THROWS(value1.mul(value2));
+        REQUIRE_THROWS(value1.mul(value2, minilua::Range()));
     }
     // TODO metatables
 }
 
 TEST_CASE("division of two Values") {
     SECTION("can divide two numbers") {
-        minilua::Value value1{13};
+        minilua::Value value1{13}; // NOLINT
         minilua::Value value2{4};
+
         REQUIRE(value1 / value2 == minilua::Value(3.25));
+        REQUIRE(value1.div(value2) == minilua::Value(3.25));
+
+        auto range = minilua::Range{{0, 0, 0}, {0, 10, 10}}; // NOLINT
+        REQUIRE(
+            value1.div(value2, range) ==
+            minilua::Value(3.25).with_origin(minilua::LiteralOrigin{range}));
     }
     SECTION("can't divide two non numbers") {
         minilua::Value value1{"hi"};
         minilua::Value value2{minilua::Nil()};
         REQUIRE_THROWS(value1 / value2);
+        REQUIRE_THROWS(value1.div(value2));
+        REQUIRE_THROWS(value1.div(value2, minilua::Range()));
     }
     // TODO metatables
 }
@@ -457,65 +546,106 @@ TEST_CASE("power of two Values") {
     SECTION("can take power of two numbers") {
         minilua::Value value1{4};
         minilua::Value value2{3};
+
         REQUIRE((value1 ^ value2) == minilua::Value(64));
+        REQUIRE(value1.pow(value2) == minilua::Value(64));
+
+        auto range = minilua::Range{{0, 0, 0}, {0, 10, 10}}; // NOLINT
+        REQUIRE(
+            value1.pow(value2, range) ==
+            minilua::Value(64).with_origin(minilua::LiteralOrigin{range}));
     }
     SECTION("can't take power of two non numbers") {
         minilua::Value value1{"hi"};
         minilua::Value value2{minilua::Nil()};
         REQUIRE_THROWS(value1 ^ value2);
+        REQUIRE_THROWS(value1.pow(value2));
+        REQUIRE_THROWS(value1.pow(value2, minilua::Range()));
     }
     // TODO metatables
 }
 
 TEST_CASE("modulo of two Values") {
     SECTION("can take modulo of two numbers") {
-        minilua::Value value1{5.4};
-        minilua::Value value2{2.1};
-        REQUIRE(std::fmod(5.4, 2.1) == Approx(1.2));
-        REQUIRE(std::get<minilua::Number>((value1 % value2).raw()).value == Approx(1.2));
+        minilua::Value value1{5.4}; // NOLINT
+        minilua::Value value2{2.1}; // NOLINT
+
+        REQUIRE(std::fmod(5.4, 2.1) == Approx(1.2));                                      // NOLINT
+        REQUIRE(std::get<minilua::Number>((value1 % value2).raw()).value == Approx(1.2)); // NOLINT
+
+        REQUIRE(std::get<minilua::Number>(value1.mod(value2).raw()).value == Approx(1.2)); // NOLINT
+
+        auto range = minilua::Range{{0, 0, 0}, {0, 10, 10}}; // NOLINT
+        auto res = value1.mod(value2, range);
+        REQUIRE(std::get<minilua::Number>(res).value == Approx(1.2)); // NOLINT
+        REQUIRE(std::get<minilua::BinaryOrigin>(res.origin().raw()).location == range);
     }
     SECTION("can't take modulo of two non numbers") {
         minilua::Value value1{"hi"};
         minilua::Value value2{minilua::Nil()};
         REQUIRE_THROWS(value1 % value2);
+        REQUIRE_THROWS(value1.mod(value2));
+        REQUIRE_THROWS(value1.mod(value2, minilua::Range()));
     }
     // TODO metatables
 }
 
 TEST_CASE("bitwise-and of two Values") {
     SECTION("can bitwise and two integers") {
-        minilua::Value value1{0b11001};
-        minilua::Value value2{0b01100};
+        minilua::Value value1{0b11001}; // NOLINT
+        minilua::Value value2{0b01100}; // NOLINT
+
         REQUIRE((value1 & value2) == minilua::Value(0b01000));
+        REQUIRE(value1.bit_and(value2) == minilua::Value(0b01000));
+
+        auto range = minilua::Range{{0, 0, 0}, {0, 10, 10}}; // NOLINT
+        REQUIRE(
+            value1.bit_and(value2, range) ==
+            minilua::Value(0b01000).with_origin(minilua::LiteralOrigin{range}));
     }
     SECTION("can't bitwise and two floats") {
-        minilua::Value value1{5.2};
-        minilua::Value value2{3.1};
+        minilua::Value value1{5.2}; // NOLINT
+        minilua::Value value2{3.1}; // NOLINT
         REQUIRE_THROWS(value1 & value2);
+        REQUIRE_THROWS(value1.bit_and(value2));
+        REQUIRE_THROWS(value1.bit_and(value2, minilua::Range()));
     }
     SECTION("can't bitwise and two non numbers") {
         minilua::Value value1{"hi"};
         minilua::Value value2{minilua::Nil()};
         REQUIRE_THROWS(value1 & value2);
+        REQUIRE_THROWS(value1.bit_and(value2));
+        REQUIRE_THROWS(value1.bit_and(value2, minilua::Range()));
     }
     // TODO metatables?
 }
 
 TEST_CASE("bitwise-or of two Values") {
     SECTION("can bitwise or two integers") {
-        minilua::Value value1{0b11001};
-        minilua::Value value2{0b01100};
+        minilua::Value value1{0b11001}; // NOLINT
+        minilua::Value value2{0b01100}; // NOLINT
+
         REQUIRE((value1 | value2) == minilua::Value(0b11101));
+        REQUIRE(value1.bit_or(value2) == minilua::Value(0b11101));
+
+        auto range = minilua::Range{{0, 0, 0}, {0, 10, 10}}; // NOLINT
+        REQUIRE(
+            value1.bit_or(value2, range) ==
+            minilua::Value(0b11101).with_origin(minilua::LiteralOrigin{range}));
     }
     SECTION("can't bitwise or two floats") {
         minilua::Value value1{5.2};
         minilua::Value value2{3.1};
         REQUIRE_THROWS(value1 | value2);
+        REQUIRE_THROWS(value1.bit_or(value2));
+        REQUIRE_THROWS(value1.bit_or(value2, minilua::Range()));
     }
     SECTION("can't bitwise or two non numbers") {
         minilua::Value value1{"hi"};
         minilua::Value value2{minilua::Nil()};
         REQUIRE_THROWS(value1 | value2);
+        REQUIRE_THROWS(value1.bit_or(value2));
+        REQUIRE_THROWS(value1.bit_or(value2, minilua::Range()));
     }
     // TODO metatables?
 }
@@ -540,6 +670,16 @@ TEST_CASE("logic-and of two Values") {
     REQUIRE((minilua::Value(false) && minilua::Value(5)) == minilua::Value(false));
     REQUIRE((minilua::Value(3) && minilua::Value(5)) == minilua::Value(5));
     REQUIRE((minilua::Value(3) && minilua::Value(false)) == minilua::Value(false));
+
+    auto value1 = minilua::Value(true);
+    auto value2 = minilua::Value(false);
+    REQUIRE((value1 && value2) == minilua::Value(false));
+    REQUIRE(value1.logic_and(value2) == minilua::Value(false));
+
+    auto range = minilua::Range{{0, 0, 0}, {0, 10, 10}}; // NOLINT
+    REQUIRE(
+        value1.logic_and(value2, range) ==
+        minilua::Value(false).with_origin(minilua::LiteralOrigin{range}));
 }
 
 TEST_CASE("logic-or of two Values") {
@@ -547,6 +687,16 @@ TEST_CASE("logic-or of two Values") {
     REQUIRE((minilua::Value(false) || minilua::Value(5)) == minilua::Value(5));
     REQUIRE((minilua::Value(3) || minilua::Value(5)) == minilua::Value(3));
     REQUIRE((minilua::Value(3) || minilua::Value(false)) == minilua::Value(3));
+
+    auto value1 = minilua::Value(true);
+    auto value2 = minilua::Value(false);
+    REQUIRE((value1 || value2) == minilua::Value(true));
+    REQUIRE(value1.logic_or(value2) == minilua::Value(true));
+
+    auto range = minilua::Range{{0, 0, 0}, {0, 10, 10}}; // NOLINT
+    REQUIRE(
+        value1.logic_or(value2, range) ==
+        minilua::Value(true).with_origin(minilua::LiteralOrigin{range}));
 }
 
 TEST_CASE("Leaking values", "[leaks]") {
