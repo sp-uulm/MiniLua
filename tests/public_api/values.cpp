@@ -762,9 +762,11 @@ TEST_CASE("next(table [, index]") {
 
         SECTION("access an element of the table") {
             auto p = std::pair<const minilua::Value, minilua::Value>{2, "Welt"};
-            // auto exp_erg = *(std::find(value.begin(), value.end(), p)++);
-            // CHECK(value.next(minilua::Value(2)) == minilua::Vallist({exp_erg.first,
-            // exp_erg.second}));
+            auto exp_erg = ++std::find_if(
+                value.begin(), value.end(), [](const auto& kv) { return kv.first == 2; });
+            CHECK(
+                value.next(minilua::Value(2)) ==
+                minilua::Vallist({exp_erg->first, exp_erg->second}));
         }
         SECTION("access the first element of the table") {
             CHECK(
