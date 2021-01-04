@@ -88,6 +88,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1CommonSCInfo.html">CommonSCInfo</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Env.html">Env</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Environment.html">Environment</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1EvalResult.html">EvalResult</a></td></tr>
@@ -152,6 +154,8 @@ Typedefs</h2></td></tr>
 <tr class="memitem:adc1e0e5165540ba374f7996290d3950f"><td class="memTemplParams" colspan="2">template&lt;size_t , class T &gt; </td></tr>
 <tr class="memitem:adc1e0e5165540ba374f7996290d3950f"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#adc1e0e5165540ba374f7996290d3950f">T_</a> = T</td></tr>
 <tr class="separator:adc1e0e5165540ba374f7996290d3950f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa51307df3542b106bfefa804481fee39"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#aa51307df3542b106bfefa804481fee39">LocalEnv</a> = std::unordered_map&lt; std::string, std::shared_ptr&lt; <a class="el" href="classminilua_1_1Value.html">Value</a> &gt; &gt;</td></tr>
+<tr class="separator:aa51307df3542b106bfefa804481fee39"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
@@ -283,34 +287,6 @@ Functions</h2></td></tr>
 <tr class="memitem:ad09e990aefd7d3c311874bfed57c8f2e"><td class="memTemplParams" colspan="2">template&lt;class... Ts&gt; </td></tr>
 <tr class="memitem:ad09e990aefd7d3c311874bfed57c8f2e"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#ad09e990aefd7d3c311874bfed57c8f2e">BinaryNumericFunctionHelper</a> (Ts...) -&gt; <a class="el" href="structminilua_1_1BinaryNumericFunctionHelper.html">BinaryNumericFunctionHelper</a>&lt; Ts... &gt;</td></tr>
 <tr class="separator:ad09e990aefd7d3c311874bfed57c8f2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9c44180e7c4fe2b2d0f3c256624c5165"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a9c44180e7c4fe2b2d0f3c256624c5165">operator&lt;&lt;</a> (std::ostream &amp;os, const <a class="el" href="structminilua_1_1Location.html">Location</a> &amp;self) -&gt; std::ostream &amp;</td></tr>
-<tr class="separator:a9c44180e7c4fe2b2d0f3c256624c5165"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7a217478c5579d730e848ed5269cb52d"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a7a217478c5579d730e848ed5269cb52d">operator&lt;&lt;</a> (std::ostream &amp;os, const <a class="el" href="structminilua_1_1Range.html">Range</a> &amp;self) -&gt; std::ostream &amp;</td></tr>
-<tr class="separator:a7a217478c5579d730e848ed5269cb52d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a763452978a123f6483aaaf49f2ad080e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a763452978a123f6483aaaf49f2ad080e">operator==</a> (const <a class="el" href="classminilua_1_1SourceChangeTree.html">SourceChangeTree</a> &amp;lhs, const <a class="el" href="classminilua_1_1SourceChangeTree.html">SourceChangeTree</a> &amp;rhs) noexcept -&gt; bool</td></tr>
-<tr class="separator:a763452978a123f6483aaaf49f2ad080e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5314ec843068b958489ff366f8298fe8"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a5314ec843068b958489ff366f8298fe8">operator!=</a> (const <a class="el" href="classminilua_1_1SourceChangeTree.html">SourceChangeTree</a> &amp;lhs, const <a class="el" href="classminilua_1_1SourceChangeTree.html">SourceChangeTree</a> &amp;rhs) noexcept -&gt; bool</td></tr>
-<tr class="separator:a5314ec843068b958489ff366f8298fe8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6125c9c809cfe7ec32988a5d807390d8"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a6125c9c809cfe7ec32988a5d807390d8">operator&lt;&lt;</a> (std::ostream &amp;os, const <a class="el" href="classminilua_1_1SourceChangeTree.html">SourceChangeTree</a> &amp;self) -&gt; std::ostream &amp;</td></tr>
-<tr class="separator:a6125c9c809cfe7ec32988a5d807390d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a54b44ac881cf30436f7219cc47b958ba"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a54b44ac881cf30436f7219cc47b958ba">operator==</a> (const <a class="el" href="structminilua_1_1SourceChange.html">SourceChange</a> &amp;lhs, const <a class="el" href="structminilua_1_1SourceChange.html">SourceChange</a> &amp;rhs) noexcept -&gt; bool</td></tr>
-<tr class="separator:a54b44ac881cf30436f7219cc47b958ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aae2e0869c0f48233270d30106bacd64e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#aae2e0869c0f48233270d30106bacd64e">operator!=</a> (const <a class="el" href="structminilua_1_1SourceChange.html">SourceChange</a> &amp;lhs, const <a class="el" href="structminilua_1_1SourceChange.html">SourceChange</a> &amp;rhs) noexcept -&gt; bool</td></tr>
-<tr class="separator:aae2e0869c0f48233270d30106bacd64e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a047dd520b09a2befa802f787261ec9e0"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a047dd520b09a2befa802f787261ec9e0">operator&lt;&lt;</a> (std::ostream &amp;os, const <a class="el" href="structminilua_1_1SourceChange.html">SourceChange</a> &amp;self) -&gt; std::ostream &amp;</td></tr>
-<tr class="separator:a047dd520b09a2befa802f787261ec9e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a294ad0e0d08d31af4fb6421acadbf7bb"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a294ad0e0d08d31af4fb6421acadbf7bb">operator==</a> (const <a class="el" href="structminilua_1_1SourceChangeCombination.html">SourceChangeCombination</a> &amp;lhs, const <a class="el" href="structminilua_1_1SourceChangeCombination.html">SourceChangeCombination</a> &amp;rhs) noexcept -&gt; bool</td></tr>
-<tr class="separator:a294ad0e0d08d31af4fb6421acadbf7bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9ec689af086eec57acdd908351d9a609"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a9ec689af086eec57acdd908351d9a609">operator!=</a> (const <a class="el" href="structminilua_1_1SourceChangeCombination.html">SourceChangeCombination</a> &amp;lhs, const <a class="el" href="structminilua_1_1SourceChangeCombination.html">SourceChangeCombination</a> &amp;rhs) noexcept -&gt; bool</td></tr>
-<tr class="separator:a9ec689af086eec57acdd908351d9a609"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3f7c1df3900c4399775dc67032023d10"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a3f7c1df3900c4399775dc67032023d10">operator&lt;&lt;</a> (std::ostream &amp;os, const <a class="el" href="structminilua_1_1SourceChangeCombination.html">SourceChangeCombination</a> &amp;self) -&gt; std::ostream &amp;</td></tr>
-<tr class="separator:a3f7c1df3900c4399775dc67032023d10"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab7d4dd23c62bfd2298a5323060131281"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#ab7d4dd23c62bfd2298a5323060131281">operator==</a> (const <a class="el" href="structminilua_1_1SourceChangeAlternative.html">SourceChangeAlternative</a> &amp;lhs, const <a class="el" href="structminilua_1_1SourceChangeAlternative.html">SourceChangeAlternative</a> &amp;rhs) noexcept -&gt; bool</td></tr>
-<tr class="separator:ab7d4dd23c62bfd2298a5323060131281"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af69d4bbe1c709ae89e0bf3025305618e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#af69d4bbe1c709ae89e0bf3025305618e">operator!=</a> (const <a class="el" href="structminilua_1_1SourceChangeAlternative.html">SourceChangeAlternative</a> &amp;lhs, const <a class="el" href="structminilua_1_1SourceChangeAlternative.html">SourceChangeAlternative</a> &amp;rhs) noexcept -&gt; bool</td></tr>
-<tr class="separator:af69d4bbe1c709ae89e0bf3025305618e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5a44e479ad724e55db04140f4f04750a"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a5a44e479ad724e55db04140f4f04750a">operator&lt;&lt;</a> (std::ostream &amp;os, const <a class="el" href="structminilua_1_1SourceChangeAlternative.html">SourceChangeAlternative</a> &amp;self) -&gt; std::ostream &amp;</td></tr>
-<tr class="separator:a5a44e479ad724e55db04140f4f04750a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1c987bec6d83be55f2b3e5e147d660f7"><td class="memItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a1c987bec6d83be55f2b3e5e147d660f7">operator==</a> (<a class="el" href="structminilua_1_1Location.html">Location</a> lhs, <a class="el" href="structminilua_1_1Location.html">Location</a> rhs) noexcept -&gt; bool</td></tr>
 <tr class="separator:a1c987bec6d83be55f2b3e5e147d660f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a63843f51bd6aa7be937aa0d5342dd3e2"><td class="memItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a63843f51bd6aa7be937aa0d5342dd3e2">operator!=</a> (<a class="el" href="structminilua_1_1Location.html">Location</a> lhs, <a class="el" href="structminilua_1_1Location.html">Location</a> rhs) noexcept -&gt; bool</td></tr>
@@ -323,10 +299,38 @@ Functions</h2></td></tr>
 <tr class="separator:a930ec6aa3b39e298dde92e5f7e21a44a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a08b3aa382670c5ad6413de8f49a8f7cb"><td class="memItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a08b3aa382670c5ad6413de8f49a8f7cb">operator&gt;=</a> (<a class="el" href="structminilua_1_1Location.html">Location</a> lhs, <a class="el" href="structminilua_1_1Location.html">Location</a> rhs) noexcept -&gt; bool</td></tr>
 <tr class="separator:a08b3aa382670c5ad6413de8f49a8f7cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0bbd63b2254702801b70c2bd75d743e2"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a0bbd63b2254702801b70c2bd75d743e2">operator&lt;&lt;</a> (std::ostream &amp;, const <a class="el" href="structminilua_1_1Location.html">Location</a> &amp;) -&gt; std::ostream &amp;</td></tr>
+<tr class="separator:a0bbd63b2254702801b70c2bd75d743e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae375f6b81afcee3278133dffb2c27b0e"><td class="memItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#ae375f6b81afcee3278133dffb2c27b0e">operator==</a> (<a class="el" href="structminilua_1_1Range.html">Range</a> lhs, <a class="el" href="structminilua_1_1Range.html">Range</a> rhs) noexcept -&gt; bool</td></tr>
 <tr class="separator:ae375f6b81afcee3278133dffb2c27b0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a29d0c80c50e1c6f90b4ba34346c6f2b4"><td class="memItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a29d0c80c50e1c6f90b4ba34346c6f2b4">operator!=</a> (<a class="el" href="structminilua_1_1Range.html">Range</a> lhs, <a class="el" href="structminilua_1_1Range.html">Range</a> rhs) noexcept -&gt; bool</td></tr>
 <tr class="separator:a29d0c80c50e1c6f90b4ba34346c6f2b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac610712056e99739455a27e35ce77743"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#ac610712056e99739455a27e35ce77743">operator&lt;&lt;</a> (std::ostream &amp;, const <a class="el" href="structminilua_1_1Range.html">Range</a> &amp;) -&gt; std::ostream &amp;</td></tr>
+<tr class="separator:ac610712056e99739455a27e35ce77743"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a54b44ac881cf30436f7219cc47b958ba"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a54b44ac881cf30436f7219cc47b958ba">operator==</a> (const <a class="el" href="structminilua_1_1SourceChange.html">SourceChange</a> &amp;lhs, const <a class="el" href="structminilua_1_1SourceChange.html">SourceChange</a> &amp;rhs) noexcept -&gt; bool</td></tr>
+<tr class="separator:a54b44ac881cf30436f7219cc47b958ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aae2e0869c0f48233270d30106bacd64e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#aae2e0869c0f48233270d30106bacd64e">operator!=</a> (const <a class="el" href="structminilua_1_1SourceChange.html">SourceChange</a> &amp;lhs, const <a class="el" href="structminilua_1_1SourceChange.html">SourceChange</a> &amp;rhs) noexcept -&gt; bool</td></tr>
+<tr class="separator:aae2e0869c0f48233270d30106bacd64e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9cd37325a2f31193de85deb66f829e74"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a9cd37325a2f31193de85deb66f829e74">operator&lt;&lt;</a> (std::ostream &amp;, const <a class="el" href="structminilua_1_1SourceChange.html">SourceChange</a> &amp;) -&gt; std::ostream &amp;</td></tr>
+<tr class="separator:a9cd37325a2f31193de85deb66f829e74"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a294ad0e0d08d31af4fb6421acadbf7bb"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a294ad0e0d08d31af4fb6421acadbf7bb">operator==</a> (const <a class="el" href="structminilua_1_1SourceChangeCombination.html">SourceChangeCombination</a> &amp;lhs, const <a class="el" href="structminilua_1_1SourceChangeCombination.html">SourceChangeCombination</a> &amp;rhs) noexcept -&gt; bool</td></tr>
+<tr class="separator:a294ad0e0d08d31af4fb6421acadbf7bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9ec689af086eec57acdd908351d9a609"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a9ec689af086eec57acdd908351d9a609">operator!=</a> (const <a class="el" href="structminilua_1_1SourceChangeCombination.html">SourceChangeCombination</a> &amp;lhs, const <a class="el" href="structminilua_1_1SourceChangeCombination.html">SourceChangeCombination</a> &amp;rhs) noexcept -&gt; bool</td></tr>
+<tr class="separator:a9ec689af086eec57acdd908351d9a609"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac3ac068f54842a4d77438df5008cdd8f"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#ac3ac068f54842a4d77438df5008cdd8f">operator&lt;&lt;</a> (std::ostream &amp;, const <a class="el" href="structminilua_1_1SourceChangeCombination.html">SourceChangeCombination</a> &amp;) -&gt; std::ostream &amp;</td></tr>
+<tr class="separator:ac3ac068f54842a4d77438df5008cdd8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab7d4dd23c62bfd2298a5323060131281"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#ab7d4dd23c62bfd2298a5323060131281">operator==</a> (const <a class="el" href="structminilua_1_1SourceChangeAlternative.html">SourceChangeAlternative</a> &amp;lhs, const <a class="el" href="structminilua_1_1SourceChangeAlternative.html">SourceChangeAlternative</a> &amp;rhs) noexcept -&gt; bool</td></tr>
+<tr class="separator:ab7d4dd23c62bfd2298a5323060131281"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af69d4bbe1c709ae89e0bf3025305618e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#af69d4bbe1c709ae89e0bf3025305618e">operator!=</a> (const <a class="el" href="structminilua_1_1SourceChangeAlternative.html">SourceChangeAlternative</a> &amp;lhs, const <a class="el" href="structminilua_1_1SourceChangeAlternative.html">SourceChangeAlternative</a> &amp;rhs) noexcept -&gt; bool</td></tr>
+<tr class="separator:af69d4bbe1c709ae89e0bf3025305618e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c0f05e9da7786b46e4930991f439eb1"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a9c0f05e9da7786b46e4930991f439eb1">operator&lt;&lt;</a> (std::ostream &amp;, const <a class="el" href="structminilua_1_1SourceChangeAlternative.html">SourceChangeAlternative</a> &amp;) -&gt; std::ostream &amp;</td></tr>
+<tr class="separator:a9c0f05e9da7786b46e4930991f439eb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a763452978a123f6483aaaf49f2ad080e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a763452978a123f6483aaaf49f2ad080e">operator==</a> (const <a class="el" href="classminilua_1_1SourceChangeTree.html">SourceChangeTree</a> &amp;lhs, const <a class="el" href="classminilua_1_1SourceChangeTree.html">SourceChangeTree</a> &amp;rhs) noexcept -&gt; bool</td></tr>
+<tr class="separator:a763452978a123f6483aaaf49f2ad080e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5314ec843068b958489ff366f8298fe8"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a5314ec843068b958489ff366f8298fe8">operator!=</a> (const <a class="el" href="classminilua_1_1SourceChangeTree.html">SourceChangeTree</a> &amp;lhs, const <a class="el" href="classminilua_1_1SourceChangeTree.html">SourceChangeTree</a> &amp;rhs) noexcept -&gt; bool</td></tr>
+<tr class="separator:a5314ec843068b958489ff366f8298fe8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afeb8d5c591f2a6fe001f776dce3a1537"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#afeb8d5c591f2a6fe001f776dce3a1537">operator&lt;&lt;</a> (std::ostream &amp;, const <a class="el" href="classminilua_1_1SourceChangeTree.html">SourceChangeTree</a> &amp;) -&gt; std::ostream &amp;</td></tr>
+<tr class="separator:afeb8d5c591f2a6fe001f776dce3a1537"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0653e10e7849c416ee221eeccbd9186c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a0653e10e7849c416ee221eeccbd9186c">escape_char</a> (char c) -&gt; std::string</td></tr>
 <tr class="separator:a0653e10e7849c416ee221eeccbd9186c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a617f213ef2edf627891fdc976b8879a8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a617f213ef2edf627891fdc976b8879a8">swap</a> (<a class="el" href="structminilua_1_1String.html">String</a> &amp;self, <a class="el" href="structminilua_1_1String.html">String</a> &amp;other)</td></tr>
@@ -421,6 +425,27 @@ Variables</h2></td></tr>
 <p><code><a class="el" href="classminilua_1_1owning__ptr.html">owning_ptr</a>&lt;T&gt;</code> was chosen for the pointer type because it behaves like a normal <code>T</code> (but lives on the heap). It's move, copy and lifetime semantics are identical to the one of <code>T</code>.</p>
 <p>It is also possible to choose another pointer type like <code>std::unique_ptr</code> or <code>std::shared_ptr</code>. You should probably avoid using raw pointer <code>T*</code> because lifetime management is harder with raw pointers. </p>
 </div><h2 class="groupheader">Typedef Documentation</h2>
+<a id="aa51307df3542b106bfefa804481fee39"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa51307df3542b106bfefa804481fee39">&#9670;&nbsp;</a></span>LocalEnv</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespaceminilua.html#aa51307df3542b106bfefa804481fee39">minilua::LocalEnv</a> = typedef std::unordered_map&lt;std::string, std::shared_ptr&lt;<a class="el" href="classminilua_1_1Value.html">Value</a>&gt; &gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Type used for the local environment.</p>
+<p>This is different from the global environment because it is handled differently when capturing it in functions.</p>
+<p>This is also not a <a class="el" href="classminilua_1_1Table.html">Table</a> because we need to copy it when capturing local variables for a function. Using a <a class="el" href="classminilua_1_1Table.html">Table</a> would cause wrong behaviour in these cases. E.g. variables declared after the capturing function should not be accessible in the function.</p>
+<p>shared_ptr is used for the value because we need to be able to assign to the variable.</p>
+<p>Usage: When a new block is started (e.g. the body of a for loop) the local environment shoule be copied so it can be extended with new local variables without changing the old environment.</p>
+<p>TODO potential memory and performance improvements by nesting multiple local environments (lower memory footprint, faster creation, slower lookup)</p>
+<p>TODO maybe replace the shared_ptr&lt;Value&gt; by something else we also use in the interpreter </p>
+
+</div>
+</div>
 <a id="adc1e0e5165540ba374f7996290d3950f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adc1e0e5165540ba374f7996290d3950f">&#9670;&nbsp;</a></span>T_</h2>
 
@@ -1022,7 +1047,7 @@ template&lt;typename T , typename... Args&gt; </div>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td> -&gt;  bool</td>
+          <td></td><td> -&gt; bool</td>
         </tr>
       </table>
   </td>
@@ -1058,7 +1083,7 @@ template&lt;typename T , typename... Args&gt; </div>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td> -&gt;  bool</td>
+          <td></td><td> -&gt; bool</td>
         </tr>
       </table>
   </td>
@@ -1094,7 +1119,7 @@ template&lt;typename T , typename... Args&gt; </div>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td> -&gt;  bool</td>
+          <td></td><td> -&gt; bool</td>
         </tr>
       </table>
   </td>
@@ -1130,7 +1155,7 @@ template&lt;typename T , typename... Args&gt; </div>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td> -&gt;  bool</td>
+          <td></td><td> -&gt; bool</td>
         </tr>
       </table>
   </td>
@@ -1922,8 +1947,36 @@ template&lt;typename T , typename... Args&gt; </div>
 
 </div>
 </div>
+<a id="a0bbd63b2254702801b70c2bd75d743e2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0bbd63b2254702801b70c2bd75d743e2">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[7/23]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::operator&lt;&lt; </td>
+          <td>(</td>
+          <td class="paramtype">std::ostream &amp;&#160;</td>
+          <td class="paramname"><em>os</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structminilua_1_1Location.html">Location</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; std::ostream&amp;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a1099cef24c472e80a9112acc6a63086d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1099cef24c472e80a9112acc6a63086d">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[7/23]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a1099cef24c472e80a9112acc6a63086d">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[8/23]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1951,7 +2004,7 @@ template&lt;typename T , typename... Args&gt; </div>
 </div>
 </div>
 <a id="aa9b855f63ed1aecddd5a467754ca6356"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa9b855f63ed1aecddd5a467754ca6356">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[8/23]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9b855f63ed1aecddd5a467754ca6356">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[9/23]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1978,8 +2031,148 @@ template&lt;typename T , typename... Args&gt; </div>
 
 </div>
 </div>
+<a id="ac610712056e99739455a27e35ce77743"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac610712056e99739455a27e35ce77743">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[10/23]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::operator&lt;&lt; </td>
+          <td>(</td>
+          <td class="paramtype">std::ostream &amp;&#160;</td>
+          <td class="paramname"><em>os</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structminilua_1_1Range.html">Range</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; std::ostream&amp;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9cd37325a2f31193de85deb66f829e74"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9cd37325a2f31193de85deb66f829e74">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[11/23]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::operator&lt;&lt; </td>
+          <td>(</td>
+          <td class="paramtype">std::ostream &amp;&#160;</td>
+          <td class="paramname"><em>os</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structminilua_1_1SourceChange.html">SourceChange</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; std::ostream&amp;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9c0f05e9da7786b46e4930991f439eb1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c0f05e9da7786b46e4930991f439eb1">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[12/23]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::operator&lt;&lt; </td>
+          <td>(</td>
+          <td class="paramtype">std::ostream &amp;&#160;</td>
+          <td class="paramname"><em>os</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structminilua_1_1SourceChangeAlternative.html">SourceChangeAlternative</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; std::ostream&amp;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac3ac068f54842a4d77438df5008cdd8f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac3ac068f54842a4d77438df5008cdd8f">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[13/23]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::operator&lt;&lt; </td>
+          <td>(</td>
+          <td class="paramtype">std::ostream &amp;&#160;</td>
+          <td class="paramname"><em>os</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structminilua_1_1SourceChangeCombination.html">SourceChangeCombination</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; std::ostream&amp;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afeb8d5c591f2a6fe001f776dce3a1537"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afeb8d5c591f2a6fe001f776dce3a1537">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[14/23]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::operator&lt;&lt; </td>
+          <td>(</td>
+          <td class="paramtype">std::ostream &amp;&#160;</td>
+          <td class="paramname"><em>os</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classminilua_1_1SourceChangeTree.html">SourceChangeTree</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; std::ostream&amp;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="af51fe8853433b1d966a107db57f05039"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af51fe8853433b1d966a107db57f05039">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[9/23]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#af51fe8853433b1d966a107db57f05039">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[15/23]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2007,7 +2200,7 @@ template&lt;typename T , typename... Args&gt; </div>
 </div>
 </div>
 <a id="a975772475a300867f07791c48882bbcd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a975772475a300867f07791c48882bbcd">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[10/23]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a975772475a300867f07791c48882bbcd">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[16/23]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2035,7 +2228,7 @@ template&lt;typename T , typename... Args&gt; </div>
 </div>
 </div>
 <a id="a5893e07412680f54a7b282c044a48ff0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5893e07412680f54a7b282c044a48ff0">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[11/23]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a5893e07412680f54a7b282c044a48ff0">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[17/23]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2063,7 +2256,7 @@ template&lt;typename T , typename... Args&gt; </div>
 </div>
 </div>
 <a id="a319a3b74d643791759e7627972e56f3b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a319a3b74d643791759e7627972e56f3b">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[12/23]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a319a3b74d643791759e7627972e56f3b">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[18/23]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2091,7 +2284,7 @@ template&lt;typename T , typename... Args&gt; </div>
 </div>
 </div>
 <a id="a0dcca2b580211eb8ab945b687506c5b6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0dcca2b580211eb8ab945b687506c5b6">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[13/23]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a0dcca2b580211eb8ab945b687506c5b6">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[19/23]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2119,7 +2312,7 @@ template&lt;typename T , typename... Args&gt; </div>
 </div>
 </div>
 <a id="a6f9c23fed50cdec6cbeff3bc10050fd9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6f9c23fed50cdec6cbeff3bc10050fd9">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[14/23]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a6f9c23fed50cdec6cbeff3bc10050fd9">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[20/23]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2147,7 +2340,7 @@ template&lt;typename T , typename... Args&gt; </div>
 </div>
 </div>
 <a id="a427ea9604f31b9e998f62d8ea2df3d0a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a427ea9604f31b9e998f62d8ea2df3d0a">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[15/23]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a427ea9604f31b9e998f62d8ea2df3d0a">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[21/23]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2168,174 +2361,6 @@ template&lt;typename T , typename... Args&gt; </div>
           <td></td>
           <td>)</td>
           <td></td><td> -&gt; std::ostream&amp; </td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a9c44180e7c4fe2b2d0f3c256624c5165"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9c44180e7c4fe2b2d0f3c256624c5165">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[16/23]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto minilua::operator&lt;&lt; </td>
-          <td>(</td>
-          <td class="paramtype">std::ostream &amp;&#160;</td>
-          <td class="paramname"><em>os</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="structminilua_1_1Location.html">Location</a> &amp;&#160;</td>
-          <td class="paramname"><em>self</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> -&gt;  std::ostream &amp;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a7a217478c5579d730e848ed5269cb52d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7a217478c5579d730e848ed5269cb52d">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[17/23]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto minilua::operator&lt;&lt; </td>
-          <td>(</td>
-          <td class="paramtype">std::ostream &amp;&#160;</td>
-          <td class="paramname"><em>os</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="structminilua_1_1Range.html">Range</a> &amp;&#160;</td>
-          <td class="paramname"><em>self</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> -&gt;  std::ostream &amp;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a047dd520b09a2befa802f787261ec9e0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a047dd520b09a2befa802f787261ec9e0">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[18/23]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto minilua::operator&lt;&lt; </td>
-          <td>(</td>
-          <td class="paramtype">std::ostream &amp;&#160;</td>
-          <td class="paramname"><em>os</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="structminilua_1_1SourceChange.html">SourceChange</a> &amp;&#160;</td>
-          <td class="paramname"><em>self</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> -&gt;  std::ostream &amp;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a5a44e479ad724e55db04140f4f04750a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5a44e479ad724e55db04140f4f04750a">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[19/23]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto minilua::operator&lt;&lt; </td>
-          <td>(</td>
-          <td class="paramtype">std::ostream &amp;&#160;</td>
-          <td class="paramname"><em>os</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="structminilua_1_1SourceChangeAlternative.html">SourceChangeAlternative</a> &amp;&#160;</td>
-          <td class="paramname"><em>self</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> -&gt;  std::ostream &amp;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a3f7c1df3900c4399775dc67032023d10"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3f7c1df3900c4399775dc67032023d10">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[20/23]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto minilua::operator&lt;&lt; </td>
-          <td>(</td>
-          <td class="paramtype">std::ostream &amp;&#160;</td>
-          <td class="paramname"><em>os</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="structminilua_1_1SourceChangeCombination.html">SourceChangeCombination</a> &amp;&#160;</td>
-          <td class="paramname"><em>self</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> -&gt;  std::ostream &amp;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a6125c9c809cfe7ec32988a5d807390d8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6125c9c809cfe7ec32988a5d807390d8">&#9670;&nbsp;</a></span>operator&lt;&lt;() <span class="overload">[21/23]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto minilua::operator&lt;&lt; </td>
-          <td>(</td>
-          <td class="paramtype">std::ostream &amp;&#160;</td>
-          <td class="paramname"><em>os</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="classminilua_1_1SourceChangeTree.html">SourceChangeTree</a> &amp;&#160;</td>
-          <td class="paramname"><em>self</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> -&gt;  std::ostream &amp;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -2774,7 +2799,7 @@ template&lt;typename T , typename... Args&gt; </div>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td> -&gt;  bool</td>
+          <td></td><td> -&gt; bool</td>
         </tr>
       </table>
   </td>
@@ -2810,7 +2835,7 @@ template&lt;typename T , typename... Args&gt; </div>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td> -&gt;  bool</td>
+          <td></td><td> -&gt; bool</td>
         </tr>
       </table>
   </td>
@@ -2846,7 +2871,7 @@ template&lt;typename T , typename... Args&gt; </div>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td> -&gt;  bool</td>
+          <td></td><td> -&gt; bool</td>
         </tr>
       </table>
   </td>
@@ -2882,7 +2907,7 @@ template&lt;typename T , typename... Args&gt; </div>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td> -&gt;  bool</td>
+          <td></td><td> -&gt; bool</td>
         </tr>
       </table>
   </td>
@@ -3721,7 +3746,7 @@ template&lt;typename _Tp &gt; </div>
 </div>
 </div>
 </div><!-- contents -->
-<div class="ttc" id="anamespaceminilua_html_af765d66cbde1ecd09398cbcd49525380"><div class="ttname"><a href="namespaceminilua.html#af765d66cbde1ecd09398cbcd49525380">minilua::swap</a></div><div class="ttdeci">void swap(Environment &amp;a, Environment &amp;b)</div><div class="ttdef"><b>Definition:</b> environment.cpp:30</div></div>
+<div class="ttc" id="anamespaceminilua_html_af765d66cbde1ecd09398cbcd49525380"><div class="ttname"><a href="namespaceminilua.html#af765d66cbde1ecd09398cbcd49525380">minilua::swap</a></div><div class="ttdeci">void swap(Environment &amp;a, Environment &amp;b)</div><div class="ttdef"><b>Definition:</b> environment.cpp:21</div></div>
 <!-- start footer part -->
 		<script src="custom.js"></script>
 	</body>

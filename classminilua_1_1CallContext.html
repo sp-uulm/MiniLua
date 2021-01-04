@@ -108,8 +108,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aee2e19ab5f3c347575a2c32d8613e21c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa294dae148654b06c23c24c6cce317c8"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1CallContext.html#aa294dae148654b06c23c24c6cce317c8">environment</a> () const -&gt; <a class="el" href="classminilua_1_1Environment.html">Environment</a> &amp;</td></tr>
 <tr class="separator:aa294dae148654b06c23c24c6cce317c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9f3df41ccdedcf4538f2db1fcd05011d"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1CallContext.html#a9f3df41ccdedcf4538f2db1fcd05011d">get</a> (const std::string &amp;name) const -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;</td></tr>
-<tr class="separator:a9f3df41ccdedcf4538f2db1fcd05011d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab9537a0dc7692d70a9a0fd169feed1a1"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1CallContext.html#ab9537a0dc7692d70a9a0fd169feed1a1">get</a> (const std::string &amp;name) const -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td></tr>
+<tr class="separator:ab9537a0dc7692d70a9a0fd169feed1a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae859857aa447fce6850f9700ed909692"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1CallContext.html#ae859857aa447fce6850f9700ed909692">arguments</a> () const -&gt; const <a class="el" href="classminilua_1_1Vallist.html">Vallist</a> &amp;</td></tr>
 <tr class="separator:ae859857aa447fce6850f9700ed909692"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a66fb63b2b62a7e4f7fac85caeb6beed1"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1CallContext.html#a66fb63b2b62a7e4f7fac85caeb6beed1">unary_numeric_arg_helper</a> () const -&gt; std::tuple&lt; double, <a class="el" href="structminilua_1_1UnaryOrigin.html">UnaryOrigin</a> &gt;</td></tr>
@@ -293,8 +293,8 @@ Friends</h2></td></tr>
 
 </div>
 </div>
-<a id="a9f3df41ccdedcf4538f2db1fcd05011d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9f3df41ccdedcf4538f2db1fcd05011d">&#9670;&nbsp;</a></span>get()</h2>
+<a id="ab9537a0dc7692d70a9a0fd169feed1a1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab9537a0dc7692d70a9a0fd169feed1a1">&#9670;&nbsp;</a></span>get()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -304,11 +304,12 @@ Friends</h2></td></tr>
           <td>(</td>
           <td class="paramtype">const std::string &amp;&#160;</td>
           <td class="paramname"><em>name</em></td><td>)</td>
-          <td> const -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a>&amp;</td>
+          <td> const -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns the value of a global variable accessible from the function. </p>
+<p>Returns the value of a global variable accessible from the function.</p>
+<p>Returns <a class="el" href="structminilua_1_1Nil.html">Nil</a> if the variable is not accessible or does not exist. </p>
 
 </div>
 </div>
@@ -498,8 +499,8 @@ template&lt;typename... Args&gt; </div>
 <li><a class="el" href="values_8cpp.html">values.cpp</a></li>
 </ul>
 </div><!-- contents -->
-<div class="ttc" id="anamespaceminilua_html_a2ce17b0d50309e0d4a3a43e71dd592c2"><div class="ttname"><a href="namespaceminilua.html#a2ce17b0d50309e0d4a3a43e71dd592c2">minilua::binary_num_reverse</a></div><div class="ttdeci">auto binary_num_reverse(FnLeft fn_left, FnRight fn_right, std::string origin=&quot;&quot;) -&gt; decltype(auto)</div><div class="ttdef"><b>Definition:</b> values.hpp:807</div></div>
-<div class="ttc" id="anamespaceminilua_html_a3533c865eb291bcf3dff829fb0607af8"><div class="ttname"><a href="namespaceminilua.html#a3533c865eb291bcf3dff829fb0607af8">minilua::unary_num_reverse</a></div><div class="ttdeci">auto unary_num_reverse(Fn fn) -&gt; decltype(auto)</div><div class="ttdef"><b>Definition:</b> values.hpp:796</div></div>
+<div class="ttc" id="anamespaceminilua_html_a2ce17b0d50309e0d4a3a43e71dd592c2"><div class="ttname"><a href="namespaceminilua.html#a2ce17b0d50309e0d4a3a43e71dd592c2">minilua::binary_num_reverse</a></div><div class="ttdeci">auto binary_num_reverse(FnLeft fn_left, FnRight fn_right, std::string origin=&quot;&quot;) -&gt; decltype(auto)</div><div class="ttdef"><b>Definition:</b> values.hpp:811</div></div>
+<div class="ttc" id="anamespaceminilua_html_a3533c865eb291bcf3dff829fb0607af8"><div class="ttname"><a href="namespaceminilua.html#a3533c865eb291bcf3dff829fb0607af8">minilua::unary_num_reverse</a></div><div class="ttdeci">auto unary_num_reverse(Fn fn) -&gt; decltype(auto)</div><div class="ttdef"><b>Definition:</b> values.hpp:800</div></div>
 <!-- start footer part -->
 		<script src="custom.js"></script>
 	</body>

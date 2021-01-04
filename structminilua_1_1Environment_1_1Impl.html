@@ -75,69 +75,23 @@ $(function() {
 <div class="title">minilua::Environment::Impl Struct Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p><code>#include &lt;<a class="el" href="internal__env_8hpp_source.html">internal_env.hpp</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:af62aa22a745fa478e6c3f50f270881b3"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; std::string, <a class="el" href="classminilua_1_1Value.html">Value</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1Environment_1_1Impl.html#af62aa22a745fa478e6c3f50f270881b3">global</a></td></tr>
-<tr class="separator:af62aa22a745fa478e6c3f50f270881b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab76182c9df49ea58238e62c23858ac49"><td class="memItemLeft" align="right" valign="top">std::istream *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1Environment_1_1Impl.html#ab76182c9df49ea58238e62c23858ac49">in</a></td></tr>
-<tr class="separator:ab76182c9df49ea58238e62c23858ac49"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a84910bb8af6ddae56af5d48df55cbd35"><td class="memItemLeft" align="right" valign="top">std::ostream *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1Environment_1_1Impl.html#a84910bb8af6ddae56af5d48df55cbd35">out</a></td></tr>
-<tr class="separator:a84910bb8af6ddae56af5d48df55cbd35"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a40032f0a42fb7d444cde6559901dac94"><td class="memItemLeft" align="right" valign="top">std::ostream *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1Environment_1_1Impl.html#a40032f0a42fb7d444cde6559901dac94">err</a></td></tr>
-<tr class="separator:a40032f0a42fb7d444cde6559901dac94"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac0e433a4ced038e427b130145a50c7f5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classminilua_1_1Env.html">Env</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1Environment_1_1Impl.html#ac0e433a4ced038e427b130145a50c7f5">inner</a></td></tr>
+<tr class="separator:ac0e433a4ced038e427b130145a50c7f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="a40032f0a42fb7d444cde6559901dac94"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a40032f0a42fb7d444cde6559901dac94">&#9670;&nbsp;</a></span>err</h2>
+<a id="ac0e433a4ced038e427b130145a50c7f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac0e433a4ced038e427b130145a50c7f5">&#9670;&nbsp;</a></span>inner</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::ostream* minilua::Environment::Impl::err</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="af62aa22a745fa478e6c3f50f270881b3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af62aa22a745fa478e6c3f50f270881b3">&#9670;&nbsp;</a></span>global</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::unordered_map&lt;std::string, <a class="el" href="classminilua_1_1Value.html">Value</a>&gt; minilua::Environment::Impl::global</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ab76182c9df49ea58238e62c23858ac49"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab76182c9df49ea58238e62c23858ac49">&#9670;&nbsp;</a></span>in</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::istream* minilua::Environment::Impl::in</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a84910bb8af6ddae56af5d48df55cbd35"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a84910bb8af6ddae56af5d48df55cbd35">&#9670;&nbsp;</a></span>out</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::ostream* minilua::Environment::Impl::out</td>
+          <td class="memname"><a class="el" href="classminilua_1_1Env.html">Env</a> minilua::Environment::Impl::inner</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -145,7 +99,7 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li><a class="el" href="environment_8cpp.html">environment.cpp</a></li>
+<li><a class="el" href="internal__env_8hpp_source.html">internal_env.hpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
