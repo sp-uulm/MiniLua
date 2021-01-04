@@ -290,8 +290,10 @@ public:
     friend void swap(Table& self, Table& other);
 
     auto get(const Value& key) -> Value;
+    auto has(const Value& key) -> bool;
     void set(const Value& key, Value value);
     void set(Value&& key, Value value);
+    [[nodiscard]] auto size() const -> size_t;
 
     // iterators for Table
     auto begin() -> iterator;
@@ -365,8 +367,10 @@ public:
 
     /**
      * Returns the value of a global variable accessible from the function.
+     *
+     * Returns Nil if the variable is not accessible or does not exist.
      */
-    [[nodiscard]] auto get(const std::string& name) const -> Value&;
+    [[nodiscard]] auto get(const std::string& name) const -> Value;
 
     /**
      * Returns the arguments given to this function.
