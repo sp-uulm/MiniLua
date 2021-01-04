@@ -1,4 +1,5 @@
 #include "MiniLua/interpreter.hpp"
+#include "tree_sitter/tree_sitter.hpp"
 
 #include <string>
 #include <utility>
@@ -8,40 +9,34 @@ namespace minilua {
 
 ParseResult::operator bool() const { return this->errors.empty(); }
 
-// TODO incomplete
-// can maybe also be included in the Interpreter::Impl
-class Parser {
-    std::string _source;
-
-public:
-    Parser(std::string source) : _source(std::move(source)) {}
-
-    [[nodiscard]] auto source() const -> const std::string& { return _source; }
-};
-
-// TODO replace by tree-sitter tree OR our ast
-class Tree {};
-
 struct Interpreter::Impl {
-    Parser parser;   // NOLINT(misc-non-private-member-variables-in-classes)
-    Tree tree;       // NOLINT(misc-non-private-member-variables-in-classes)
-    Environment env; // NOLINT(misc-non-private-member-variables-in-classes)
+    ts::Parser parser;       // NOLINT(misc-non-private-member-variables-in-classes)
+    std::string source_code; // NOLINT(misc-non-private-member-variables-in-classes)
+    ts::Tree tree;           // NOLINT(misc-non-private-member-variables-in-classes)
+    Environment env;         // NOLINT(misc-non-private-member-variables-in-classes)
 
-    Impl(Parser parser, Environment env) : parser(std::move(parser)), env(std::move(env)) {}
+    Impl(std::string initial_source_code, Environment env)
+        : source_code(std::move(initial_source_code)), tree(parser.parse_string(this->source_code)),
+          env(std::move(env)) {}
 };
 
 Interpreter::Interpreter() : Interpreter("") {}
 Interpreter::Interpreter(std::string initial_source_code)
-    : impl(std::make_unique<Interpreter::Impl>(
-          Parser(std::move(initial_source_code)), Environment())) {}
+    : impl(std::make_unique<Interpreter::Impl>(std::move(initial_source_code), Environment())) {}
 Interpreter::~Interpreter() = default;
 
 auto Interpreter::environment() const -> Environment& { return impl->env; }
-auto Interpreter::source_code() const -> std::string_view { return impl->parser.source(); }
+auto Interpreter::source_code() const -> std::string_view { return impl->source_code; }
 auto Interpreter::parse(std::string source_code) -> ParseResult {
-    // TODO parse
-    std::cout << "parse\n";
-    return ParseResult();
+    this->impl->source_code = std::move(source_code);
+    this->impl->tree = this->impl->parser.parse_string(this->impl->source_code);
+
+    ParseResult result;
+    if (this->impl->tree.root_node().has_error()) {
+        // TODO properly collect errors from the tree
+        result.errors.emplace_back("Tree contains parse error");
+    }
+    return result;
 }
 void Interpreter::apply_source_changes(std::vector<SourceChange> source_changes) {
     // TODO apply source change
