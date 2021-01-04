@@ -160,6 +160,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a0082c2a5427a7eddbe56f345078cbbe9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a826128e2ef812dcbdcbaa3e27a0a8a62"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Value.html#a826128e2ef812dcbdcbaa3e27a0a8a62">with_origin</a> (<a class="el" href="classminilua_1_1Origin.html">Origin</a> new_origin) const -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td></tr>
 <tr class="separator:a826128e2ef812dcbdcbaa3e27a0a8a62"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab149eba13100da85d1849a93fd63c365"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Value.html#ab149eba13100da85d1849a93fd63c365">type</a> () const -&gt; std::string</td></tr>
+<tr class="separator:ab149eba13100da85d1849a93fd63c365"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a94c8887ffc749f5da01929f381843be0"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Value.html#a94c8887ffc749f5da01929f381843be0">force</a> (<a class="el" href="classminilua_1_1Value.html">Value</a> new_value, std::string <a class="el" href="classminilua_1_1Value.html#a39b6e52217ad1306092b570feea3ae58">origin</a>=&quot;&quot;) const -&gt; std::optional&lt; <a class="el" href="classminilua_1_1SourceChangeTree.html">SourceChangeTree</a> &gt;</td></tr>
 <tr class="separator:a94c8887ffc749f5da01929f381843be0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae10aac66ca5c9f70c8f78b1fcd32044f"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Value.html#ae10aac66ca5c9f70c8f78b1fcd32044f">call</a> (<a class="el" href="classminilua_1_1CallContext.html">CallContext</a>) const -&gt; <a class="el" href="classminilua_1_1CallResult.html">CallResult</a></td></tr>
@@ -1331,6 +1333,23 @@ template&lt;typename... Args&gt; </div>
 </div><div class="memdoc">
 <p>Returns the value as a literal string that can be directly inserted in lua code.</p>
 <p>Throws a 'std::runtime_error' if the value is a function. </p>
+
+</div>
+</div>
+<a id="ab149eba13100da85d1849a93fd63c365"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab149eba13100da85d1849a93fd63c365">&#9670;&nbsp;</a></span>type()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::Value::type </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; std::string</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>

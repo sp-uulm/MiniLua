@@ -146,6 +146,9 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aec47c6ae558f4802d3d9e02dcf5d84e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7f34be5b06ff1aa2e56a362a02bf09eb"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#a7f34be5b06ff1aa2e56a362a02bf09eb">to_literal</a> () const -&gt; std::string</td></tr>
 <tr class="separator:a7f34be5b06ff1aa2e56a362a02bf09eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a664ae1837b1fc46549071573a89099aa"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#a664ae1837b1fc46549071573a89099aa">next</a> (const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;key) const -&gt; <a class="el" href="classminilua_1_1Vallist.html">Vallist</a></td></tr>
+<tr class="memdesc:a664ae1837b1fc46549071573a89099aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">next returns the next index of the table and its associated value after index. If there is no value at the index an error is thrown.  <a href="classminilua_1_1Table.html#a664ae1837b1fc46549071573a89099aa">More...</a><br /></td></tr>
+<tr class="separator:a664ae1837b1fc46549071573a89099aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acf0832aaae3c493a8411ffc899cb9f8a"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#acf0832aaae3c493a8411ffc899cb9f8a">operator[]</a> (const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;) -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;</td></tr>
 <tr class="separator:acf0832aaae3c493a8411ffc899cb9f8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a69d175bf7290df751a3875e8fd1fd11f"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#a69d175bf7290df751a3875e8fd1fd11f">operator[]</a> (const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;) const -&gt; const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;</td></tr>
@@ -509,6 +512,33 @@ Friends</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a664ae1837b1fc46549071573a89099aa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a664ae1837b1fc46549071573a89099aa">&#9670;&nbsp;</a></span>next()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::Table::next </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;&#160;</td>
+          <td class="paramname"><em>key</em></td><td>)</td>
+          <td> const -&gt; <a class="el" href="classminilua_1_1Vallist.html">Vallist</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>next returns the next index of the table and its associated value after index. If there is no value at the index an error is thrown. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>is the index you want to get the next element. Key is the index </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>nil when called with the last index or an the empty table. Else it returns the next index and its associated value after the value at index. </dd></dl>
 
 </div>
 </div>
