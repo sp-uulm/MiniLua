@@ -1,6 +1,7 @@
 #include <MiniLua/values.hpp>
 #include <algorithm>
 #include <catch2/catch.hpp>
+#include <iterator>
 
 // functions for use in testing NativeFunction
 auto fn(minilua::CallContext /*unused*/) -> minilua::CallResult { // NOLINT
@@ -743,5 +744,35 @@ TEST_CASE("destructuring of Vallist") {
         CHECK(hi == "hi");
         CHECK(nil1 == minilua::Nil());
         CHECK(nil2 == minilua::Nil());
+    }
+}
+
+TEST_CASE("next(table [, index]") {
+    SECTION("empty table") {
+        const minilua::Table value;
+        CHECK(value.next(minilua::Nil()) == minilua::Vallist());
+    }
+    SECTION("filled table") {
+        const minilua::Table value{{"key1", 22}, {1, "Hallo "}, {2, "Welt!"}, {100, 42}};
+        SECTION("access last element of table") {
+            auto start = value.begin();
+            std::advance(start, 3);
+            CHECK(value.next((*start).first) == minilua::Vallist());
+        }
+        SECTION("access a non existent key") { CHECK_THROWS(value.next(minilua::Value(42))); }
+
+        SECTION("access an element of the table") {
+            auto p = std::pair<const minilua::Value, minilua::Value>{2, "Welt"};
+            auto exp_erg = ++std::find_if(
+                value.begin(), value.end(), [](const auto& kv) { return kv.first == 2; });
+            CHECK(
+                value.next(minilua::Value(2)) ==
+                minilua::Vallist({exp_erg->first, exp_erg->second}));
+        }
+        SECTION("access the first element of the table") {
+            CHECK(
+                value.next(minilua::Nil()) ==
+                minilua::Vallist({value.begin()->first, value.begin()->second}));
+        }
     }
 }

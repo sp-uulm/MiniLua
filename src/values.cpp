@@ -10,6 +10,7 @@
 #include <string>
 #include <utility>
 #include <variant>
+#include <vector>
 
 namespace minilua {
 
@@ -354,6 +355,37 @@ auto operator<<(std::ostream& os, const Table& self) -> std::ostream& {
         os << "[" << key << "] = " << value << ", ";
     }
     return os << " }";
+}
+
+auto Table::next(const Value& key) const -> Vallist {
+    return std::visit(
+        overloaded{
+            [this](Nil /*unused*/) {
+                auto it = impl->value.begin();
+                if (it != impl->value.end()) {
+                    std::pair<Value, Value> p = *it;
+                    return Vallist({p.first, p.second});
+                } else {
+                    return Vallist();
+                }
+            },
+            [this](auto key) {
+                auto it = impl->value.find(key);
+                if (it != impl->value.end()) {
+                    // key in table, but last eleement of table
+                    if (++it == impl->value.end()) {
+                        return Vallist();
+                    } else {
+                        // key is somewhere in the table
+                        std::pair<Value, Value> p = *it;
+                        return Vallist({p.first, p.second});
+                    }
+                    // Key not in table
+                } else {
+                    throw std::runtime_error("Invalid key to 'next'");
+                }
+            }},
+        key.raw());
 }
 
 // class CallContext
@@ -712,6 +744,10 @@ auto Value::bind(CallContext call_context) const -> std::function<CallResult(Val
             },
         },
         this->raw());
+}
+
+auto Value::type() const -> std::string {
+    return std::visit([](auto value) { return std::string(value.TYPE); }, this->raw());
 }
 
 auto operator==(const Value& a, const Value& b) noexcept -> bool { return a.raw() == b.raw(); }
