@@ -4,6 +4,7 @@
 #include <iostream>
 #include <iterator>
 #include <optional>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <tree_sitter/api.h>
@@ -373,6 +374,60 @@ bool operator!=(const EditResult& self, const EditResult& other) { return !(self
 std::ostream& operator<<(std::ostream& o, const EditResult& self) {
     return o << "EditResult { .applied_edits = " << self.applied_edits
              << ", .changed_ranges = " << self.changed_ranges << " }";
+}
+
+static void debug_print(Node node, std::stringstream& out, int depth = 0) {
+    // indentation
+    out << std::string(depth * 2, ' ');
+    // name
+    out << "(" << node.type();
+
+    // properties
+    std::stringstream properties;
+    if (node.has_changes()) {
+        properties << "*";
+    }
+    if (node.has_error()) {
+        properties << "E";
+    }
+    if (node.is_named()) {
+        properties << "N";
+    }
+    if (node.is_missing()) {
+        properties << "?";
+    }
+    if (node.is_extra()) {
+        properties << "+";
+    }
+
+    if (!properties.str().empty()) {
+        out << " " << properties.str();
+    }
+
+    // text content
+    if (node.child_count() == 0) {
+        out << " \"" << node.text() << "\"";
+    } else {
+        out << "\n";
+    }
+
+    // children
+    if (node.child_count() > 0) {
+    }
+    for (auto child : node.children()) {
+        debug_print(child, out, depth + 1);
+    }
+
+    // end
+    if (node.child_count() > 0) {
+        out << std::string(depth * 2, ' ');
+    }
+    out << ")\n";
+}
+std::string debug_print(Node node) {
+    std::stringstream ss;
+    debug_print(node, ss);
+    return ss.str();
 }
 
 // class Tree

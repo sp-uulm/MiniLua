@@ -1127,6 +1127,21 @@ public:
     std::vector<Match> matches();
 };
 
+/**
+ * Prints a debug representation of the node (and all child nodes).
+ *
+ * This is easier to read than 'Node::as_s_expr' and contains more information.
+ *
+ * Additional node properties are indicated by a symbol after the node name:
+ *
+ * - has_changes: *
+ * - has_errors: E
+ * - is_names: N
+ * - is_missing: ?
+ * - is_extra: +
+ */
+std::string debug_print(Node node);
+
 } // namespace ts
 
 #endif
