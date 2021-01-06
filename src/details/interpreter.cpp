@@ -19,7 +19,7 @@ public:
         what)
 
 // class Interpreter
-Interpreter::Interpreter() = default;
+Interpreter::Interpreter(const InterpreterConfig& config) : config(config) {}
 
 auto Interpreter::run(const ts::Tree& tree, Environment& env) -> EvalResult {
     return this->visit_root(tree.root_node(), env);

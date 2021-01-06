@@ -36,6 +36,10 @@ struct EvalResult {
 
 auto operator<<(std::ostream&, const EvalResult&) -> std::ostream&;
 
+struct InterpreterConfig {
+    bool statement_tracing;
+};
+
 /**
  * An interpreter instance is used to parse and evaluate lua source code.
  *
@@ -62,6 +66,8 @@ class Interpreter {
     struct Impl;
     std::unique_ptr<Impl> impl;
 
+    InterpreterConfig _config;
+
 public:
     /**
      * Initializes the interpreter with empty source code
@@ -76,6 +82,13 @@ public:
     Interpreter(std::string initial_source_code);
 
     ~Interpreter();
+
+    /**
+     * Returns the current configuration.
+     */
+    auto config() -> InterpreterConfig&;
+    [[nodiscard]] auto config() const -> const InterpreterConfig&;
+    void set_config(InterpreterConfig);
 
     /**
      * Returns the environment for modification.

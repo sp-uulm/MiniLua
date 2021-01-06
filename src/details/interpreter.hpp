@@ -15,8 +15,10 @@ namespace minilua::details {
  * the current node they are visiting and the current environment.
  */
 struct Interpreter {
+    const InterpreterConfig& config;
+
 public:
-    Interpreter();
+    Interpreter(const InterpreterConfig& config);
     auto run(const ts::Tree& tree, Environment& env) -> EvalResult;
 
     auto visit_root(ts::Node node, Environment& env) -> EvalResult;

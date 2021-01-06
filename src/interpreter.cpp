@@ -33,6 +33,10 @@ Interpreter::Interpreter(std::string initial_source_code)
     : impl(std::make_unique<Interpreter::Impl>(std::move(initial_source_code), Environment())) {}
 Interpreter::~Interpreter() = default;
 
+auto Interpreter::config() -> InterpreterConfig& { return this->_config; }
+[[nodiscard]] auto Interpreter::config() const -> const InterpreterConfig& { return this->_config; }
+void Interpreter::set_config(InterpreterConfig config) { this->_config = config; }
+
 auto Interpreter::environment() const -> Environment& { return impl->env; }
 auto Interpreter::source_code() const -> std::string_view { return impl->source_code; }
 auto Interpreter::parse(std::string source_code) -> ParseResult {
@@ -51,7 +55,7 @@ void Interpreter::apply_source_changes(std::vector<SourceChange> source_changes)
     std::cout << "apply_source_changes\n";
 }
 auto Interpreter::evaluate() -> EvalResult {
-    details::Interpreter interpreter;
+    details::Interpreter interpreter{this->config()};
     return interpreter.run(this->impl->tree, this->impl->env);
 }
 
