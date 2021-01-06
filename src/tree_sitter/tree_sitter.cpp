@@ -376,12 +376,9 @@ std::ostream& operator<<(std::ostream& o, const EditResult& self) {
              << ", .changed_ranges = " << self.changed_ranges << " }";
 }
 
-static void debug_print(Node node, std::stringstream& out, int depth = 0) {
-    // indentation
-    out << std::string(depth * 2, ' ');
+static void debug_print_node_content(Node node, std::stringstream& out) {
     // name
-    out << "(" << node.type();
-
+    out << node.type();
     // properties
     std::stringstream properties;
     if (node.has_changes()) {
@@ -410,12 +407,25 @@ static void debug_print(Node node, std::stringstream& out, int depth = 0) {
     } else {
         out << "\n";
     }
+}
+static void debug_print_node(Node node, std::stringstream& out) {
+    out << "(";
+    debug_print_node_content(node, out);
+    out << ")";
+}
+static void debug_print_tree(Node node, std::stringstream& out, int depth = 0) {
+    // indentation
+    out << std::string(depth * 2, ' ');
+
+    // node content
+    out << "(";
+    debug_print_node_content(node, out);
 
     // children
     if (node.child_count() > 0) {
     }
     for (auto child : node.children()) {
-        debug_print(child, out, depth + 1);
+        debug_print_tree(child, out, depth + 1);
     }
 
     // end
@@ -424,9 +434,14 @@ static void debug_print(Node node, std::stringstream& out, int depth = 0) {
     }
     out << ")\n";
 }
-std::string debug_print(Node node) {
+std::string debug_print_tree(Node node) {
     std::stringstream ss;
-    debug_print(node, ss);
+    debug_print_tree(node, ss);
+    return ss.str();
+}
+std::string debug_print_node(Node node) {
+    std::stringstream ss;
+    debug_print_node(node, ss);
     return ss.str();
 }
 

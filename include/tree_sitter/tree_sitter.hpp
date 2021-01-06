@@ -1140,7 +1140,8 @@ public:
  * - is_missing: ?
  * - is_extra: +
  */
-std::string debug_print(Node node);
+std::string debug_print_tree(Node node);
+std::string debug_print_node(Node node);
 
 } // namespace ts
 
