@@ -1,4 +1,5 @@
 #include "MiniLua/interpreter.hpp"
+#include "details/interpreter.hpp"
 #include "tree_sitter/tree_sitter.hpp"
 
 #include <string>
@@ -7,7 +8,14 @@
 
 namespace minilua {
 
+// struct ParseResult
 ParseResult::operator bool() const { return this->errors.empty(); }
+
+// struct EvalResult
+auto operator<<(std::ostream& o, const EvalResult& self) -> std::ostream& {
+    return o << "EvalResult{ .value = " << self.value << ", .source_change = " << self.source_change
+             << "}";
+}
 
 struct Interpreter::Impl {
     ts::Parser parser;       // NOLINT(misc-non-private-member-variables-in-classes)
@@ -43,9 +51,8 @@ void Interpreter::apply_source_changes(std::vector<SourceChange> source_changes)
     std::cout << "apply_source_changes\n";
 }
 auto Interpreter::evaluate() -> EvalResult {
-    // TODO evaluate
-    std::cout << "run\n";
-    return EvalResult();
+    details::Interpreter interpreter;
+    return interpreter.run(this->impl->tree, this->impl->env);
 }
 
 } // namespace minilua

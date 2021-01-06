@@ -70,6 +70,8 @@ TEST_CASE("Interpreter integration test") {
         FAIL("parse failed");
     }
     minilua::EvalResult result = interpreter.evaluate();
+    INFO(result);
+    // FAIL();
 
     // choose source changes to apply
     // TODO do we need a vector here or is is ok to assume that one run of the

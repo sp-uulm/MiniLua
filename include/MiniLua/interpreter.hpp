@@ -1,3 +1,6 @@
+#ifndef MINILUA_INTERPRETER_H
+#define MINILUA_INTERPRETER_H
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -30,6 +33,8 @@ struct EvalResult {
     Value value;
     std::optional<SourceChangeTree> source_change;
 };
+
+auto operator<<(std::ostream&, const EvalResult&) -> std::ostream&;
 
 /**
  * An interpreter instance is used to parse and evaluate lua source code.
@@ -112,3 +117,5 @@ public:
 };
 
 }; // namespace minilua
+
+#endif
