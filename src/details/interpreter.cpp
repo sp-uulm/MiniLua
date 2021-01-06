@@ -27,12 +27,12 @@ auto Interpreter::run(const ts::Tree& tree, Environment& env) -> EvalResult {
 
 void Interpreter::trace_enter_node(ts::Node node) const {
     if (this->config.trace_nodes) {
-        std::cerr << "Enter node: " << node.type() << "\n";
+        std::cerr << "Enter node: " << ts::debug_print_node(node) << "\n";
     }
 }
 void Interpreter::trace_exit_node(ts::Node node) const {
     if (this->config.trace_nodes) {
-        std::cerr << "Exit node: " << node.type() << "\n";
+        std::cerr << "Exit node: " << ts::debug_print_node(node) << "\n";
     }
 }
 

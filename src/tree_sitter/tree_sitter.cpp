@@ -404,8 +404,6 @@ static void debug_print_node_content(Node node, std::stringstream& out) {
     // text content
     if (node.child_count() == 0) {
         out << " \"" << node.text() << "\"";
-    } else {
-        out << "\n";
     }
 }
 static void debug_print_node(Node node, std::stringstream& out) {
@@ -423,6 +421,7 @@ static void debug_print_tree(Node node, std::stringstream& out, int depth = 0) {
 
     // children
     if (node.child_count() > 0) {
+        out << "\n";
     }
     for (auto child : node.children()) {
         debug_print_tree(child, out, depth + 1);
@@ -434,12 +433,12 @@ static void debug_print_tree(Node node, std::stringstream& out, int depth = 0) {
     }
     out << ")\n";
 }
-std::string debug_print_tree(Node node) {
+auto debug_print_tree(Node node) -> std::string {
     std::stringstream ss;
     debug_print_tree(node, ss);
     return ss.str();
 }
-std::string debug_print_node(Node node) {
+auto debug_print_node(Node node) -> std::string {
     std::stringstream ss;
     debug_print_node(node, ss);
     return ss.str();
