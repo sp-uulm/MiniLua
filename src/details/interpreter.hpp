@@ -32,6 +32,10 @@ public:
     auto visit_number(ts::Node node, Environment& env) -> EvalResult;
 
     auto visit_function_call(ts::Node node, Environment& env) -> CallResult;
+
+private:
+    void trace_enter_node(ts::Node node) const;
+    void trace_exit_node(ts::Node node) const;
 };
 
 } // namespace minilua::details

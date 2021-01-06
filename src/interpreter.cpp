@@ -17,6 +17,9 @@ auto operator<<(std::ostream& o, const EvalResult& self) -> std::ostream& {
              << "}";
 }
 
+// struct InterpreterConfig
+InterpreterConfig::InterpreterConfig() : trace_nodes(false) {}
+
 struct Interpreter::Impl {
     ts::Parser parser;       // NOLINT(misc-non-private-member-variables-in-classes)
     std::string source_code; // NOLINT(misc-non-private-member-variables-in-classes)

@@ -25,10 +25,22 @@ auto Interpreter::run(const ts::Tree& tree, Environment& env) -> EvalResult {
     return this->visit_root(tree.root_node(), env);
 }
 
+void Interpreter::trace_enter_node(ts::Node node) const {
+    if (this->config.trace_nodes) {
+        std::cerr << "Enter node: " << node.type() << "\n";
+    }
+}
+void Interpreter::trace_exit_node(ts::Node node) const {
+    if (this->config.trace_nodes) {
+        std::cerr << "Exit node: " << node.type() << "\n";
+    }
+}
+
 static auto should_ignore_node(ts::Node node) -> bool { return node.type() == std::string(";"); }
 
 auto Interpreter::visit_root(ts::Node node, Environment& env) -> EvalResult {
     assert(node.type() == std::string("program"));
+    this->trace_enter_node(node);
 
     for (auto child : node.children()) {
         if (child.type() == std::string("variable_declaration")) {
@@ -41,12 +53,15 @@ auto Interpreter::visit_root(ts::Node node, Environment& env) -> EvalResult {
         }
     }
 
+    this->trace_exit_node(node);
+
     // TODO pass result through
     return EvalResult();
 }
 
 auto Interpreter::visit_variable_declaration(ts::Node node, Environment& env) -> EvalResult {
     assert(node.type() == std::string("variable_declaration"));
+    this->trace_enter_node(node);
 
     auto declarator = node.named_child(0).value();
     auto expr = node.named_child(1).value();
@@ -55,33 +70,45 @@ auto Interpreter::visit_variable_declaration(ts::Node node, Environment& env) ->
 
     env.add(this->visit_variable_declarator(declarator, env), value.value);
 
+    this->trace_exit_node(node);
     return EvalResult();
 }
 auto Interpreter::visit_variable_declarator(ts::Node node, Environment& env) -> std::string {
     assert(node.type() == std::string("variable_declarator"));
+    this->trace_enter_node(node);
     return this->visit_identifier(node.child(0).value(), env);
 }
 
 auto Interpreter::visit_identifier(ts::Node node, Environment& env) -> std::string {
     assert(node.type() == std::string("identifier"));
+    this->trace_enter_node(node);
+    this->trace_exit_node(node);
     return node.text();
 }
 
 auto Interpreter::visit_expression(ts::Node node, Environment& env) -> EvalResult {
+    this->trace_enter_node(node);
+
+    EvalResult result;
+
     if (node.type() == std::string("number")) {
         // TODO parse number
         auto value = 55;
-        return EvalResult{value};
+        result.value = value;
     } else if (node.type() == std::string("identifier")) {
         auto variable_name = this->visit_identifier(node, env);
-        return EvalResult{env.get(variable_name)};
+        result.value = env.get(variable_name);
     } else {
         throw UNIMPLEMENTED(node.type());
     }
+
+    this->trace_exit_node(node);
+    return result;
 }
 
 auto Interpreter::visit_function_call(ts::Node node, Environment& env) -> CallResult {
     assert(node.type() == std::string("function_call"));
+    this->trace_enter_node(node);
 
     auto function_name = this->visit_identifier(node.named_child(0).value(), env);
 
@@ -105,7 +132,10 @@ auto Interpreter::visit_function_call(ts::Node node, Environment& env) -> CallRe
     auto obj = env.get(function_name);
     auto ctx = CallContext(&env).make_new(Vallist(arguments));
     // TODO meta tables (might be handles by Value::call)
-    return obj.call(ctx);
+    auto result = obj.call(ctx);
+
+    this->trace_exit_node(node);
+    return result;
 }
 
 } // namespace minilua::details

@@ -37,7 +37,9 @@ struct EvalResult {
 auto operator<<(std::ostream&, const EvalResult&) -> std::ostream&;
 
 struct InterpreterConfig {
-    bool statement_tracing;
+    bool trace_nodes;
+
+    InterpreterConfig();
 };
 
 /**
