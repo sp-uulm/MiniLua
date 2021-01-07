@@ -175,7 +175,7 @@ auto select(const CallContext& ctx) -> Vallist {
                 } else {
                     std::vector<Value> returns;
                     int i = 1;
-                    cout << args.size() << endl;
+
                     for (auto a = args.begin(); a != args.end(); a++, i++) {
                         //+ because n is negative so + becomes -
                         if (i <= (int)args.size() + n) {
@@ -210,11 +210,7 @@ void print(const CallContext& ctx) {
     std::string gap;
 
     for (const auto& arg : ctx.arguments()) {
-        Environment env;
-        CallContext tmp(&env);
-        tmp = tmp.make_new(Vallist({arg}));
-
-        const Value v = to_string(tmp);
+        const Value v = to_string(ctx.make_new({arg}));
 
         if (v.is_string()) {
             *stdout << gap << std::get<String>(v).value;
