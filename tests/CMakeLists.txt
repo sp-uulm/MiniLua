@@ -7,7 +7,8 @@ add_executable(MiniLua-tests
     public_api/values.cpp
     public_api/origin.cpp
     public_api/environment.cpp
-    tree_sitter.cpp)
+    tree_sitter.cpp
+    stdlib_tests.cpp)
 target_include_directories(MiniLua-tests PRIVATE ${tree-sitter_SOURCE_DIR}/lib/include)
 target_link_libraries(MiniLua-tests
     PRIVATE MiniLua
