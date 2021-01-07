@@ -39,6 +39,12 @@ private:
     void trace_exit_node(ts::Node node) const;
     void trace_function_call(
         const std::string& function_name, const std::vector<Value>& arguments) const;
+    void
+    trace_function_call_result(const std::string& function_name, const CallResult& result) const;
+
+    auto combine_source_changes(
+        const std::optional<SourceChangeTree>& lhs, const std::optional<SourceChangeTree>& rhs)
+        -> std::optional<SourceChangeTree>;
 };
 
 } // namespace minilua::details

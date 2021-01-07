@@ -12,9 +12,20 @@ namespace minilua {
 ParseResult::operator bool() const { return this->errors.empty(); }
 
 // struct EvalResult
+EvalResult::EvalResult() = default;
+EvalResult::EvalResult(const CallResult& call_result)
+    : value(std::get<0>(call_result.values().tuple<1>())),
+      source_change(call_result.source_change()) {}
 auto operator<<(std::ostream& o, const EvalResult& self) -> std::ostream& {
-    return o << "EvalResult{ .value = " << self.value << ", .source_change = " << self.source_change
-             << "}";
+    o << "EvalResult{ .value = " << self.value << ", .source_change = ";
+
+    if (self.source_change.has_value()) {
+        o << *self.source_change;
+    } else {
+        o << "nullopt";
+    }
+
+    return o << "}";
 }
 
 // struct InterpreterConfig

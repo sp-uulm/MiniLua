@@ -32,6 +32,9 @@ struct ParseResult {
 struct EvalResult {
     Value value;
     std::optional<SourceChangeTree> source_change;
+
+    EvalResult();
+    EvalResult(const CallResult&);
 };
 
 auto operator<<(std::ostream&, const EvalResult&) -> std::ostream&;

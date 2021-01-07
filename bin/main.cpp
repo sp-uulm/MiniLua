@@ -26,7 +26,9 @@ auto main(int argc, char* argv[]) -> int {
     }
 
     minilua::Interpreter interpreter;
+    interpreter.environment().add_default_stdlib();
     interpreter.config().all(true);
+
     if (auto result = interpreter.parse(source_code); !result) {
         std::cerr << "Failed to parse\nErrors:\n";
         for (const auto& error : result.errors) {
@@ -37,9 +39,11 @@ auto main(int argc, char* argv[]) -> int {
 
     try {
         auto result = interpreter.evaluate();
-        std::cerr << "Terminated successfullly with value:\n" << result.value << "\n";
-
-        // TODO source changes
+        std::cerr << "Terminated successfullly with value:\n\t" << result.value.to_literal()
+                  << "\n";
+        if (result.source_change.has_value()) {
+            std::cerr << "and source changes:\n\t" << result.source_change.value() << "\n";
+        }
     } catch (const minilua::InterpreterException& e) {
         std::cerr << "Evaluation failed with: " << e.what() << "\n";
         return 4;

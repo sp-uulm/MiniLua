@@ -61,7 +61,7 @@ TEST_CASE("Interpreter integration test") {
               auto arg1 = ctx.arguments().get(0);
               auto arg2 = ctx.arguments().get(1);
               auto change = arg1.force(arg2, "forceValue");
-              return change;
+              return minilua::CallResult(change);
           }}});
 
     std::cout << interpreter.environment() << "\n";
@@ -72,7 +72,14 @@ TEST_CASE("Interpreter integration test") {
     }
     minilua::EvalResult result = interpreter.evaluate();
     INFO(result);
-    // FAIL();
+
+    REQUIRE(result.source_change.has_value());
+    auto range = minilua::Range{
+        .start = {0, 10, 10}, // NOLINT
+        .end = {0, 12, 12}    // NOLINT
+    };
+    auto expected_source_changes = minilua::SourceChangeTree(minilua::SourceChange(range, "25"));
+    CHECK(result.source_change == expected_source_changes);
 
     // choose source changes to apply
     // TODO do we need a vector here or is is ok to assume that one run of the

@@ -488,7 +488,7 @@ auto operator==(const CallResult& lhs, const CallResult& rhs) -> bool {
 auto operator<<(std::ostream& os, const CallResult& self) -> std::ostream& {
     os << "CallResult{ .values = " << self.values() << ", .source_change = ";
     if (self.source_change()) {
-        os << self.source_change();
+        os << *self.source_change();
     } else {
         os << "nullopt";
     }

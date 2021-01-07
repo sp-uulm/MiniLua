@@ -426,11 +426,11 @@ public:
     CallResult();
     CallResult(Vallist);
     CallResult(std::vector<Value>);
-    CallResult(std::initializer_list<Value>);
-    CallResult(SourceChangeTree);
-    CallResult(std::optional<SourceChangeTree>);
-    CallResult(Vallist, SourceChangeTree);
-    CallResult(Vallist, std::optional<SourceChangeTree>);
+    explicit CallResult(std::initializer_list<Value>);
+    explicit CallResult(SourceChangeTree);
+    explicit CallResult(std::optional<SourceChangeTree>);
+    explicit CallResult(Vallist, SourceChangeTree);
+    explicit CallResult(Vallist, std::optional<SourceChangeTree>);
 
     /**
      * Get the return values.

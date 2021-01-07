@@ -55,32 +55,69 @@ void Interpreter::trace_function_call(
         this->tracer() << ")\n";
     }
 }
+void Interpreter::trace_function_call_result(
+    const std::string& function_name, const CallResult& result) const {
+    if (this->config.trace_calls) {
+        this->tracer() << "Function call to: " << function_name << " resulted in "
+                       << result.values();
+        if (result.source_change().has_value()) {
+            this->tracer() << " with source changes " << result.source_change().value();
+        }
+        this->tracer() << "\n";
+    }
+}
 
+auto Interpreter::combine_source_changes(
+    const std::optional<SourceChangeTree>& lhs, const std::optional<SourceChangeTree>& rhs)
+    -> std::optional<SourceChangeTree> {
+    if (lhs.has_value() && rhs.has_value()) {
+        return SourceChangeCombination({*lhs, *rhs});
+    } else if (lhs.has_value()) {
+        return lhs;
+    } else {
+        return rhs;
+    }
+}
+
+// helper functions
 static const std::set<std::string> IGNORE_NODES{";", "comment"};
 
 static auto should_ignore_node(ts::Node node) -> bool {
     return IGNORE_NODES.find(node.type()) != IGNORE_NODES.end();
 }
 
+static auto convert_range(ts::Range range) -> Range {
+    return Range{
+        .start = {range.start.point.row, range.start.point.column, range.start.byte},
+        .end = {range.end.point.row, range.end.point.column, range.end.byte},
+    };
+}
+
+// interpreter implementation
 auto Interpreter::visit_root(ts::Node node, Environment& env) -> EvalResult {
     assert(node.type() == std::string("program"));
     this->trace_enter_node(node);
 
+    EvalResult result;
+
     for (auto child : node.children()) {
+        EvalResult sub_result;
         if (child.type() == std::string("variable_declaration")) {
-            this->visit_variable_declaration(child, env);
+            sub_result = this->visit_variable_declaration(child, env);
         } else if (child.type() == std::string("function_call")) {
-            this->visit_function_call(child, env);
+            sub_result = this->visit_function_call(child, env);
+            // TODO on "return" set value
         } else if (should_ignore_node(child)) {
         } else {
             throw UNIMPLEMENTED(child.type());
         }
+        result.source_change =
+            this->combine_source_changes(result.source_change, sub_result.source_change);
     }
 
     this->trace_exit_node(node);
 
-    // TODO pass result through
-    return EvalResult();
+    return result;
 }
 
 auto Interpreter::visit_variable_declaration(ts::Node node, Environment& env) -> EvalResult {
@@ -116,9 +153,9 @@ auto Interpreter::visit_expression(ts::Node node, Environment& env) -> EvalResul
     EvalResult result;
 
     if (node.type() == std::string("number")) {
-        // TODO parse number
         auto value = parse_number(node.text());
-        result.value = value;
+        Origin origin = LiteralOrigin{.location = convert_range(node.range())};
+        result.value = value.with_origin(origin);
     } else if (node.type() == std::string("identifier")) {
         auto variable_name = this->visit_identifier(node, env);
         result.value = env.get(variable_name);
@@ -165,6 +202,8 @@ auto Interpreter::visit_function_call(ts::Node node, Environment& env) -> CallRe
         throw InterpreterException(
             std::string("failed to call ") + function_name + ": " + e.what());
     }
+
+    this->trace_function_call_result(function_name, result);
 
     this->trace_exit_node(node);
     return result;
