@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['minilua_742',['minilua',['../namespaceminilua.html',1,'']]]
+  ['minilua_744',['minilua',['../namespaceminilua.html',1,'']]]
 ];
