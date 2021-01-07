@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <exception>
+#include <iostream>
 #include <regex>
 #include <sstream>
 #include <stdexcept>
@@ -125,7 +126,7 @@ auto assert_lua(const CallContext& ctx) -> Vallist {
     auto v = ctx.arguments().get(0);
     auto message = ctx.arguments().get(1);
 
-    if (bool(v)) {
+    if (v) {
         return ctx.arguments();
     } else {
         // TODO: improve error behaviour
@@ -157,15 +158,27 @@ auto select(const CallContext& ctx) -> Vallist {
     return std::visit(
         overloaded{
             [&args](Number n) -> Vallist {
-                if (n == -1) {
-                    return Vallist({*(--args.end())});
-                } else if (n == 0) {
+                if (n == 0) {
                     throw std::runtime_error("bad argument #1 to 'select' (index out of range)");
-                } else {
+                } else if (n > 0) {
                     std::vector<Value> returns;
                     int i = 1;
                     for (auto a = args.begin(); a != args.end(); a++, i++) {
                         if (i < n) {
+                            continue;
+                        } else {
+                            returns.push_back(*a);
+                        }
+                    }
+
+                    return Vallist(returns);
+                } else {
+                    std::vector<Value> returns;
+                    int i = 1;
+                    cout << args.size() << endl;
+                    for (auto a = args.begin(); a != args.end(); a++, i++) {
+                        //+ because n is negative so + becomes -
+                        if (i <= (int)args.size() + n) {
                             continue;
                         } else {
                             returns.push_back(*a);
