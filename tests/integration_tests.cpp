@@ -1,5 +1,4 @@
 #include <catch2/catch.hpp>
-#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -96,24 +95,32 @@ TEST_CASE("parse, eval, update", "[parse][leaks]") {
     }
 }
 
-TEST_CASE("whole lua-programs") {
+TEST_CASE("whole lua-programs", "[.hide]") {
     SECTION("programs with function calls") {
-        // Find all Files in directory
-        // for (const auto& entry : std::filesystem::directory_iterator("../luaprograms")) {
-        //     DYNAMIC_SECTION("File: " << entry.path()) {
-        //         const std::string program = read_input_from_file(entry.path());
-        //
-        //         // old parser
-        //         // const auto result = parse_eval_update(program);
-        //         // REQUIRE(result == program);
-        //
-        //         minilua::Interpreter interpreter;
-        //         // interpreter.config().all(true);
-        //         interpreter.parse(program);
-        //         auto result = interpreter.evaluate();
-        //         REQUIRE(!result.source_change.has_value());
-        //     }
-        // }
+        std::vector<std::string> test_files{
+            "BepposBalloons.lua",
+            "FragmeentedFurniture.lua",
+            "FragmentedFurniture_withoutMethods.lua",
+            "HelplessHuman.lua",
+            "LottaLaps.lua",
+            "luaToStringFunctionExample.lua",
+            "simple.lua"};
+        for (const auto& file : test_files) {
+            std::string path = "../luaprograms/" + file;
+            DYNAMIC_SECTION("File: " << path) {
+                const std::string program = read_input_from_file(path);
+
+                // old parser
+                // const auto result = parse_eval_update(program);
+                // REQUIRE(result == program);
+
+                minilua::Interpreter interpreter;
+                // interpreter.config().all(true);
+                interpreter.parse(program);
+                auto result = interpreter.evaluate();
+                REQUIRE(!result.source_change.has_value());
+            }
+        }
     }
 
     SECTION("Lua-program without functions") {
