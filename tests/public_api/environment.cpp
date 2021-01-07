@@ -51,7 +51,7 @@ TEST_CASE("Environment can be moved") {
         minilua::Environment env2{std::move(env)}; // NOLINT
 
         REQUIRE(!env.has("val1"));
-        REQUIRE_THROWS(env.get("val1"));
+        REQUIRE(env.get("val1") == minilua::Nil());
         REQUIRE(env2.has("val1"));
         REQUIRE(env2.get("val1") == 24);
         REQUIRE(env != env2);
@@ -63,7 +63,7 @@ TEST_CASE("Environment can be moved") {
 
         minilua::Environment env2;
         env2 = std::move(env);
-        REQUIRE_THROWS_AS(env.get("val1"), std::out_of_range);
+        REQUIRE(env.get("val1") == minilua::Nil());
         REQUIRE(env2.get("val1") == 24);
         REQUIRE(env != env2);
     }
@@ -76,7 +76,7 @@ TEST_CASE("Environments can be swapped") {
     minilua::Environment env2;
 
     swap(env, env2);
-    REQUIRE_THROWS_AS(env.get("val1"), std::out_of_range);
+    REQUIRE(env.get("val1") == minilua::Nil());
     REQUIRE(env2.get("val1") == 24);
     REQUIRE(env != env2);
 }

@@ -37,9 +37,25 @@ struct EvalResult {
 auto operator<<(std::ostream&, const EvalResult&) -> std::ostream&;
 
 struct InterpreterConfig {
+    std::ostream* target;
     bool trace_nodes;
+    bool trace_calls;
 
     InterpreterConfig();
+    InterpreterConfig(bool);
+
+    /**
+     * Set all trace flags to the provided value.
+     */
+    void all(bool);
+};
+
+/**
+ * Exception thrown by the interpreter.
+ */
+class InterpreterException : public std::runtime_error {
+public:
+    InterpreterException(const std::string& what);
 };
 
 /**

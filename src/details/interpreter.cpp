@@ -3,9 +3,11 @@
 
 #include <cassert>
 #include <iostream>
+#include <set>
 
 namespace minilua::details {
 
+// TODO remove the unimplemented stuff once everything is implemented
 class UnimplementedException : public std::runtime_error {
 public:
     UnimplementedException(const std::string& where, const std::string& what)
@@ -25,18 +27,33 @@ auto Interpreter::run(const ts::Tree& tree, Environment& env) -> EvalResult {
     return this->visit_root(tree.root_node(), env);
 }
 
+auto Interpreter::tracer() const -> std::ostream& { return *this->config.target; }
 void Interpreter::trace_enter_node(ts::Node node) const {
     if (this->config.trace_nodes) {
-        std::cerr << "Enter node: " << ts::debug_print_node(node) << "\n";
+        this->tracer() << "Enter node: " << ts::debug_print_node(node) << "\n";
     }
 }
 void Interpreter::trace_exit_node(ts::Node node) const {
     if (this->config.trace_nodes) {
-        std::cerr << "Exit node: " << ts::debug_print_node(node) << "\n";
+        this->tracer() << "Exit node: " << ts::debug_print_node(node) << "\n";
+    }
+}
+void Interpreter::trace_function_call(
+    const std::string& function_name, const std::vector<Value>& arguments) const {
+    if (this->config.trace_calls) {
+        this->tracer() << "Calling function: " << function_name << " with arguments (";
+        for (const auto& arg : arguments) {
+            this->tracer() << arg << ", ";
+        }
+        this->tracer() << ")\n";
     }
 }
 
-static auto should_ignore_node(ts::Node node) -> bool { return node.type() == std::string(";"); }
+static const std::set<std::string> IGNORE_NODES{";", "comment"};
+
+static auto should_ignore_node(ts::Node node) -> bool {
+    return IGNORE_NODES.find(node.type()) != IGNORE_NODES.end();
+}
 
 auto Interpreter::visit_root(ts::Node node, Environment& env) -> EvalResult {
     assert(node.type() == std::string("program"));
@@ -93,7 +110,7 @@ auto Interpreter::visit_expression(ts::Node node, Environment& env) -> EvalResul
 
     if (node.type() == std::string("number")) {
         // TODO parse number
-        auto value = 55;
+        auto value = parse_number(node.text());
         result.value = value;
     } else if (node.type() == std::string("identifier")) {
         auto variable_name = this->visit_identifier(node, env);
@@ -127,10 +144,13 @@ auto Interpreter::visit_function_call(ts::Node node, Environment& env) -> CallRe
         argument = argument->next_sibling();
     }
 
+    this->trace_function_call(function_name, arguments);
+
     // call function
     // this will produce an error if the obj is not callable
     auto obj = env.get(function_name);
     auto ctx = CallContext(&env).make_new(Vallist(arguments));
+
     // TODO meta tables (might be handles by Value::call)
     auto result = obj.call(ctx);
 

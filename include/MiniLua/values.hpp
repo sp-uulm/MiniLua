@@ -873,6 +873,13 @@ struct BinaryNumericFunctionHelper {
 // deduction guide
 template <class... Ts> BinaryNumericFunctionHelper(Ts...) -> BinaryNumericFunctionHelper<Ts...>;
 
+// helper functions
+
+/**
+ * Parse a string into a lua value number.
+ */
+auto parse_number(const std::string& str) -> Value;
+
 } // namespace minilua
 
 #endif

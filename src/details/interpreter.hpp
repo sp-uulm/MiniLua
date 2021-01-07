@@ -34,8 +34,11 @@ public:
     auto visit_function_call(ts::Node node, Environment& env) -> CallResult;
 
 private:
+    auto tracer() const -> std::ostream&;
     void trace_enter_node(ts::Node node) const;
     void trace_exit_node(ts::Node node) const;
+    void trace_function_call(
+        const std::string& function_name, const std::vector<Value>& arguments) const;
 };
 
 } // namespace minilua::details

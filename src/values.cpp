@@ -258,7 +258,14 @@ auto Table::operator=(Table&& other) noexcept -> Table& {
 };
 void swap(Table& self, Table& other) { std::swap(self.impl, other.impl); }
 
-auto Table::get(const Value& key) -> Value { return Value(impl->value.at(key)); }
+auto Table::get(const Value& key) -> Value {
+    auto value = impl->value.find(key);
+    if (value == impl->value.end()) {
+        return Nil();
+    } else {
+        return Value(value->second);
+    }
+}
 auto Table::has(const Value& key) -> bool { return impl->value.find(key) != impl->value.end(); }
 void Table::set(const Value& key, Value value) { impl->value[key] = std::move(value); }
 void Table::set(Value&& key, Value value) { impl->value[key] = std::move(value); }
@@ -1034,6 +1041,21 @@ auto operator<<(std::ostream& os, const Vallist& self) -> std::ostream& {
     }
     os << "}";
     return os;
+}
+
+// helper functions
+
+auto parse_number(const std::string& str) -> Value {
+    std::regex pattern_number(R"(\s*\d+\.?\d*)");
+    std::regex pattern_hex(R"(\s*0[xX][\dA-Fa-f]+\.?[\dA-Fa-f]*)");
+    std::regex pattern_exp(R"(\s*\d+\.?\d*[eE]-?\d+)");
+
+    if (std::regex_match(str, pattern_number) || std::regex_match(str, pattern_hex) ||
+        std::regex_match(str, pattern_exp)) {
+        return std::stod(str);
+    } else {
+        return Nil();
+    }
 }
 
 } // namespace minilua

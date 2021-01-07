@@ -60,21 +60,7 @@ auto to_number(const CallContext& ctx) -> Value {
 
     return std::visit(
         overloaded{
-            [](const String& number, Nil /*nil*/) -> Value {
-                // Yes: parse number to double
-                // No: return Nil
-                std::regex pattern_number(R"(\s*\d+\.?\d*)");
-                std::regex pattern_hex(R"(\s*0[xX][\dA-Fa-f]+\.?[\dA-Fa-f]*)");
-                std::regex pattern_exp(R"(\s*\d+\.?\d*[eE]-?\d+)");
-
-                if (std::regex_match(number.value, pattern_number) ||
-                    std::regex_match(number.value, pattern_hex) ||
-                    std::regex_match(number.value, pattern_exp)) {
-                    return std::stod(number.value);
-                } else {
-                    return Nil();
-                }
-            },
+            [](const String& number, Nil /*nil*/) -> Value { return parse_number(number.value); },
             [](const String& number, Number base) -> Value {
                 // match again with pattern, but this time with 1 .
                 // Interval of base, with strings only numbers bezween base 2 and base 36 are

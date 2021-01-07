@@ -18,7 +18,17 @@ auto operator<<(std::ostream& o, const EvalResult& self) -> std::ostream& {
 }
 
 // struct InterpreterConfig
-InterpreterConfig::InterpreterConfig() : trace_nodes(false) {}
+InterpreterConfig::InterpreterConfig()
+    : target(&std::cerr), trace_nodes(false), trace_calls(false) {}
+InterpreterConfig::InterpreterConfig(bool def)
+    : target(&std::cerr), trace_nodes(def), trace_calls(def) {}
+void InterpreterConfig::all(bool def) {
+    this->trace_nodes = def;
+    this->trace_calls = def;
+}
+
+// class InterpreterException
+InterpreterException::InterpreterException(const std::string& what) : std::runtime_error(what) {}
 
 struct Interpreter::Impl {
     ts::Parser parser;       // NOLINT(misc-non-private-member-variables-in-classes)

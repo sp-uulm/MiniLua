@@ -27,7 +27,7 @@ auto debug_values(const minilua::CallContext& ctx) -> minilua::CallResult {
 
 TEST_CASE("Interpreter integration test") {
     minilua::Interpreter interpreter;
-    interpreter.config().trace_nodes = true;
+    interpreter.config().all(true);
 
     // populate the environment
     interpreter.environment().add_default_stdlib();
