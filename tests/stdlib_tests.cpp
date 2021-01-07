@@ -55,6 +55,16 @@ TEST_CASE("select") {
         CHECK(minilua::select(ctx) == minilua::Vallist{end});
     }
 
+    SECTION("Get last 3 elements (index = -3)") {
+        minilua::Vallist list = minilua::Vallist(
+            {minilua::Value{-3}, minilua::Value{"Hallo Welt!"}, minilua::Value{75},
+             minilua::Value{100}, minilua::Value{5}, minilua::Value{6}, minilua::Value{7}});
+        ctx = ctx.make_new(list);
+        CHECK(
+            minilua::select(ctx) ==
+            minilua::Vallist{minilua::Value{5}, minilua::Value{6}, minilua::Value{7}});
+    }
+
     SECTION("get all elements") {
         minilua::Vallist list = minilua::Vallist(
             {minilua::Value{1}, minilua::Value{"Hallo Welt!"}, minilua::Value{75},
@@ -87,13 +97,25 @@ TEST_CASE("select") {
 
     SECTION("fails") {
         SECTION("index out of range") {
-            minilua::Vallist list = minilua::Vallist(
-                {minilua::Value{0}, minilua::Value{"Hallo Welt!"}, minilua::Value{75},
-                 minilua::Value{100}});
-            ctx = ctx.make_new(list);
+            SECTION("index = 0") {
+                minilua::Vallist list = minilua::Vallist(
+                    {minilua::Value{0}, minilua::Value{"Hallo Welt!"}, minilua::Value{75},
+                     minilua::Value{100}});
+                ctx = ctx.make_new(list);
 
-            CHECK_THROWS_WITH(
-                minilua::select(ctx), "bad argument #1 to 'select' (index out of range)");
+                CHECK_THROWS_WITH(
+                    minilua::select(ctx), "bad argument #1 to 'select' (index out of range)");
+            }
+
+            SECTION("negative index that is bigger than listsize") {
+                minilua::Vallist list = minilua::Vallist(
+                    {minilua::Value{-100}, minilua::Value{"Hallo Welt!"}, minilua::Value{75},
+                     minilua::Value{100}});
+                ctx = ctx.make_new(list);
+
+                CHECK_THROWS_WITH(
+                    minilua::select(ctx), "bad argument #1 to 'select' (index out of range)");
+            }
         }
 
         SECTION("invalid string") {
