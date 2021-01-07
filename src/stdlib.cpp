@@ -158,7 +158,7 @@ auto select(const CallContext& ctx) -> Vallist {
     return std::visit(
         overloaded{
             [&args](Number n) -> Vallist {
-                if (n == 0) {
+                if (n == 0 || n < (int)args.size() * -1) {
                     throw std::runtime_error("bad argument #1 to 'select' (index out of range)");
                 } else if (n > 0) {
                     std::vector<Value> returns;
