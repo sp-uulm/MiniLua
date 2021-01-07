@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <exception>
 #include <regex>
 #include <sstream>
@@ -7,6 +8,7 @@
 #include <variant>
 #include <vector>
 
+#include "MiniLua/environment.hpp"
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/utils.hpp"
 #include "MiniLua/values.hpp"
@@ -188,5 +190,23 @@ auto select(const CallContext& ctx) -> Vallist {
                     ")");
             }},
         index.raw());
+}
+
+void print(const CallContext& ctx) {
+    auto* const stdout = ctx.environment().get_stdout();
+    std::string gap;
+
+    for (const auto& arg : ctx.arguments()) {
+        Environment env;
+        CallContext tmp(&env);
+        tmp = tmp.make_new(Vallist({arg}));
+
+        const Value v = to_string(tmp);
+
+        if (v.is_string()) {
+            *stdout << gap << std::get<String>(v).value;
+            gap = "\t";
+        }
+    }
 }
 } // namespace minilua
