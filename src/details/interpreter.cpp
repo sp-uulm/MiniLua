@@ -1,4 +1,5 @@
 #include "interpreter.hpp"
+#include "MiniLua/interpreter.hpp"
 #include "tree_sitter/tree_sitter.hpp"
 
 #include <cassert>
@@ -24,7 +25,13 @@ public:
 Interpreter::Interpreter(const InterpreterConfig& config) : config(config) {}
 
 auto Interpreter::run(const ts::Tree& tree, Environment& env) -> EvalResult {
-    return this->visit_root(tree.root_node(), env);
+    try {
+        return this->visit_root(tree.root_node(), env);
+    } catch (const InterpreterException&) {
+        throw;
+    } catch (const std::exception& e) {
+        throw InterpreterException("unknown error");
+    }
 }
 
 auto Interpreter::tracer() const -> std::ostream& { return *this->config.target; }
@@ -151,8 +158,13 @@ auto Interpreter::visit_function_call(ts::Node node, Environment& env) -> CallRe
     auto obj = env.get(function_name);
     auto ctx = CallContext(&env).make_new(Vallist(arguments));
 
-    // TODO meta tables (might be handles by Value::call)
-    auto result = obj.call(ctx);
+    CallResult result;
+    try {
+        result = obj.call(ctx);
+    } catch (const std::runtime_error& e) {
+        throw InterpreterException(
+            std::string("failed to call ") + function_name + ": " + e.what());
+    }
 
     this->trace_exit_node(node);
     return result;

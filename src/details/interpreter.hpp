@@ -34,7 +34,7 @@ public:
     auto visit_function_call(ts::Node node, Environment& env) -> CallResult;
 
 private:
-    auto tracer() const -> std::ostream&;
+    [[nodiscard]] auto tracer() const -> std::ostream&;
     void trace_enter_node(ts::Node node) const;
     void trace_exit_node(ts::Node node) const;
     void trace_function_call(
