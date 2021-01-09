@@ -29,9 +29,11 @@ public:
     auto visit_variable_declarator(ts::Node node, Environment& env) -> std::string;
 
     auto visit_expression(ts::Node node, Environment& env) -> EvalResult;
-    auto visit_number(ts::Node node, Environment& env) -> EvalResult;
-
+    auto visit_unary_operation(ts::Node node, Environment& env) -> EvalResult;
+    auto visit_binary_operation(ts::Node node, Environment& env) -> EvalResult;
     auto visit_function_call(ts::Node node, Environment& env) -> CallResult;
+
+    auto visit_number(ts::Node node, Environment& env) -> EvalResult;
 
 private:
     [[nodiscard]] auto tracer() const -> std::ostream&;

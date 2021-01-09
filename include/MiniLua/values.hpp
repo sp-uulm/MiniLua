@@ -174,6 +174,7 @@ constexpr auto operator>=(Number lhs, Number rhs) noexcept -> bool {
 auto operator<<(std::ostream&, Number) -> std::ostream&;
 
 // normal c++ operators
+auto operator-(Number self) -> Number;
 DELEGATE_OP(Number, +);
 DELEGATE_OP(Number, -);
 DELEGATE_OP(Number, *);
@@ -749,6 +750,7 @@ public:
      *
      * Can be used in the interpreter to add the source location of the operation.
      */
+    [[nodiscard]] auto negate(std::optional<Range> location = std::nullopt) const -> Value;
     [[nodiscard]] auto add(const Value& rhs, std::optional<Range> location = std::nullopt) const
         -> Value;
     [[nodiscard]] auto sub(const Value& rhs, std::optional<Range> location = std::nullopt) const
@@ -771,8 +773,13 @@ public:
     logic_and(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
     [[nodiscard]] auto
     logic_or(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
-    [[nodiscard]] auto negate(std::optional<Range> location = std::nullopt) const -> Value;
+    [[nodiscard]] auto invert(std::optional<Range> location = std::nullopt) const -> Value;
+    [[nodiscard]] auto equals(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    [[nodiscard]] auto
+    unequals(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
 
+    friend auto operator-(const Value&) -> Value;
     friend auto operator+(const Value&, const Value&) -> Value;
     friend auto operator-(const Value&, const Value&) -> Value;
     friend auto operator*(const Value&, const Value&) -> Value;
@@ -878,7 +885,8 @@ template <class... Ts> BinaryNumericFunctionHelper(Ts...) -> BinaryNumericFuncti
 /**
  * Parse a string into a lua value number.
  */
-auto parse_number(const std::string& str) -> Value;
+auto parse_number_literal(const std::string& str) -> Value;
+auto parse_string_literal(const std::string& str) -> Value;
 
 } // namespace minilua
 

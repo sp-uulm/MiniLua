@@ -9,10 +9,10 @@
 namespace minilua::details {
 
 // TODO remove the unimplemented stuff once everything is implemented
-class UnimplementedException : public std::runtime_error {
+class UnimplementedException : public InterpreterException {
 public:
     UnimplementedException(const std::string& where, const std::string& what)
-        : std::runtime_error("unimplemented: \"" + what + "\" in " + where) {}
+        : InterpreterException("unimplemented: \"" + what + "\" in " + where) {}
 };
 
 #define UNIMPLEMENTED(what)                                                                        \
@@ -152,15 +152,80 @@ auto Interpreter::visit_expression(ts::Node node, Environment& env) -> EvalResul
 
     EvalResult result;
 
-    if (node.type() == std::string("number")) {
-        auto value = parse_number(node.text());
+    if (node.type() == "number"s) {
+        auto value = parse_number_literal(node.text());
         Origin origin = LiteralOrigin{.location = convert_range(node.range())};
         result.value = value.with_origin(origin);
-    } else if (node.type() == std::string("identifier")) {
+    } else if (node.type() == "true"s) {
+        Origin origin = LiteralOrigin{.location = convert_range(node.range())};
+        result.value = Value(true).with_origin(origin);
+    } else if (node.type() == "false"s) {
+        Origin origin = LiteralOrigin{.location = convert_range(node.range())};
+        result.value = Value(false).with_origin(origin);
+    } else if (node.type() == "nil"s) {
+        Origin origin = LiteralOrigin{.location = convert_range(node.range())};
+        result.value = Value(Nil()).with_origin(origin);
+    } else if (node.type() == "string"s) {
+        auto value = parse_string_literal(node.text());
+        Origin origin = LiteralOrigin{.location = convert_range(node.range())};
+        result.value = value.with_origin(origin);
+    } else if (node.type() == "identifier"s) {
         auto variable_name = this->visit_identifier(node, env);
         result.value = env.get(variable_name);
+    } else if (node.type() == "unary_operation"s) {
+        result = this->visit_unary_operation(node, env);
+    } else if (node.type() == "binary_operation"s) {
+        result = this->visit_binary_operation(node, env);
+    } else if (node.type() == std::string("function_call")) {
+        result = this->visit_function_call(node, env);
     } else {
         throw UNIMPLEMENTED(node.type());
+    }
+
+    this->trace_exit_node(node);
+    return result;
+}
+
+auto Interpreter::visit_binary_operation(ts::Node node, Environment& env) -> EvalResult {
+    assert(node.type() == std::string("binary_operation"));
+    this->trace_enter_node(node);
+
+    EvalResult result;
+
+    auto lhs_node = node.child(0).value();
+    auto operator_node = node.child(1).value();
+    auto rhs_node = node.child(2).value();
+
+    EvalResult lhs_result = this->visit_expression(lhs_node, env);
+    EvalResult rhs_result = this->visit_expression(rhs_node, env);
+
+    if (operator_node.type() == "=="s) {
+        result.value = lhs_result.value.equals(rhs_result.value);
+        result.source_change =
+            combine_source_changes(lhs_result.source_change, rhs_result.source_change);
+    } else {
+        throw UNIMPLEMENTED(node.type());
+    }
+
+    this->trace_exit_node(node);
+    return result;
+}
+
+auto Interpreter::visit_unary_operation(ts::Node node, Environment& env) -> EvalResult {
+    assert(node.type() == std::string("unary_operation"));
+    this->trace_enter_node(node);
+
+    auto operator_ = node.child(0).value();
+    auto expr = node.child(1).value();
+
+    EvalResult result = this->visit_expression(expr, env);
+
+    if (operator_.type() == "-"s) {
+        result.value = result.value.negate(convert_range(node.range()));
+    } else if (operator_.type() == "not"s) {
+        result.value = result.value.invert(convert_range(node.range()));
+    } else {
+        throw UNIMPLEMENTED(operator_.type());
     }
 
     this->trace_exit_node(node);

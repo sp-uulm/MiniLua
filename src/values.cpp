@@ -52,6 +52,7 @@ auto operator<<(std::ostream& os, Number self) -> std::ostream& {
     return os << "Number(" << self.value << ")";
 }
 Number::operator bool() const { return true; }
+auto operator-(Number self) -> Number { return -self.value; }
 auto operator^(Number lhs, Number rhs) -> Number { return std::pow(lhs.value, rhs.value); }
 auto operator%(Number lhs, Number rhs) -> Number { return Number(std::fmod(lhs.value, rhs.value)); }
 auto operator&(Number lhs, Number rhs) -> Number {
@@ -823,6 +824,26 @@ static inline auto num_op_helper(
         lhs.raw(), rhs.raw());
 }
 
+[[nodiscard]] auto Value::negate(std::optional<Range> location) const -> Value {
+    auto origin = Origin(UnaryOrigin{
+        .val = make_owning<Value>(*this),
+        .location = location,
+        .reverse = [](const Value& new_value, const Value& old_value)
+            -> std::optional<SourceChangeTree> { return old_value.force(-new_value); }});
+
+    return std::visit(
+               overloaded{
+                   [](const Number& value) -> Value { return -value; },
+                   // TODO metatables maybe
+                   [](const auto& value) -> Value {
+                       std::string msg = "Can not negate values of type ";
+                       msg.append(value.TYPE);
+                       msg.append(".");
+                       throw std::runtime_error(msg);
+                   }},
+               this->raw())
+        .with_origin(origin);
+}
 [[nodiscard]] auto Value::add(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
         *this, rhs, [](double lhs, double rhs) { return lhs + rhs; }, "add",
@@ -927,7 +948,7 @@ static inline auto num_op_helper(
         return rhs.with_origin(origin);
     }
 }
-[[nodiscard]] auto Value::negate(std::optional<Range> location) const -> Value {
+[[nodiscard]] auto Value::invert(std::optional<Range> location) const -> Value {
     auto origin = Origin(UnaryOrigin{
         .val = make_owning<Value>(*this),
         .location = location,
@@ -947,8 +968,25 @@ static inline auto num_op_helper(
 
     return Value(!bool(*this)).with_origin(origin);
 }
+[[nodiscard]] auto Value::equals(const Value& rhs, std::optional<Range> location) const -> Value {
+    auto origin = Origin(BinaryOrigin{
+        .lhs = make_owning<Value>(*this),
+        .rhs = make_owning<Value>(rhs),
+        .location = location,
+        .reverse = [](const Value& new_value, const Value& old_lhs,
+                      const Value& old_rhs) -> std::optional<SourceChangeTree> {
+            // can't reverse the operation in almost all cases
+            // TODO implement the few that could be reversed
+            return std::nullopt;
+        }});
+
+    return Value(*this == rhs).with_origin(origin);
+}
+[[nodiscard]] auto Value::unequals(const Value& rhs, std::optional<Range> location) const -> Value {
+}
 
 // arithmetic operators
+auto operator-(const Value& value) -> Value { return value.negate(); }
 auto operator+(const Value& lhs, const Value& rhs) -> Value { return lhs.add(rhs); }
 auto operator-(const Value& lhs, const Value& rhs) -> Value { return lhs.sub(rhs); }
 auto operator*(const Value& lhs, const Value& rhs) -> Value { return lhs.mul(rhs); }
@@ -961,7 +999,7 @@ auto operator|(const Value& lhs, const Value& rhs) -> Value { return lhs.bit_or(
 // logic operators
 auto operator&&(const Value& lhs, const Value& rhs) -> Value { return lhs.logic_and(rhs); }
 auto operator||(const Value& lhs, const Value& rhs) -> Value { return lhs.logic_or(rhs); }
-auto operator!(const Value& value) -> Value { return value.negate(); }
+auto operator!(const Value& value) -> Value { return value.invert(); }
 
 } // namespace minilua
 
@@ -1045,7 +1083,7 @@ auto operator<<(std::ostream& os, const Vallist& self) -> std::ostream& {
 
 // helper functions
 
-auto parse_number(const std::string& str) -> Value {
+auto parse_number_literal(const std::string& str) -> Value {
     std::regex pattern_number(R"(\s*\d+\.?\d*)");
     std::regex pattern_hex(R"(\s*0[xX][\dA-Fa-f]+\.?[\dA-Fa-f]*)");
     std::regex pattern_exp(R"(\s*\d+\.?\d*[eE]-?\d+)");
@@ -1056,6 +1094,14 @@ auto parse_number(const std::string& str) -> Value {
     } else {
         return Nil();
     }
+}
+auto parse_string_literal(const std::string& str) -> Value {
+    // TODO parse multiline string
+
+    // ignore the leading and trailing `"`s (which are guaranteed by the grammar)
+    auto value = str.substr(1, str.length() - 2);
+    // TODO parse escapes etc.
+    return value;
 }
 
 } // namespace minilua

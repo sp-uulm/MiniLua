@@ -401,6 +401,8 @@ static void debug_print_node_content(Node node, std::stringstream& out) {
         out << " " << properties.str();
     }
 
+    out << " " << node.range().start.point.row << ":" << node.range().start.point.column;
+
     // text content
     if (node.child_count() == 0) {
         out << " \"" << node.text() << "\"";

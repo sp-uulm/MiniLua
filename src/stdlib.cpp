@@ -16,6 +16,16 @@
 
 namespace minilua {
 
+void Environment::add_default_stdlib() {
+    this->add("tostring", tostring);
+    this->add("to_number", to_number);
+    this->add("type", type);
+    this->add("assert", assert_lua);
+    this->add("next", next);
+    this->add("select", select);
+    this->add("print", print);
+}
+
 /**
 Splits a string into two parts. the split happens at the character c which is not included in the
 result.
@@ -34,7 +44,7 @@ static auto split_string(const std::string& s, char c) -> std::pair<std::string,
     return result;
 }
 
-auto to_string(const CallContext& ctx) -> Value {
+auto tostring(const CallContext& ctx) -> Value {
     auto arg = ctx.arguments().get(0);
     return std::visit(
         overloaded{
@@ -65,7 +75,9 @@ auto to_number(const CallContext& ctx) -> Value {
 
     return std::visit(
         overloaded{
-            [](const String& number, Nil /*nil*/) -> Value { return parse_number(number.value); },
+            [](const String& number, Nil /*nil*/) -> Value {
+                return parse_number_literal(number.value);
+            },
             [](const String& number, Number base) -> Value {
                 // match again with pattern, but this time with 1 .
                 // Interval of base, with strings only numbers bezween base 2 and base 36 are
@@ -196,7 +208,7 @@ void print(const CallContext& ctx) {
     std::string gap;
 
     for (const auto& arg : ctx.arguments()) {
-        const Value v = to_string(ctx.make_new({arg}));
+        const Value v = tostring(ctx.make_new({arg}));
 
         if (v.is_string()) {
             *stdout << gap << std::get<String>(v).value;
