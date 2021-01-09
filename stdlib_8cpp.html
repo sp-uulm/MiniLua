@@ -5,7 +5,7 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=9"/>
 		<meta name="generator" content="Doxygen 1.8.17"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1"/>
-		<title>MiniLua: core/stdlib.cpp File Reference</title>
+		<title>MiniLua: stdlib.cpp File Reference</title>
 		<link href="tabs.css" rel="stylesheet" type="text/css"/>
 		<script type="text/javascript" src="jquery.js"></script>
 		<script type="text/javascript" src="dynsections.js"></script>
@@ -62,10 +62,6 @@ $(function() {
 </iframe>
 </div>
 
-<div id="nav-path" class="navpath">
-  <ul>
-<li class="navelem"><a class="el" href="dir_aebb8dcc11953d78e620bbef0b9e2183.html">core</a></li>  </ul>
-</div>
 </div><!-- top -->
 <div class="header">
   <div class="summary">
@@ -75,12 +71,17 @@ $(function() {
 <div class="title">stdlib.cpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;exception&gt;</code><br />
+<div class="textblock"><code>#include &lt;cstdio&gt;</code><br />
+<code>#include &lt;exception&gt;</code><br />
+<code>#include &lt;iostream&gt;</code><br />
 <code>#include &lt;regex&gt;</code><br />
 <code>#include &lt;sstream&gt;</code><br />
 <code>#include &lt;stdexcept&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
+<code>#include &lt;utility&gt;</code><br />
 <code>#include &lt;variant&gt;</code><br />
+<code>#include &lt;vector&gt;</code><br />
+<code>#include &quot;<a class="el" href="environment_8hpp_source.html">MiniLua/environment.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="stdlib_8hpp_source.html">MiniLua/stdlib.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="utils_8hpp_source.html">MiniLua/utils.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="values_8hpp_source.html">MiniLua/values.hpp</a>&quot;</code><br />
@@ -98,10 +99,14 @@ Functions</h2></td></tr>
 <tr class="separator:a204872a1728049e8b6765bc9e638a737"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa4448616a0cd6e318a2a7006632d6d09"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#aa4448616a0cd6e318a2a7006632d6d09">minilua::type</a> (const CallContext &amp;ctx) -&gt; Value</td></tr>
 <tr class="separator:aa4448616a0cd6e318a2a7006632d6d09"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a66205950606db196822ffbb476d034c8"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a66205950606db196822ffbb476d034c8">minilua::assert</a> (const CallContext &amp;ctx) -&gt; Value</td></tr>
-<tr class="separator:a66205950606db196822ffbb476d034c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adeab3b2de440504e491fcbc1443c59e6"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#adeab3b2de440504e491fcbc1443c59e6">minilua::assert_lua</a> (const CallContext &amp;ctx) -&gt; Vallist</td></tr>
+<tr class="separator:adeab3b2de440504e491fcbc1443c59e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8591e5cda9dc18e9ee46681a1e4995be"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a8591e5cda9dc18e9ee46681a1e4995be">minilua::next</a> (const CallContext &amp;ctx) -&gt; Vallist</td></tr>
 <tr class="separator:a8591e5cda9dc18e9ee46681a1e4995be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aecddd7e2bb983b093d7d69a0572ee8c3"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#aecddd7e2bb983b093d7d69a0572ee8c3">minilua::select</a> (const CallContext &amp;ctx) -&gt; Vallist</td></tr>
+<tr class="separator:aecddd7e2bb983b093d7d69a0572ee8c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad8119e4245ca8b8addbba759613c9bfa"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#ad8119e4245ca8b8addbba759613c9bfa">minilua::print</a> (const CallContext &amp;ctx)</td></tr>
+<tr class="separator:ad8119e4245ca8b8addbba759613c9bfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->

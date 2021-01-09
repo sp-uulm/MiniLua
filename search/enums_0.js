@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['type_1270',['Type',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432',1,'LuaToken']]],
-  ['typekind_1271',['TypeKind',['../namespacets.html#a4b1e0c2da53e86fac30568c832aa2720',1,'ts']]]
+  ['type_1272',['Type',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432',1,'LuaToken']]],
+  ['typekind_1273',['TypeKind',['../namespacets.html#a4b1e0c2da53e86fac30568c832aa2720',1,'ts']]]
 ];

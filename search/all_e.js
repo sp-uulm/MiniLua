@@ -19,6 +19,6 @@ var searchData=
   ['pow_459',['POW',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432afd0260fc2a1d63c211e41ed0b237a171',1,'LuaToken::POW()'],['../classminilua_1_1Value.html#a1d40bc2ec71ae70e8fb07b9f119dff57',1,'minilua::Value::pow()']]],
   ['prev_5fnamed_5fsibling_460',['prev_named_sibling',['../classts_1_1Node.html#a19fc45b2e7ed54cc8e2f0781e93738cd',1,'ts::Node']]],
   ['prev_5fsibling_461',['prev_sibling',['../classts_1_1Node.html#a86229e18d4fffb43df9cf7e5d5f0d9e8',1,'ts::Node']]],
-  ['print_462',['print',['../namespacelua_1_1rt_1_1stdlib.html#a606b463951c50c91ca8bb6269d471fbb',1,'lua::rt::stdlib']]],
+  ['print_462',['print',['../namespacelua_1_1rt_1_1stdlib.html#a606b463951c50c91ca8bb6269d471fbb',1,'lua::rt::stdlib::print()'],['../namespaceminilua.html#ad8119e4245ca8b8addbba759613c9bfa',1,'minilua::print()']]],
   ['print_5fdot_5fgraph_463',['print_dot_graph',['../classts_1_1Tree.html#a19056835e8da45a62783a12e2d9a70a1',1,'ts::Tree']]]
 ];
