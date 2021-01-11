@@ -1,5 +1,6 @@
 #include <cmath>
 #include <iostream>
+#include <stdexcept>
 
 #include "MiniLua/math.hpp"
 #include "MiniLua/stdlib.hpp"
@@ -9,11 +10,13 @@ namespace minilua::math {
 
 auto abs(const CallContext& ctx) -> Value {
     auto x = ctx.arguments().get(0);
-    cout << minilua::to_number(ctx).raw() << endl;
-    auto num = get<Number>(minilua::to_number(ctx));
+    auto res = minilua::to_number(ctx);
+    if (res != Nil()) {
+        auto num = get<Number>(res);
 
-    cout << std::abs(num.value) << endl;
-
-    return Value(std::abs(num.value));
+        return Value(std::abs(num.value));
+    } else {
+        throw std::runtime_error("bad argument #1 to abs (number expected, got " + x.type() + ")");
+    }
 }
 } // namespace minilua::math

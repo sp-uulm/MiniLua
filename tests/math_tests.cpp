@@ -55,10 +55,26 @@ TEST_CASE("math.abs(x)") {
             CHECK(minilua::math::abs(ctx) == 42);
         }
 
-        SECTION("positive Double as string") {}
+        SECTION("positive Double as string") {
+            std::string i = "42.5";
+            minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::abs(ctx) == 42.5);
+        }
 
-        SECTION("negative Double as string") {}
+        SECTION("negative Double as string") {
+            std::string i = "-42.5";
+            minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::abs(ctx) == 42.5);
+        }
 
-        SECTION("non-number string") {}
+        SECTION("non-number string") {
+            std::string i = "baum";
+            minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::abs(ctx), "bad argument #1 to abs (number expected, got string)");
+        }
     }
 }
