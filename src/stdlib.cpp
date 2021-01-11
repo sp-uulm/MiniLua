@@ -12,7 +12,6 @@
 #include "MiniLua/environment.hpp"
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/utils.hpp"
-#include "MiniLua/values.hpp"
 
 namespace minilua {
 
@@ -68,9 +67,9 @@ auto to_number(const CallContext& ctx) -> Value {
             [](const String& number, Nil /*nil*/) -> Value {
                 // Yes: parse number to double
                 // No: return Nil
-                std::regex pattern_number(R"(\s*\d+\.?\d*)");
-                std::regex pattern_hex(R"(\s*0[xX][\dA-Fa-f]+\.?[\dA-Fa-f]*)");
-                std::regex pattern_exp(R"(\s*\d+\.?\d*[eE]-?\d+)");
+                std::regex pattern_number(R"(\s*-?\d+\.?\d*)");
+                std::regex pattern_hex(R"(\s*-?0[xX][\dA-Fa-f]+\.?[\dA-Fa-f]*)");
+                std::regex pattern_exp(R"(\s*-?\d+\.?\d*[eE]-?\d+)");
 
                 if (std::regex_match(number.value, pattern_number) ||
                     std::regex_match(number.value, pattern_hex) ||
@@ -87,9 +86,9 @@ auto to_number(const CallContext& ctx) -> Value {
                 if (base < 2 || base > 36) { // NOLINT
                     throw std::runtime_error("base is to high. base must be >= 2 and <= 36");
                 } else {
-                    std::regex pattern_number(R"(\s*\d+\.\d*)");
-                    std::regex pattern_hex(R"(\s*0[xX][\dA-Za-z]+\.[\dA-Za-z]*)");
-                    std::regex pattern_exp(R"(\s*\d+\.\d*[eE]-?\d+)");
+                    std::regex pattern_number(R"(\s*-?\d+\.\d*)");
+                    std::regex pattern_hex(R"(\s*-?0[xX][\dA-Za-z]+\.[\dA-Za-z]*)");
+                    std::regex pattern_exp(R"(\s*-?\d+\.\d*[eE]-?\d+)");
                     // parse number to double
                     if (std::regex_match(number.value, pattern_number) ||
                         std::regex_match(number.value, pattern_hex)) {
