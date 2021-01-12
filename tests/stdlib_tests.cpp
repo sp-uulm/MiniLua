@@ -4,6 +4,61 @@
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/values.hpp"
 
+TEST_CASE("to_string") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("Bool to String") {
+        SECTION("True") {
+            bool i = true;
+            minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::to_string(ctx) == minilua::Value("true"));
+        }
+
+        SECTION("False") {
+            bool i = false;
+            minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::to_string(ctx) == minilua::Value("false"));
+        }
+    }
+
+    SECTION("Number to String") {
+        int i = 42;
+        minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::to_string(ctx) == minilua::Value("42"));
+    }
+
+    SECTION("String to String") {
+        std::string s = "Minilua";
+        minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::to_string(ctx) == minilua::Value("Minilua"));
+    }
+
+    SECTION("Nil to String") {
+        minilua::Vallist list = minilua::Vallist({minilua::Nil()});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::to_string(ctx) == minilua::Value("nil"));
+    }
+
+    SECTION("Table to String") {
+        minilua::Table t;
+        minilua::Vallist list = minilua::Vallist({t});
+        ctx = ctx.make_new(list);
+        CHECK_FALSE(minilua::to_string(ctx) == minilua::Value(""));
+    }
+
+    SECTION("Function to String") {
+        minilua::Function f();
+        minilua::Vallist list = minilua::Vallist({f});
+        ctx = ctx.make_new(list);
+        CHECK_FALSE(minilua::to_string(ctx) == minilua::Value(""));
+    }
+}
+
 TEST_CASE("to_number") {
     minilua::Environment env;
     minilua::CallContext ctx(&env);
