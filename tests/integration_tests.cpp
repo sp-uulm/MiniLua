@@ -95,6 +95,23 @@ TEST_CASE("parse, eval, update", "[parse][leaks]") {
     }
 }
 
+TEST_CASE("unit_tests lua files") {
+    std::vector<std::string> test_files{
+        "literals/bools.lua", "literals/numbers.lua", "literals/string.lua"};
+    for (const auto& file : test_files) {
+        std::string path = "../luaprograms/unit_tests/" + file;
+        DYNAMIC_SECTION("File: " << path) {
+            const std::string program = read_input_from_file(path);
+
+            minilua::Interpreter interpreter;
+            interpreter.environment().add_default_stdlib();
+            REQUIRE(interpreter.parse(program));
+            auto result = interpreter.evaluate();
+            REQUIRE(!result.source_change.has_value());
+        }
+    }
+}
+
 TEST_CASE("whole lua-programs", "[.hide]") {
     SECTION("programs with function calls") {
         std::vector<std::string> test_files{

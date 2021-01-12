@@ -13,13 +13,20 @@ std::string read_input_from_file(std::string path) {
 
 auto main(int argc, char* argv[]) -> int {
     if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <program.lua>\n";
+        std::cerr << "Usage: " << argv[0] << " [--trace] <program.lua>\n";
         return 1;
+    }
+
+    bool trace = false;
+    size_t file_index = 1;
+    if (argv[1] == "--trace"s) {
+        trace = true;
+        file_index = 2;
     }
 
     std::string source_code;
     try {
-        source_code = read_input_from_file(argv[1]);
+        source_code = read_input_from_file(argv[file_index]);
     } catch (const std::exception& e) {
         std::cerr << "Failed to load file: " << e.what() << "\n";
         return 2;
@@ -27,7 +34,7 @@ auto main(int argc, char* argv[]) -> int {
 
     minilua::Interpreter interpreter;
     interpreter.environment().add_default_stdlib();
-    interpreter.config().all(true);
+    interpreter.config().all(trace);
 
     if (auto result = interpreter.parse(source_code); !result) {
         std::cerr << "Failed to parse\nErrors:\n";
