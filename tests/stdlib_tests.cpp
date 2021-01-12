@@ -4,6 +4,50 @@
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/values.hpp"
 
+TEST_CASE("to_number") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("Base = Nill") {
+        SECTION("Number to Number") {
+            int i = 42;
+            minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::to_number(ctx) == minilua::Value(i));
+        }
+
+        SECTION("Hex-String") {
+            std::string s = "0X083ad.1";
+            minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::to_number(ctx) == minilua::Value(33709.0625));
+        }
+
+        SECTION("Number-String with potent") {
+            std::string s = "2.25324e4";
+            minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::to_number(ctx) == minilua::Value(22532.4));
+        }
+
+        SECTION("Number-String with negative potent") {
+            std::string s = "11230.e-2";
+            minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::to_number(ctx) == minilua::Value(112.3));
+        }
+
+        SECTION("Number as String") {
+            std::string s = "42";
+            minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::to_number(ctx) == minilua::Value(42));
+        }
+    }
+
+    SECTION("Base != Nil") {}
+}
+
 TEST_CASE("assert_lua") {
     SECTION("Assert fails with default message") {
         minilua::Environment env;
