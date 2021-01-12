@@ -7,7 +7,7 @@
 #include "MiniLua/values.hpp"
 
 namespace minilua {
-auto tostring(const CallContext& ctx) -> Value;
+auto to_string(const CallContext& ctx) -> Value;
 
 auto to_number(const CallContext& ctx) -> Value;
 

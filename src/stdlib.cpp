@@ -16,7 +16,7 @@
 namespace minilua {
 
 void Environment::add_default_stdlib() {
-    this->add("tostring", tostring);
+    this->add("tostring", to_string);
     this->add("to_number", to_number);
     this->add("type", type);
     this->add("assert", assert_lua);
@@ -45,7 +45,7 @@ split_string("123.456", '.') = (123, 456)
 }
 */
 
-auto tostring(const CallContext& ctx) -> Value {
+auto to_string(const CallContext& ctx) -> Value {
     auto arg = ctx.arguments().get(0);
     return std::visit(
         overloaded{
@@ -212,7 +212,7 @@ void print(const CallContext& ctx) {
     std::string gap;
 
     for (const auto& arg : ctx.arguments()) {
-        const Value v = tostring(ctx.make_new({arg}));
+        const Value v = to_string(ctx.make_new({arg}));
 
         if (v.is_string()) {
             *stdout << gap << std::get<String>(v).value;
