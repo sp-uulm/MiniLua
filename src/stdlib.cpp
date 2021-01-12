@@ -14,7 +14,6 @@
 #include "MiniLua/utils.hpp"
 
 namespace minilua {
-using std::invalid_argument;
 
 /**
 Splits a string into two parts. the split happens at the character c which is not included in the
@@ -94,7 +93,7 @@ auto to_number(const CallContext& ctx) -> Value {
                     if (std::regex_match(number.value, pattern_number)) {
                         try {
                             return std::stoi(number.value, nullptr, base.value);
-                        } catch (invalid_argument /*unused*/) { // NOLINT
+                        } catch (const std::invalid_argument& /*unused*/) {
                             // invalid base returns nil
                             return Nil();
                         }
