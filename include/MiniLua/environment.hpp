@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "utils.hpp"
 
@@ -18,9 +19,6 @@ class Value;
  *
  * The default constructor initializes an empty environment with the standard
  * c++ I/O streams (std::cin, etc).
- *
- * NOTE: This will not directly be used by the interpreter so you can just
- * reuse an existing environment without resetting it.
  */
 class Environment {
     struct Impl;
@@ -54,14 +52,20 @@ public:
      * Add multiple variables to the environment.
      */
     void add_all(std::unordered_map<std::string, Value> values);
-    void add_all(std::initializer_list<std::pair<const std::string, Value>> values);
+    void add_all(std::initializer_list<std::pair<std::string, Value>> values);
+    void add_all(std::vector<std::pair<std::string, Value>> values);
 
     /**
      * Get the value of a variable.
      *
      * Throws an exception if the variable does not exist.
      */
-    auto get(const std::string& name) -> Value&;
+    auto get(const std::string& name) -> Value;
+
+    /**
+     * Check if a variable is set.
+     */
+    auto has(const std::string& name) -> bool;
 
     /**
      * Sets stdin/out/err stream to use in lua code.

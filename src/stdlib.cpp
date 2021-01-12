@@ -22,7 +22,8 @@ result.
 Example:
 split_string("123.456", '.') = (123, 456)
 */
-static auto split_string(const std::string& s, char c) -> std::pair<std::string, std::string> {
+// commented because not needed at the moment, maybe in the future. if not, delete it
+/*static auto split_string(const std::string& s, char c) -> std::pair<std::string, std::string> {
     std::pair<std::string, std::string> result;
     std::stringstream split(s);
     std::string tmp;
@@ -32,6 +33,7 @@ static auto split_string(const std::string& s, char c) -> std::pair<std::string,
     result.second = tmp;
     return result;
 }
+*/
 
 auto to_string(const CallContext& ctx) -> Value {
     auto arg = ctx.arguments().get(0);
@@ -80,31 +82,22 @@ auto to_number(const CallContext& ctx) -> Value {
                 }
             },
             [](const String& number, Number base) -> Value {
-                // match again with pattern, but this time with 1 .
-                // Interval of base, with strings only numbers bezween base 2 and base 36 are
+                // Interval of base, with strings only numbers between base 2 and base 36 are
                 // possible to show
                 if (base < 2 || base > 36) { // NOLINT
-                    throw std::runtime_error("base is to high. base must be >= 2 and <= 36");
+                    throw std::runtime_error(
+                        "base is to high or to low. base must be >= 2 and <= 36");
                 } else {
-                    std::regex pattern_number(R"(\s*-?\d+\.\d*)");
-                    std::regex pattern_hex(R"(\s*-?0[xX][\dA-Za-z]+\.[\dA-Za-z]*)");
-                    std::regex pattern_exp(R"(\s*-?\d+\.\d*[eE]-?\d+)");
-                    // parse number to double
-                    if (std::regex_match(number.value, pattern_number) ||
-                        std::regex_match(number.value, pattern_hex)) {
-                        auto parts = split_string(number.value, '.');
-                        int precomma = std::stoi(parts.first, nullptr, base.value);
-                        int postcomma = std::stoi(parts.second, nullptr, base.value);
-                        return precomma + postcomma * std::pow(base.value, parts.second.size());
-                    } else if (std::regex_match(number.value, pattern_exp)) {
-                        auto number_exp = split_string(number.value, 'e');
-                        int exp = std::stoi(number_exp.second);
-                        auto parts = split_string(number_exp.first, '.');
-                        int precomma = std::stoi(parts.first, nullptr, base.value);
-                        int postcomma = std::stoi(parts.second, nullptr, base.value);
-                        double number_res = precomma + precomma +
-                                            postcomma * std::pow(base.value, parts.second.size());
-                        return number_res * std::pow(base.value, exp);
+                    std::regex pattern_number(R"(\s*-?[a-zA-Z0-9]+)");
+                    // number must be interpreted as an integer numeral in that base
+                    if (std::regex_match(number.value, pattern_number)) {
+                        try {
+                            return std::stoi(number.value, nullptr, base.value);
+                        } catch (const std::invalid_argument& /*unused*/) {
+                            // invalid base returns nil
+                            return Nil();
+                        }
+
                     } else {
                         return Nil();
                     }
