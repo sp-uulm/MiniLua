@@ -45,7 +45,49 @@ TEST_CASE("to_number") {
         }
     }
 
-    SECTION("Base != Nil") {}
+    SECTION("Base != Nil") {
+        SECTION("base is to low") {
+            std::string s = "42";
+            int base = 1;
+            minilua::Vallist list = minilua::Vallist({minilua::Value(s), minilua::Value(base)});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::to_number(ctx), "base is to high or to low. base must be >= 2 and <= 36");
+        }
+
+        SECTION("base is to low") {
+            std::string s = "42";
+            int base = 40;
+            minilua::Vallist list = minilua::Vallist({minilua::Value(s), minilua::Value(base)});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::to_number(ctx), "base is to high or to low. base must be >= 2 and <= 36");
+        }
+
+        SECTION("base 10, Decimal number as String") {
+            std::string s = "42.5";
+            int base = 10;
+            minilua::Vallist list = minilua::Vallist({minilua::Value(s), minilua::Value(base)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::to_number(ctx) == minilua::Nil());
+        }
+
+        SECTION("base 36, Integer number as String") {
+            std::string s = "z";
+            int base = 36;
+            minilua::Vallist list = minilua::Vallist({minilua::Value(s), minilua::Value(base)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::to_number(ctx) == minilua::Value(35));
+        }
+
+        SECTION("Valid number, but base to low") {
+            std::string s = "z";
+            int base = 30;
+            minilua::Vallist list = minilua::Vallist({minilua::Value(s), minilua::Value(base)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::to_number(ctx) == minilua::Nil());
+        }
+    }
 }
 
 TEST_CASE("assert_lua") {
