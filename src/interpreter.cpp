@@ -2,6 +2,7 @@
 #include "details/interpreter.hpp"
 #include "tree_sitter/tree_sitter.hpp"
 
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -63,14 +64,47 @@ void Interpreter::set_config(InterpreterConfig config) { this->_config = config;
 
 auto Interpreter::environment() const -> Environment& { return impl->env; }
 auto Interpreter::source_code() const -> std::string_view { return impl->source_code; }
+
+static auto visit_siblings(ts::Cursor& cursor, const std::function<void(ts::Node)>& fn) -> bool;
+static auto visit_children(ts::Cursor& cursor, const std::function<void(ts::Node)>& fn) -> bool {
+    if (cursor.goto_first_child()) {
+        fn(cursor.current_node());
+    }
+    return visit_siblings(cursor, fn);
+};
+
+static auto visit_siblings(ts::Cursor& cursor, const std::function<void(ts::Node)>& fn) -> bool {
+    while (cursor.goto_next_sibling()) {
+        fn(cursor.current_node());
+        visit_children(cursor, fn);
+    }
+    return cursor.goto_parent();
+};
+
+// TODO refactor this and make it more usable
+template <typename Fn> static void visit_tree(const ts::Tree& tree, Fn fn) {
+    ts::Cursor cursor(tree);
+
+    fn(cursor.current_node());
+    visit_children(cursor, fn);
+}
+
 auto Interpreter::parse(std::string source_code) -> ParseResult {
     this->impl->source_code = std::move(source_code);
     this->impl->tree = this->impl->parser.parse_string(this->impl->source_code);
 
     ParseResult result;
     if (this->impl->tree.root_node().has_error()) {
-        // TODO properly collect errors from the tree
         result.errors.emplace_back("Tree contains parse error");
+
+        visit_tree(this->impl->tree, [&result](ts::Node node) {
+            if (node.type() == "ERROR"s || node.is_missing()) {
+                std::stringstream error;
+                error << "Error in node: ";
+                error << ts::debug_print_node(node);
+                result.errors.emplace_back(error.str());
+            }
+        });
     }
     return result;
 }

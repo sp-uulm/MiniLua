@@ -1,7 +1,7 @@
-x1 = 2
-x2 = -15
-x3 = 22e10
-x4 = -17e10
-x5 = 2.5
-x6 = -179.42
-x7 = 52
+assert(tostring(2) == "2")
+assert(tostring(-15) == "-15")
+assert(tostring(22e4) == "220000")
+assert(tostring(-17e4) == "-170000")
+assert(tostring(2.5) == "2.5")
+assert(tostring(-179.42) == "-179.42")
+assert(tostring(52) == "52")

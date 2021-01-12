@@ -1095,13 +1095,135 @@ auto parse_number_literal(const std::string& str) -> Value {
         return Nil();
     }
 }
-auto parse_string_literal(const std::string& str) -> Value {
-    // TODO parse multiline string
 
+#define __LUA_STR_PARSE_ESCAPE(c, replacement)                                                     \
+    case c:                                                                                        \
+        ss << replacement;                                                                         \
+        i++;                                                                                       \
+        break;
+
+auto parse_string_literal(const std::string& s) -> Value {
+    // relevant documentation:
+    // https://www.lua.org/manual/5.1/manual.html#2.8
+
+    // TODO parse long bracket string
+    size_t trim;
+    std::cerr << "start parsing string: " << s << "\n";
+    if (s.at(0) == '"') {
+        trim = 1;
+
+        if (s.at(s.length() - 1) != '"') {
+            throw std::runtime_error("invalid string literal (start and end marker don't match)");
+        }
+    } else if (s.at(0) == '\'') {
+        trim = 1;
+
+        if (s.at(s.length() - 1) != '\'') {
+            throw std::runtime_error("invalid string literal (start and end marker don't match)");
+        }
+    } else if (s.at(0) == '[') {
+        trim = 2;
+        while (s.at(trim - 1) == '=') {
+            trim++;
+        }
+        std::cerr << "counter trim: " << trim << "\n";
+
+        if (s.at(trim - 1) != '[') {
+            throw std::runtime_error(
+                "invalid string literal (start of long bracket string needs to follow the form [=[ with any number of =)");
+        }
+
+        if (s.at(s.length() - trim) != ']') {
+            std::cerr << "invalid start of end\n";
+            throw std::runtime_error(
+                "invalid string literal (end of long bracket string needs to follow the form ]=] with the same number of = as the start of the string)");
+        }
+        if (trim > 2) {
+            for (size_t i = s.length() - trim + 1; i < s.length() - 1; ++i) {
+                std::cerr << i << ":" << s[i] << "\n";
+                if (s[i] != '=') {
+                    throw std::runtime_error(
+                        "invalid string literal (end of long bracket string needs to follow the form ]=] with the same number of = as the start of the string)");
+                }
+            }
+        }
+        if (s.at(s.length() - 1) != ']') {
+            std::cerr << "invalid end of end\n";
+            throw std::runtime_error(
+                "invalid string literal (end of long bracket string needs to follow the form ]=] with the same number of = as the start of the string)");
+        }
+    } else {
+        throw std::runtime_error("invalid string literal (should start with \", \' or [)");
+    }
+
+    if (trim > 1) {
+        // for long bracket string:
+        // - ignore leading newline
+        // - no escaping
+        size_t start_trim = trim;
+        if (s[start_trim] == '\n') {
+            start_trim++;
+        }
+        auto res = s.substr(start_trim, s.length() - start_trim - trim);
+        std::cerr << res << "\n";
+        return res;
+    }
+
+    std::stringstream ss;
     // ignore the leading and trailing `"`s (which are guaranteed by the grammar)
-    auto value = str.substr(1, str.length() - 2);
-    // TODO parse escapes etc.
-    return value;
+    for (size_t i = trim; i < s.length() - trim; ++i) {
+        if (s[i] == '\\') {
+            auto c = s.at(i + 1);
+            switch (c) {
+                __LUA_STR_PARSE_ESCAPE('a', "\a")
+                __LUA_STR_PARSE_ESCAPE('b', "\b")
+                __LUA_STR_PARSE_ESCAPE('f', "\f")
+                __LUA_STR_PARSE_ESCAPE('n', "\n")
+                __LUA_STR_PARSE_ESCAPE('r', "\r")
+                __LUA_STR_PARSE_ESCAPE('t', "\t")
+                __LUA_STR_PARSE_ESCAPE('v', "\v")
+                __LUA_STR_PARSE_ESCAPE('\\', "\\")
+                __LUA_STR_PARSE_ESCAPE('"', "\"")
+                __LUA_STR_PARSE_ESCAPE('\'', "\'")
+                __LUA_STR_PARSE_ESCAPE('\n', "\n")
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9': {
+                char value = c - '0';
+                int count = 1;
+                i++;
+                c = s.at(i + 1);
+                while ('0' <= c && c <= '9' && count < 3) {
+                    value = value * 10 + c - '0'; // NOLINT(readability-magic-numbers)
+                    i++;
+                    count++;
+                    c = s.at(i + 1);
+                }
+                ss << value;
+                break;
+            }
+            case 'x':
+                // TODO
+            default:
+                std::stringstream error;
+                error << "invalid escape sequence near '\\" << s[i + 1] << "'";
+                throw std::runtime_error(error.str());
+            }
+        } else {
+            ss << s[i];
+        }
+    }
+
+    std::cerr << "parsed string: " << s << " into " << ss.str() << "\n";
+
+    return ss.str();
 }
 
 } // namespace minilua

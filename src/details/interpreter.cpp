@@ -166,9 +166,13 @@ auto Interpreter::visit_expression(ts::Node node, Environment& env) -> EvalResul
         Origin origin = LiteralOrigin{.location = convert_range(node.range())};
         result.value = Value(Nil()).with_origin(origin);
     } else if (node.type() == "string"s) {
-        auto value = parse_string_literal(node.text());
-        Origin origin = LiteralOrigin{.location = convert_range(node.range())};
-        result.value = value.with_origin(origin);
+        try {
+            auto value = parse_string_literal(node.text());
+            Origin origin = LiteralOrigin{.location = convert_range(node.range())};
+            result.value = value.with_origin(origin);
+        } catch (const std::runtime_error& e) {
+            throw InterpreterException(e.what());
+        }
     } else if (node.type() == "identifier"s) {
         auto variable_name = this->visit_identifier(node, env);
         result.value = env.get(variable_name);
