@@ -778,6 +778,18 @@ public:
         -> Value;
     [[nodiscard]] auto
     unequals(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
+    [[nodiscard]] auto
+    less_than(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
+    [[nodiscard]] auto
+    less_than_or_equal(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    [[nodiscard]] auto
+    greater_than(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
+    [[nodiscard]] auto
+    greater_than_or_equal(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    [[nodiscard]] auto concat(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
 
     friend auto operator-(const Value&) -> Value;
     friend auto operator+(const Value&, const Value&) -> Value;

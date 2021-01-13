@@ -79,6 +79,15 @@ ZeroSizedEditException::ZeroSizedEditException()
     : std::runtime_error("zero-sized edits are not allowed") {}
 
 // struct Point
+std::string Point::pretty(bool start_at_one) const {
+    Point point = *this;
+    if (start_at_one) {
+        point.row += 1;
+        point.column += 1;
+    }
+
+    return std::to_string(point.row) + ":" + std::to_string(point.column);
+}
 bool operator==(const Point& lhs, const Point& rhs) {
     return lhs.row == rhs.row && lhs.column == rhs.column;
 }

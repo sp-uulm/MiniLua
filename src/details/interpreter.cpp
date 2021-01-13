@@ -3,6 +3,7 @@
 #include "tree_sitter/tree_sitter.hpp"
 
 #include <cassert>
+#include <functional>
 #include <iostream>
 #include <set>
 
@@ -196,6 +197,8 @@ auto Interpreter::visit_binary_operation(ts::Node node, Environment& env) -> Eva
 
     EvalResult result;
 
+    auto origin = convert_range(node.range());
+
     auto lhs_node = node.child(0).value();
     auto operator_node = node.child(1).value();
     auto rhs_node = node.child(2).value();
@@ -203,12 +206,49 @@ auto Interpreter::visit_binary_operation(ts::Node node, Environment& env) -> Eva
     EvalResult lhs_result = this->visit_expression(lhs_node, env);
     EvalResult rhs_result = this->visit_expression(rhs_node, env);
 
-    if (operator_node.type() == "=="s) {
-        result.value = lhs_result.value.equals(rhs_result.value);
+    auto impl_operator = [this, &result, &lhs_result, &rhs_result, &origin](auto f) {
+        result.value = std::invoke(f, lhs_result.value, rhs_result.value, origin);
         result.source_change =
             combine_source_changes(lhs_result.source_change, rhs_result.source_change);
+    };
+
+    if (operator_node.type() == "=="s) {
+        impl_operator(&Value::equals);
+    } else if (operator_node.type() == "~="s) {
+        impl_operator(&Value::unequals);
+    } else if (operator_node.type() == ">="s) {
+        impl_operator(&Value::greater_than_or_equal);
+    } else if (operator_node.type() == ">"s) {
+        impl_operator(&Value::greater_than);
+    } else if (operator_node.type() == "<="s) {
+        impl_operator(&Value::less_than_or_equal);
+    } else if (operator_node.type() == "<"s) {
+        impl_operator(&Value::less_than);
+    } else if (operator_node.type() == "+"s) {
+        impl_operator(&Value::add);
+    } else if (operator_node.type() == "-"s) {
+        impl_operator(&Value::sub);
+    } else if (operator_node.type() == "*"s) {
+        impl_operator(&Value::mul);
+    } else if (operator_node.type() == "/"s) {
+        impl_operator(&Value::div);
+    } else if (operator_node.type() == "^"s) {
+        impl_operator(&Value::pow);
+    } else if (operator_node.type() == "%"s) {
+        impl_operator(&Value::mod);
+    } else if (operator_node.type() == "&"s) {
+        impl_operator(&Value::bit_and);
+    } else if (operator_node.type() == "|"s) {
+        impl_operator(&Value::bit_or);
+    } else if (operator_node.type() == "and"s) {
+        impl_operator(&Value::logic_and);
+    } else if (operator_node.type() == "or"s) {
+        impl_operator(&Value::logic_or);
+    } else if (operator_node.type() == ".."s) {
+        impl_operator(&Value::concat);
     } else {
-        throw UNIMPLEMENTED(node.type());
+        throw InterpreterException(
+            "encountered unknown binary_operator `" + std::string(operator_node.type()) + "`");
     }
 
     this->trace_exit_node(node);
@@ -268,8 +308,9 @@ auto Interpreter::visit_function_call(ts::Node node, Environment& env) -> CallRe
     try {
         result = obj.call(ctx);
     } catch (const std::runtime_error& e) {
+        std::string pos = node.range().start.point.pretty(true);
         throw InterpreterException(
-            std::string("failed to call ") + function_name + ": " + e.what());
+            std::string("failed to call ") + function_name + " (" + pos + ") : " + e.what());
     }
 
     this->trace_function_call_result(function_name, result);

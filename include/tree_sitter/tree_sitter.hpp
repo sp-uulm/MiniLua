@@ -150,6 +150,8 @@ enum class TypeKind {
 struct Point {
     std::uint32_t row;
     std::uint32_t column;
+
+    std::string pretty(bool start_at_one = false) const;
 };
 
 bool operator==(const Point&, const Point&);
