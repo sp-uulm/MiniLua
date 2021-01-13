@@ -52,7 +52,7 @@ TEST_CASE("to_string") {
     }
 
     SECTION("Function to String") {
-        minilua::Function f();
+        minilua::Function f{[](const minilua::CallContext&) {}};
         minilua::Vallist list = minilua::Vallist({f});
         ctx = ctx.make_new(list);
         CHECK(minilua::to_string(ctx) != minilua::Value(""));
