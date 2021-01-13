@@ -295,3 +295,65 @@ TEST_CASE("math.ceil(x)") {
             minilua::math::asin(ctx), "bad argument #1 to abs (number expected, got string)");
     }
 }
+
+TEST_CASE("math.cos(x)") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("Numbers") {
+        int i = 0;
+        minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::cos(ctx) == minilua::Value(1));
+
+        i = 1;
+        list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        minilua::Number n = std::get<minilua::Number>(minilua::math::cos(ctx));
+        CHECK(n.value == Approx(0.54030230586814));
+
+        i = -1;
+        list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        n = std::get<minilua::Number>(minilua::math::cos(ctx));
+        CHECK(n.value == Approx(0.54030230586814));
+
+        double d = boost::math::constants::pi<double>();
+        list = minilua::Vallist({minilua::Value(d)});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::cos(ctx) == minilua::Value(-1));
+    }
+
+    SECTION("Strings") {
+        std::string i = "0";
+        minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::cos(ctx) == minilua::Value(1));
+
+        i = "1";
+        list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        minilua::Number n = std::get<minilua::Number>(minilua::math::cos(ctx));
+        CHECK(n.value == Approx(0.54030230586814));
+
+        i = "-1";
+        list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        n = std::get<minilua::Number>(minilua::math::cos(ctx));
+        CHECK(n.value == Approx(0.54030230586814));
+
+        std::string d = "3.141592654"; // boost::math::constants::pi<double>(); may convert pi from
+                                       // boost to string and use that
+        list = minilua::Vallist({minilua::Value(d)});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::cos(ctx) == minilua::Value(-1));
+    }
+
+    SECTION("invalid input") {
+        std::string s = "Minilua";
+        minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
+        ctx = ctx.make_new(list);
+        CHECK_THROWS_WITH(
+            minilua::math::asin(ctx), "bad argument #1 to abs (number expected, got string)");
+    }
+}
