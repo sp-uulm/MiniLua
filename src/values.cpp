@@ -969,6 +969,30 @@ static inline auto num_op_helper(
 
     return Value(!bool(*this)).with_origin(origin);
 }
+[[nodiscard]] auto Value::len(std::optional<Range> location) const -> Value {
+    auto origin = Origin(UnaryOrigin{
+        .val = make_owning<Value>(*this),
+        .location = location,
+        .reverse = [](const Value& new_value,
+                      const Value& old_value) -> std::optional<SourceChangeTree> {
+            // can't reverse the operation in almost all cases
+            // TODO implement the few that could be reversed
+            return std::nullopt;
+        }});
+
+    return std::visit(
+               overloaded{
+                   [](const String& value) -> Value { return (int)value.value.size(); },
+                   [](const Table& value) -> Value {
+                       return (int)std::distance(value.begin(), value.end());
+                   },
+                   [](const auto& value) -> Value {
+                       throw std::runtime_error(
+                           "attempt to get length for value of type " + std::string(value.TYPE));
+                   }},
+               this->raw())
+        .with_origin(origin);
+}
 [[nodiscard]] auto Value::equals(const Value& rhs, std::optional<Range> location) const -> Value {
     auto origin = Origin(BinaryOrigin{
         .lhs = make_owning<Value>(*this),
@@ -1011,15 +1035,20 @@ static inline auto num_op_helper(
         }});
 
     return std::visit(
-        overloaded{
-            [](const Number& lhs, const Number& rhs) -> Value { return lhs.value < rhs.value; },
-            [](const String& lhs, const String& rhs) -> Value { return lhs.value < rhs.value; },
-            [](const auto& lhs, const auto& rhs) -> Value {
-                throw std::runtime_error(
-                    "attempt to less than compare values of type " + std::string(lhs.TYPE) +
-                    " and " + std::string(rhs.TYPE));
-            }},
-        this->raw(), rhs.raw());
+               overloaded{
+                   [](const Number& lhs, const Number& rhs) -> Value {
+                       return lhs.value < rhs.value;
+                   },
+                   [](const String& lhs, const String& rhs) -> Value {
+                       return lhs.value < rhs.value;
+                   },
+                   [](const auto& lhs, const auto& rhs) -> Value {
+                       throw std::runtime_error(
+                           "attempt to less than compare values of type " + std::string(lhs.TYPE) +
+                           " and " + std::string(rhs.TYPE));
+                   }},
+               this->raw(), rhs.raw())
+        .with_origin(origin);
 }
 [[nodiscard]] auto Value::less_than_or_equal(const Value& rhs, std::optional<Range> location) const
     -> Value {
@@ -1035,15 +1064,20 @@ static inline auto num_op_helper(
         }});
 
     return std::visit(
-        overloaded{
-            [](const Number& lhs, const Number& rhs) -> Value { return lhs.value <= rhs.value; },
-            [](const String& lhs, const String& rhs) -> Value { return lhs.value <= rhs.value; },
-            [](const auto& lhs, const auto& rhs) -> Value {
-                throw std::runtime_error(
-                    "attempt to less than or equal compare values of type " +
-                    std::string(lhs.TYPE) + " and " + std::string(rhs.TYPE));
-            }},
-        this->raw(), rhs.raw());
+               overloaded{
+                   [](const Number& lhs, const Number& rhs) -> Value {
+                       return lhs.value <= rhs.value;
+                   },
+                   [](const String& lhs, const String& rhs) -> Value {
+                       return lhs.value <= rhs.value;
+                   },
+                   [](const auto& lhs, const auto& rhs) -> Value {
+                       throw std::runtime_error(
+                           "attempt to less than or equal compare values of type " +
+                           std::string(lhs.TYPE) + " and " + std::string(rhs.TYPE));
+                   }},
+               this->raw(), rhs.raw())
+        .with_origin(origin);
 }
 [[nodiscard]] auto Value::greater_than(const Value& rhs, std::optional<Range> location) const
     -> Value {
@@ -1059,15 +1093,20 @@ static inline auto num_op_helper(
         }});
 
     return std::visit(
-        overloaded{
-            [](const Number& lhs, const Number& rhs) -> Value { return lhs.value > rhs.value; },
-            [](const String& lhs, const String& rhs) -> Value { return lhs.value > rhs.value; },
-            [](const auto& lhs, const auto& rhs) -> Value {
-                throw std::runtime_error(
-                    "attempt to greater than compare values of type " + std::string(lhs.TYPE) +
-                    " and " + std::string(rhs.TYPE));
-            }},
-        this->raw(), rhs.raw());
+               overloaded{
+                   [](const Number& lhs, const Number& rhs) -> Value {
+                       return lhs.value > rhs.value;
+                   },
+                   [](const String& lhs, const String& rhs) -> Value {
+                       return lhs.value > rhs.value;
+                   },
+                   [](const auto& lhs, const auto& rhs) -> Value {
+                       throw std::runtime_error(
+                           "attempt to greater than compare values of type " +
+                           std::string(lhs.TYPE) + " and " + std::string(rhs.TYPE));
+                   }},
+               this->raw(), rhs.raw())
+        .with_origin(origin);
 }
 [[nodiscard]] auto
 Value::greater_than_or_equal(const Value& rhs, std::optional<Range> location) const -> Value {
@@ -1083,15 +1122,20 @@ Value::greater_than_or_equal(const Value& rhs, std::optional<Range> location) co
         }});
 
     return std::visit(
-        overloaded{
-            [](const Number& lhs, const Number& rhs) -> Value { return lhs.value >= rhs.value; },
-            [](const String& lhs, const String& rhs) -> Value { return lhs.value >= rhs.value; },
-            [](const auto& lhs, const auto& rhs) -> Value {
-                throw std::runtime_error(
-                    "attempt to greater than or equal compare values of type " +
-                    std::string(lhs.TYPE) + " and " + std::string(rhs.TYPE));
-            }},
-        this->raw(), rhs.raw());
+               overloaded{
+                   [](const Number& lhs, const Number& rhs) -> Value {
+                       return lhs.value >= rhs.value;
+                   },
+                   [](const String& lhs, const String& rhs) -> Value {
+                       return lhs.value >= rhs.value;
+                   },
+                   [](const auto& lhs, const auto& rhs) -> Value {
+                       throw std::runtime_error(
+                           "attempt to greater than or equal compare values of type " +
+                           std::string(lhs.TYPE) + " and " + std::string(rhs.TYPE));
+                   }},
+               this->raw(), rhs.raw())
+        .with_origin(origin);
 }
 [[nodiscard]] auto Value::concat(const Value& rhs, std::optional<Range> location) const -> Value {
     auto origin = Origin(BinaryOrigin{
@@ -1106,27 +1150,30 @@ Value::greater_than_or_equal(const Value& rhs, std::optional<Range> location) co
         }});
 
     return std::visit(
-        overloaded{
-            [](const String& lhs, const String& rhs) -> Value { return lhs.value + rhs.value; },
-            [](const String& lhs, const Number& rhs) -> Value {
-                Environment env;
-                return lhs.value + to_string(CallContext(&env).make_new({rhs.value}));
-            },
-            [](const Number& lhs, const String& rhs) -> Value {
-                Environment env;
-                return to_string(CallContext(&env).make_new({lhs.value})) + rhs.value;
-            },
-            [](const Number& lhs, const Number& rhs) -> Value {
-                Environment env;
-                return to_string(CallContext(&env).make_new({lhs.value})) +
-                       to_string(CallContext(&env).make_new({rhs.value}));
-            },
-            [](const auto& lhs, const auto& rhs) -> Value {
-                throw std::runtime_error(
-                    "attempt to concatenate values of type " + std::string(lhs.TYPE) + " and " +
-                    std::string(rhs.TYPE));
-            }},
-        this->raw(), rhs.raw());
+               overloaded{
+                   [](const String& lhs, const String& rhs) -> Value {
+                       return lhs.value + rhs.value;
+                   },
+                   [](const String& lhs, const Number& rhs) -> Value {
+                       Environment env;
+                       return lhs.value + to_string(CallContext(&env).make_new({rhs.value}));
+                   },
+                   [](const Number& lhs, const String& rhs) -> Value {
+                       Environment env;
+                       return to_string(CallContext(&env).make_new({lhs.value})) + rhs.value;
+                   },
+                   [](const Number& lhs, const Number& rhs) -> Value {
+                       Environment env;
+                       return to_string(CallContext(&env).make_new({lhs.value})) +
+                              to_string(CallContext(&env).make_new({rhs.value}));
+                   },
+                   [](const auto& lhs, const auto& rhs) -> Value {
+                       throw std::runtime_error(
+                           "attempt to concatenate values of type " + std::string(lhs.TYPE) +
+                           " and " + std::string(rhs.TYPE));
+                   }},
+               this->raw(), rhs.raw())
+        .with_origin(origin);
 }
 
 // arithmetic operators

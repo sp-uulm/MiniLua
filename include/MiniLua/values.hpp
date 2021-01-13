@@ -745,10 +745,14 @@ public:
 
     explicit operator bool() const;
 
-    /**
+    /*
      * Source location tracking versions of the c++ operators.
      *
      * Can be used in the interpreter to add the source location of the operation.
+     */
+
+    /**
+     * unary - operator
      */
     [[nodiscard]] auto negate(std::optional<Range> location = std::nullopt) const -> Value;
     [[nodiscard]] auto add(const Value& rhs, std::optional<Range> location = std::nullopt) const
@@ -773,7 +777,14 @@ public:
     logic_and(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
     [[nodiscard]] auto
     logic_or(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
+    /**
+     * unary not operator
+     */
     [[nodiscard]] auto invert(std::optional<Range> location = std::nullopt) const -> Value;
+    /**
+     * unary # operator
+     */
+    [[nodiscard]] auto len(std::optional<Range> location = std::nullopt) const -> Value;
     [[nodiscard]] auto equals(const Value& rhs, std::optional<Range> location = std::nullopt) const
         -> Value;
     [[nodiscard]] auto

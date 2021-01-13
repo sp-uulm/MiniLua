@@ -248,7 +248,7 @@ auto Interpreter::visit_binary_operation(ts::Node node, Environment& env) -> Eva
         impl_operator(&Value::concat);
     } else {
         throw InterpreterException(
-            "encountered unknown binary_operator `" + std::string(operator_node.type()) + "`");
+            "encountered unknown binary operator `" + std::string(operator_node.type()) + "`");
     }
 
     this->trace_exit_node(node);
@@ -259,17 +259,20 @@ auto Interpreter::visit_unary_operation(ts::Node node, Environment& env) -> Eval
     assert(node.type() == std::string("unary_operation"));
     this->trace_enter_node(node);
 
-    auto operator_ = node.child(0).value();
+    auto operator_node = node.child(0).value();
     auto expr = node.child(1).value();
 
     EvalResult result = this->visit_expression(expr, env);
 
-    if (operator_.type() == "-"s) {
+    if (operator_node.type() == "-"s) {
         result.value = result.value.negate(convert_range(node.range()));
-    } else if (operator_.type() == "not"s) {
+    } else if (operator_node.type() == "not"s) {
         result.value = result.value.invert(convert_range(node.range()));
+    } else if (operator_node.type() == "#"s) {
+        result.value = result.value.len(convert_range(node.range()));
     } else {
-        throw UNIMPLEMENTED(operator_.type());
+        throw InterpreterException(
+            "encountered unknown unary operator `" + std::string(operator_node.type()) + "`");
     }
 
     this->trace_exit_node(node);
