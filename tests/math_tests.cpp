@@ -90,12 +90,12 @@ TEST_CASE("math.acos(x)") {
             int x = -2;
             minilua::Vallist list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
-            CHECK(minilua::math::acos(ctx) == minilua::Value("nan"));
+            CHECK(minilua::math::acos(ctx) == minilua::Value(NAN));
 
             x = 2;
             list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
-            CHECK(minilua::math::acos(ctx) == minilua::Value("nan"));
+            CHECK(minilua::math::acos(ctx) == minilua::Value(NAN));
         }
 
         SECTION("x is in [-1, 1]") {
@@ -117,12 +117,12 @@ TEST_CASE("math.acos(x)") {
             std::string x = "-2";
             minilua::Vallist list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
-            CHECK(minilua::math::acos(ctx) == minilua::Value("nan"));
+            CHECK(minilua::math::acos(ctx) == minilua::Value(NAN));
 
             x = "2";
             list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
-            CHECK(minilua::math::acos(ctx) == minilua::Value("nan"));
+            CHECK(minilua::math::acos(ctx) == minilua::Value(NAN));
         }
 
         SECTION("x is in [-1, 1]") {
@@ -157,12 +157,12 @@ TEST_CASE("math.asin(x)") {
             int x = -2;
             minilua::Vallist list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
-            CHECK(minilua::math::asin(ctx) == minilua::Value("nan"));
+            CHECK(minilua::math::asin(ctx) == minilua::Value(NAN));
 
             x = 2;
             list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
-            CHECK(minilua::math::asin(ctx) == minilua::Value("nan"));
+            CHECK(minilua::math::asin(ctx) == minilua::Value(NAN));
         }
 
         SECTION("x is in [-1, 1]") {
@@ -190,12 +190,12 @@ TEST_CASE("math.asin(x)") {
             std::string x = "-2";
             minilua::Vallist list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
-            CHECK(minilua::math::asin(ctx) == minilua::Value("nan"));
+            CHECK(minilua::math::asin(ctx) == minilua::Value(NAN));
 
             x = "2";
             list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
-            CHECK(minilua::math::asin(ctx) == minilua::Value("nan"));
+            CHECK(minilua::math::asin(ctx) == minilua::Value(NAN));
         }
 
         SECTION("x is in [-1, 1]") {

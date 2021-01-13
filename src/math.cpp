@@ -38,11 +38,7 @@ auto acos(const CallContext& ctx) -> Value {
     if (res != Nil()) {
         auto num = get<Number>(res);
 
-        if (num.value >= -1 && num.value <= 1) {
-            return Value(std::acos(num.value));
-        } else {
-            return Value("nan");
-        }
+        return Value(std::acos(num.value));
     } else {
         throw std::runtime_error(
             "bad argument #1 to 'acos' (number expected, got " + x.type() + ")");
@@ -56,11 +52,7 @@ auto asin(const CallContext& ctx) -> Value {
     if (res != Nil()) {
         auto num = get<Number>(res);
 
-        if (num.value >= -1 && num.value <= 1) {
-            return Value(std::asin(num.value));
-        } else {
-            return Value("nan");
-        }
+        return Value(std::asin(num.value));
     } else {
         throw std::runtime_error(
             "bad argument #1 to 'asin' (number expected, got " + x.type() + ")");

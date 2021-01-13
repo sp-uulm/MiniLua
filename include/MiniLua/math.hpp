@@ -3,8 +3,6 @@
 
 #include <math.h>
 
-//#include "boost/math/constants/constants.hpp"
-
 #include "MiniLua/values.hpp"
 
 const double PI = M_PI;
