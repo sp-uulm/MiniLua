@@ -229,9 +229,63 @@ TEST_CASE("math.ceil(x)") {
     minilua::Environment env;
     minilua::CallContext ctx(&env);
 
-    SECTION("Integer") {}
+    SECTION("Numbers") {
+        SECTION("Integer") {
+            int i = 42;
+            minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::ceil(ctx) == minilua::Value(i));
 
-    SECTION("String") {}
+            i = 0;
+            list = minilua::Vallist({minilua::Value(i)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::ceil(ctx) == minilua::Value(i));
+
+            i = -982;
+            list = minilua::Vallist({minilua::Value(i)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::ceil(ctx) == minilua::Value(i));
+        }
+
+        SECTION("Double") {
+            double i = 42.5;
+            minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::ceil(ctx) == minilua::Value(43));
+
+            i = -1.9;
+            list = minilua::Vallist({minilua::Value(i)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::ceil(ctx) == minilua::Value(-1));
+        }
+    }
+
+    SECTION("String") {
+        std::string i = "42";
+        minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::ceil(ctx) == minilua::Value(42));
+
+        i = "0";
+        list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::ceil(ctx) == minilua::Value(0));
+
+        i = "-982";
+        list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::ceil(ctx) == minilua::Value(-982));
+
+        i = "42.5";
+        list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::ceil(ctx) == minilua::Value(43));
+
+        i = "-1.9";
+        list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::ceil(ctx) == minilua::Value(-1));
+    }
 
     SECTION("invalid input") {
         std::string s = "Minilua";
