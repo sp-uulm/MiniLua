@@ -200,7 +200,7 @@ auto deg(const CallContext& ctx) -> Value {
 
     if (res != Nil()) {
         auto num = get<Number>(res);
-        double deg = num.value * 180 / boost::math::constants::pi<double>();
+        double deg = num.value * 180 / PI;
 
         return Value(deg);
     } else {

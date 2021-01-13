@@ -1,9 +1,13 @@
 #ifndef MINILUA_MATH_HPP
 #define MINILUA_MATH_HPP
 
-#include "boost/math/constants/constants.hpp"
+#include <math.h>
+
+//#include "boost/math/constants/constants.hpp"
 
 #include "MiniLua/values.hpp"
+
+const double PI = M_PI;
 
 namespace minilua::math {
 auto abs(const CallContext& ctx) -> Value;

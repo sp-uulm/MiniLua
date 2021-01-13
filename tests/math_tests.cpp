@@ -506,7 +506,7 @@ TEST_CASE("math.cos(x)") {
         n = std::get<minilua::Number>(minilua::math::cos(ctx));
         CHECK(n.value == Approx(0.54030230586814));
 
-        double d = boost::math::constants::pi<double>();
+        double d = PI;
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         CHECK(minilua::math::cos(ctx) == minilua::Value(-1));
@@ -530,7 +530,7 @@ TEST_CASE("math.cos(x)") {
         n = std::get<minilua::Number>(minilua::math::cos(ctx));
         CHECK(n.value == Approx(0.54030230586814));
 
-        std::string d = std::to_string(boost::math::constants::pi<double>());
+        std::string d = std::to_string(PI);
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::cos(ctx));
@@ -568,7 +568,7 @@ TEST_CASE("math.deg(x)") {
         n = std::get<minilua::Number>(minilua::math::deg(ctx));
         CHECK(n.value == Approx(-57.295779513082));
 
-        double d = boost::math::constants::pi<double>();
+        double d = PI;
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::deg(ctx));
@@ -593,7 +593,7 @@ TEST_CASE("math.deg(x)") {
         n = std::get<minilua::Number>(minilua::math::deg(ctx));
         CHECK(n.value == Approx(-57.295779513082));
 
-        std::string d = std::to_string(boost::math::constants::pi<double>());
+        std::string d = std::to_string(PI);
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::deg(ctx));
