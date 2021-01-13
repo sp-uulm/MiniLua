@@ -1,6 +1,5 @@
 #include <cmath>
 #include <iostream>
-#include <numbers>
 #include <stdexcept>
 
 #include "MiniLua/math.hpp"
