@@ -76,7 +76,7 @@ TEST_CASE("math.abs(x)") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
             ctx = ctx.make_new(list);
             CHECK_THROWS_WITH(
-                minilua::math::abs(ctx), "bad argument #1 to abs (number expected, got string)");
+                minilua::math::abs(ctx), "bad argument #1 to 'abs' (number expected, got string)");
         }
     }
 }
@@ -144,7 +144,7 @@ TEST_CASE("math.acos(x)") {
         minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
         ctx = ctx.make_new(list);
         CHECK_THROWS_WITH(
-            minilua::math::acos(ctx), "bad argument #1 to acos (number expected, got string)");
+            minilua::math::acos(ctx), "bad argument #1 to 'acos' (number expected, got string)");
     }
 }
 
@@ -223,12 +223,194 @@ TEST_CASE("math.asin(x)") {
         minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
         ctx = ctx.make_new(list);
         CHECK_THROWS_WITH(
-            minilua::math::asin(ctx), "bad argument #1 to asin (number expected, got string)");
+            minilua::math::asin(ctx), "bad argument #1 to 'asin' (number expected, got string)");
     }
 }
 
 TEST_CASE("math.atan(x [, y]") {
-    // not implemented yet
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("Number, Number") {
+        int x = 1;
+        int y = 2;
+        minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Value(y)});
+        ctx = ctx.make_new(list);
+        auto n = std::get<minilua::Number>(minilua::math::atan(ctx));
+        CHECK(n.value == Approx(0.46364760900081));
+    }
+
+    SECTION("Number, Nil") {
+        int x = 1;
+        minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Nil()});
+        ctx = ctx.make_new(list);
+        auto n = std::get<minilua::Number>(minilua::math::atan(ctx));
+        CHECK(n.value == Approx(0.78539816339745));
+    }
+
+    SECTION("Number, String") {
+        SECTION("Valid String") {
+            int x = 1;
+            std::string y = "2";
+            minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Value(y)});
+            ctx = ctx.make_new(list);
+            auto n = std::get<minilua::Number>(minilua::math::atan(ctx));
+            CHECK(n.value == Approx(0.46364760900081));
+        }
+
+        SECTION("Invalid String") {
+            int x = 1;
+            std::string y = "Minilua";
+            minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Value(y)});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::atan(ctx),
+                "bad argument #2 to 'atan' (number expected, got string)");
+        }
+    }
+
+    SECTION("Number, Bool") {
+        int x = 1;
+        bool y = false;
+        minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Value(y)});
+        ctx = ctx.make_new(list);
+        CHECK_THROWS_WITH(
+            minilua::math::atan(ctx), "bad argument #2 to 'atan' (number expected, got boolean)");
+    }
+
+    SECTION("String, Number") {
+        SECTION("Valid String") {
+            std::string x = "1";
+            int y = 2;
+            minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Value(y)});
+            ctx = ctx.make_new(list);
+            auto n = std::get<minilua::Number>(minilua::math::atan(ctx));
+            CHECK(n.value == Approx(0.46364760900081));
+        }
+
+        SECTION("Invalid String") {
+            std::string x = "Baum";
+            int y = 2;
+            minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Value(y)});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::atan(ctx),
+                "bad argument #1 to 'atan' (number expected, got string)");
+        }
+    }
+
+    SECTION("String, Nil") {
+        SECTION("Valid String") {
+            std::string s = "1";
+            minilua::Vallist list = minilua::Vallist({minilua::Value(s), minilua::Nil()});
+            ctx = ctx.make_new(list);
+            auto n = std::get<minilua::Number>(minilua::math::atan(ctx));
+            CHECK(n.value == Approx(0.78539816339745));
+        }
+
+        SECTION("Invalid String") {
+            std::string s = "Baum";
+            minilua::Vallist list = minilua::Vallist({minilua::Value(s), minilua::Nil()});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::atan(ctx),
+                "bad argument #1 to 'atan' (number expected, got string)");
+        }
+    }
+
+    SECTION("String, String") {
+        SECTION("Valid String, Valid String") {
+            std::string s = "1";
+            std::string i = "2";
+            minilua::Vallist list = minilua::Vallist({minilua::Value(s), minilua::Value(i)});
+            ctx = ctx.make_new(list);
+            auto n = std::get<minilua::Number>(minilua::math::atan(ctx));
+            CHECK(n.value == Approx(0.46364760900081));
+        }
+
+        SECTION("Valid String, Invalid String") {
+            std::string s = "1";
+            std::string i = "Minilua";
+            minilua::Vallist list = minilua::Vallist({minilua::Value(s), minilua::Value(i)});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::atan(ctx),
+                "bad argument #2 to 'atan' (number expected, got string)");
+        }
+
+        SECTION("Invalid String, Valid String") {
+            std::string i = "Minilua";
+            std::string s = "1";
+            minilua::Vallist list = minilua::Vallist({minilua::Value(i), minilua::Value(s)});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::atan(ctx),
+                "bad argument #1 to 'atan' (number expected, got string)");
+        }
+
+        SECTION("Invalid String, Invalid String") {
+            std::string i = "Minilua";
+            std::string s = "Baum";
+            minilua::Vallist list = minilua::Vallist({minilua::Value(i), minilua::Value(s)});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::atan(ctx),
+                "bad argument #1 to 'atan' (number expected, got string)");
+        }
+    }
+
+    SECTION("String, Bool") {
+        SECTION("Valid String") {
+            std::string x = "1";
+            bool y = true;
+            minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Value(y)});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::atan(ctx),
+                "bad argument #2 to 'atan' (number expected, got boolean)");
+        }
+
+        SECTION("Invalid String") {
+            std::string x = "Baum";
+            bool y = true;
+            minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Value(y)});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::atan(ctx),
+                "bad argument #1 to 'atan' (number expected, got string)");
+        }
+    }
+
+    SECTION("y = 0") {
+        SECTION("y is Number") {
+            int x = 1;
+            int y = 0;
+            minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Value(y)});
+            ctx = ctx.make_new(list);
+            auto n = std::get<minilua::Number>(minilua::math::atan(ctx));
+            CHECK(n.value == Approx(1.5707963267949));
+        }
+
+        SECTION("y is String") {
+            int x = 1;
+            std::string y = "0";
+            minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Value(y)});
+            ctx = ctx.make_new(list);
+            auto n = std::get<minilua::Number>(minilua::math::atan(ctx));
+            CHECK(n.value == Approx(1.5707963267949));
+        }
+    }
+
+    SECTION("invalid input") {
+        SECTION("invalid input") {
+            std::string s = "Minilua";
+            minilua::Vallist list = minilua::Vallist({minilua::Value(s), minilua::Nil()});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::atan(ctx),
+                "bad argument #1 to 'atan' (number expected, got string)");
+        }
+    }
 }
 
 TEST_CASE("math.ceil(x)") {
@@ -298,7 +480,7 @@ TEST_CASE("math.ceil(x)") {
         minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
         ctx = ctx.make_new(list);
         CHECK_THROWS_WITH(
-            minilua::math::ceil(ctx), "bad argument #1 to ceil (number expected, got string)");
+            minilua::math::ceil(ctx), "bad argument #1 to 'ceil' (number expected, got string)");
     }
 }
 
@@ -360,7 +542,7 @@ TEST_CASE("math.cos(x)") {
         minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
         ctx = ctx.make_new(list);
         CHECK_THROWS_WITH(
-            minilua::math::cos(ctx), "bad argument #1 to cos (number expected, got string)");
+            minilua::math::cos(ctx), "bad argument #1 to 'cos' (number expected, got string)");
     }
 }
 
@@ -423,7 +605,7 @@ TEST_CASE("math.deg(x)") {
         minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
         ctx = ctx.make_new(list);
         CHECK_THROWS_WITH(
-            minilua::math::deg(ctx), "bad argument #1 to deg (number expected, got string)");
+            minilua::math::deg(ctx), "bad argument #1 to 'deg' (number expected, got string)");
     }
 }
 
@@ -512,6 +694,6 @@ TEST_CASE("math.exp(x)") {
         minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
         ctx = ctx.make_new(list);
         CHECK_THROWS_WITH(
-            minilua::math::exp(ctx), "bad argument #1 to exp (number expected, got string)");
+            minilua::math::exp(ctx), "bad argument #1 to 'exp' (number expected, got string)");
     }
 }
