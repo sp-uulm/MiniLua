@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <catch2/catch.hpp>
 #include <iterator>
+#include <string>
 
 // functions for use in testing NativeFunction
 auto fn(minilua::CallContext /*unused*/) -> minilua::CallResult { // NOLINT
@@ -773,6 +774,138 @@ TEST_CASE("next(table [, index]") {
             CHECK(
                 value.next(minilua::Nil()) ==
                 minilua::Vallist({value.begin()->first, value.begin()->second}));
+        }
+    }
+}
+
+TEST_CASE("comparison operators for Strings") {
+    SECTION("<") {
+        SECTION("strings of equal length") {
+            std::string value1 = "welt";
+            std::string value2 = "wela";
+            minilua::String s1(value1);
+            minilua::String s2(value2);
+
+            CHECK_FALSE(s1 < s2);
+            CHECK(s2 < s1);
+        }
+
+        SECTION("strings of different length") {
+            SECTION("first string is longer") {
+                std::string value1 = "minilua";
+                std::string value2 = "welt";
+                minilua::String s1(value1);
+                minilua::String s2(value2);
+
+                CHECK(s1 < s2);
+                CHECK_FALSE(s2 < s1);
+            }
+
+            SECTION("second string is longer") {
+                std::string value1 = "welt";
+                std::string value2 = "minilua";
+                minilua::String s1(value1);
+                minilua::String s2(value2);
+
+                CHECK(s2 < s1);
+                CHECK_FALSE(s1 < s2);
+            }
+        }
+    }
+
+    SECTION(">") {
+        SECTION("strings of equal length") {
+            std::string value1 = "welt";
+            std::string value2 = "wela";
+            minilua::String s1(value1);
+            minilua::String s2(value2);
+
+            CHECK_FALSE(s2 > s1);
+            CHECK(s1 > s2);
+        }
+
+        SECTION("strings of different length") {
+            SECTION("first string is longer") {
+                std::string value1 = "minilua";
+                std::string value2 = "welt";
+                minilua::String s1(value1);
+                minilua::String s2(value2);
+
+                CHECK(s2 > s1);
+                CHECK_FALSE(s1 > s2);
+            }
+
+            SECTION("second string is longer") {
+                std::string value1 = "welt";
+                std::string value2 = "minilua";
+                minilua::String s1(value1);
+                minilua::String s2(value2);
+
+                CHECK(s1 > s2);
+                CHECK_FALSE(s2 > s1);
+            }
+        }
+    }
+
+    SECTION("<=") {
+        SECTION("strings of equal length") {
+            std::string value1 = "welt";
+            std::string value2 = "wela";
+            minilua::String s1(value1);
+            minilua::String s2(value2);
+
+            CHECK_FALSE(s1 <= s2);
+        }
+
+        SECTION("strings of different length") {
+            SECTION("first string is longer") {
+                std::string value1 = "minilua";
+                std::string value2 = "welt";
+                minilua::String s1(value1);
+                minilua::String s2(value2);
+
+                CHECK(s1 <= s2);
+            }
+
+            SECTION("second string is longer") {
+                std::string value1 = "welt";
+                std::string value2 = "minilua";
+                minilua::String s1(value1);
+                minilua::String s2(value2);
+
+                CHECK_FALSE(s1 <= s2);
+            }
+        }
+    }
+
+    SECTION(">=") {
+        SECTION("strings of equal length") {
+            std::string value1 = "welt";
+            std::string value2 = "wela";
+            minilua::String s1(value1);
+            minilua::String s2(value2);
+
+            CHECK(s1 >= s2);
+        }
+
+        SECTION("strings of different length") {
+            SECTION("first string is longer") {
+                std::string value1 = "minilua";
+                std::string value2 = "welt";
+                minilua::String s1(value1);
+                minilua::String s2(value2);
+
+                CHECK_FALSE(s1 >= s2);
+            }
+
+            SECTION("second string is longer") {
+                std::string value1 = "welt";
+                std::string value2 = "minilua";
+                minilua::String s1(value1);
+                minilua::String s2(value2);
+
+                CHECK(s1 >= s2);
+            }
         }
     }
 }

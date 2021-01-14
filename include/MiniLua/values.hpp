@@ -200,28 +200,18 @@ struct String {
 
     friend void swap(String& self, String& other);
 };
-constexpr auto operator==(const String& a, const String& b) noexcept -> bool;
-constexpr auto operator!=(const String& a, const String& b) noexcept -> bool;
-constexpr auto operator<(const String& lhs, const String& rhs) noexcept -> bool {
-    for (int i = 0; i < std::min(lhs.value.length(), rhs.value.length()); i++) {
-        if (lhs.value[i] < rhs.value[i]) {
-            return true;
-        }
-    }
-    return lhs.value.length() > rhs.value.length();
+auto operator==(const String& a, const String& b) noexcept -> bool;
+auto operator!=(const String& a, const String& b) noexcept -> bool;
+inline auto operator<(const String& lhs, const String& rhs) noexcept -> bool {
+    return lhs.value < rhs.value;
 }
-constexpr auto operator>(const String& lhs, const String& rhs) noexcept -> bool {
-    for (int i = 0; i < std::min(lhs.value.length(), rhs.value.length()); i++) {
-        if (lhs.value[i] > rhs.value[i]) {
-            return true;
-        }
-    }
-    return lhs.value.length() < rhs.value.length();
+inline auto operator>(const String& lhs, const String& rhs) noexcept -> bool {
+    return lhs.value > rhs.value;
 }
-constexpr auto operator<=(const String& lhs, const String& rhs) noexcept -> bool {
+inline auto operator<=(const String& lhs, const String& rhs) noexcept -> bool {
     return !(lhs > rhs);
 }
-constexpr auto operator>=(const String& lhs, const String& rhs) noexcept -> bool {
+inline auto operator>=(const String& lhs, const String& rhs) noexcept -> bool {
     return !(lhs < rhs);
 }
 
