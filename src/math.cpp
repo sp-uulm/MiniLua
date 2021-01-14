@@ -225,7 +225,7 @@ auto floor(const CallContext& ctx) -> Value {
     } else {
         auto x = ctx.arguments().get(0);
         throw std::runtime_error(
-            "bad argument #1 to 'exp' (number expected, got " + x.type() + ")");
+            "bad argument #1 to 'floor' (number expected, got " + x.type() + ")");
     }
 }
 } // namespace minilua::math

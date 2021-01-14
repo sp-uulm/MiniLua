@@ -705,3 +705,74 @@ TEST_CASE("math.exp(x)") {
             minilua::math::exp(ctx), "bad argument #1 to 'exp' (number expected, got string)");
     }
 }
+
+TEST_CASE("math.floor(x)") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("Numbers") {
+        SECTION("Integer") {
+            int i = 42;
+            minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::floor(ctx) == minilua::Value(i));
+
+            i = 0;
+            list = minilua::Vallist({minilua::Value(i)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::floor(ctx) == minilua::Value(i));
+
+            i = -982;
+            list = minilua::Vallist({minilua::Value(i)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::floor(ctx) == minilua::Value(i));
+        }
+
+        SECTION("Double") {
+            double i = 42.5;
+            minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::floor(ctx) == minilua::Value(42));
+
+            i = -1.9;
+            list = minilua::Vallist({minilua::Value(i)});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::floor(ctx) == minilua::Value(-2));
+        }
+    }
+
+    SECTION("String") {
+        std::string i = "42";
+        minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::floor(ctx) == minilua::Value(42));
+
+        i = "0";
+        list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::floor(ctx) == minilua::Value(0));
+
+        i = "-982";
+        list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::floor(ctx) == minilua::Value(-982));
+
+        i = "42.5";
+        list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::floor(ctx) == minilua::Value(42));
+
+        i = "-1.9";
+        list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::floor(ctx) == minilua::Value(-2));
+    }
+
+    SECTION("invalid input") {
+        std::string s = "Minilua";
+        minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
+        ctx = ctx.make_new(list);
+        CHECK_THROWS_WITH(
+            minilua::math::floor(ctx), "bad argument #1 to 'floor' (number expected, got string)");
+    }
+}
