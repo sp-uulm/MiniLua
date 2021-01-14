@@ -2,6 +2,7 @@
 #define MINILUA_MATH_HPP
 
 #include <climits>
+#include <cmath>
 #include <math.h>
 
 #include "MiniLua/values.hpp"
@@ -27,6 +28,8 @@ auto cos(const CallContext& ctx) -> Value;
 auto deg(const CallContext& ctx) -> Value;
 
 auto exp(const CallContext& ctx) -> Value;
+
+auto floor(const CallContext& ctx) -> Value;
 } // namespace minilua::math
 
 #endif

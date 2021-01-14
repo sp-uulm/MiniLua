@@ -214,4 +214,18 @@ auto exp(const CallContext& ctx) -> Value {
             "bad argument #1 to 'exp' (number expected, got " + x.type() + ")");
     }
 }
+
+auto floor(const CallContext& ctx) -> Value {
+    auto res = minilua::to_number(ctx);
+
+    if (res != Nil()) {
+        auto num = get<Number>(res);
+
+        return Value(std::floor(num.value));
+    } else {
+        auto x = ctx.arguments().get(0);
+        throw std::runtime_error(
+            "bad argument #1 to 'exp' (number expected, got " + x.type() + ")");
+    }
+}
 } // namespace minilua::math
