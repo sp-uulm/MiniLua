@@ -33,6 +33,8 @@ auto exp(const CallContext& ctx) -> Value;
 auto floor(const CallContext& ctx) -> Value;
 
 auto fmod(const CallContext& ctx) -> Value;
+
+auto log(const CallContext& ctx) -> Value;
 } // namespace minilua::math
 
 #endif

@@ -18,7 +18,7 @@ namespace minilua::math {
 // gets 1 parameter
 auto static math_helper(
     const CallContext& ctx, const std::function<double(double)>& function,
-    const std::string& functionname) -> Value {
+    const std::string& functionname, const std::string& arg_index = "1") -> Value {
     auto res = to_number(ctx);
 
     if (res != Nil()) {
@@ -28,7 +28,8 @@ auto static math_helper(
     } else {
         auto x = ctx.arguments().get(0);
         throw std::runtime_error(
-            "bad argument #1 to '" + functionname + "' (number expected, got " + x.type() + ")");
+            "bad argument #" + arg_index + " to '" + functionname + "' (number expected, got " +
+            x.type() + ")");
     }
 }
 
@@ -231,5 +232,29 @@ auto fmod(const CallContext& ctx) -> Value {
         throw std::runtime_error(
             "bad argument #1 to 'fmod' (number expected, got " + x.type() + ")");
     }
+}
+
+auto log(const CallContext& ctx) -> Value {
+    auto x = ctx.arguments().get(0);
+    auto base = ctx.arguments().get(1);
+
+    return std::visit(
+        overloaded{
+            [ctx](auto /*unused*/, Nil /*unused*/) -> Value {
+                return math_helper(ctx, static_cast<double (*)(double)>(&std::log), "log");
+            },
+            [ctx](auto a, auto b) -> Value {
+                Vallist list({Value(a)});
+                CallContext new_ctx = ctx.make_new(list);
+                auto x = math_helper(new_ctx, static_cast<double (*)(double)>(&std::log), "log");
+                list = Vallist({Value(b)});
+                new_ctx = ctx.make_new(list);
+                auto base =
+                    math_helper(new_ctx, static_cast<double (*)(double)>(&std::log), "log", "2");
+                Number x_n = std::get<Number>(x);
+                Number base_n = std::get<Number>(base);
+                return Value(x_n.value / base_n.value);
+            }},
+        x.raw(), base.raw());
 }
 } // namespace minilua::math
