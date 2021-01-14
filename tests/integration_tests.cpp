@@ -97,8 +97,13 @@ TEST_CASE("parse, eval, update", "[parse][leaks]") {
 
 TEST_CASE("unit_tests lua files") {
     std::vector<std::string> test_files{
-        "literals/bools.lua", "literals/numbers.lua", "literals/string.lua",
-        "expressions/binary_operations.lua", "expressions/unary_operations.lua"};
+        "literals/bools.lua",
+        "literals/numbers.lua",
+        "literals/string.lua",
+        "expressions/binary_operations.lua",
+        "expressions/unary_operations.lua",
+        "statements/if.lua",
+        "statements/while.lua"};
     // NOTE: exptects to be run from build directory
     for (const auto& file : test_files) {
         std::string path = "../luaprograms/unit_tests/" + file;

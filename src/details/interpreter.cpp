@@ -130,6 +130,8 @@ auto Interpreter::visit_statement(ts::Node node, Environment& env) -> EvalResult
         result = this->visit_variable_declaration(node, env);
     } else if (node.type() == "if_statement"s) {
         result = this->visit_if_statement(node, env);
+    } else if (node.type() == "while_statement"s) {
+        result = this->visit_while_statement(node, env);
     } else if (node.type() == "function_call"s) { // TODO this is actually an expression
         result = this->visit_function_call(node, env);
     } else if (should_ignore_node(node)) {
@@ -156,6 +158,8 @@ auto Interpreter::visit_if_statement(ts::Node node, Environment& env) -> EvalRes
     result.source_change =
         combine_source_changes(result.source_change, condition_result.source_change);
 
+    // NOTE we create a cursor from the root if_statement node because we need
+    // to be able to see the siblings of the children
     ts::Cursor cursor{node};
     // navigate to first child after "then"
     cursor.goto_first_child();
@@ -163,6 +167,7 @@ auto Interpreter::visit_if_statement(ts::Node node, Environment& env) -> EvalRes
     cursor.goto_next_sibling();
     cursor.goto_next_sibling();
 
+    // "then block"
     if (condition_result.value) {
         auto then_result = this->visit_if_arm(cursor, env);
         result.source_change =
@@ -177,6 +182,7 @@ auto Interpreter::visit_if_statement(ts::Node node, Environment& env) -> EvalRes
         }
     }
 
+    // elseif blocks
     for (ts::Node current_node = cursor.current_node();
          current_node.type() == "elseif"s && cursor.goto_next_sibling();
          current_node = cursor.current_node()) {
@@ -186,6 +192,7 @@ auto Interpreter::visit_if_statement(ts::Node node, Environment& env) -> EvalRes
         // TODO
     }
 
+    // else block
     if (cursor.current_node().type() == "else"s) {
         auto else_result = this->visit_else_statement(cursor.current_node(), env);
         result.source_change =
@@ -276,6 +283,51 @@ auto Interpreter::visit_else_statement(ts::Node node, Environment& env) -> EvalR
         result.source_change =
             combine_source_changes(result.source_change, body_result.source_change);
     } while (cursor.goto_next_sibling());
+
+    this->trace_exit_node(node);
+    return result;
+}
+
+auto Interpreter::visit_while_statement(ts::Node node, Environment& env) -> EvalResult {
+    assert(node.type() == "while_statement"s);
+    this->trace_enter_node(node);
+
+    EvalResult result;
+
+    assert(node.child(0).value().type() == "while"s);
+
+    auto condition_node = node.child(1).value();
+    assert(condition_node.type() == "condition_expression"s);
+
+    assert(node.child(2).value().type() == "do"s);
+
+    ts::Cursor cursor(node);
+
+    while (true) {
+        auto condition_result = this->visit_expression(condition_node.child(0).value(), env);
+        result.source_change =
+            combine_source_changes(result.source_change, condition_result.source_change);
+
+        if (!condition_result.value) {
+            return result;
+        }
+
+        cursor.reset(node);
+        cursor.goto_first_child();
+        cursor.goto_next_sibling();
+        cursor.goto_next_sibling();
+
+        if (!cursor.goto_next_sibling()) {
+            return result;
+        }
+
+        for (ts::Node body_node = cursor.current_node(); cursor.goto_next_sibling();
+             body_node = cursor.current_node()) {
+            auto body_result = this->visit_statement(body_node, env);
+            result.source_change =
+                combine_source_changes(result.source_change, body_result.source_change);
+        }
+    }
 
     this->trace_exit_node(node);
     return result;

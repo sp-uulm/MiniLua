@@ -35,6 +35,8 @@ public:
     auto visit_elseif_statement(ts::Node node, Environment& env) -> EvalResult;
     auto visit_else_statement(ts::Node node, Environment& env) -> EvalResult;
 
+    auto visit_while_statement(ts::Node node, Environment& env) -> EvalResult;
+
     auto visit_expression(ts::Node node, Environment& env) -> EvalResult;
     auto visit_unary_operation(ts::Node node, Environment& env) -> EvalResult;
     auto visit_binary_operation(ts::Node node, Environment& env) -> EvalResult;
