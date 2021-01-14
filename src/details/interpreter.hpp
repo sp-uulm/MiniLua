@@ -25,8 +25,15 @@ public:
 
     auto visit_identifier(ts::Node node, Environment& env) -> std::string;
 
+    auto visit_statement(ts::Node node, Environment& env) -> EvalResult;
+
     auto visit_variable_declaration(ts::Node node, Environment& env) -> EvalResult;
     auto visit_variable_declarator(ts::Node node, Environment& env) -> std::string;
+
+    auto visit_if_statement(ts::Node node, Environment& env) -> EvalResult;
+    auto visit_if_arm(ts::Cursor& cursor, Environment& env) -> EvalResult;
+    auto visit_elseif_statement(ts::Node node, Environment& env) -> EvalResult;
+    auto visit_else_statement(ts::Node node, Environment& env) -> EvalResult;
 
     auto visit_expression(ts::Node node, Environment& env) -> EvalResult;
     auto visit_unary_operation(ts::Node node, Environment& env) -> EvalResult;
@@ -37,8 +44,10 @@ public:
 
 private:
     [[nodiscard]] auto tracer() const -> std::ostream&;
-    void trace_enter_node(ts::Node node) const;
-    void trace_exit_node(ts::Node node) const;
+    void
+    trace_enter_node(ts::Node node, std::optional<std::string> method_name = std::nullopt) const;
+    void
+    trace_exit_node(ts::Node node, std::optional<std::string> method_name = std::nullopt) const;
     void trace_function_call(
         const std::string& function_name, const std::vector<Value>& arguments) const;
     void

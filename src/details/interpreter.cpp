@@ -36,14 +36,22 @@ auto Interpreter::run(const ts::Tree& tree, Environment& env) -> EvalResult {
 }
 
 auto Interpreter::tracer() const -> std::ostream& { return *this->config.target; }
-void Interpreter::trace_enter_node(ts::Node node) const {
+void Interpreter::trace_enter_node(ts::Node node, std::optional<std::string> method_name) const {
     if (this->config.trace_nodes) {
-        this->tracer() << "Enter node: " << ts::debug_print_node(node) << "\n";
+        this->tracer() << "Enter node: " << ts::debug_print_node(node);
+        if (method_name) {
+            this->tracer() << " (method: " << method_name.value() << ")";
+        }
+        this->tracer() << "\n";
     }
 }
-void Interpreter::trace_exit_node(ts::Node node) const {
+void Interpreter::trace_exit_node(ts::Node node, std::optional<std::string> method_name) const {
     if (this->config.trace_nodes) {
-        this->tracer() << "Exit node: " << ts::debug_print_node(node) << "\n";
+        this->tracer() << "Exit node: " << ts::debug_print_node(node);
+        if (method_name) {
+            this->tracer() << " (method: " << method_name.value() << ")";
+        }
+        this->tracer() << "\n";
     }
 }
 void Interpreter::trace_function_call(
@@ -102,22 +110,174 @@ auto Interpreter::visit_root(ts::Node node, Environment& env) -> EvalResult {
     EvalResult result;
 
     for (auto child : node.children()) {
-        EvalResult sub_result;
-        if (child.type() == std::string("variable_declaration")) {
-            sub_result = this->visit_variable_declaration(child, env);
-        } else if (child.type() == std::string("function_call")) {
-            sub_result = this->visit_function_call(child, env);
-            // TODO on "return" set value
-        } else if (should_ignore_node(child)) {
-        } else {
-            throw UNIMPLEMENTED(child.type());
-        }
+        EvalResult sub_result = this->visit_statement(child, env);
+        // TODO on "return" set value
         result.source_change =
             this->combine_source_changes(result.source_change, sub_result.source_change);
     }
 
     this->trace_exit_node(node);
 
+    return result;
+}
+
+auto Interpreter::visit_statement(ts::Node node, Environment& env) -> EvalResult {
+    this->trace_enter_node(node);
+
+    EvalResult result;
+
+    if (node.type() == "variable_declaration"s) {
+        result = this->visit_variable_declaration(node, env);
+    } else if (node.type() == "if_statement"s) {
+        result = this->visit_if_statement(node, env);
+    } else if (node.type() == "function_call"s) { // TODO this is actually an expression
+        result = this->visit_function_call(node, env);
+    } else if (should_ignore_node(node)) {
+    } else {
+        throw UNIMPLEMENTED(node.type());
+    }
+
+    this->trace_exit_node(node);
+
+    return result;
+}
+
+auto Interpreter::visit_if_statement(ts::Node node, Environment& env) -> EvalResult {
+    assert(node.type() == "if_statement"s);
+    this->trace_enter_node(node);
+
+    EvalResult result;
+
+    assert(node.child(0).value().type() == "if"s);
+    auto condition_node = node.child(1).value();
+    assert(node.child(2).value().type() == "then"s);
+
+    auto condition_result = this->visit_expression(condition_node.child(0).value(), env);
+    result.source_change =
+        combine_source_changes(result.source_change, condition_result.source_change);
+
+    ts::Cursor cursor{node};
+    // navigate to first child after "then"
+    cursor.goto_first_child();
+    cursor.goto_next_sibling();
+    cursor.goto_next_sibling();
+    cursor.goto_next_sibling();
+
+    if (condition_result.value) {
+        auto then_result = this->visit_if_arm(cursor, env);
+        result.source_change =
+            combine_source_changes(result.source_change, then_result.source_change);
+        return result;
+    } else {
+        // step through (but ignore) body
+        ts::Node current_node = cursor.current_node();
+        while (current_node.type() != "elseif"s && current_node.type() != "else"s &&
+               current_node.type() != "end"s && cursor.goto_next_sibling()) {
+            current_node = cursor.current_node();
+        }
+    }
+
+    for (ts::Node current_node = cursor.current_node();
+         current_node.type() == "elseif"s && cursor.goto_next_sibling();
+         current_node = cursor.current_node()) {
+        auto elseif_result = this->visit_elseif_statement(current_node, env);
+        result.source_change =
+            combine_source_changes(result.source_change, elseif_result.source_change);
+        // TODO
+    }
+
+    if (cursor.current_node().type() == "else"s) {
+        auto else_result = this->visit_else_statement(cursor.current_node(), env);
+        result.source_change =
+            combine_source_changes(result.source_change, else_result.source_change);
+    }
+
+    auto last_node = node.child(node.child_count() - 1).value();
+    if (last_node.type() != "end"s) {
+        throw InterpreterException(
+            "Last node of if is not `end` but `" + std::string(last_node.type()) + "`");
+    }
+
+    this->trace_exit_node(node);
+    return result;
+}
+auto Interpreter::visit_if_arm(ts::Cursor& cursor, Environment& env) -> EvalResult {
+    // NOTE expects cursor to be at the first node of the body or on "end", "elseif" or "else"
+    EvalResult result;
+
+    ts::Node current_node = cursor.current_node();
+    while (current_node.type() != "end"s && current_node.type() != "elseif"s &&
+           current_node.type() != "else"s) {
+        auto body_result = this->visit_statement(current_node, env);
+        result.source_change =
+            combine_source_changes(result.source_change, body_result.source_change);
+
+        if (!cursor.goto_next_sibling()) {
+            throw InterpreterException("syntax error: found no end node of if statement");
+        }
+        current_node = cursor.current_node();
+    }
+
+    return result;
+}
+auto Interpreter::visit_elseif_statement(ts::Node node, Environment& env) -> EvalResult {
+    assert(node.type() == "elseif"s);
+    this->trace_enter_node(node);
+
+    EvalResult result;
+
+    assert(node.child(0).value().type() == "elseif"s);
+
+    auto condition_node = node.child(1).value();
+    assert(condition_node.type() == "condition_expression"s);
+
+    auto condition_result = this->visit_expression(condition_node.child(0).value(), env);
+    result.source_change =
+        combine_source_changes(result.source_change, condition_result.source_change);
+
+    if (!condition_result.value) {
+        return result;
+    }
+
+    ts::Cursor cursor(node);
+    cursor.goto_first_child();
+    cursor.goto_next_sibling();
+    if (!cursor.goto_next_sibling()) {
+        return result;
+    }
+
+    for (ts::Node body_node = cursor.current_node(); cursor.goto_next_sibling();
+         body_node = cursor.current_node()) {
+        auto body_result = this->visit_statement(body_node, env);
+        result.source_change =
+            combine_source_changes(result.source_change, body_result.source_change);
+    }
+
+    this->trace_exit_node(node);
+    return result;
+}
+auto Interpreter::visit_else_statement(ts::Node node, Environment& env) -> EvalResult {
+    assert(node.type() == "else"s);
+    this->trace_enter_node(node);
+
+    EvalResult result;
+
+    assert(node.child(0).value().type() == "else"s);
+
+    ts::Cursor cursor(node);
+    cursor.goto_first_child();
+    if (!cursor.goto_next_sibling()) {
+        return result;
+    }
+
+    do {
+        ts::Node body_node = cursor.current_node();
+        auto body_result = this->visit_statement(body_node, env);
+        result.source_change =
+            combine_source_changes(result.source_change, body_result.source_change);
+    } while (cursor.goto_next_sibling());
+
+    this->trace_exit_node(node);
     return result;
 }
 
@@ -131,6 +291,8 @@ auto Interpreter::visit_variable_declaration(ts::Node node, Environment& env) ->
     auto value = this->visit_expression(expr, env);
 
     env.add(this->visit_variable_declarator(declarator, env), value.value);
+
+    // TODO pass through source changes
 
     this->trace_exit_node(node);
     return EvalResult();
