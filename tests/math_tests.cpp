@@ -90,12 +90,14 @@ TEST_CASE("math.acos(x)") {
             int x = -2;
             minilua::Vallist list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
-            CHECK(minilua::math::acos(ctx) == minilua::Value(NAN));
+            minilua::Number n = std::get<minilua::Number>(minilua::math::acos(ctx));
+            CHECK(std::isnan(n.value));
 
             x = 2;
             list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
-            CHECK(minilua::math::acos(ctx) == minilua::Value(NAN));
+            n = std::get<minilua::Number>(minilua::math::acos(ctx));
+            CHECK(std::isnan(n.value));
         }
 
         SECTION("x is in [-1, 1]") {
@@ -117,12 +119,14 @@ TEST_CASE("math.acos(x)") {
             std::string x = "-2";
             minilua::Vallist list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
-            CHECK(minilua::math::acos(ctx) == minilua::Value(NAN));
+            minilua::Number n = std::get<minilua::Number>(minilua::math::acos(ctx));
+            CHECK(std::isnan(n.value));
 
             x = "2";
             list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
-            CHECK(minilua::math::acos(ctx) == minilua::Value(NAN));
+            n = std::get<minilua::Number>(minilua::math::acos(ctx));
+            CHECK(std::isnan(n.value));
         }
 
         SECTION("x is in [-1, 1]") {
@@ -157,12 +161,14 @@ TEST_CASE("math.asin(x)") {
             int x = -2;
             minilua::Vallist list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
-            CHECK(minilua::math::asin(ctx) == minilua::Value(NAN));
+            minilua::Number n = std::get<minilua::Number>(minilua::math::asin(ctx));
+            CHECK(std::isnan(n.value));
 
             x = 2;
             list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
-            CHECK(minilua::math::asin(ctx) == minilua::Value(NAN));
+            n = std::get<minilua::Number>(minilua::math::acos(ctx));
+            CHECK(std::isnan(n.value));
         }
 
         SECTION("x is in [-1, 1]") {
@@ -190,12 +196,14 @@ TEST_CASE("math.asin(x)") {
             std::string x = "-2";
             minilua::Vallist list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
-            CHECK(minilua::math::asin(ctx) == minilua::Value(NAN));
+            minilua::Number n = std::get<minilua::Number>(minilua::math::asin(ctx));
+            CHECK(std::isnan(n.value));
 
             x = "2";
             list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
-            CHECK(minilua::math::asin(ctx) == minilua::Value(NAN));
+            n = std::get<minilua::Number>(minilua::math::asin(ctx));
+            CHECK(std::isnan(n.value));
         }
 
         SECTION("x is in [-1, 1]") {
