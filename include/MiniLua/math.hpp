@@ -3,15 +3,16 @@
 
 #include <climits>
 #include <cmath>
-#include <math.h>
+#include <functional>
+#include <string>
 
 #include "MiniLua/values.hpp"
-
-const double PI = M_PI;
 
 namespace minilua::math {
 const long MAXINTEGER = LONG_MAX;
 const long MININTEGER = LONG_MIN;
+const double PI = M_PI;
+const double HUGE = HUGE_VAL;
 
 auto abs(const CallContext& ctx) -> Value;
 
@@ -30,6 +31,8 @@ auto deg(const CallContext& ctx) -> Value;
 auto exp(const CallContext& ctx) -> Value;
 
 auto floor(const CallContext& ctx) -> Value;
+
+auto fmod(const CallContext& ctx) -> Value;
 } // namespace minilua::math
 
 #endif
