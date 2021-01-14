@@ -1,6 +1,7 @@
 #ifndef MINILUA_VALUES_HPP
 #define MINILUA_VALUES_HPP
 
+#include <algorithm>
 #include <cmath>
 #include <functional>
 #include <string>
@@ -199,8 +200,31 @@ struct String {
 
     friend void swap(String& self, String& other);
 };
-auto operator==(const String& a, const String& b) noexcept -> bool;
-auto operator!=(const String& a, const String& b) noexcept -> bool;
+constexpr auto operator==(const String& a, const String& b) noexcept -> bool;
+constexpr auto operator!=(const String& a, const String& b) noexcept -> bool;
+constexpr auto operator<(const String& lhs, const String& rhs) noexcept -> bool {
+    for (int i = 0; i < std::min(lhs.value.length(), rhs.value.length()); i++) {
+        if (lhs.value[i] < rhs.value[i]) {
+            return true;
+        }
+    }
+    return lhs.value.length() > rhs.value.length();
+}
+constexpr auto operator>(const String& lhs, const String& rhs) noexcept -> bool {
+    for (int i = 0; i < std::min(lhs.value.length(), rhs.value.length()); i++) {
+        if (lhs.value[i] > rhs.value[i]) {
+            return true;
+        }
+    }
+    return lhs.value.length() < rhs.value.length();
+}
+constexpr auto operator<=(const String& lhs, const String& rhs) noexcept -> bool {
+    return !(lhs > rhs);
+}
+constexpr auto operator>=(const String& lhs, const String& rhs) noexcept -> bool {
+    return !(lhs < rhs);
+}
+
 auto operator<<(std::ostream&, const String&) -> std::ostream&;
 
 // Forward declaration
