@@ -531,6 +531,15 @@ FieldId Cursor::current_field_id() const { return ts_tree_cursor_current_field_i
 bool Cursor::goto_parent() { return ts_tree_cursor_goto_parent(&this->cursor); }
 bool Cursor::goto_first_child() { return ts_tree_cursor_goto_first_child(&this->cursor); }
 bool Cursor::goto_next_sibling() { return ts_tree_cursor_goto_next_sibling(&this->cursor); }
+int Cursor::skip_n_siblings(int n) {
+    int i = 0;
+    for (; i < n; ++i) {
+        if (!this->goto_next_sibling()) {
+            break;
+        }
+    }
+    return i;
+}
 bool Cursor::goto_first_named_child() {
     if (!this->goto_first_child()) {
         return false;

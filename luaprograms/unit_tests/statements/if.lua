@@ -62,3 +62,18 @@ else
 end
 assert(b6)
 
+b8 = nil
+if 1 > 2 then
+    assert(false)
+    b8 = false
+elseif true then
+    assert(true)
+    b8 = true
+elseif 20 > 7 then
+    assert(false)
+    b8 = false
+else
+    assert(false)
+    b8 = false
+end
+assert(b8)

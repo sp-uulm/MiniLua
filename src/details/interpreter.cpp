@@ -163,9 +163,7 @@ auto Interpreter::visit_if_statement(ts::Node node, Environment& env) -> EvalRes
     ts::Cursor cursor{node};
     // navigate to first child after "then"
     cursor.goto_first_child();
-    cursor.goto_next_sibling();
-    cursor.goto_next_sibling();
-    cursor.goto_next_sibling();
+    cursor.skip_n_siblings(3);
 
     // "then block"
     if (condition_result.value) {
@@ -175,22 +173,27 @@ auto Interpreter::visit_if_statement(ts::Node node, Environment& env) -> EvalRes
         return result;
     } else {
         // step through (but ignore) body
-        ts::Node current_node = cursor.current_node();
-        while (current_node.type() != "elseif"s && current_node.type() != "else"s &&
-               current_node.type() != "end"s && cursor.goto_next_sibling()) {
-            current_node = cursor.current_node();
-        }
+        cursor.skip_siblings_while([](ts::Node node) {
+            return node.type() != "elseif"s && node.type() != "else"s && node.type() != "end"s;
+        });
     }
 
     // elseif blocks
-    for (ts::Node current_node = cursor.current_node();
-         current_node.type() == "elseif"s && cursor.goto_next_sibling();
-         current_node = cursor.current_node()) {
-        auto elseif_result = this->visit_elseif_statement(current_node, env);
+    do {
+        ts::Node current_node = cursor.current_node();
+        if (current_node.type() != "elseif"s) {
+            break;
+        }
+
+        auto [elseif_result, was_executed] = this->visit_elseif_statement(current_node, env);
+
         result.source_change =
             combine_source_changes(result.source_change, elseif_result.source_change);
-        // TODO
-    }
+
+        if (was_executed) {
+            return result;
+        }
+    } while (cursor.goto_next_sibling());
 
     // else block
     if (cursor.current_node().type() == "else"s) {
@@ -227,7 +230,9 @@ auto Interpreter::visit_if_arm(ts::Cursor& cursor, Environment& env) -> EvalResu
 
     return result;
 }
-auto Interpreter::visit_elseif_statement(ts::Node node, Environment& env) -> EvalResult {
+// returns true if the elseif body was executed
+auto Interpreter::visit_elseif_statement(ts::Node node, Environment& env)
+    -> std::pair<EvalResult, bool> {
     assert(node.type() == "elseif"s);
     this->trace_enter_node(node);
 
@@ -238,30 +243,31 @@ auto Interpreter::visit_elseif_statement(ts::Node node, Environment& env) -> Eva
     auto condition_node = node.child(1).value();
     assert(condition_node.type() == "condition_expression"s);
 
+    assert(node.child(2).value().type() == "then"s);
+
     auto condition_result = this->visit_expression(condition_node.child(0).value(), env);
     result.source_change =
         combine_source_changes(result.source_change, condition_result.source_change);
 
     if (!condition_result.value) {
-        return result;
+        return std::make_pair(result, false);
     }
 
     ts::Cursor cursor(node);
     cursor.goto_first_child();
-    cursor.goto_next_sibling();
-    if (!cursor.goto_next_sibling()) {
-        return result;
+    if (cursor.skip_n_siblings(3) < 3) {
+        // TODO should never happen
+        return std::make_pair(result, true);
     }
 
-    for (ts::Node body_node = cursor.current_node(); cursor.goto_next_sibling();
-         body_node = cursor.current_node()) {
+    cursor.foreach_remaining_siblings([this, &env, &result](ts::Node body_node) {
         auto body_result = this->visit_statement(body_node, env);
         result.source_change =
             combine_source_changes(result.source_change, body_result.source_change);
-    }
+    });
 
     this->trace_exit_node(node);
-    return result;
+    return std::make_pair(result, true);
 }
 auto Interpreter::visit_else_statement(ts::Node node, Environment& env) -> EvalResult {
     assert(node.type() == "else"s);
@@ -277,12 +283,11 @@ auto Interpreter::visit_else_statement(ts::Node node, Environment& env) -> EvalR
         return result;
     }
 
-    do {
-        ts::Node body_node = cursor.current_node();
+    cursor.foreach_remaining_siblings([this, &env, &result](ts::Node body_node) {
         auto body_result = this->visit_statement(body_node, env);
         result.source_change =
             combine_source_changes(result.source_change, body_result.source_change);
-    } while (cursor.goto_next_sibling());
+    });
 
     this->trace_exit_node(node);
     return result;
@@ -314,19 +319,21 @@ auto Interpreter::visit_while_statement(ts::Node node, Environment& env) -> Eval
 
         cursor.reset(node);
         cursor.goto_first_child();
-        cursor.goto_next_sibling();
-        cursor.goto_next_sibling();
-
-        if (!cursor.goto_next_sibling()) {
+        if (cursor.skip_n_siblings(3) < 3) {
             return result;
         }
 
-        for (ts::Node body_node = cursor.current_node(); cursor.goto_next_sibling();
-             body_node = cursor.current_node()) {
+        do {
+            ts::Node body_node = cursor.current_node();
+
+            if (body_node.type() == "end"s) {
+                break;
+            }
+
             auto body_result = this->visit_statement(body_node, env);
             result.source_change =
                 combine_source_changes(result.source_change, body_result.source_change);
-        }
+        } while (cursor.goto_next_sibling());
     }
 
     this->trace_exit_node(node);
@@ -337,17 +344,19 @@ auto Interpreter::visit_variable_declaration(ts::Node node, Environment& env) ->
     assert(node.type() == std::string("variable_declaration"));
     this->trace_enter_node(node);
 
+    EvalResult result;
+
     auto declarator = node.named_child(0).value();
     auto expr = node.named_child(1).value();
 
-    auto value = this->visit_expression(expr, env);
+    auto expr_result = this->visit_expression(expr, env);
 
-    env.add(this->visit_variable_declarator(declarator, env), value.value);
+    env.add(this->visit_variable_declarator(declarator, env), expr_result.value);
 
-    // TODO pass through source changes
+    result.source_change = combine_source_changes(result.source_change, expr_result.source_change);
 
     this->trace_exit_node(node);
-    return EvalResult();
+    return result;
 }
 auto Interpreter::visit_variable_declarator(ts::Node node, Environment& env) -> std::string {
     assert(node.type() == std::string("variable_declarator"));
