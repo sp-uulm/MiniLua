@@ -140,6 +140,10 @@ auto Interpreter::visit_statement(ts::Node node, Env& env) -> EvalResult {
 
     if (node.type() == "variable_declaration"s) {
         result = this->visit_variable_declaration(node, env);
+    } else if (node.type() == "local_variable_declaration"s) {
+        result = this->visit_local_variable_declaration(node, env);
+    } else if (node.type() == "do_statement"s) {
+        result = this->visit_do_statement(node, env);
     } else if (node.type() == "if_statement"s) {
         result = this->visit_if_statement(node, env);
     } else if (node.type() == "while_statement"s) {
@@ -153,6 +157,36 @@ auto Interpreter::visit_statement(ts::Node node, Env& env) -> EvalResult {
 
     this->trace_exit_node(node);
 
+    return result;
+}
+
+auto Interpreter::visit_do_statement(ts::Node node, Env& env) -> EvalResult {
+    assert(node.type() == "do_statement"s);
+    this->trace_enter_node(node);
+
+    EvalResult result;
+
+    ts::Cursor cursor{node};
+    // skip first "do" node
+    if (!cursor.goto_first_child() || !cursor.goto_next_sibling()) {
+        return result;
+    }
+
+    Env block_env = this->enter_block(env);
+
+    ts::Node current_node = cursor.current_node();
+    while (current_node.type() != "end"s) {
+        auto body_result = this->visit_statement(current_node, block_env);
+        result.source_change =
+            combine_source_changes(result.source_change, body_result.source_change);
+
+        if (!cursor.goto_next_sibling()) {
+            throw InterpreterException("syntax error: found no end node of if statement");
+        }
+        current_node = cursor.current_node();
+    }
+
+    this->trace_exit_node(node);
     return result;
 }
 
@@ -364,8 +398,9 @@ auto Interpreter::visit_variable_declaration(ts::Node node, Env& env) -> EvalRes
 
     EvalResult result;
 
-    auto declarator = node.named_child(0).value();
-    auto expr = node.named_child(1).value();
+    auto declarator = node.child(0).value();
+    assert(node.child(1).value().type() == "="s);
+    auto expr = node.child(2).value();
 
     auto expr_result = this->visit_expression(expr, env);
 
@@ -376,6 +411,40 @@ auto Interpreter::visit_variable_declaration(ts::Node node, Env& env) -> EvalRes
     this->trace_exit_node(node);
     return result;
 }
+
+auto Interpreter::visit_local_variable_declaration(ts::Node node, Env& env) -> EvalResult {
+    assert(node.type() == std::string("local_variable_declaration"));
+    this->trace_enter_node(node);
+
+    EvalResult result;
+
+    std::cerr << ts::debug_print_tree(node) << "\n";
+
+    assert(node.child(0).value().type() == "local"s);
+    auto declarator = node.child(1).value();
+
+    std::optional<ts::Node> expr;
+    if (node.child(2)) {
+        assert(node.child(2).value().type() == "="s);
+        expr = node.child(3).value();
+    }
+
+    auto variable_name = this->visit_variable_declarator(declarator, env);
+    Value initial_value;
+
+    if (expr) {
+        auto expr_result = this->visit_expression(*expr, env);
+        result.source_change =
+            combine_source_changes(result.source_change, expr_result.source_change);
+        initial_value = expr_result.value;
+    }
+
+    env.set_local(variable_name, initial_value);
+
+    this->trace_exit_node(node);
+    return result;
+}
+
 auto Interpreter::visit_variable_declarator(ts::Node node, Env& env) -> std::string {
     assert(node.type() == std::string("variable_declarator"));
     this->trace_enter_node(node);

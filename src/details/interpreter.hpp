@@ -29,7 +29,10 @@ public:
     auto visit_statement(ts::Node node, Env& env) -> EvalResult;
 
     auto visit_variable_declaration(ts::Node node, Env& env) -> EvalResult;
+    auto visit_local_variable_declaration(ts::Node node, Env& env) -> EvalResult;
     auto visit_variable_declarator(ts::Node node, Env& env) -> std::string;
+
+    auto visit_do_statement(ts::Node node, Env& env) -> EvalResult;
 
     auto visit_if_statement(ts::Node node, Env& env) -> EvalResult;
     auto visit_if_arm(ts::Cursor& cursor, Env& env) -> EvalResult;
