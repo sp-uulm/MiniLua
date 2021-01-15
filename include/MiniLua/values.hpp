@@ -175,6 +175,7 @@ constexpr auto operator>=(Number lhs, Number rhs) noexcept -> bool {
 auto operator<<(std::ostream&, Number) -> std::ostream&;
 
 // normal c++ operators
+auto operator-(Number self) -> Number;
 DELEGATE_OP(Number, +);
 DELEGATE_OP(Number, -);
 DELEGATE_OP(Number, *);
@@ -440,11 +441,11 @@ public:
     CallResult();
     CallResult(Vallist);
     CallResult(std::vector<Value>);
-    CallResult(std::initializer_list<Value>);
-    CallResult(SourceChangeTree);
-    CallResult(std::optional<SourceChangeTree>);
-    CallResult(Vallist, SourceChangeTree);
-    CallResult(Vallist, std::optional<SourceChangeTree>);
+    explicit CallResult(std::initializer_list<Value>);
+    explicit CallResult(SourceChangeTree);
+    explicit CallResult(std::optional<SourceChangeTree>);
+    explicit CallResult(Vallist, SourceChangeTree);
+    explicit CallResult(Vallist, std::optional<SourceChangeTree>);
 
     /**
      * Get the return values.
@@ -758,11 +759,16 @@ public:
 
     explicit operator bool() const;
 
-    /**
+    /*
      * Source location tracking versions of the c++ operators.
      *
      * Can be used in the interpreter to add the source location of the operation.
      */
+
+    /**
+     * unary - operator
+     */
+    [[nodiscard]] auto negate(std::optional<Range> location = std::nullopt) const -> Value;
     [[nodiscard]] auto add(const Value& rhs, std::optional<Range> location = std::nullopt) const
         -> Value;
     [[nodiscard]] auto sub(const Value& rhs, std::optional<Range> location = std::nullopt) const
@@ -785,8 +791,32 @@ public:
     logic_and(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
     [[nodiscard]] auto
     logic_or(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
-    [[nodiscard]] auto negate(std::optional<Range> location = std::nullopt) const -> Value;
+    /**
+     * unary not operator
+     */
+    [[nodiscard]] auto invert(std::optional<Range> location = std::nullopt) const -> Value;
+    /**
+     * unary # operator
+     */
+    [[nodiscard]] auto len(std::optional<Range> location = std::nullopt) const -> Value;
+    [[nodiscard]] auto equals(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    [[nodiscard]] auto
+    unequals(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
+    [[nodiscard]] auto
+    less_than(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
+    [[nodiscard]] auto
+    less_than_or_equal(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    [[nodiscard]] auto
+    greater_than(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
+    [[nodiscard]] auto
+    greater_than_or_equal(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    [[nodiscard]] auto concat(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
 
+    friend auto operator-(const Value&) -> Value;
     friend auto operator+(const Value&, const Value&) -> Value;
     friend auto operator-(const Value&, const Value&) -> Value;
     friend auto operator*(const Value&, const Value&) -> Value;
@@ -886,6 +916,14 @@ struct BinaryNumericFunctionHelper {
 };
 // deduction guide
 template <class... Ts> BinaryNumericFunctionHelper(Ts...) -> BinaryNumericFunctionHelper<Ts...>;
+
+// helper functions
+
+/**
+ * Parse a string into a lua value number.
+ */
+auto parse_number_literal(const std::string& str) -> Value;
+auto parse_string_literal(const std::string& str) -> Value;
 
 } // namespace minilua
 

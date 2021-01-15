@@ -50,6 +50,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
         set(COVERAGE ON)
     endif()
 
+    add_subdirectory(bin)
     add_subdirectory(tests)
     add_subdirectory(bench)
 

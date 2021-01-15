@@ -1,3 +1,6 @@
+#ifndef MINILUA_INTERPRETER_H
+#define MINILUA_INTERPRETER_H
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -29,6 +32,33 @@ struct ParseResult {
 struct EvalResult {
     Value value;
     std::optional<SourceChangeTree> source_change;
+
+    EvalResult();
+    EvalResult(const CallResult&);
+};
+
+auto operator<<(std::ostream&, const EvalResult&) -> std::ostream&;
+
+struct InterpreterConfig {
+    std::ostream* target;
+    bool trace_nodes;
+    bool trace_calls;
+
+    InterpreterConfig();
+    InterpreterConfig(bool);
+
+    /**
+     * Set all trace flags to the provided value.
+     */
+    void all(bool);
+};
+
+/**
+ * Exception thrown by the interpreter.
+ */
+class InterpreterException : public std::runtime_error {
+public:
+    InterpreterException(const std::string& what);
 };
 
 /**
@@ -57,6 +87,8 @@ class Interpreter {
     struct Impl;
     std::unique_ptr<Impl> impl;
 
+    InterpreterConfig _config;
+
 public:
     /**
      * Initializes the interpreter with empty source code
@@ -71,6 +103,13 @@ public:
     Interpreter(std::string initial_source_code);
 
     ~Interpreter();
+
+    /**
+     * Returns the current configuration.
+     */
+    auto config() -> InterpreterConfig&;
+    [[nodiscard]] auto config() const -> const InterpreterConfig&;
+    void set_config(InterpreterConfig);
 
     /**
      * Returns the environment for modification.
@@ -112,3 +151,5 @@ public:
 };
 
 }; // namespace minilua
+
+#endif

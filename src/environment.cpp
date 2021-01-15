@@ -20,9 +20,6 @@ auto Environment::operator=(const Environment&) -> Environment& = default;
 auto Environment::operator=(Environment&&) -> Environment& = default;
 void swap(Environment& a, Environment& b) { swap(a.impl, b.impl); }
 
-void Environment::add_default_stdlib() {
-    // TODO add actual stdlib
-}
 void Environment::add(const std::string& name, Value value) {
     impl->inner.global().set(name, std::move(value));
 }

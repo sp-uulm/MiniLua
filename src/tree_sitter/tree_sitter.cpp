@@ -79,6 +79,15 @@ ZeroSizedEditException::ZeroSizedEditException()
     : std::runtime_error("zero-sized edits are not allowed") {}
 
 // struct Point
+std::string Point::pretty(bool start_at_one) const {
+    Point point = *this;
+    if (start_at_one) {
+        point.row += 1;
+        point.column += 1;
+    }
+
+    return std::to_string(point.row) + ":" + std::to_string(point.column);
+}
 bool operator==(const Point& lhs, const Point& rhs) {
     return lhs.row == rhs.row && lhs.column == rhs.column;
 }
@@ -401,11 +410,11 @@ static void debug_print_node_content(Node node, std::stringstream& out) {
         out << " " << properties.str();
     }
 
+    out << " " << node.range().start.point.row << ":" << node.range().start.point.column;
+
     // text content
     if (node.child_count() == 0) {
         out << " \"" << node.text() << "\"";
-    } else {
-        out << "\n";
     }
 }
 static void debug_print_node(Node node, std::stringstream& out) {
@@ -423,6 +432,7 @@ static void debug_print_tree(Node node, std::stringstream& out, int depth = 0) {
 
     // children
     if (node.child_count() > 0) {
+        out << "\n";
     }
     for (auto child : node.children()) {
         debug_print_tree(child, out, depth + 1);
@@ -434,12 +444,12 @@ static void debug_print_tree(Node node, std::stringstream& out, int depth = 0) {
     }
     out << ")\n";
 }
-std::string debug_print_tree(Node node) {
+auto debug_print_tree(Node node) -> std::string {
     std::stringstream ss;
     debug_print_tree(node, ss);
     return ss.str();
 }
-std::string debug_print_node(Node node) {
+auto debug_print_node(Node node) -> std::string {
     std::stringstream ss;
     debug_print_node(node, ss);
     return ss.str();
@@ -521,6 +531,15 @@ FieldId Cursor::current_field_id() const { return ts_tree_cursor_current_field_i
 bool Cursor::goto_parent() { return ts_tree_cursor_goto_parent(&this->cursor); }
 bool Cursor::goto_first_child() { return ts_tree_cursor_goto_first_child(&this->cursor); }
 bool Cursor::goto_next_sibling() { return ts_tree_cursor_goto_next_sibling(&this->cursor); }
+int Cursor::skip_n_siblings(int n) {
+    int i = 0;
+    for (; i < n; ++i) {
+        if (!this->goto_next_sibling()) {
+            break;
+        }
+    }
+    return i;
+}
 bool Cursor::goto_first_named_child() {
     if (!this->goto_first_child()) {
         return false;
