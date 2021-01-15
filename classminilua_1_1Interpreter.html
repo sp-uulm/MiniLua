@@ -77,7 +77,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="interpreter_8hpp_source.html">interpreter.hpp</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="include_2MiniLua_2interpreter_8hpp_source.html">interpreter.hpp</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -92,6 +92,12 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a83531f419cab1bae4a47de8c0a573775"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae4b7c9312d04a728a80f96cf74a231c4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Interpreter.html#ae4b7c9312d04a728a80f96cf74a231c4">~Interpreter</a> ()</td></tr>
 <tr class="separator:ae4b7c9312d04a728a80f96cf74a231c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae78f7ea9b48cf8dcef52fcd52909bb9e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Interpreter.html#ae78f7ea9b48cf8dcef52fcd52909bb9e">config</a> () -&gt; <a class="el" href="structminilua_1_1InterpreterConfig.html">InterpreterConfig</a> &amp;</td></tr>
+<tr class="separator:ae78f7ea9b48cf8dcef52fcd52909bb9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a823f85eb6808ebb8ab00b844d2966033"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Interpreter.html#a823f85eb6808ebb8ab00b844d2966033">config</a> () const -&gt; const <a class="el" href="structminilua_1_1InterpreterConfig.html">InterpreterConfig</a> &amp;</td></tr>
+<tr class="separator:a823f85eb6808ebb8ab00b844d2966033"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a152d730ec3216e3b7631834947518381"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Interpreter.html#a152d730ec3216e3b7631834947518381">set_config</a> (<a class="el" href="structminilua_1_1InterpreterConfig.html">InterpreterConfig</a>)</td></tr>
+<tr class="separator:a152d730ec3216e3b7631834947518381"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a21d22cbf0a310f0d2ab078be091ef0dc"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Interpreter.html#a21d22cbf0a310f0d2ab078be091ef0dc">environment</a> () const -&gt; <a class="el" href="classminilua_1_1Environment.html">Environment</a> &amp;</td></tr>
 <tr class="separator:a21d22cbf0a310f0d2ab078be091ef0dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d49d7331de176e5108a8a319140ac78"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Interpreter.html#a8d49d7331de176e5108a8a319140ac78">source_code</a> () const -&gt; std::string_view</td></tr>
@@ -200,6 +206,41 @@ Example</h1>
 
 </div>
 </div>
+<a id="ae78f7ea9b48cf8dcef52fcd52909bb9e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae78f7ea9b48cf8dcef52fcd52909bb9e">&#9670;&nbsp;</a></span>config() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::Interpreter::config </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> -&gt; <a class="el" href="structminilua_1_1InterpreterConfig.html">InterpreterConfig</a>&amp;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the current configuration. </p>
+
+</div>
+</div>
+<a id="a823f85eb6808ebb8ab00b844d2966033"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a823f85eb6808ebb8ab00b844d2966033">&#9670;&nbsp;</a></span>config() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::Interpreter::config </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt;  const <a class="el" href="structminilua_1_1InterpreterConfig.html">InterpreterConfig</a> &amp;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a21d22cbf0a310f0d2ab078be091ef0dc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a21d22cbf0a310f0d2ab078be091ef0dc">&#9670;&nbsp;</a></span>environment()</h2>
 
@@ -259,6 +300,24 @@ Example</h1>
 
 </div>
 </div>
+<a id="a152d730ec3216e3b7631834947518381"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a152d730ec3216e3b7631834947518381">&#9670;&nbsp;</a></span>set_config()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void minilua::Interpreter::set_config </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structminilua_1_1InterpreterConfig.html">InterpreterConfig</a>&#160;</td>
+          <td class="paramname"><em>config</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a8d49d7331de176e5108a8a319140ac78"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8d49d7331de176e5108a8a319140ac78">&#9670;&nbsp;</a></span>source_code()</h2>
 
@@ -279,12 +338,12 @@ Example</h1>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>/home/runner/work/MiniLua/MiniLua/include/MiniLua/<a class="el" href="interpreter_8hpp_source.html">interpreter.hpp</a></li>
+<li>/home/runner/work/MiniLua/MiniLua/include/MiniLua/<a class="el" href="include_2MiniLua_2interpreter_8hpp_source.html">interpreter.hpp</a></li>
 <li><a class="el" href="interpreter_8cpp.html">interpreter.cpp</a></li>
 </ul>
 </div><!-- contents -->
-<div class="ttc" id="aclassminilua_1_1Interpreter_html_aabb20a73723822998fa93527b12b3ee1"><div class="ttname"><a href="classminilua_1_1Interpreter.html#aabb20a73723822998fa93527b12b3ee1">minilua::Interpreter::parse</a></div><div class="ttdeci">auto parse(std::string source_code) -&gt; ParseResult</div><div class="ttdef"><b>Definition:</b> interpreter.cpp:41</div></div>
-<div class="ttc" id="aclassminilua_1_1Interpreter_html"><div class="ttname"><a href="classminilua_1_1Interpreter.html">minilua::Interpreter</a></div><div class="ttdef"><b>Definition:</b> interpreter.hpp:56</div></div>
+<div class="ttc" id="aclassminilua_1_1Interpreter_html_aabb20a73723822998fa93527b12b3ee1"><div class="ttname"><a href="classminilua_1_1Interpreter.html#aabb20a73723822998fa93527b12b3ee1">minilua::Interpreter::parse</a></div><div class="ttdeci">auto parse(std::string source_code) -&gt; ParseResult</div><div class="ttdef"><b>Definition:</b> interpreter.cpp:92</div></div>
+<div class="ttc" id="aclassminilua_1_1Interpreter_html"><div class="ttname"><a href="classminilua_1_1Interpreter.html">minilua::Interpreter</a></div><div class="ttdef"><b>Definition:</b> interpreter.hpp:86</div></div>
 <!-- start footer part -->
 		<script src="custom.js"></script>
 	</body>

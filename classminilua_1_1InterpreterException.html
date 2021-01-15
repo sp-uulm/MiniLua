@@ -5,7 +5,7 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=9"/>
 		<meta name="generator" content="Doxygen 1.8.17"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1"/>
-		<title>MiniLua: /home/runner/work/MiniLua/MiniLua/include/MiniLua/interpreter.hpp File Reference</title>
+		<title>MiniLua: minilua::InterpreterException Class Reference</title>
 		<link href="tabs.css" rel="stylesheet" type="text/css"/>
 		<script type="text/javascript" src="jquery.js"></script>
 		<script type="text/javascript" src="dynsections.js"></script>
@@ -64,40 +64,59 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_f2caa3658ae09b75f87766eb40999fe2.html">MiniLua</a></li>  </ul>
+<li class="navelem"><a class="el" href="namespaceminilua.html">minilua</a></li><li class="navelem"><a class="el" href="classminilua_1_1InterpreterException.html">InterpreterException</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Classes</a> &#124;
-<a href="#namespaces">Namespaces</a>  </div>
+<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="classminilua_1_1InterpreterException-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">interpreter.hpp File Reference</div>  </div>
+<div class="title">minilua::InterpreterException Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;memory&gt;</code><br />
-<code>#include &lt;string&gt;</code><br />
-<code>#include &lt;vector&gt;</code><br />
-<code>#include &quot;<a class="el" href="environment_8hpp_source.html">environment.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="source__change_8hpp_source.html">source_change.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="values_8hpp_source.html">values.hpp</a>&quot;</code><br />
-</div>
-<p><a href="interpreter_8hpp_source.html">Go to the source code of this file.</a></p>
+
+<p><code>#include &lt;<a class="el" href="include_2MiniLua_2interpreter_8hpp_source.html">interpreter.hpp</a>&gt;</code></p>
+<div class="dynheader">
+Inheritance diagram for minilua::InterpreterException:</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="classminilua_1_1InterpreterException.png" usemap="#minilua::InterpreterException_map" alt=""/>
+  <map id="minilua::InterpreterException_map" name="minilua::InterpreterException_map">
+<area href="classminilua_1_1details_1_1UnimplementedException.html" alt="minilua::details::UnimplementedException" shape="rect" coords="0,112,238,136"/>
+  </map>
+</div></div>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
-Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1ParseResult.html">minilua::ParseResult</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1EvalResult.html">minilua::EvalResult</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Interpreter.html">minilua::Interpreter</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
-Namespaces</h2></td></tr>
-<tr class="memitem:namespaceminilua"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html">minilua</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:ad97eb828e1a707531c0a272d63d394b5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1InterpreterException.html#ad97eb828e1a707531c0a272d63d394b5">InterpreterException</a> (const std::string &amp;what)</td></tr>
+<tr class="separator:ad97eb828e1a707531c0a272d63d394b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Exception thrown by the interpreter. </p>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="ad97eb828e1a707531c0a272d63d394b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad97eb828e1a707531c0a272d63d394b5">&#9670;&nbsp;</a></span>InterpreterException()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">minilua::InterpreterException::InterpreterException </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>what</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following files:<ul>
+<li>/home/runner/work/MiniLua/MiniLua/include/MiniLua/<a class="el" href="include_2MiniLua_2interpreter_8hpp_source.html">interpreter.hpp</a></li>
+<li><a class="el" href="interpreter_8cpp.html">interpreter.cpp</a></li>
+</ul>
 </div><!-- contents -->
 <!-- start footer part -->
 		<script src="custom.js"></script>

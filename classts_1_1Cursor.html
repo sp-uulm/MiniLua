@@ -109,12 +109,20 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a45d2a150087d72ae527d501c24fdc5e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae1827fd9e9cd79ca83521cb1e7e0bf6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classts_1_1Cursor.html#aae1827fd9e9cd79ca83521cb1e7e0bf6">goto_next_sibling</a> ()</td></tr>
 <tr class="separator:aae1827fd9e9cd79ca83521cb1e7e0bf6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a76b1c9dda7871681aec8890a0e4cd375"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classts_1_1Cursor.html#a76b1c9dda7871681aec8890a0e4cd375">skip_n_siblings</a> (int n)</td></tr>
+<tr class="separator:a76b1c9dda7871681aec8890a0e4cd375"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac0da44dacf151c4fb05a341f9bf8e6d1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classts_1_1Cursor.html#ac0da44dacf151c4fb05a341f9bf8e6d1">goto_first_child</a> ()</td></tr>
 <tr class="separator:ac0da44dacf151c4fb05a341f9bf8e6d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a17417d0f15efb3066d8a585d9d07215d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classts_1_1Cursor.html#a17417d0f15efb3066d8a585d9d07215d">goto_next_named_sibling</a> ()</td></tr>
 <tr class="separator:a17417d0f15efb3066d8a585d9d07215d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2dec6e6e8d0c2789cb6eef5959359df8"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classts_1_1Cursor.html#a2dec6e6e8d0c2789cb6eef5959359df8">goto_first_named_child</a> ()</td></tr>
 <tr class="separator:a2dec6e6e8d0c2789cb6eef5959359df8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a47d8bf8c9daaaacbbdad9b2305342127"><td class="memTemplParams" colspan="2">template&lt;typename Fn &gt; </td></tr>
+<tr class="memitem:a47d8bf8c9daaaacbbdad9b2305342127"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classts_1_1Cursor.html#a47d8bf8c9daaaacbbdad9b2305342127">skip_siblings_while</a> (Fn fn)</td></tr>
+<tr class="separator:a47d8bf8c9daaaacbbdad9b2305342127"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0016972977af051cbba5670a8ac23ec7"><td class="memTemplParams" colspan="2">template&lt;typename Fn &gt; </td></tr>
+<tr class="memitem:a0016972977af051cbba5670a8ac23ec7"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classts_1_1Cursor.html#a0016972977af051cbba5670a8ac23ec7">foreach_remaining_siblings</a> (Fn fn)</td></tr>
+<tr class="separator:a0016972977af051cbba5670a8ac23ec7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5a9af28853da76727030bf17e6b781eb"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classts_1_1Node.html">Node</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classts_1_1Cursor.html#a5a9af28853da76727030bf17e6b781eb">children</a> ()</td></tr>
 <tr class="separator:a5a9af28853da76727030bf17e6b781eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0e342dfef647bd440ba02ecc27f218bd"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classts_1_1Node.html">Node</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classts_1_1Cursor.html#a0e342dfef647bd440ba02ecc27f218bd">named_children</a> ()</td></tr>
@@ -337,6 +345,36 @@ Friends</h2></td></tr>
 
 </div>
 </div>
+<a id="a0016972977af051cbba5670a8ac23ec7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0016972977af051cbba5670a8ac23ec7">&#9670;&nbsp;</a></span>foreach_remaining_siblings()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Fn &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ts::Cursor::foreach_remaining_siblings </td>
+          <td>(</td>
+          <td class="paramtype">Fn&#160;</td>
+          <td class="paramname"><em>fn</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Calls the provided callback for every sibling and moves the cursor.</p>
+<p>The callback will also be called on the current node. So it will always be called at least once. </p>
+
+</div>
+</div>
 <a id="ac0da44dacf151c4fb05a341f9bf8e6d1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac0da44dacf151c4fb05a341f9bf8e6d1">&#9670;&nbsp;</a></span>goto_first_child()</h2>
 
@@ -540,6 +578,56 @@ Friends</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Reset the cursor to the given node. </p>
+
+</div>
+</div>
+<a id="a76b1c9dda7871681aec8890a0e4cd375"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a76b1c9dda7871681aec8890a0e4cd375">&#9670;&nbsp;</a></span>skip_n_siblings()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int ts::Cursor::skip_n_siblings </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Similar to calling 'goto_next_sibling' n times.</p>
+<p>Returns the number of siblings skipped. </p>
+
+</div>
+</div>
+<a id="a47d8bf8c9daaaacbbdad9b2305342127"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a47d8bf8c9daaaacbbdad9b2305342127">&#9670;&nbsp;</a></span>skip_siblings_while()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Fn &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool ts::Cursor::skip_siblings_while </td>
+          <td>(</td>
+          <td class="paramtype">Fn&#160;</td>
+          <td class="paramname"><em>fn</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Skips over nodes while the given callback returns true.</p>
+<p>The method returns false if there were no more siblings to skip while the callback still returned true. </p>
 
 </div>
 </div>
