@@ -150,6 +150,8 @@ enum class TypeKind {
 struct Point {
     std::uint32_t row;
     std::uint32_t column;
+
+    std::string pretty(bool start_at_one = false) const;
 };
 
 bool operator==(const Point&, const Point&);
@@ -856,6 +858,13 @@ public:
     bool goto_next_sibling();
 
     /**
+     * Similar to calling 'goto_next_sibling' n times.
+     *
+     * Returns the number of siblings skipped.
+     */
+    int skip_n_siblings(int n);
+
+    /**
      * Move the cursor to the first child of the current node.
      *
      * Returns false if there were no children.
@@ -881,6 +890,37 @@ public:
      * still return false if there is no named node.
      */
     bool goto_first_named_child();
+
+    /**
+     * Skips over nodes while the given callback returns true.
+     *
+     * The method returns false if there were no more siblings to skip while the
+     * callback still returned true.
+     */
+    template <typename Fn> bool skip_siblings_while(Fn fn) {
+        if (!this->goto_next_sibling()) {
+            return false;
+        }
+        while (fn(this->current_node())) {
+            if (!this->goto_next_sibling()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Calls the provided callback for every sibling and moves the cursor.
+     *
+     * The callback will also be called on the current node. So it will always
+     * be called at least once.
+     */
+    template <typename Fn> void foreach_remaining_siblings(Fn fn) {
+        do {
+            fn(this->current_node());
+        } while (this->goto_next_sibling());
+    }
 
     /**
      * Returns a list of all child nodes of the current node.
