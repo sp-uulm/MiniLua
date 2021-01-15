@@ -257,4 +257,16 @@ auto log(const CallContext& ctx) -> Value {
             }},
         x.raw(), base.raw());
 }
+
+auto max(const CallContext& ctx) -> Value {
+    auto args = ctx.arguments();
+
+    Value max = *args.begin();
+    for (const auto& a : args) {
+        if (1 <= 2) { // TODO: replace shit-code with real implementation
+            max = a;
+        }
+    }
+    return max;
+}
 } // namespace minilua::math
