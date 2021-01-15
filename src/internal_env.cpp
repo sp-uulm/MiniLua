@@ -49,15 +49,6 @@ auto Env::get_var(const std::string& name) -> Value {
         return this->get_global(name);
     }
 }
-auto Env::get_var(const Value& key) -> Value {
-    if (key.is_string()) {
-        if (auto value = this->get_local(std::get<String>(key).value)) {
-            return *value;
-        }
-    }
-
-    return this->global().get(key);
-}
 
 void Env::set_stdin(std::istream* in) {
     if (in == nullptr) {

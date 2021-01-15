@@ -106,7 +106,6 @@ public:
      * Get the value of a variable `name` or Nil if it is not set.
      */
     auto get_var(const std::string& name) -> Value;
-    auto get_var(const Value& value) -> Value;
 
     /**
      * Sets stdin/out/err stream to use in lua code.
