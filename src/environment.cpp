@@ -10,6 +10,7 @@
 namespace minilua {
 
 Environment::Environment() : impl(make_owning<Impl>()) {}
+Environment::Environment(Impl impl) : impl(make_owning<Impl>(std::move(impl))) {}
 
 Environment::Environment(const Environment&) = default;
 // NOLINTNEXTLINE
@@ -70,6 +71,8 @@ auto Environment::get_stdout() -> std::ostream* { return impl->inner.get_stdout(
 auto Environment::get_stderr() -> std::ostream* { return impl->inner.get_stderr(); }
 
 auto Environment::size() const -> size_t { return impl->inner.global().size(); }
+
+auto Environment::get_raw_impl() -> Impl& { return *this->impl; }
 
 auto operator==(const Environment& a, const Environment& b) noexcept -> bool {
     return a.impl->inner.global() == b.impl->inner.global();

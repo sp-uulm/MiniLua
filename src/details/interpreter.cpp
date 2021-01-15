@@ -1,4 +1,5 @@
 #include "interpreter.hpp"
+#include "MiniLua/environment.hpp"
 #include "MiniLua/interpreter.hpp"
 #include "tree_sitter/tree_sitter.hpp"
 
@@ -25,7 +26,7 @@ public:
 // class Interpreter
 Interpreter::Interpreter(const InterpreterConfig& config) : config(config) {}
 
-auto Interpreter::run(const ts::Tree& tree, Environment& env) -> EvalResult {
+auto Interpreter::run(const ts::Tree& tree, Env& env) -> EvalResult {
     try {
         return this->visit_root(tree.root_node(), env);
     } catch (const InterpreterException&) {
@@ -88,6 +89,13 @@ auto Interpreter::combine_source_changes(
     }
 }
 
+auto Interpreter::enter_block(Env& env) -> Env {
+    if (this->config.trace_enter_block) {
+        this->tracer() << "Enter block: " << env << "\n";
+    }
+    return Env(env);
+}
+
 // helper functions
 static const std::set<std::string> IGNORE_NODES{";", "comment"};
 
@@ -102,8 +110,12 @@ static auto convert_range(ts::Range range) -> Range {
     };
 }
 
+static auto make_environment(Env& env) -> Environment {
+    return Environment(Environment::Impl{env});
+}
+
 // interpreter implementation
-auto Interpreter::visit_root(ts::Node node, Environment& env) -> EvalResult {
+auto Interpreter::visit_root(ts::Node node, Env& env) -> EvalResult {
     assert(node.type() == std::string("program"));
     this->trace_enter_node(node);
 
@@ -121,7 +133,7 @@ auto Interpreter::visit_root(ts::Node node, Environment& env) -> EvalResult {
     return result;
 }
 
-auto Interpreter::visit_statement(ts::Node node, Environment& env) -> EvalResult {
+auto Interpreter::visit_statement(ts::Node node, Env& env) -> EvalResult {
     this->trace_enter_node(node);
 
     EvalResult result;
@@ -144,7 +156,7 @@ auto Interpreter::visit_statement(ts::Node node, Environment& env) -> EvalResult
     return result;
 }
 
-auto Interpreter::visit_if_statement(ts::Node node, Environment& env) -> EvalResult {
+auto Interpreter::visit_if_statement(ts::Node node, Env& env) -> EvalResult {
     assert(node.type() == "if_statement"s);
     this->trace_enter_node(node);
 
@@ -211,14 +223,16 @@ auto Interpreter::visit_if_statement(ts::Node node, Environment& env) -> EvalRes
     this->trace_exit_node(node);
     return result;
 }
-auto Interpreter::visit_if_arm(ts::Cursor& cursor, Environment& env) -> EvalResult {
+auto Interpreter::visit_if_arm(ts::Cursor& cursor, Env& env) -> EvalResult {
     // NOTE expects cursor to be at the first node of the body or on "end", "elseif" or "else"
     EvalResult result;
+
+    Env block_env = this->enter_block(env);
 
     ts::Node current_node = cursor.current_node();
     while (current_node.type() != "end"s && current_node.type() != "elseif"s &&
            current_node.type() != "else"s) {
-        auto body_result = this->visit_statement(current_node, env);
+        auto body_result = this->visit_statement(current_node, block_env);
         result.source_change =
             combine_source_changes(result.source_change, body_result.source_change);
 
@@ -231,8 +245,7 @@ auto Interpreter::visit_if_arm(ts::Cursor& cursor, Environment& env) -> EvalResu
     return result;
 }
 // returns true if the elseif body was executed
-auto Interpreter::visit_elseif_statement(ts::Node node, Environment& env)
-    -> std::pair<EvalResult, bool> {
+auto Interpreter::visit_elseif_statement(ts::Node node, Env& env) -> std::pair<EvalResult, bool> {
     assert(node.type() == "elseif"s);
     this->trace_enter_node(node);
 
@@ -260,8 +273,9 @@ auto Interpreter::visit_elseif_statement(ts::Node node, Environment& env)
         return std::make_pair(result, true);
     }
 
-    cursor.foreach_remaining_siblings([this, &env, &result](ts::Node body_node) {
-        auto body_result = this->visit_statement(body_node, env);
+    Env block_env = this->enter_block(env);
+    cursor.foreach_remaining_siblings([this, &block_env, &result](ts::Node body_node) {
+        auto body_result = this->visit_statement(body_node, block_env);
         result.source_change =
             combine_source_changes(result.source_change, body_result.source_change);
     });
@@ -269,7 +283,7 @@ auto Interpreter::visit_elseif_statement(ts::Node node, Environment& env)
     this->trace_exit_node(node);
     return std::make_pair(result, true);
 }
-auto Interpreter::visit_else_statement(ts::Node node, Environment& env) -> EvalResult {
+auto Interpreter::visit_else_statement(ts::Node node, Env& env) -> EvalResult {
     assert(node.type() == "else"s);
     this->trace_enter_node(node);
 
@@ -283,8 +297,10 @@ auto Interpreter::visit_else_statement(ts::Node node, Environment& env) -> EvalR
         return result;
     }
 
-    cursor.foreach_remaining_siblings([this, &env, &result](ts::Node body_node) {
-        auto body_result = this->visit_statement(body_node, env);
+    Env block_env = this->enter_block(env);
+
+    cursor.foreach_remaining_siblings([this, &block_env, &result](ts::Node body_node) {
+        auto body_result = this->visit_statement(body_node, block_env);
         result.source_change =
             combine_source_changes(result.source_change, body_result.source_change);
     });
@@ -293,7 +309,7 @@ auto Interpreter::visit_else_statement(ts::Node node, Environment& env) -> EvalR
     return result;
 }
 
-auto Interpreter::visit_while_statement(ts::Node node, Environment& env) -> EvalResult {
+auto Interpreter::visit_while_statement(ts::Node node, Env& env) -> EvalResult {
     assert(node.type() == "while_statement"s);
     this->trace_enter_node(node);
 
@@ -323,6 +339,8 @@ auto Interpreter::visit_while_statement(ts::Node node, Environment& env) -> Eval
             return result;
         }
 
+        Env block_env = this->enter_block(env);
+
         do {
             ts::Node body_node = cursor.current_node();
 
@@ -330,7 +348,7 @@ auto Interpreter::visit_while_statement(ts::Node node, Environment& env) -> Eval
                 break;
             }
 
-            auto body_result = this->visit_statement(body_node, env);
+            auto body_result = this->visit_statement(body_node, block_env);
             result.source_change =
                 combine_source_changes(result.source_change, body_result.source_change);
         } while (cursor.goto_next_sibling());
@@ -340,7 +358,7 @@ auto Interpreter::visit_while_statement(ts::Node node, Environment& env) -> Eval
     return result;
 }
 
-auto Interpreter::visit_variable_declaration(ts::Node node, Environment& env) -> EvalResult {
+auto Interpreter::visit_variable_declaration(ts::Node node, Env& env) -> EvalResult {
     assert(node.type() == std::string("variable_declaration"));
     this->trace_enter_node(node);
 
@@ -351,27 +369,27 @@ auto Interpreter::visit_variable_declaration(ts::Node node, Environment& env) ->
 
     auto expr_result = this->visit_expression(expr, env);
 
-    env.add(this->visit_variable_declarator(declarator, env), expr_result.value);
+    env.set_var(this->visit_variable_declarator(declarator, env), expr_result.value);
 
     result.source_change = combine_source_changes(result.source_change, expr_result.source_change);
 
     this->trace_exit_node(node);
     return result;
 }
-auto Interpreter::visit_variable_declarator(ts::Node node, Environment& env) -> std::string {
+auto Interpreter::visit_variable_declarator(ts::Node node, Env& env) -> std::string {
     assert(node.type() == std::string("variable_declarator"));
     this->trace_enter_node(node);
     return this->visit_identifier(node.child(0).value(), env);
 }
 
-auto Interpreter::visit_identifier(ts::Node node, Environment& env) -> std::string {
+auto Interpreter::visit_identifier(ts::Node node, Env& env) -> std::string {
     assert(node.type() == std::string("identifier"));
     this->trace_enter_node(node);
     this->trace_exit_node(node);
     return node.text();
 }
 
-auto Interpreter::visit_expression(ts::Node node, Environment& env) -> EvalResult {
+auto Interpreter::visit_expression(ts::Node node, Env& env) -> EvalResult {
     this->trace_enter_node(node);
 
     EvalResult result;
@@ -399,7 +417,7 @@ auto Interpreter::visit_expression(ts::Node node, Environment& env) -> EvalResul
         }
     } else if (node.type() == "identifier"s) {
         auto variable_name = this->visit_identifier(node, env);
-        result.value = env.get(variable_name);
+        result.value = env.get_var(variable_name);
     } else if (node.type() == "unary_operation"s) {
         result = this->visit_unary_operation(node, env);
     } else if (node.type() == "binary_operation"s) {
@@ -414,7 +432,7 @@ auto Interpreter::visit_expression(ts::Node node, Environment& env) -> EvalResul
     return result;
 }
 
-auto Interpreter::visit_binary_operation(ts::Node node, Environment& env) -> EvalResult {
+auto Interpreter::visit_binary_operation(ts::Node node, Env& env) -> EvalResult {
     assert(node.type() == std::string("binary_operation"));
     this->trace_enter_node(node);
 
@@ -478,7 +496,7 @@ auto Interpreter::visit_binary_operation(ts::Node node, Environment& env) -> Eva
     return result;
 }
 
-auto Interpreter::visit_unary_operation(ts::Node node, Environment& env) -> EvalResult {
+auto Interpreter::visit_unary_operation(ts::Node node, Env& env) -> EvalResult {
     assert(node.type() == std::string("unary_operation"));
     this->trace_enter_node(node);
 
@@ -502,7 +520,7 @@ auto Interpreter::visit_unary_operation(ts::Node node, Environment& env) -> Eval
     return result;
 }
 
-auto Interpreter::visit_function_call(ts::Node node, Environment& env) -> CallResult {
+auto Interpreter::visit_function_call(ts::Node node, Env& env) -> CallResult {
     assert(node.type() == std::string("function_call"));
     this->trace_enter_node(node);
 
@@ -527,8 +545,9 @@ auto Interpreter::visit_function_call(ts::Node node, Environment& env) -> CallRe
 
     // call function
     // this will produce an error if the obj is not callable
-    auto obj = env.get(function_name);
-    auto ctx = CallContext(&env).make_new(Vallist(arguments));
+    auto obj = env.get_var(function_name);
+    Environment environment = make_environment(env);
+    auto ctx = CallContext(&environment).make_new(Vallist(arguments));
 
     CallResult result;
     try {

@@ -31,12 +31,13 @@ auto operator<<(std::ostream& o, const EvalResult& self) -> std::ostream& {
 
 // struct InterpreterConfig
 InterpreterConfig::InterpreterConfig()
-    : target(&std::cerr), trace_nodes(false), trace_calls(false) {}
+    : target(&std::cerr), trace_nodes(false), trace_calls(false), trace_enter_block(false) {}
 InterpreterConfig::InterpreterConfig(bool def)
-    : target(&std::cerr), trace_nodes(def), trace_calls(def) {}
+    : target(&std::cerr), trace_nodes(def), trace_calls(def), trace_enter_block(def) {}
 void InterpreterConfig::all(bool def) {
     this->trace_nodes = def;
     this->trace_calls = def;
+    this->trace_enter_block = def;
 }
 
 // class InterpreterException
@@ -114,7 +115,7 @@ void Interpreter::apply_source_changes(std::vector<SourceChange> source_changes)
 }
 auto Interpreter::evaluate() -> EvalResult {
     details::Interpreter interpreter{this->config()};
-    return interpreter.run(this->impl->tree, this->impl->env);
+    return interpreter.run(this->impl->tree, this->impl->env.get_raw_impl().inner);
 }
 
 } // namespace minilua

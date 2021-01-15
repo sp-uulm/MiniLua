@@ -106,6 +106,7 @@ public:
      * Get the value of a variable `name` or Nil if it is not set.
      */
     auto get_var(const std::string& name) -> Value;
+    auto get_var(const Value& value) -> Value;
 
     /**
      * Sets stdin/out/err stream to use in lua code.
@@ -123,6 +124,8 @@ public:
     auto get_stdout() -> std::ostream*;
     auto get_stderr() -> std::ostream*;
 };
+
+auto operator<<(std::ostream&, const Env&) -> std::ostream&;
 
 struct Environment::Impl {
     Env inner;

@@ -43,6 +43,7 @@ struct InterpreterConfig {
     std::ostream* target;
     bool trace_nodes;
     bool trace_calls;
+    bool trace_enter_block;
 
     InterpreterConfig();
     InterpreterConfig(bool);
