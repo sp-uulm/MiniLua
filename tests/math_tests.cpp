@@ -1221,6 +1221,7 @@ TEST_CASE("math.max, ...") {
 
     SECTION("Strings") {
         std::vector<minilua::Value> v;
+        // Highest value is at the first position
         v.emplace_back(
             minilua::Value("ziehen"), minilua::Value("Baum"), minilua::Value("Minilua"), ("lua"),
             ("welt"));
@@ -1228,11 +1229,13 @@ TEST_CASE("math.max, ...") {
         ctx = ctx.make_new(list);
         CHECK(minilua::math::max(ctx) == minilua::Value("ziehen"));
 
+        // Highest value is at the last position
         v.emplace_back(minilua::Value("zug"));
         list = minilua::Vallist(v);
         ctx = ctx.make_new(list);
         CHECK(minilua::math::max(ctx) == minilua::Value("zug"));
 
+        // Highest value is in the middle
         v.emplace_back(
             minilua::Value("Essen"), minilua::Value("Corona"), minilua::Value("Sudoku"),
             minilua::Value("c++"), minilua::Value("Ulm"), minilua::Value("Universität"));
