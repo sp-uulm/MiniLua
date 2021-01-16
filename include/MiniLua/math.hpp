@@ -37,6 +37,8 @@ auto fmod(const CallContext& ctx) -> Value;
 auto log(const CallContext& ctx) -> Value;
 
 auto max(const CallContext& ctx) -> Value;
+
+auto min(const CallContext& ctx) -> Value;
 } // namespace minilua::math
 
 #endif

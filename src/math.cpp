@@ -263,10 +263,22 @@ auto max(const CallContext& ctx) -> Value {
 
     Value max = *args.begin();
     for (const auto& a : args) {
-        if (a.greater_than(max)) { // TODO: replace shit-code with real implementation
+        if (a.greater_than(max)) {
             max = a;
         }
     }
     return max;
+}
+
+auto min(const CallContext& ctx) -> Value {
+    auto args = ctx.arguments();
+
+    Value min = *args.begin();
+    for (const auto& a : args) {
+        if (a.less_than(min)) {
+            min = a;
+        }
+    }
+    return min;
 }
 } // namespace minilua::math
