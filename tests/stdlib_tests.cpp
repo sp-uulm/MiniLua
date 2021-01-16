@@ -55,7 +55,7 @@ TEST_CASE("to_string") {
         minilua::Function f();
         minilua::Vallist list = minilua::Vallist({f});
         ctx = ctx.make_new(list);
-        CHECK_FALSE(minilua::to_string(ctx) == minilua::Value(""));
+        CHECK(minilua::to_string(ctx) != minilua::Value(""));
     }
 }
 
