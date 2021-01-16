@@ -1194,7 +1194,7 @@ TEST_CASE("math.log(x [, base]") {
     }
 }
 
-TEST_CASE("math.max, ...") {
+TEST_CASE("math.max(x, ...)") {
     minilua::Environment env;
     minilua::CallContext ctx(&env);
     SECTION("Numbers") {
@@ -1217,7 +1217,6 @@ TEST_CASE("math.max, ...") {
         for (int i = 12; i <= 20; i++) {
             v.emplace_back(i);
         }
-        // v.emplace_back(12, 13, 14, 15, 16, 17, 18, 19, 20);
         list = minilua::Vallist(v);
         ctx = ctx.make_new(list);
         CHECK(minilua::math::max(ctx) == 42);
@@ -1248,5 +1247,62 @@ TEST_CASE("math.max, ...") {
         list = minilua::Vallist(v);
         ctx = ctx.make_new(list);
         CHECK(minilua::math::max(ctx) == minilua::Value("zug"));
+    }
+}
+
+TEST_CASE("math.min(x, ...)") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("Numbers") {
+        std::vector<minilua::Value> v;
+        for (int i = 0; i <= 9; i++) {
+            v.emplace_back(i);
+        }
+        // Lowest value is at the first position
+        minilua::Vallist list = minilua::Vallist(v);
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::min(ctx) == 0);
+
+        // Lowest value is at the last position
+        v.emplace_back(-1);
+        list = minilua::Vallist(v);
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::min(ctx) == -1);
+
+        // Lowest value is in the middle
+        for (int i = 12; i <= 20; i++) {
+            v.emplace_back(i);
+        }
+        list = minilua::Vallist(v);
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::min(ctx) == -1);
+    }
+
+    SECTION("Strings") {
+        std::vector<minilua::Value> v;
+        std::list<std::string> values = {"Baum", "ziehen", "MiniLua", "lua", "welt"};
+        for (const auto& a : values) {
+            v.emplace_back(a);
+        }
+        // Lowest value is at the first position
+        minilua::Vallist list = minilua::Vallist(v);
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::min(ctx) == minilua::Value("Baum"));
+
+        // Lowest value is at the last position
+        v.emplace_back("Analysis2a");
+        list = minilua::Vallist(v);
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::min(ctx) == minilua::Value("Analysis2a"));
+
+        // Lowest value is in the middle
+        values = {"Corona", "Sudoku", "c++", "Ulm", "Universität"};
+        for (const auto& a : values) {
+            v.emplace_back(a);
+        }
+        list = minilua::Vallist(v);
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::min(ctx) == minilua::Value("Analysis2a"));
     }
 }
