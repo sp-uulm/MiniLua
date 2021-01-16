@@ -1,5 +1,6 @@
 #include <catch2/catch.hpp>
 #include <cmath>
+#include <list>
 #include <string>
 #include <vector>
 
@@ -1213,7 +1214,10 @@ TEST_CASE("math.max, ...") {
         CHECK(minilua::math::max(ctx) == 42);
 
         // Highest value is in the middle
-        v.emplace_back(12, 13, 14, 15, 16, 17, 18, 19, 20);
+        for (int i = 12; i <= 20; i++) {
+            v.emplace_back(i);
+        }
+        // v.emplace_back(12, 13, 14, 15, 16, 17, 18, 19, 20);
         list = minilua::Vallist(v);
         ctx = ctx.make_new(list);
         CHECK(minilua::math::max(ctx) == 42);
@@ -1221,24 +1225,26 @@ TEST_CASE("math.max, ...") {
 
     SECTION("Strings") {
         std::vector<minilua::Value> v;
+        std::list<std::string> values = {"ziehen", "Baum", "MiniLua", "lua", "welt"};
+        for (const auto& a : values) {
+            v.emplace_back(a);
+        }
         // Highest value is at the first position
-        v.emplace_back(
-            minilua::Value("ziehen"), minilua::Value("Baum"), minilua::Value("Minilua"), ("lua"),
-            ("welt"));
         minilua::Vallist list = minilua::Vallist(v);
         ctx = ctx.make_new(list);
         CHECK(minilua::math::max(ctx) == minilua::Value("ziehen"));
 
         // Highest value is at the last position
-        v.emplace_back(minilua::Value("zug"));
+        v.emplace_back("zug");
         list = minilua::Vallist(v);
         ctx = ctx.make_new(list);
         CHECK(minilua::math::max(ctx) == minilua::Value("zug"));
 
         // Highest value is in the middle
-        v.emplace_back(
-            minilua::Value("Essen"), minilua::Value("Corona"), minilua::Value("Sudoku"),
-            minilua::Value("c++"), minilua::Value("Ulm"), minilua::Value("Universität"));
+        values = {"Corona", "Sudoku", "c++", "Ulm", "Universität"};
+        for (const auto& a : values) {
+            v.emplace_back(a);
+        }
         list = minilua::Vallist(v);
         ctx = ctx.make_new(list);
         CHECK(minilua::math::max(ctx) == minilua::Value("zug"));
