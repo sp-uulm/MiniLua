@@ -337,6 +337,11 @@ struct UnaryOrigin;
  * Contains information for use in the implementation of native functions.
  *
  * Contains the arguments and the environment.
+ *
+ * The 'CallContext' and the 'Environment' should not be copied and stored
+ * somewhere that outlives the function call. Because the environment may be
+ * freed after the call to the function ends. You can however safely store any
+ * Values or a copy of the arguments.
  */
 class CallContext {
     struct Impl;

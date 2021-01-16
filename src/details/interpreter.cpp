@@ -148,6 +148,8 @@ auto Interpreter::visit_statement(ts::Node node, Env& env) -> EvalResult {
         result = this->visit_if_statement(node, env);
     } else if (node.type() == "while_statement"s) {
         result = this->visit_while_statement(node, env);
+    } else if (node.type() == "repeat_statement"s) {
+        result = this->visit_repeat_until_statement(node, env);
     } else if (node.type() == "function_call"s) { // TODO this is actually an expression
         result = this->visit_function_call(node, env);
     } else if (should_ignore_node(node)) {
@@ -392,6 +394,58 @@ auto Interpreter::visit_while_statement(ts::Node node, Env& env) -> EvalResult {
     return result;
 }
 
+auto Interpreter::visit_repeat_until_statement(ts::Node node, Env& env) -> EvalResult {
+    assert(node.type() == "repeat_statement"s);
+    this->trace_enter_node(node);
+
+    EvalResult result;
+
+    assert(node.child(0).value().type() == "repeat"s);
+
+    ts::Cursor cursor(node);
+
+    while (true) {
+        cursor.reset(node);
+        cursor.goto_first_child();
+        if (!cursor.goto_next_sibling()) {
+            throw InterpreterException("syntax error at start of repeat until block");
+        }
+
+        Env block_env = this->enter_block(env);
+
+        do {
+            ts::Node body_node = cursor.current_node();
+
+            if (body_node.type() == "until"s) {
+                break;
+            }
+
+            auto body_result = this->visit_statement(body_node, block_env);
+            result.source_change =
+                combine_source_changes(result.source_change, body_result.source_change);
+        } while (cursor.goto_next_sibling());
+
+        assert(cursor.current_node().type() == "until"s);
+        if (!cursor.goto_next_sibling()) {
+            throw InterpreterException("syntax error at end of repeat until block");
+        }
+        auto condition_node = cursor.current_node();
+
+        // the condition is part of the same block and can access local variables
+        // declared in the repeat block
+        auto condition_result = this->visit_expression(condition_node.child(0).value(), block_env);
+        result.source_change =
+            combine_source_changes(result.source_change, condition_result.source_change);
+
+        if (condition_result.value) {
+            return result;
+        }
+    }
+
+    this->trace_exit_node(node);
+    return result;
+}
+
 auto Interpreter::visit_variable_declaration(ts::Node node, Env& env) -> EvalResult {
     assert(node.type() == std::string("variable_declaration"));
     this->trace_enter_node(node);
@@ -417,8 +471,6 @@ auto Interpreter::visit_local_variable_declaration(ts::Node node, Env& env) -> E
     this->trace_enter_node(node);
 
     EvalResult result;
-
-    std::cerr << ts::debug_print_tree(node) << "\n";
 
     assert(node.child(0).value().type() == "local"s);
     auto declarator = node.child(1).value();

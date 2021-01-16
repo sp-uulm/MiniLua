@@ -40,6 +40,7 @@ public:
     auto visit_else_statement(ts::Node node, Env& env) -> EvalResult;
 
     auto visit_while_statement(ts::Node node, Env& env) -> EvalResult;
+    auto visit_repeat_until_statement(ts::Node node, Env& env) -> EvalResult;
 
     auto visit_expression(ts::Node node, Env& env) -> EvalResult;
     auto visit_unary_operation(ts::Node node, Env& env) -> EvalResult;
