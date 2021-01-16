@@ -6,6 +6,7 @@
 #include <cassert>
 #include <functional>
 #include <iostream>
+#include <optional>
 #include <set>
 
 namespace minilua::details {
@@ -22,6 +23,57 @@ public:
         std::string(__func__) + " (" + std::string(__FILE__) + ":" + std::to_string(__LINE__) +    \
             ")",                                                                                   \
         what)
+
+// struct EvalResult
+EvalResult::EvalResult() : value(), do_break(false), do_return(std::nullopt), source_change() {}
+EvalResult::EvalResult(const CallResult& call_result)
+    : value(std::get<0>(call_result.values().tuple<1>())), do_break(false), do_return(std::nullopt),
+      source_change(call_result.source_change()) {}
+
+static auto combine_source_changes(
+    const std::optional<SourceChangeTree>& lhs, const std::optional<SourceChangeTree>& rhs)
+    -> std::optional<SourceChangeTree> {
+    if (lhs.has_value() && rhs.has_value()) {
+        return SourceChangeCombination({*lhs, *rhs});
+    } else if (lhs.has_value()) {
+        return lhs;
+    } else {
+        return rhs;
+    }
+}
+
+void EvalResult::combine(const EvalResult& other) {
+    this->value = other.value;
+    this->do_break = other.do_break;
+    this->do_return = other.do_return;
+    this->source_change = combine_source_changes(this->source_change, other.source_change);
+}
+
+EvalResult::operator minilua::EvalResult() const {
+    minilua::EvalResult result;
+    result.value = this->value;
+    result.source_change = this->source_change;
+    return result;
+}
+
+auto operator<<(std::ostream& o, const EvalResult& self) -> std::ostream& {
+    o << "EvalResult{ "
+      << ".value = " << self.value << ", .do_break = " << self.do_break << ", .do_return = ";
+    if (self.do_return) {
+        o << *self.do_return;
+    } else {
+        o << "nullopt";
+    }
+
+    o << ", .source_change = ";
+    if (self.source_change.has_value()) {
+        o << *self.source_change;
+    } else {
+        o << "nullopt";
+    }
+
+    return o << "}";
+}
 
 // class Interpreter
 Interpreter::Interpreter(const InterpreterConfig& config) : config(config) {}
@@ -46,11 +98,16 @@ void Interpreter::trace_enter_node(ts::Node node, std::optional<std::string> met
         this->tracer() << "\n";
     }
 }
-void Interpreter::trace_exit_node(ts::Node node, std::optional<std::string> method_name) const {
+void Interpreter::trace_exit_node(
+    ts::Node node, std::optional<std::string> method_name,
+    std::optional<std::string> reason) const {
     if (this->config.trace_nodes) {
         this->tracer() << "Exit node: " << ts::debug_print_node(node);
         if (method_name) {
             this->tracer() << " (method: " << method_name.value() << ")";
+        }
+        if (reason) {
+            this->tracer() << " reason: " << reason.value();
         }
         this->tracer() << "\n";
     }
@@ -74,18 +131,6 @@ void Interpreter::trace_function_call_result(
             this->tracer() << " with source changes " << result.source_change().value();
         }
         this->tracer() << "\n";
-    }
-}
-
-auto Interpreter::combine_source_changes(
-    const std::optional<SourceChangeTree>& lhs, const std::optional<SourceChangeTree>& rhs)
-    -> std::optional<SourceChangeTree> {
-    if (lhs.has_value() && rhs.has_value()) {
-        return SourceChangeCombination({*lhs, *rhs});
-    } else if (lhs.has_value()) {
-        return lhs;
-    } else {
-        return rhs;
     }
 }
 
@@ -123,13 +168,16 @@ auto Interpreter::visit_root(ts::Node node, Env& env) -> EvalResult {
 
     for (auto child : node.children()) {
         EvalResult sub_result = this->visit_statement(child, env);
-        // TODO on "return" set value
-        result.source_change =
-            this->combine_source_changes(result.source_change, sub_result.source_change);
+        result.combine(sub_result);
+
+        if (result.do_return) {
+            // TODO properly return the vallist
+            this->trace_exit_node(node);
+            return result;
+        }
     }
 
     this->trace_exit_node(node);
-
     return result;
 }
 
@@ -150,6 +198,10 @@ auto Interpreter::visit_statement(ts::Node node, Env& env) -> EvalResult {
         result = this->visit_while_statement(node, env);
     } else if (node.type() == "repeat_statement"s) {
         result = this->visit_repeat_until_statement(node, env);
+    } else if (node.type() == "break_statement"s) {
+        result = this->visit_break_statement(node, env);
+    } else if (node.type() == "return_statement"s) {
+        result = this->visit_return_statement(node, env);
     } else if (node.type() == "function_call"s) { // TODO this is actually an expression
         result = this->visit_function_call(node, env);
     } else if (should_ignore_node(node)) {
@@ -158,6 +210,10 @@ auto Interpreter::visit_statement(ts::Node node, Env& env) -> EvalResult {
     }
 
     this->trace_exit_node(node);
+
+    if (!result.do_return) {
+        result.value = Nil();
+    }
 
     return result;
 }
@@ -179,8 +235,16 @@ auto Interpreter::visit_do_statement(ts::Node node, Env& env) -> EvalResult {
     ts::Node current_node = cursor.current_node();
     while (current_node.type() != "end"s) {
         auto body_result = this->visit_statement(current_node, block_env);
-        result.source_change =
-            combine_source_changes(result.source_change, body_result.source_change);
+        result.combine(body_result);
+
+        if (result.do_break) {
+            this->trace_exit_node(node, std::nullopt, "break");
+            return result;
+        }
+        if (result.do_return) {
+            this->trace_exit_node(node, std::nullopt, "return");
+            return result;
+        }
 
         if (!cursor.goto_next_sibling()) {
             throw InterpreterException("syntax error: found no end node of if statement");
@@ -203,8 +267,7 @@ auto Interpreter::visit_if_statement(ts::Node node, Env& env) -> EvalResult {
     assert(node.child(2).value().type() == "then"s);
 
     auto condition_result = this->visit_expression(condition_node.child(0).value(), env);
-    result.source_change =
-        combine_source_changes(result.source_change, condition_result.source_change);
+    result.combine(condition_result);
 
     // NOTE we create a cursor from the root if_statement node because we need
     // to be able to see the siblings of the children
@@ -216,8 +279,9 @@ auto Interpreter::visit_if_statement(ts::Node node, Env& env) -> EvalResult {
     // "then block"
     if (condition_result.value) {
         auto then_result = this->visit_if_arm(cursor, env);
-        result.source_change =
-            combine_source_changes(result.source_change, then_result.source_change);
+        result.combine(then_result);
+
+        this->trace_exit_node(node);
         return result;
     } else {
         // step through (but ignore) body
@@ -235,10 +299,10 @@ auto Interpreter::visit_if_statement(ts::Node node, Env& env) -> EvalResult {
 
         auto [elseif_result, was_executed] = this->visit_elseif_statement(current_node, env);
 
-        result.source_change =
-            combine_source_changes(result.source_change, elseif_result.source_change);
+        result.combine(elseif_result);
 
         if (was_executed) {
+            this->trace_exit_node(node);
             return result;
         }
     } while (cursor.goto_next_sibling());
@@ -246,8 +310,16 @@ auto Interpreter::visit_if_statement(ts::Node node, Env& env) -> EvalResult {
     // else block
     if (cursor.current_node().type() == "else"s) {
         auto else_result = this->visit_else_statement(cursor.current_node(), env);
-        result.source_change =
-            combine_source_changes(result.source_change, else_result.source_change);
+        result.combine(else_result);
+
+        if (result.do_break) {
+            this->trace_exit_node(node, std::nullopt, "break");
+            return result;
+        }
+        if (result.do_return) {
+            this->trace_exit_node(node, std::nullopt, "return");
+            return result;
+        }
     }
 
     auto last_node = node.child(node.child_count() - 1).value();
@@ -269,8 +341,14 @@ auto Interpreter::visit_if_arm(ts::Cursor& cursor, Env& env) -> EvalResult {
     while (current_node.type() != "end"s && current_node.type() != "elseif"s &&
            current_node.type() != "else"s) {
         auto body_result = this->visit_statement(current_node, block_env);
-        result.source_change =
-            combine_source_changes(result.source_change, body_result.source_change);
+        result.combine(body_result);
+
+        if (result.do_break) {
+            return result;
+        }
+        if (result.do_return) {
+            return result;
+        }
 
         if (!cursor.goto_next_sibling()) {
             throw InterpreterException("syntax error: found no end node of if statement");
@@ -295,8 +373,7 @@ auto Interpreter::visit_elseif_statement(ts::Node node, Env& env) -> std::pair<E
     assert(node.child(2).value().type() == "then"s);
 
     auto condition_result = this->visit_expression(condition_node.child(0).value(), env);
-    result.source_change =
-        combine_source_changes(result.source_change, condition_result.source_change);
+    result.combine(condition_result);
 
     if (!condition_result.value) {
         return std::make_pair(result, false);
@@ -310,11 +387,21 @@ auto Interpreter::visit_elseif_statement(ts::Node node, Env& env) -> std::pair<E
     }
 
     Env block_env = this->enter_block(env);
-    cursor.foreach_remaining_siblings([this, &block_env, &result](ts::Node body_node) {
+
+    do {
+        auto body_node = cursor.current_node();
         auto body_result = this->visit_statement(body_node, block_env);
-        result.source_change =
-            combine_source_changes(result.source_change, body_result.source_change);
-    });
+        result.combine(body_result);
+
+        if (result.do_break) {
+            this->trace_exit_node(node, std::nullopt, "break");
+            return std::make_pair(result, true);
+        }
+        if (result.do_return) {
+            this->trace_exit_node(node, std::nullopt, "return");
+            return std::make_pair(result, true);
+        }
+    } while (cursor.goto_next_sibling());
 
     this->trace_exit_node(node);
     return std::make_pair(result, true);
@@ -335,11 +422,20 @@ auto Interpreter::visit_else_statement(ts::Node node, Env& env) -> EvalResult {
 
     Env block_env = this->enter_block(env);
 
-    cursor.foreach_remaining_siblings([this, &block_env, &result](ts::Node body_node) {
+    do {
+        auto body_node = cursor.current_node();
         auto body_result = this->visit_statement(body_node, block_env);
-        result.source_change =
-            combine_source_changes(result.source_change, body_result.source_change);
-    });
+        result.combine(body_result);
+
+        if (result.do_break) {
+            this->trace_exit_node(node, std::nullopt, "break");
+            return result;
+        }
+        if (result.do_return) {
+            this->trace_exit_node(node, std::nullopt, "return");
+            return result;
+        }
+    } while (cursor.goto_next_sibling());
 
     this->trace_exit_node(node);
     return result;
@@ -362,8 +458,7 @@ auto Interpreter::visit_while_statement(ts::Node node, Env& env) -> EvalResult {
 
     while (true) {
         auto condition_result = this->visit_expression(condition_node.child(0).value(), env);
-        result.source_change =
-            combine_source_changes(result.source_change, condition_result.source_change);
+        result.combine(condition_result);
 
         if (!condition_result.value) {
             return result;
@@ -385,8 +480,17 @@ auto Interpreter::visit_while_statement(ts::Node node, Env& env) -> EvalResult {
             }
 
             auto body_result = this->visit_statement(body_node, block_env);
-            result.source_change =
-                combine_source_changes(result.source_change, body_result.source_change);
+            result.combine(body_result);
+
+            if (result.do_break) {
+                this->trace_exit_node(node, std::nullopt, "break");
+                result.do_break = false;
+                return result;
+            }
+            if (result.do_return) {
+                this->trace_exit_node(node, std::nullopt, "return");
+                return result;
+            }
         } while (cursor.goto_next_sibling());
     }
 
@@ -421,8 +525,17 @@ auto Interpreter::visit_repeat_until_statement(ts::Node node, Env& env) -> EvalR
             }
 
             auto body_result = this->visit_statement(body_node, block_env);
-            result.source_change =
-                combine_source_changes(result.source_change, body_result.source_change);
+            result.combine(body_result);
+
+            if (result.do_break) {
+                this->trace_exit_node(node, std::nullopt, "break");
+                result.do_break = false;
+                return result;
+            }
+            if (result.do_return) {
+                this->trace_exit_node(node, std::nullopt, "return");
+                return result;
+            }
         } while (cursor.goto_next_sibling());
 
         assert(cursor.current_node().type() == "until"s);
@@ -434,13 +547,57 @@ auto Interpreter::visit_repeat_until_statement(ts::Node node, Env& env) -> EvalR
         // the condition is part of the same block and can access local variables
         // declared in the repeat block
         auto condition_result = this->visit_expression(condition_node.child(0).value(), block_env);
-        result.source_change =
-            combine_source_changes(result.source_change, condition_result.source_change);
+        result.combine(condition_result);
 
         if (condition_result.value) {
             return result;
         }
     }
+
+    this->trace_exit_node(node);
+    return result;
+}
+
+auto Interpreter::visit_break_statement(ts::Node node, Env& env) -> EvalResult {
+    assert(node.type() == "break_statement"s);
+    this->trace_enter_node(node);
+
+    EvalResult result;
+    result.do_break = true;
+
+    this->trace_exit_node(node);
+    return result;
+}
+auto Interpreter::visit_return_statement(ts::Node node, Env& env) -> EvalResult {
+    assert(node.type() == "return_statement"s);
+    this->trace_enter_node(node);
+
+    ts::Cursor cursor(node);
+    cursor.goto_first_child();
+
+    assert(cursor.current_node().type() == "return"s);
+
+    EvalResult result;
+    result.do_return = Vallist();
+
+    if (!cursor.goto_next_sibling()) {
+        return result;
+    }
+
+    std::vector<Value> return_values;
+
+    while (true) {
+        auto sub_node = cursor.current_node();
+        auto sub_result = this->visit_expression(sub_node, env);
+        result.combine(sub_result);
+        return_values.push_back(sub_result.value);
+
+        if (cursor.skip_n_siblings(2) != 2) {
+            break;
+        }
+    }
+
+    result.do_return = Vallist(return_values);
 
     this->trace_exit_node(node);
     return result;
@@ -460,7 +617,7 @@ auto Interpreter::visit_variable_declaration(ts::Node node, Env& env) -> EvalRes
 
     env.set_var(this->visit_variable_declarator(declarator, env), expr_result.value);
 
-    result.source_change = combine_source_changes(result.source_change, expr_result.source_change);
+    result.combine(expr_result);
 
     this->trace_exit_node(node);
     return result;
@@ -486,8 +643,7 @@ auto Interpreter::visit_local_variable_declaration(ts::Node node, Env& env) -> E
 
     if (expr) {
         auto expr_result = this->visit_expression(*expr, env);
-        result.source_change =
-            combine_source_changes(result.source_change, expr_result.source_change);
+        result.combine(expr_result);
         initial_value = expr_result.value;
     }
 
@@ -568,10 +724,10 @@ auto Interpreter::visit_binary_operation(ts::Node node, Env& env) -> EvalResult 
     EvalResult lhs_result = this->visit_expression(lhs_node, env);
     EvalResult rhs_result = this->visit_expression(rhs_node, env);
 
-    auto impl_operator = [this, &result, &lhs_result, &rhs_result, &origin](auto f) {
-        result.value = std::invoke(f, lhs_result.value, rhs_result.value, origin);
-        result.source_change =
-            combine_source_changes(lhs_result.source_change, rhs_result.source_change);
+    auto impl_operator = [&result, &lhs_result, &rhs_result, &origin](auto f) {
+        auto value = std::invoke(f, lhs_result.value, rhs_result.value, origin);
+        result.combine(rhs_result);
+        result.value = value;
     };
 
     if (operator_node.type() == "=="s) {

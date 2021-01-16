@@ -8,6 +8,27 @@
 
 namespace minilua::details {
 
+struct EvalResult {
+    Value value;
+    bool do_break;
+    std::optional<Vallist> do_return;
+    std::optional<SourceChangeTree> source_change;
+
+    EvalResult();
+    EvalResult(const CallResult&);
+
+    /**
+     * Combines another 'EvalResult' into this one.
+     *
+     * This will combine the source changes and override the other fields.
+     */
+    void combine(const EvalResult& other);
+
+    operator minilua::EvalResult() const;
+};
+
+auto operator<<(std::ostream&, const EvalResult&) -> std::ostream&;
+
 /**
  * This is in a class so we can track some state. E.g. including lua files or
  * do some caching.
@@ -32,6 +53,9 @@ public:
     auto visit_local_variable_declaration(ts::Node node, Env& env) -> EvalResult;
     auto visit_variable_declarator(ts::Node node, Env& env) -> std::string;
 
+    auto visit_break_statement(ts::Node node, Env& env) -> EvalResult;
+    auto visit_return_statement(ts::Node node, Env& env) -> EvalResult;
+
     auto visit_do_statement(ts::Node node, Env& env) -> EvalResult;
 
     auto visit_if_statement(ts::Node node, Env& env) -> EvalResult;
@@ -53,16 +77,13 @@ private:
     [[nodiscard]] auto tracer() const -> std::ostream&;
     void
     trace_enter_node(ts::Node node, std::optional<std::string> method_name = std::nullopt) const;
-    void
-    trace_exit_node(ts::Node node, std::optional<std::string> method_name = std::nullopt) const;
+    void trace_exit_node(
+        ts::Node node, std::optional<std::string> method_name = std::nullopt,
+        std::optional<std::string> reason = std::nullopt) const;
     void trace_function_call(
         const std::string& function_name, const std::vector<Value>& arguments) const;
     void
     trace_function_call_result(const std::string& function_name, const CallResult& result) const;
-
-    auto combine_source_changes(
-        const std::optional<SourceChangeTree>& lhs, const std::optional<SourceChangeTree>& rhs)
-        -> std::optional<SourceChangeTree>;
 
     auto enter_block(Env& env) -> Env;
 };
