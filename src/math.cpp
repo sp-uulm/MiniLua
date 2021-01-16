@@ -263,7 +263,7 @@ auto max(const CallContext& ctx) -> Value {
 
     Value max = *args.begin();
     for (const auto& a : args) {
-        if (1 <= 2) { // TODO: replace shit-code with real implementation
+        if (a.greater_than(max)) { // TODO: replace shit-code with real implementation
             max = a;
         }
     }

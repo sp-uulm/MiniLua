@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
 #include <cmath>
 #include <string>
+#include <vector>
 
 #include "MiniLua/environment.hpp"
 #include "MiniLua/math.hpp"
@@ -1189,5 +1190,54 @@ TEST_CASE("math.log(x [, base]") {
         ctx = ctx.make_new(list);
         CHECK_THROWS_WITH(
             minilua::math::log(ctx), "bad argument #1 to 'log' (number expected, got string)");
+    }
+}
+
+TEST_CASE("math.max, ...") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+    SECTION("Numbers") {
+        std::vector<minilua::Value> v;
+        for (int i = 9; i >= 0; i--) {
+            v.emplace_back(i);
+        }
+        // Highest value is at the first position
+        minilua::Vallist list = minilua::Vallist(v);
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::max(ctx) == 9);
+
+        // Highest value is at the last position
+        v.emplace_back(42);
+        list = minilua::Vallist(v);
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::max(ctx) == 42);
+
+        // Highest value is in the middle
+        v.emplace_back(12, 13, 14, 15, 16, 17, 18, 19, 20);
+        list = minilua::Vallist(v);
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::max(ctx) == 42);
+    }
+
+    SECTION("Strings") {
+        std::vector<minilua::Value> v;
+        v.emplace_back(
+            minilua::Value("ziehen"), minilua::Value("Baum"), minilua::Value("Minilua"), ("lua"),
+            ("welt"));
+        minilua::Vallist list = minilua::Vallist(v);
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::max(ctx) == minilua::Value("ziehen"));
+
+        v.emplace_back(minilua::Value("zug"));
+        list = minilua::Vallist(v);
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::max(ctx) == minilua::Value("zug"));
+
+        v.emplace_back(
+            minilua::Value("Essen"), minilua::Value("Corona"), minilua::Value("Sudoku"),
+            minilua::Value("c++"), minilua::Value("Ulm"), minilua::Value("Universität"));
+        list = minilua::Vallist(v);
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::max(ctx) == minilua::Value("zug"));
     }
 }
