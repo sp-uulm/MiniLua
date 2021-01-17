@@ -174,6 +174,7 @@ constexpr auto operator>=(Number lhs, Number rhs) noexcept -> bool {
 auto operator<<(std::ostream&, Number) -> std::ostream&;
 
 // normal c++ operators
+auto operator-(Number self) -> Number;
 DELEGATE_OP(Number, +);
 DELEGATE_OP(Number, -);
 DELEGATE_OP(Number, *);
@@ -203,11 +204,82 @@ auto operator==(const String& a, const String& b) noexcept -> bool;
 auto operator!=(const String& a, const String& b) noexcept -> bool;
 auto operator<<(std::ostream&, const String&) -> std::ostream&;
 
+// Forward declaration
+class CallContext;
+
 class Table {
     struct Impl;
     std::shared_ptr<Impl> impl;
 
 public:
+    // iterator definitions
+    //
+    // NOTE: it's not possible to use the underlying std::unordered_map<Value, Value>::iterator
+    // because Value is not a complete type at this location. This means we can't
+    // use it directly for begin() and end() and we can't use it in the definition
+    // of iterator/const_iterator.
+    using allocator_type = std::allocator<std::pair<const Value, Value>>;
+    using value_type = allocator_type::value_type;
+    using reference = allocator_type::reference;
+    using const_reference = allocator_type::const_reference;
+    using size_type = allocator_type::size_type;
+
+    class iterator {
+        friend class Table;
+
+        struct Impl;
+        owning_ptr<Impl> impl;
+
+    public:
+        using difference_type = allocator_type::difference_type;
+        using value_type = allocator_type::value_type;
+        using reference = allocator_type::reference;
+        using pointer = allocator_type::pointer;
+        using iterator_category = std::forward_iterator_tag;
+
+        iterator();
+        iterator(const iterator&);
+        ~iterator();
+
+        auto operator=(const iterator&) -> iterator&;
+        auto operator==(const iterator&) const -> bool;
+        auto operator!=(const iterator&) const -> bool;
+
+        auto operator++() -> iterator&;
+        auto operator++(int) -> iterator;
+
+        auto operator*() const -> reference;
+        auto operator->() const -> pointer;
+    };
+
+    class const_iterator {
+        friend class Table;
+
+        struct Impl;
+        owning_ptr<Impl> impl;
+
+    public:
+        using difference_type = allocator_type::difference_type;
+        using value_type = allocator_type::value_type;
+        using reference = allocator_type::const_reference;
+        using pointer = allocator_type::const_pointer;
+        using iterator_category = std::forward_iterator_tag;
+
+        const_iterator();
+        const_iterator(const const_iterator&);
+        ~const_iterator();
+
+        auto operator=(const const_iterator&) -> const_iterator&;
+        auto operator==(const const_iterator&) const -> bool;
+        auto operator!=(const const_iterator&) const -> bool;
+
+        auto operator++() -> const_iterator&;
+        auto operator++(int) -> const_iterator;
+
+        auto operator*() const -> reference;
+        auto operator->() const -> pointer;
+    };
+
     constexpr static const std::string_view TYPE = "table";
 
     Table();
@@ -222,10 +294,28 @@ public:
     friend void swap(Table& self, Table& other);
 
     auto get(const Value& key) -> Value;
+    auto has(const Value& key) -> bool;
     void set(const Value& key, Value value);
     void set(Value&& key, Value value);
+    [[nodiscard]] auto size() const -> size_t;
+
+    // iterators for Table
+    auto begin() -> iterator;
+    [[nodiscard]] auto begin() const -> const_iterator;
+    [[nodiscard]] auto cbegin() const -> const_iterator;
+    auto end() -> iterator;
+    [[nodiscard]] auto end() const -> const_iterator;
+    [[nodiscard]] auto cend() const -> const_iterator;
 
     [[nodiscard]] auto to_literal() const -> std::string;
+    /**
+     * @brief next returns the next index of the table and its associated value after index. If
+     * there is no value at the index an error is thrown.
+     * @param key is the index you want to get the next element. Key is the index
+     * @return nil when called with the last index or an the empty table. Else it returns the next
+     * index and its associated value after the value at index.
+     */
+    [[nodiscard]] auto next(const Value& key) const -> Vallist;
 
     friend auto operator==(const Table&, const Table&) noexcept -> bool;
     friend auto operator!=(const Table&, const Table&) noexcept -> bool;
@@ -289,8 +379,10 @@ public:
 
     /**
      * Returns the value of a global variable accessible from the function.
+     *
+     * Returns Nil if the variable is not accessible or does not exist.
      */
-    [[nodiscard]] auto get(const std::string& name) const -> Value&;
+    [[nodiscard]] auto get(const std::string& name) const -> Value;
 
     /**
      * Returns the arguments given to this function.
@@ -335,11 +427,11 @@ public:
     CallResult();
     CallResult(Vallist);
     CallResult(std::vector<Value>);
-    CallResult(std::initializer_list<Value>);
-    CallResult(SourceChangeTree);
-    CallResult(std::optional<SourceChangeTree>);
-    CallResult(Vallist, SourceChangeTree);
-    CallResult(Vallist, std::optional<SourceChangeTree>);
+    explicit CallResult(std::initializer_list<Value>);
+    explicit CallResult(SourceChangeTree);
+    explicit CallResult(std::optional<SourceChangeTree>);
+    explicit CallResult(Vallist, SourceChangeTree);
+    explicit CallResult(Vallist, std::optional<SourceChangeTree>);
 
     /**
      * Get the return values.
@@ -625,6 +717,7 @@ public:
 
     [[nodiscard]] auto remove_origin() const -> Value;
     [[nodiscard]] auto with_origin(Origin new_origin) const -> Value;
+    auto type() const -> std::string;
 
     /**
      * Forces this value to become 'new_value'. Does not actually change the
@@ -652,11 +745,16 @@ public:
 
     explicit operator bool() const;
 
-    /**
+    /*
      * Source location tracking versions of the c++ operators.
      *
      * Can be used in the interpreter to add the source location of the operation.
      */
+
+    /**
+     * unary - operator
+     */
+    [[nodiscard]] auto negate(std::optional<Range> location = std::nullopt) const -> Value;
     [[nodiscard]] auto add(const Value& rhs, std::optional<Range> location = std::nullopt) const
         -> Value;
     [[nodiscard]] auto sub(const Value& rhs, std::optional<Range> location = std::nullopt) const
@@ -679,8 +777,32 @@ public:
     logic_and(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
     [[nodiscard]] auto
     logic_or(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
-    [[nodiscard]] auto negate(std::optional<Range> location = std::nullopt) const -> Value;
+    /**
+     * unary not operator
+     */
+    [[nodiscard]] auto invert(std::optional<Range> location = std::nullopt) const -> Value;
+    /**
+     * unary # operator
+     */
+    [[nodiscard]] auto len(std::optional<Range> location = std::nullopt) const -> Value;
+    [[nodiscard]] auto equals(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    [[nodiscard]] auto
+    unequals(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
+    [[nodiscard]] auto
+    less_than(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
+    [[nodiscard]] auto
+    less_than_or_equal(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    [[nodiscard]] auto
+    greater_than(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
+    [[nodiscard]] auto
+    greater_than_or_equal(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    [[nodiscard]] auto concat(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
 
+    friend auto operator-(const Value&) -> Value;
     friend auto operator+(const Value&, const Value&) -> Value;
     friend auto operator-(const Value&, const Value&) -> Value;
     friend auto operator*(const Value&, const Value&) -> Value;
@@ -780,6 +902,14 @@ struct BinaryNumericFunctionHelper {
 };
 // deduction guide
 template <class... Ts> BinaryNumericFunctionHelper(Ts...) -> BinaryNumericFunctionHelper<Ts...>;
+
+// helper functions
+
+/**
+ * Parse a string into a lua value number.
+ */
+auto parse_number_literal(const std::string& str) -> Value;
+auto parse_string_literal(const std::string& str) -> Value;
 
 } // namespace minilua
 

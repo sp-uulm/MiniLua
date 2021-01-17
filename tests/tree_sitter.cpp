@@ -1,5 +1,6 @@
 #include <catch2/catch.hpp>
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <type_traits>
 
@@ -7,7 +8,14 @@
 
 using namespace std::string_literals;
 
-TEST_CASE("tree-sitter navigation", "[tree-sitter][.hide]") {
+std::string read_input_from_file2(std::string path) {
+    std::ifstream ifs;
+    ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    ifs.open(path);
+    return std::string(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
+}
+
+TEST_CASE("Navigation", "[tree-sitter][.hide]") {
     // This is a possible design of how to use tree-sitter in the interpreter.
     // But of course this would be split up over multiple functions
     // and could use better variable names because of that.
@@ -82,7 +90,18 @@ TEST_CASE("tree-sitter navigation", "[tree-sitter][.hide]") {
 TEST_CASE("tree-sitter print", "[tree-sitter][.hide]") {
     ts::Parser parser;
 
-    std::string source = "print(1+2)";
+    std::string source = "print(1+5)";
+    ts::Tree tree = parser.parse_string(source);
+    ts::Node root = tree.root_node();
+
+    INFO(root.as_s_expr());
+    FAIL();
+}
+
+TEST_CASE("TestCase for program", "[tree-sitter][.hide]") {
+    ts::Parser parser;
+
+    std::string source = read_input_from_file2("../luaprograms/FragmeentedFurniture.lua");
     ts::Tree tree = parser.parse_string(source);
     ts::Node root = tree.root_node();
 

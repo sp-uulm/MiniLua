@@ -1,0 +1,7 @@
+assert(tostring(true) == "true")
+assert(tostring(false) == "false")
+assert(tostring(not true) == "false")
+assert(tostring(not false) == "true")
+assert(tostring(not 42) == "false")
+assert(tostring(not nil) == "true")
+assert(tostring(not "hi") == "false")

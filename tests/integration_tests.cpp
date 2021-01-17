@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <variant>
 
+#include "MiniLua/interpreter.hpp"
 #include "MiniLua/luainterpreter.hpp"
 #include "MiniLua/luaparser.hpp"
 
@@ -94,22 +95,56 @@ TEST_CASE("parse, eval, update", "[parse][leaks]") {
     }
 }
 
-TEST_CASE("whole lua-programs") {
-    SECTION("programs with function calls") {
-        /*
-        const std::vector<std::string> files;
+TEST_CASE("unit_tests lua files") {
+    std::vector<std::string> test_files{
+        "literals/bools.lua",
+        "literals/numbers.lua",
+        "literals/string.lua",
+        "expressions/binary_operations.lua",
+        "expressions/unary_operations.lua",
+        "statements/if.lua",
+        "statements/while.lua"};
+    // NOTE: exptects to be run from build directory
+    for (const auto& file : test_files) {
+        std::string path = "../luaprograms/unit_tests/" + file;
+        DYNAMIC_SECTION("File: " << path) {
+            const std::string program = read_input_from_file(path);
 
-        //Find all Files in directory
-        for (const auto& entry : fs::directory_iterator("../luaprograms")){
-            //cout << typeid(entry.path()).name() << "\n";
-            //files.push_back(entry.path());
-            DYNAMIC_SECTION("File: " << entry.path()){
-                const std::string program = read_input_from_file(entry.path());
-                const auto result = parse_eval_update(program);
-                REQUIRE(result == program);
+            minilua::Interpreter interpreter;
+            interpreter.environment().add_default_stdlib();
+            REQUIRE(interpreter.parse(program));
+            auto result = interpreter.evaluate();
+            REQUIRE(!result.source_change.has_value());
+        }
+    }
+}
+
+TEST_CASE("whole lua-programs", "[.hide]") {
+    SECTION("programs with function calls") {
+        std::vector<std::string> test_files{
+            "BepposBalloons.lua",
+            "FragmeentedFurniture.lua",
+            "FragmentedFurniture_withoutMethods.lua",
+            "HelplessHuman.lua",
+            "LottaLaps.lua",
+            "luaToStringFunctionExample.lua",
+            "simple.lua"};
+        for (const auto& file : test_files) {
+            std::string path = "../luaprograms/" + file;
+            DYNAMIC_SECTION("File: " << path) {
+                const std::string program = read_input_from_file(path);
+
+                // old parser
+                // const auto result = parse_eval_update(program);
+                // REQUIRE(result == program);
+
+                minilua::Interpreter interpreter;
+                // interpreter.config().all(true);
+                interpreter.parse(program);
+                auto result = interpreter.evaluate();
+                REQUIRE(!result.source_change.has_value());
             }
         }
-        */
     }
 
     SECTION("Lua-program without functions") {

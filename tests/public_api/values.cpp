@@ -1,5 +1,7 @@
 #include <MiniLua/values.hpp>
+#include <algorithm>
 #include <catch2/catch.hpp>
+#include <iterator>
 
 // functions for use in testing NativeFunction
 auto fn(minilua::CallContext /*unused*/) -> minilua::CallResult { // NOLINT
@@ -227,6 +229,7 @@ TEST_CASE("table Value is constructable") {
 
         SECTION("contains initial values") {
             minilua::Value value{minilua::Table{{5, 22}, {"key1", 17}, {true, 12}}}; // NOLINT
+            INFO(value);
             CHECK(value[5] == 22);
             CHECK(value["key1"] == 17);
             CHECK(value[true] == 12);
@@ -244,6 +247,48 @@ TEST_CASE("table Value to literal") {
     // TODO check by parsing the resulting literal
     // minilua::Value value4{minilua::Table{{5, 22}, {"key1", 17}, {true, 12.5}}}; // NOLINT
     // CHECK(value4.to_literal() == R"({ key1 = 17, [true] = 12.5, [5] = 22 })");
+}
+
+TEST_CASE("table is iterable") {
+    minilua::Table table{{1, 25}, {"hi", 17}, {17, 21}}; // NOLINT
+    const std::vector<std::pair<const minilua::Value, minilua::Value>> expected{
+        {1, 25}, {"hi", 17}, {17, 21}}; // NOLINT
+
+    SECTION("increment") {
+        auto iter = table.begin();
+        CHECK(iter == iter);
+        auto iter2 = iter;
+        iter++;
+        CHECK(iter2 != iter);
+        CHECK(++iter2 == iter);
+    }
+
+    SECTION("derefence") {
+        auto iter = table.begin();
+
+        CHECK(std::find(expected.begin(), expected.end(), *iter) != expected.end());
+        CHECK(iter->second.is_number());
+    }
+
+    SECTION("const iteration") {
+        std::vector<std::pair<const minilua::Value, minilua::Value>> pairs{};
+        std::copy(table.cbegin(), table.cend(), std::back_inserter(pairs));
+
+        CHECK_THAT(pairs, Catch::Matchers::UnorderedEquals(expected));
+    }
+
+    SECTION("mutating iteration") {
+        for (auto& [key, value] : table) {
+            value = value + 1;
+        }
+
+        std::vector<std::pair<minilua::Value, minilua::Value>> pairs{};
+        std::copy(table.begin(), table.end(), std::back_inserter(pairs));
+
+        std::vector<std::pair<minilua::Value, minilua::Value>> expected{
+            {1, 26}, {"hi", 18}, {17, 22}}; // NOLINT
+        CHECK_THAT(pairs, Catch::Matchers::UnorderedEquals(expected));
+    }
 }
 
 TEST_CASE("function Value is constructable") {
@@ -699,5 +744,35 @@ TEST_CASE("destructuring of Vallist") {
         CHECK(hi == "hi");
         CHECK(nil1 == minilua::Nil());
         CHECK(nil2 == minilua::Nil());
+    }
+}
+
+TEST_CASE("next(table [, index]") {
+    SECTION("empty table") {
+        const minilua::Table value;
+        CHECK(value.next(minilua::Nil()) == minilua::Vallist());
+    }
+    SECTION("filled table") {
+        const minilua::Table value{{"key1", 22}, {1, "Hallo "}, {2, "Welt!"}, {100, 42}};
+        SECTION("access last element of table") {
+            auto start = value.begin();
+            std::advance(start, 3);
+            CHECK(value.next((*start).first) == minilua::Vallist());
+        }
+        SECTION("access a non existent key") { CHECK_THROWS(value.next(minilua::Value(42))); }
+
+        SECTION("access an element of the table") {
+            auto p = std::pair<const minilua::Value, minilua::Value>{2, "Welt"};
+            auto exp_erg = ++std::find_if(
+                value.begin(), value.end(), [](const auto& kv) { return kv.first == 2; });
+            CHECK(
+                value.next(minilua::Value(2)) ==
+                minilua::Vallist({exp_erg->first, exp_erg->second}));
+        }
+        SECTION("access the first element of the table") {
+            CHECK(
+                value.next(minilua::Nil()) ==
+                minilua::Vallist({value.begin()->first, value.begin()->second}));
+        }
     }
 }
