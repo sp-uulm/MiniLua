@@ -43,13 +43,13 @@ TEST_CASE("statements", "[tree-sitter][!hide]") {
     ts::Node root = tree.root_node();
     auto prog = Program(root);
     Body body = prog.body();
-    assert(!body.ret().has_value());
+    CHECK(!body.ret().has_value());
     vector<Statement> statement = body.statements();
-    assert(statement.size() == 15);
+    CHECK(statement.size() == 15);
     long unsigned int statement_count = statement.size();
     // this loop tests if each statement got parsed to the right Class
     for (long unsigned int i = 0; i < statement_count; i++) {
-        assert(statement.at(i).options().index() == i);
+        CHECK(statement.at(i).options().index() == i);
     }
 }
 TEST_CASE("expressions", "[tree-sitter][!hide]") {
@@ -94,7 +94,7 @@ TEST_CASE("expressions", "[tree-sitter][!hide]") {
     ts::Node root = tree.root_node();
     auto prog = Program(root);
     Body body = prog.body();
-    assert(!body.ret().has_value());
+    CHECK(!body.ret().has_value());
     vector<Statement> statement = body.statements();
     vector<Expression> exps;
     exps.reserve(exp_count);
@@ -105,13 +105,13 @@ TEST_CASE("expressions", "[tree-sitter][!hide]") {
             return *std::get_if<Expression>(&opt);
         });
     auto spread = exps[0].options();
-    assert(spread.index() == 0);
+    CHECK(spread.index() == 0);
     auto next = exps[1].options();
-    assert(next.index() == 2);
+    CHECK(next.index() == 2);
     auto func_def = exps[2].options();
-    assert(func_def.index() == 3);
+    CHECK(func_def.index() == 3);
     auto table = exps[3].options();
-    assert(table.index() == 4);
+    CHECK(table.index() == 4);
     vector<BinaryOperation> bin_ops;
     bin_ops.reserve(25);
     std::transform(
@@ -120,31 +120,32 @@ TEST_CASE("expressions", "[tree-sitter][!hide]") {
             return *get_if<BinaryOperation>(&opt);
         });
     for (uint i = 0; i < bin_ops.size(); i++) {
-        assert(
+        CHECK(
             bin_ops[i].op() ==
             (BinOpEnum)i); // Bin Operations are in the same sequence as in the BinOpEnum
     }
 
     auto nil = exps[25].options();
-    assert(holds_alternative<Value>(nil));
+    CHECK(holds_alternative<Value>(nil));
     auto* temp = get_if<Value>(&nil);
-    assert(temp->is_nil());
+    CHECK(temp->is_nil());
     auto _true = exps[26].options();
-    assert(holds_alternative<Value>(_true));
+    CHECK(holds_alternative<Value>(_true));
     temp = get_if<Value>(&_true);
-    assert(temp->is_bool() && temp == Value(true));
+    CHECK(temp->is_bool());
+    CHECK(temp == Value(true));
     auto* b = get_if<Bool>(&(temp->raw()));
-    assert(b->operator bool());
+    CHECK(b->operator bool());
     auto _false = exps[27].options();
-    assert(holds_alternative<Value>(_false));
+    CHECK(holds_alternative<Value>(_false));
     temp = get_if<Value>(&_false);
-    assert(temp->is_bool());
+    CHECK(temp->is_bool());
     b = get_if<Bool>(&(temp->raw()));
-    assert(!(b->operator bool()));
+    CHECK(!(b->operator bool()));
     auto id = exps[28].options();
-    assert(holds_alternative<Identifier>(id));
+    CHECK(holds_alternative<Identifier>(id));
     Identifier temp2 = *get_if<Identifier>(&id);
-    assert(temp2.str() == "id"s);
+    CHECK(temp2.str() == "id"s);
     vector<UnaryOperation> un_op;
     un_op.reserve(4);
     std::transform(
@@ -154,11 +155,11 @@ TEST_CASE("expressions", "[tree-sitter][!hide]") {
             auto* vd = std::get_if<VariableDeclaration>(&opt);
             auto exps = vd->declarations();
             auto exp = exps[0].options();
-            assert(holds_alternative<UnaryOperation>(exp));
+            CHECK(holds_alternative<UnaryOperation>(exp));
             return *get_if<UnaryOperation>(&exp);
         });
     for (uint j = 0; j < un_op.size(); j++) {
-        assert(un_op[j].op() == (UnOpEnum)j);
+        CHECK(un_op[j].op() == (UnOpEnum)j);
     }
 }
 
@@ -185,25 +186,25 @@ TEST_CASE("do_statements", "[tree-sitter][!hide]") {
     auto prog = Program(root);
     Body body = prog.body();
     auto stats = body.statements();
-    assert(stats.size() == 5);
-    assert(!body.ret().has_value());
+    CHECK(stats.size() == 5);
+    CHECK(!body.ret().has_value());
     std::vector<DoStatement> dos;
     std::transform(stats.begin(), stats.end(), std::back_inserter(dos), [](Statement stat) {
         auto opt = stat.options();
-        assert(std::holds_alternative<DoStatement>(opt));
+        CHECK(std::holds_alternative<DoStatement>(opt));
         return *std::get_if<DoStatement>(&opt);
     });
-    assert(dos.size() == 5);
-    assert(dos[0].body().statements().empty());
-    assert(!dos[0].body().ret().has_value());
-    assert(dos[1].body().statements().size() == 1);
-    assert(!dos[1].body().ret().has_value());
-    assert(dos[2].body().statements().size() == 2);
-    assert(!dos[2].body().ret().has_value());
-    assert(dos[3].body().statements().empty());
-    assert(dos[3].body().ret().has_value());
-    assert(dos[4].body().statements().size() == 1);
-    assert(dos[4].body().ret().has_value());
+    CHECK(dos.size() == 5);
+    CHECK(dos[0].body().statements().empty());
+    CHECK(!dos[0].body().ret().has_value());
+    CHECK(dos[1].body().statements().size() == 1);
+    CHECK(!dos[1].body().ret().has_value());
+    CHECK(dos[2].body().statements().size() == 2);
+    CHECK(!dos[2].body().ret().has_value());
+    CHECK(dos[3].body().statements().empty());
+    CHECK(dos[3].body().ret().has_value());
+    CHECK(dos[4].body().statements().size() == 1);
+    CHECK(dos[4].body().ret().has_value());
 }
 TEST_CASE("if_statements", "[tree-sitter][!hide]") {
     ts::Parser parser;
@@ -243,61 +244,61 @@ TEST_CASE("if_statements", "[tree-sitter][!hide]") {
     auto prog = Program(root);
     Body body = prog.body();
     auto stats = body.statements();
-    assert(stats.size() == 6);
+    CHECK(stats.size() == 6);
     std::vector<IfStatement> ifs;
     std::transform(stats.begin(), stats.end(), std::back_inserter(ifs), [](Statement stat) {
         auto opt = stat.options();
-        assert(std::holds_alternative<IfStatement>(opt));
+        CHECK(std::holds_alternative<IfStatement>(opt));
         return *std::get_if<IfStatement>(&opt);
     });
-    assert(ifs.size() == 6);
-    assert(holds_alternative<BinaryOperation>(ifs[0].cond().options()));
-    assert(ifs[0].body().statements().empty());
-    assert(!ifs[0].body().ret().has_value());
-    assert(ifs[0].elseifs().size() == 2);
-    assert(holds_alternative<Identifier>(ifs[0].elseifs()[0].cond().options()));
-    assert(ifs[0].elseifs()[0].body().statements().size() == 1);
-    assert(!ifs[0].elseifs()[0].body().ret().has_value());
-    assert(holds_alternative<Value>(ifs[0].elseifs()[1].cond().options()));
-    assert(ifs[0].elseifs()[1].body().statements().size() == 2);
-    assert(!ifs[0].elseifs()[1].body().ret().has_value());
-    assert(ifs[0].else_().has_value());
-    assert(ifs[0].else_().value().body().statements().empty());
-    assert(ifs[0].else_().value().body().ret().has_value());
-    assert(std::holds_alternative<Value>(
+    CHECK(ifs.size() == 6);
+    CHECK(holds_alternative<BinaryOperation>(ifs[0].cond().options()));
+    CHECK(ifs[0].body().statements().empty());
+    CHECK(!ifs[0].body().ret().has_value());
+    CHECK(ifs[0].elseifs().size() == 2);
+    CHECK(holds_alternative<Identifier>(ifs[0].elseifs()[0].cond().options()));
+    CHECK(ifs[0].elseifs()[0].body().statements().size() == 1);
+    CHECK(!ifs[0].elseifs()[0].body().ret().has_value());
+    CHECK(holds_alternative<Value>(ifs[0].elseifs()[1].cond().options()));
+    CHECK(ifs[0].elseifs()[1].body().statements().size() == 2);
+    CHECK(!ifs[0].elseifs()[1].body().ret().has_value());
+    CHECK(ifs[0].else_().has_value());
+    CHECK(ifs[0].else_().value().body().statements().empty());
+    CHECK(ifs[0].else_().value().body().ret().has_value());
+    CHECK(std::holds_alternative<Value>(
         ifs[0].else_().value().body().ret().value().explist()[0].options()));
-    assert(ifs[1].body().statements().empty());
-    assert(ifs[1].body().ret().has_value());
-    assert(ifs[1].elseifs().empty());
-    assert(!ifs[1].else_().has_value());
-    assert(holds_alternative<Identifier>(ifs[1].cond().options()));
-    assert(holds_alternative<Identifier>(ifs[2].cond().options()));
-    assert(ifs[2].body().statements().size() == 1);
-    assert(!ifs[2].body().ret().has_value());
-    assert(ifs[2].elseifs().empty());
-    assert(ifs[2].else_().has_value());
-    assert(ifs[2].else_().value().body().statements().size() == 1);
-    assert(!ifs[2].else_().value().body().ret().has_value());
-    assert(holds_alternative<Value>(ifs[3].cond().options()));
-    assert(ifs[3].body().statements().empty());
-    assert(!ifs[3].body().ret().has_value());
-    assert(ifs[3].elseifs().empty());
-    assert(ifs[3].else_().has_value());
-    assert(ifs[3].else_().value().body().statements().size() == 1);
-    assert(!ifs[3].else_().value().body().ret().has_value());
-    assert(holds_alternative<Identifier>(ifs[4].cond().options()));
-    assert(ifs[4].body().statements().size() == 1);
-    assert(!ifs[4].body().ret().has_value());
-    assert(ifs[4].elseifs().size() == 2);
-    assert(!ifs[4].else_().has_value());
-    assert(ifs[4].elseifs()[0].body().statements().size() == 1);
-    assert(!ifs[4].elseifs()[0].body().ret().has_value());
-    assert(ifs[4].elseifs()[1].body().statements().size() == 2);
-    assert(!ifs[4].elseifs()[1].body().ret().has_value());
-    assert(ifs[5].body().statements().empty());
-    assert(!ifs[5].body().ret().has_value());
-    assert(ifs[5].elseifs().empty());
-    assert(!ifs[5].else_().has_value());
+    CHECK(ifs[1].body().statements().empty());
+    CHECK(ifs[1].body().ret().has_value());
+    CHECK(ifs[1].elseifs().empty());
+    CHECK(!ifs[1].else_().has_value());
+    CHECK(holds_alternative<Identifier>(ifs[1].cond().options()));
+    CHECK(holds_alternative<Identifier>(ifs[2].cond().options()));
+    CHECK(ifs[2].body().statements().size() == 1);
+    CHECK(!ifs[2].body().ret().has_value());
+    CHECK(ifs[2].elseifs().empty());
+    CHECK(ifs[2].else_().has_value());
+    CHECK(ifs[2].else_().value().body().statements().size() == 1);
+    CHECK(!ifs[2].else_().value().body().ret().has_value());
+    CHECK(holds_alternative<Value>(ifs[3].cond().options()));
+    CHECK(ifs[3].body().statements().empty());
+    CHECK(!ifs[3].body().ret().has_value());
+    CHECK(ifs[3].elseifs().empty());
+    CHECK(ifs[3].else_().has_value());
+    CHECK(ifs[3].else_().value().body().statements().size() == 1);
+    CHECK(!ifs[3].else_().value().body().ret().has_value());
+    CHECK(holds_alternative<Identifier>(ifs[4].cond().options()));
+    CHECK(ifs[4].body().statements().size() == 1);
+    CHECK(!ifs[4].body().ret().has_value());
+    CHECK(ifs[4].elseifs().size() == 2);
+    CHECK(!ifs[4].else_().has_value());
+    CHECK(ifs[4].elseifs()[0].body().statements().size() == 1);
+    CHECK(!ifs[4].elseifs()[0].body().ret().has_value());
+    CHECK(ifs[4].elseifs()[1].body().statements().size() == 2);
+    CHECK(!ifs[4].elseifs()[1].body().ret().has_value());
+    CHECK(ifs[5].body().statements().empty());
+    CHECK(!ifs[5].body().ret().has_value());
+    CHECK(ifs[5].elseifs().empty());
+    CHECK(!ifs[5].else_().has_value());
 }
 TEST_CASE("for_statements", "[tree-sitter][!hide]") {
     ts::Parser parser;
@@ -318,58 +319,58 @@ TEST_CASE("for_statements", "[tree-sitter][!hide]") {
     auto prog = Program(root);
     Body body = prog.body();
     auto stats = body.statements();
-    assert(stats.size() == 3);
-    assert(!body.ret().has_value());
+    CHECK(stats.size() == 3);
+    CHECK(!body.ret().has_value());
     std::vector<ForStatement> fors;
     std::transform(stats.begin(), stats.end(), std::back_inserter(fors), [](Statement stat) {
         auto opt = stat.options();
-        assert(std::holds_alternative<ForStatement>(opt));
+        CHECK(std::holds_alternative<ForStatement>(opt));
         return *std::get_if<ForStatement>(&opt);
     });
-    assert(fors.size() == 3);
+    CHECK(fors.size() == 3);
     // 1st loop
-    assert(fors[0].body().statements().size() == 1);
-    assert(!fors[0].body().ret().has_value());
-    assert(fors[0].loop_exp().variable().str() == "i"s);
+    CHECK(fors[0].body().statements().size() == 1);
+    CHECK(!fors[0].body().ret().has_value());
+    CHECK(fors[0].loop_exp().variable().str() == "i"s);
     auto start1_opt = fors[0].loop_exp().start().options();
-    assert(holds_alternative<Value>(start1_opt));
+    CHECK(holds_alternative<Value>(start1_opt));
     auto* start1 = get_if<Value>(&start1_opt);
-    assert(start1->is_number());
-    assert(holds_alternative<Number>(start1->raw()));
+    CHECK(start1->is_number());
+    CHECK(holds_alternative<Number>(start1->raw()));
     if (auto* num1 = get_if<minilua::Number>(&start1->raw())) {
-        assert(num1->value == 1);
+        CHECK(num1->value == 1);
     }
     auto end1_opt = fors[0].loop_exp().end().options();
-    assert(holds_alternative<Value>(end1_opt));
+    CHECK(holds_alternative<Value>(end1_opt));
     auto* end1 = get_if<Value>(&end1_opt);
-    assert(end1->is_number());
-    assert(holds_alternative<Number>(end1->raw()));
+    CHECK(end1->is_number());
+    CHECK(holds_alternative<Number>(end1->raw()));
     if (auto* num2 = get_if<minilua::Number>(&end1->raw())) {
-        assert(num2->value == 2);
+        CHECK(num2->value == 2);
     }
-    assert(!fors[0].loop_exp().step().has_value());
+    CHECK(!fors[0].loop_exp().step().has_value());
     // 2nd loop just to check if the empty body works fine here
-    assert(fors[1].body().statements().empty());
+    CHECK(fors[1].body().statements().empty());
     // 3rd loop
-    assert(fors[2].body().statements().size() == 3);
-    assert(!fors[2].body().ret().has_value());
+    CHECK(fors[2].body().statements().size() == 3);
+    CHECK(!fors[2].body().ret().has_value());
     // checking the loopexpression
-    assert(fors[2].loop_exp().variable().str() == "c"s);
+    CHECK(fors[2].loop_exp().variable().str() == "c"s);
     auto start3_opt = fors[2].loop_exp().start().options();
-    assert(holds_alternative<Identifier>(start3_opt));
+    CHECK(holds_alternative<Identifier>(start3_opt));
     auto start3 = get_if<Identifier>(&start3_opt);
-    assert(start3->str() == "a"s);
-    assert(fors[2].loop_exp().step().has_value());
+    CHECK(start3->str() == "a"s);
+    CHECK(fors[2].loop_exp().step().has_value());
     auto step3_opt = fors[2].loop_exp().step()->options();
-    assert(holds_alternative<Identifier>(step3_opt));
+    CHECK(holds_alternative<Identifier>(step3_opt));
     auto step3 = get_if<Identifier>(&step3_opt);
-    assert(step3->str() == "b"s);
+    CHECK(step3->str() == "b"s);
     auto end3_opt = fors[2].loop_exp().end().options();
-    assert(holds_alternative<Value>(end3_opt));
+    CHECK(holds_alternative<Value>(end3_opt));
     auto end3 = get_if<Value>(&end3_opt);
-    assert(end3->is_number());
+    CHECK(end3->is_number());
     auto end3_num = get_if<Number>(&end3->raw());
-    assert(end3_num->value == 42);
+    CHECK(end3_num->value == 42);
 }
 TEST_CASE("for_in_statements", "[tree-sitter][!hide]") {
     ts::Parser parser;
@@ -385,19 +386,19 @@ TEST_CASE("for_in_statements", "[tree-sitter][!hide]") {
     auto prog = Program(root);
     Body body = prog.body();
     auto stats = body.statements();
-    assert(stats.size() == 2);
-    assert(!body.ret().has_value());
+    CHECK(stats.size() == 2);
+    CHECK(!body.ret().has_value());
     std::vector<ForInStatement> fors;
     std::transform(stats.begin(), stats.end(), std::back_inserter(fors), [](Statement stat) {
         auto opt = stat.options();
-        assert(std::holds_alternative<ForInStatement>(opt));
+        CHECK(std::holds_alternative<ForInStatement>(opt));
         return *std::get_if<ForInStatement>(&opt);
     });
-    assert(fors.size() == 2);
-    assert(fors[0].loop_exp().loop_vars().size() == 2);
-    assert(fors[0].loop_exp().loop_exps().size() == 3);
-    assert(fors[1].loop_exp().loop_vars().size() == 5);
-    assert(fors[1].loop_exp().loop_exps().size() == 1);
+    CHECK(fors.size() == 2);
+    CHECK(fors[0].loop_exp().loop_vars().size() == 2);
+    CHECK(fors[0].loop_exp().loop_exps().size() == 3);
+    CHECK(fors[1].loop_exp().loop_vars().size() == 5);
+    CHECK(fors[1].loop_exp().loop_exps().size() == 1);
 }
 TEST_CASE("function_statements", "[tree-sitter][!hide]") {
     ts::Parser parser;
@@ -429,69 +430,69 @@ TEST_CASE("function_statements", "[tree-sitter][!hide]") {
     auto prog = Program(root);
     Body body = prog.body();
     auto stats = body.statements();
-    assert(stats.size() == 10);
-    assert(!body.ret().has_value());
+    CHECK(stats.size() == 10);
+    CHECK(!body.ret().has_value());
     std::vector<FunctionStatement> func;
     std::transform(stats.begin(), stats.end(), std::back_inserter(func), [](Statement stat) {
         auto opt = stat.options();
-        assert(std::holds_alternative<FunctionStatement>(opt));
+        CHECK(std::holds_alternative<FunctionStatement>(opt));
         return *std::get_if<FunctionStatement>(&opt);
     });
-    assert(func.size() == 10);
-    assert(func[1].name().method().has_value());
-    assert(func[1].name().identifier().size() == 4);
-    assert(func[0].name().identifier().size() == 1);
+    CHECK(func.size() == 10);
+    CHECK(func[1].name().method().has_value());
+    CHECK(func[1].name().identifier().size() == 4);
+    CHECK(func[0].name().identifier().size() == 1);
     std::vector<string> vec{"a", "b", "c"};
     std::vector<string> params;
     vector<Identifier> identifiers;
     for (uint i = 0; i < 9; i++) {
         if (i < 2 || i > 4) {
-            assert(func[i].parameters().params().size() == 3);
+            CHECK(func[i].parameters().params().size() == 3);
             params.clear();
             identifiers = func[i].parameters().params();
             std::transform(
                 identifiers.begin(), identifiers.end(), std::back_inserter(params),
                 [](Identifier id) { return id.str(); });
-            assert(params == vec);
+            CHECK(params == vec);
         } else {
-            assert(func[i].parameters().params().empty());
+            CHECK(func[i].parameters().params().empty());
         }
         switch (i) {
         case 0:
         case 1:
-            assert(!func[i].parameters().leading_self());
-            assert(func[i].parameters().spread() == NO_SPREAD);
+            CHECK(!func[i].parameters().leading_self());
+            CHECK(func[i].parameters().spread() == NO_SPREAD);
             break;
         case 2:
-            assert(func[i].parameters().leading_self());
-            assert(func[i].parameters().spread() == END);
+            CHECK(func[i].parameters().leading_self());
+            CHECK(func[i].parameters().spread() == END);
             break;
         case 3:
-            assert(!func[i].parameters().leading_self());
-            assert(func[i].parameters().spread() == BEGIN);
+            CHECK(!func[i].parameters().leading_self());
+            CHECK(func[i].parameters().spread() == BEGIN);
             break;
         case 4:
         case 5:
-            assert(func[i].parameters().leading_self());
-            assert(func[i].parameters().spread() == NO_SPREAD);
+            CHECK(func[i].parameters().leading_self());
+            CHECK(func[i].parameters().spread() == NO_SPREAD);
             break;
         case 6:
-            assert(!func[i].parameters().leading_self());
-            assert(func[i].parameters().spread() == END);
+            CHECK(!func[i].parameters().leading_self());
+            CHECK(func[i].parameters().spread() == END);
             break;
         case 7:
-            assert(!func[i].parameters().leading_self());
-            assert(func[i].parameters().spread() == BEGIN);
+            CHECK(!func[i].parameters().leading_self());
+            CHECK(func[i].parameters().spread() == BEGIN);
             break;
         case 8:
-            assert(func[i].parameters().leading_self());
-            assert(func[i].parameters().spread() == END);
+            CHECK(func[i].parameters().leading_self());
+            CHECK(func[i].parameters().spread() == END);
             break;
         }
     }
-    assert(!func[9].parameters().leading_self());
-    assert(func[9].parameters().spread() == NO_SPREAD);
-    assert(func[9].parameters().params().empty());
+    CHECK(!func[9].parameters().leading_self());
+    CHECK(func[9].parameters().spread() == NO_SPREAD);
+    CHECK(func[9].parameters().params().empty());
 }
 TEST_CASE("while_and_repeat_statements", "[tree-sitter][!hide]") {
     ts::Parser parser;
@@ -512,31 +513,31 @@ TEST_CASE("while_and_repeat_statements", "[tree-sitter][!hide]") {
     auto prog = Program(root);
     Body body = prog.body();
     auto stats = body.statements();
-    assert(stats.size() == 4);
+    CHECK(stats.size() == 4);
     auto opt1 = stats[0].options();
-    assert(std::holds_alternative<WhileStatement>(opt1));
+    CHECK(std::holds_alternative<WhileStatement>(opt1));
     auto while_stat = std::get_if<WhileStatement>(&opt1);
-    assert(holds_alternative<BinaryOperation>(while_stat->exit_cond().options()));
-    assert(while_stat->body().statements().size() == 1);
-    assert(!while_stat->body().ret().has_value());
+    CHECK(holds_alternative<BinaryOperation>(while_stat->exit_cond().options()));
+    CHECK(while_stat->body().statements().size() == 1);
+    CHECK(!while_stat->body().ret().has_value());
     auto opt2 = stats[1].options();
-    assert(std::holds_alternative<WhileStatement>(opt2));
+    CHECK(std::holds_alternative<WhileStatement>(opt2));
     while_stat = std::get_if<WhileStatement>(&opt2);
-    assert(holds_alternative<BinaryOperation>(while_stat->exit_cond().options()));
-    assert(while_stat->body().statements().empty());
-    assert(!while_stat->body().ret().has_value());
+    CHECK(holds_alternative<BinaryOperation>(while_stat->exit_cond().options()));
+    CHECK(while_stat->body().statements().empty());
+    CHECK(!while_stat->body().ret().has_value());
     auto opt3 = stats[2].options();
-    assert(std::holds_alternative<RepeatStatement>(opt3));
+    CHECK(std::holds_alternative<RepeatStatement>(opt3));
     auto repeat_stat = std::get_if<RepeatStatement>(&opt3);
-    assert(holds_alternative<BinaryOperation>(repeat_stat->until_cond().options()));
-    assert(repeat_stat->body().statements().empty());
-    assert(!repeat_stat->body().ret().has_value());
+    CHECK(holds_alternative<BinaryOperation>(repeat_stat->until_cond().options()));
+    CHECK(repeat_stat->body().statements().empty());
+    CHECK(!repeat_stat->body().ret().has_value());
     auto opt4 = stats[3].options();
-    assert(std::holds_alternative<RepeatStatement>(opt4));
+    CHECK(std::holds_alternative<RepeatStatement>(opt4));
     repeat_stat = std::get_if<RepeatStatement>(&opt4);
-    assert(holds_alternative<Identifier>(repeat_stat->until_cond().options()));
-    assert(repeat_stat->body().statements().size() == 1);
-    assert(repeat_stat->body().ret().has_value());
+    CHECK(holds_alternative<Identifier>(repeat_stat->until_cond().options()));
+    CHECK(repeat_stat->body().statements().size() == 1);
+    CHECK(repeat_stat->body().ret().has_value());
 }
 TEST_CASE("return_statements", "[tree-sitter][!hide]") {
     ts::Parser parser;
@@ -554,22 +555,22 @@ TEST_CASE("return_statements", "[tree-sitter][!hide]") {
     auto prog = Program(root);
     Body body = prog.body();
     auto stats = body.statements();
-    assert(stats.size() == 3);
+    CHECK(stats.size() == 3);
     std::vector<Return> returns;
     std::transform(stats.begin(), stats.end(), std::back_inserter(returns), [](Statement stat) {
         auto opt = stat.options();
-        assert(std::holds_alternative<DoStatement>(opt));
+        CHECK(std::holds_alternative<DoStatement>(opt));
         auto do_stat = *std::get_if<DoStatement>(&opt);
-        assert(do_stat.body().ret().has_value());
+        CHECK(do_stat.body().ret().has_value());
         return do_stat.body().ret().value();
     });
-    assert(returns[0].explist().size() == 4);
+    CHECK(returns[0].explist().size() == 4);
     for (uint i = 0; i < 4; i++) {
-        assert(std::holds_alternative<Identifier>(returns[0].explist()[i].options()));
+        CHECK(std::holds_alternative<Identifier>(returns[0].explist()[i].options()));
     }
-    assert(returns[1].explist().empty());
-    assert(returns[2].explist().size() == 1);
-    assert(std::holds_alternative<Identifier>(returns[2].explist()[0].options()));
+    CHECK(returns[1].explist().empty());
+    CHECK(returns[2].explist().size() == 1);
+    CHECK(std::holds_alternative<Identifier>(returns[2].explist()[0].options()));
 }
 TEST_CASE("var_dec_statements", "[tree-sitter][!hide]") {
     ts::Parser parser;
@@ -586,77 +587,77 @@ TEST_CASE("var_dec_statements", "[tree-sitter][!hide]") {
     auto prog = Program(root);
     Body body = prog.body();
     auto stats = body.statements();
-    assert(stats.size() == 6);
+    CHECK(stats.size() == 6);
     // 1st statement
     auto opt1 = stats[0].options();
-    assert(std::holds_alternative<VariableDeclaration>(opt1));
+    CHECK(std::holds_alternative<VariableDeclaration>(opt1));
     auto var_dec1 = std::get_if<VariableDeclaration>(&opt1);
-    assert(var_dec1->declarations().size() == 1);
-    assert(var_dec1->declarators().size() == 1);
-    assert(std::holds_alternative<Identifier>(var_dec1->declarators()[0].var()));
-    assert(std::holds_alternative<Value>(var_dec1->declarations()[0].options()));
+    CHECK(var_dec1->declarations().size() == 1);
+    CHECK(var_dec1->declarators().size() == 1);
+    CHECK(std::holds_alternative<Identifier>(var_dec1->declarators()[0].var()));
+    CHECK(std::holds_alternative<Value>(var_dec1->declarations()[0].options()));
     // 2nd statement
     auto opt2 = stats[1].options();
-    assert(std::holds_alternative<VariableDeclaration>(opt2));
+    CHECK(std::holds_alternative<VariableDeclaration>(opt2));
     auto var_dec2 = std::get_if<VariableDeclaration>(&opt2);
-    assert(var_dec2->declarations().size() == 3);
-    assert(var_dec2->declarators().size() == 4);
+    CHECK(var_dec2->declarations().size() == 3);
+    CHECK(var_dec2->declarators().size() == 4);
     for (uint i = 0; i < 4; i++) {
-        assert(std::holds_alternative<Identifier>(var_dec2->declarators()[i].var()));
+        CHECK(std::holds_alternative<Identifier>(var_dec2->declarators()[i].var()));
     }
-    assert(std::holds_alternative<BinaryOperation>(var_dec2->declarations()[0].options()));
-    assert(std::holds_alternative<BinaryOperation>(var_dec2->declarations()[1].options()));
-    assert(std::holds_alternative<Identifier>(var_dec2->declarations()[2].options()));
+    CHECK(std::holds_alternative<BinaryOperation>(var_dec2->declarations()[0].options()));
+    CHECK(std::holds_alternative<BinaryOperation>(var_dec2->declarations()[1].options()));
+    CHECK(std::holds_alternative<Identifier>(var_dec2->declarations()[2].options()));
     // 3rd statement
     auto opt3 = stats[2].options();
-    assert(std::holds_alternative<LocalVariableDeclaration>(opt3));
+    CHECK(std::holds_alternative<LocalVariableDeclaration>(opt3));
     auto var_dec3 = std::get_if<LocalVariableDeclaration>(&opt3);
-    assert(var_dec3->declarations().empty());
-    assert(var_dec3->declarators().size() == 1);
-    assert(var_dec3->declarators()[0].str() == "e"s);
+    CHECK(var_dec3->declarations().empty());
+    CHECK(var_dec3->declarators().size() == 1);
+    CHECK(var_dec3->declarators()[0].str() == "e"s);
     // 4th statement
     auto opt4 = stats[3].options();
-    assert(std::holds_alternative<LocalVariableDeclaration>(opt4));
+    CHECK(std::holds_alternative<LocalVariableDeclaration>(opt4));
     auto var_dec4 = std::get_if<LocalVariableDeclaration>(&opt4);
-    assert(var_dec4->declarations().empty());
-    assert(var_dec4->declarators().size() == 3);
-    assert(var_dec4->declarators()[0].str() == "f"s);
-    assert(var_dec4->declarators()[1].str() == "g"s);
-    assert(var_dec4->declarators()[2].str() == "h"s);
+    CHECK(var_dec4->declarations().empty());
+    CHECK(var_dec4->declarators().size() == 3);
+    CHECK(var_dec4->declarators()[0].str() == "f"s);
+    CHECK(var_dec4->declarators()[1].str() == "g"s);
+    CHECK(var_dec4->declarators()[2].str() == "h"s);
     // 5th statement
     auto opt5 = stats[4].options();
-    assert(std::holds_alternative<LocalVariableDeclaration>(opt5));
+    CHECK(std::holds_alternative<LocalVariableDeclaration>(opt5));
     auto var_dec5 = std::get_if<LocalVariableDeclaration>(&opt5);
-    assert(var_dec5->declarations().size() == 2);
-    assert(var_dec5->declarators().size() == 2);
-    assert(std::holds_alternative<Value>(var_dec5->declarations()[0].options()));
-    assert(std::holds_alternative<Value>(var_dec5->declarations()[1].options()));
-    assert(var_dec5->declarators()[0].str() == "i"s);
-    assert(var_dec5->declarators()[1].str() == "j"s);
+    CHECK(var_dec5->declarations().size() == 2);
+    CHECK(var_dec5->declarators().size() == 2);
+    CHECK(std::holds_alternative<Value>(var_dec5->declarations()[0].options()));
+    CHECK(std::holds_alternative<Value>(var_dec5->declarations()[1].options()));
+    CHECK(var_dec5->declarators()[0].str() == "i"s);
+    CHECK(var_dec5->declarators()[1].str() == "j"s);
     // 6th statement
     auto opt6 = stats[5].options();
-    assert(std::holds_alternative<VariableDeclaration>(opt6));
+    CHECK(std::holds_alternative<VariableDeclaration>(opt6));
     auto var_dec6 = std::get_if<VariableDeclaration>(&opt6);
-    assert(var_dec6->declarators().size() == 1);
+    CHECK(var_dec6->declarators().size() == 1);
     auto declarator = var_dec6->declarators()[0];
     auto dec_opt1 = declarator.var();
-    assert(std::holds_alternative<FieldExpression>(dec_opt1));
+    CHECK(std::holds_alternative<FieldExpression>(dec_opt1));
     auto fe1 = std::get_if<FieldExpression>(&dec_opt1);
-    assert(fe1->property_id().str() == "field1");
+    CHECK(fe1->property_id().str() == "field1");
     auto prefix1 = fe1->table_id().options();
-    assert(std::holds_alternative<VariableDeclarator>(prefix1));
+    CHECK(std::holds_alternative<VariableDeclarator>(prefix1));
     auto dec2 = get_if<VariableDeclarator>(&prefix1);
     auto dec_opt2 = dec2->var();
-    assert(holds_alternative<FieldExpression>(dec_opt2));
+    CHECK(holds_alternative<FieldExpression>(dec_opt2));
     auto fe2 = std::get_if<FieldExpression>(&dec_opt2);
-    assert(fe2->property_id().str() == "table2");
+    CHECK(fe2->property_id().str() == "table2");
     auto prefix2 = fe2->table_id().options();
-    assert(std::holds_alternative<VariableDeclarator>(prefix2));
+    CHECK(std::holds_alternative<VariableDeclarator>(prefix2));
     auto dec3 = std::get_if<VariableDeclarator>(&prefix2);
     auto dec_opt3 = dec3->var();
-    assert(holds_alternative<Identifier>(dec_opt3));
+    CHECK(holds_alternative<Identifier>(dec_opt3));
     auto table_id = std::get_if<Identifier>(&dec_opt3);
-    assert(table_id->str() == "table1"s);
+    CHECK(table_id->str() == "table1"s);
 }
 TEST_CASE("table_statements", "[tree-sitter][!hide]") {
     ts::Parser parser;
@@ -672,36 +673,36 @@ TEST_CASE("table_statements", "[tree-sitter][!hide]") {
     auto prog = Program(root);
     Body body = prog.body();
     auto stats = body.statements();
-    assert(stats.size() == 1);
+    CHECK(stats.size() == 1);
     auto opt1 = stats[0].options();
-    assert(std::holds_alternative<Expression>(opt1));
+    CHECK(std::holds_alternative<Expression>(opt1));
     auto* exp1 = std::get_if<Expression>(&opt1);
     auto exp_opt1 = exp1->options();
-    assert(std::holds_alternative<Table>(exp_opt1));
+    CHECK(std::holds_alternative<Table>(exp_opt1));
     auto table1 = std::get_if<Table>(&exp_opt1);
     auto fields = table1->fields();
-    assert(fields.size() == 3);
+    CHECK(fields.size() == 3);
     auto field1_opt = fields[0].content();
-    assert(std::holds_alternative<ID_FIELD>(field1_opt));
+    CHECK(std::holds_alternative<ID_FIELD>(field1_opt));
     auto field1 = std::get_if<ID_FIELD>(&field1_opt);
-    assert(field1->first.str() == "field1"s);
-    assert(std::holds_alternative<Value>(field1->second.options()));
+    CHECK(field1->first.str() == "field1"s);
+    CHECK(std::holds_alternative<Value>(field1->second.options()));
     auto content1_opt = field1->second.options();
     auto content1 = std::get_if<Value>(&content1_opt);
-    assert(content1->is_string());
+    CHECK(content1->is_string());
     auto raw = content1->raw();
     auto content1_str = get_if<String>(&raw);
-    assert(content1_str->value == "name"s);
+    CHECK(content1_str->value == "name"s);
     auto field2_opt = fields[1].content();
-    assert(std::holds_alternative<INDEX_FIELD>(field2_opt));
+    CHECK(std::holds_alternative<INDEX_FIELD>(field2_opt));
     auto field2 = std::get_if<INDEX_FIELD>(&field2_opt);
-    assert(std::holds_alternative<BinaryOperation>(field2->first.options()));
-    assert(std::holds_alternative<Table>(field2->second.options()));
+    CHECK(std::holds_alternative<BinaryOperation>(field2->first.options()));
+    CHECK(std::holds_alternative<Table>(field2->second.options()));
     auto field3_opt = fields[2].content();
-    assert(std::holds_alternative<Expression>(field3_opt));
+    CHECK(std::holds_alternative<Expression>(field3_opt));
     auto field3 = std::get_if<Expression>(&field3_opt);
     auto content3_opt = field3->options();
-    assert(std::holds_alternative<FunctionDefinition>(content3_opt));
+    CHECK(std::holds_alternative<FunctionDefinition>(content3_opt));
 }
 TEST_CASE("function_calls", "[tree-sitter][!hide]") {
     ts::Parser parser;
@@ -715,47 +716,47 @@ TEST_CASE("function_calls", "[tree-sitter][!hide]") {
     auto prog = Program(root);
     Body body = prog.body();
     auto stats = body.statements();
-    assert(stats.size() == 5);
+    CHECK(stats.size() == 5);
     std::vector<FunctionCall> func_calls;
     std::transform(stats.begin(), stats.end(), std::back_inserter(func_calls), [](Statement stat) {
         auto opt = stat.options();
-        assert(std::holds_alternative<FunctionCall>(opt));
+        CHECK(std::holds_alternative<FunctionCall>(opt));
         return *std::get_if<FunctionCall>(&opt);
     });
-    assert(!func_calls[0].method().has_value());
-    assert(std::holds_alternative<VariableDeclarator>(func_calls[0].id().options()));
+    CHECK(!func_calls[0].method().has_value());
+    CHECK(std::holds_alternative<VariableDeclarator>(func_calls[0].id().options()));
     auto opt1 = func_calls[0].id().options();
     auto name1 = std::get_if<VariableDeclarator>(&opt1);
-    assert(holds_alternative<Identifier>(name1->var()));
-    assert(func_calls[0].args().size() == 2);
+    CHECK(holds_alternative<Identifier>(name1->var()));
+    CHECK(func_calls[0].args().size() == 2);
 
-    assert(!func_calls[1].method().has_value());
-    assert(std::holds_alternative<VariableDeclarator>(func_calls[1].id().options()));
+    CHECK(!func_calls[1].method().has_value());
+    CHECK(std::holds_alternative<VariableDeclarator>(func_calls[1].id().options()));
     auto opt2 = func_calls[1].id().options();
     auto name2 = std::get_if<VariableDeclarator>(&opt2);
-    assert(holds_alternative<FieldExpression>(name2->var()));
-    assert(func_calls[1].args().empty());
+    CHECK(holds_alternative<FieldExpression>(name2->var()));
+    CHECK(func_calls[1].args().empty());
 
-    assert(func_calls[2].method().has_value());
-    assert(std::holds_alternative<VariableDeclarator>(func_calls[2].id().options()));
+    CHECK(func_calls[2].method().has_value());
+    CHECK(std::holds_alternative<VariableDeclarator>(func_calls[2].id().options()));
     auto opt3 = func_calls[2].id().options();
     auto name3 = std::get_if<VariableDeclarator>(&opt3);
-    assert(holds_alternative<Identifier>(name3->var()));
-    assert(func_calls[2].args().empty());
+    CHECK(holds_alternative<Identifier>(name3->var()));
+    CHECK(func_calls[2].args().empty());
 
-    assert(func_calls[3].args().size() == 1);
-    assert(std::holds_alternative<Value>(func_calls[3].args()[0].options()));
+    CHECK(func_calls[3].args().size() == 1);
+    CHECK(std::holds_alternative<Value>(func_calls[3].args()[0].options()));
     auto opt4 = func_calls[3].args()[0].options();
     auto str = std::get_if<Value>(&opt4);
-    assert(str->is_string());
+    CHECK(str->is_string());
 
-    assert(func_calls[4].args().size() == 1);
-    assert(std::holds_alternative<Table>(func_calls[4].args()[0].options()));
+    CHECK(func_calls[4].args().size() == 1);
+    CHECK(std::holds_alternative<Table>(func_calls[4].args()[0].options()));
     auto opt5 = func_calls[4].args()[0].options();
     auto table = std::get_if<Table>(&opt5);
-    assert(table->fields().size() == 4);
+    CHECK(table->fields().size() == 4);
     for (uint i = 0; i < 4; i++) {
-        assert(std::holds_alternative<Expression>(table->fields()[i].content()));
+        CHECK(std::holds_alternative<Expression>(table->fields()[i].content()));
     }
 }
 } // namespace minilua::details
