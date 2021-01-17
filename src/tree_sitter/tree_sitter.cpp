@@ -4,6 +4,7 @@
 #include <iostream>
 #include <iterator>
 #include <optional>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <tree_sitter/api.h>
@@ -78,6 +79,15 @@ ZeroSizedEditException::ZeroSizedEditException()
     : std::runtime_error("zero-sized edits are not allowed") {}
 
 // struct Point
+std::string Point::pretty(bool start_at_one) const {
+    Point point = *this;
+    if (start_at_one) {
+        point.row += 1;
+        point.column += 1;
+    }
+
+    return std::to_string(point.row) + ":" + std::to_string(point.column);
+}
 bool operator==(const Point& lhs, const Point& rhs) {
     return lhs.row == rhs.row && lhs.column == rhs.column;
 }
@@ -375,6 +385,76 @@ std::ostream& operator<<(std::ostream& o, const EditResult& self) {
              << ", .changed_ranges = " << self.changed_ranges << " }";
 }
 
+static void debug_print_node_content(Node node, std::stringstream& out) {
+    // name
+    out << node.type();
+    // properties
+    std::stringstream properties;
+    if (node.has_changes()) {
+        properties << "*";
+    }
+    if (node.has_error()) {
+        properties << "E";
+    }
+    if (node.is_named()) {
+        properties << "N";
+    }
+    if (node.is_missing()) {
+        properties << "?";
+    }
+    if (node.is_extra()) {
+        properties << "+";
+    }
+
+    if (!properties.str().empty()) {
+        out << " " << properties.str();
+    }
+
+    out << " " << node.range().start.point.row << ":" << node.range().start.point.column;
+
+    // text content
+    if (node.child_count() == 0) {
+        out << " \"" << node.text() << "\"";
+    }
+}
+static void debug_print_node(Node node, std::stringstream& out) {
+    out << "(";
+    debug_print_node_content(node, out);
+    out << ")";
+}
+static void debug_print_tree(Node node, std::stringstream& out, int depth = 0) {
+    // indentation
+    out << std::string(depth * 2, ' ');
+
+    // node content
+    out << "(";
+    debug_print_node_content(node, out);
+
+    // children
+    if (node.child_count() > 0) {
+        out << "\n";
+    }
+    for (auto child : node.children()) {
+        debug_print_tree(child, out, depth + 1);
+    }
+
+    // end
+    if (node.child_count() > 0) {
+        out << std::string(depth * 2, ' ');
+    }
+    out << ")\n";
+}
+auto debug_print_tree(Node node) -> std::string {
+    std::stringstream ss;
+    debug_print_tree(node, ss);
+    return ss.str();
+}
+auto debug_print_node(Node node) -> std::string {
+    std::stringstream ss;
+    debug_print_node(node, ss);
+    return ss.str();
+}
+
 // class Tree
 Tree::Tree(TSTree* tree, std::string source, const Parser& parser)
     : tree(tree, ts_tree_delete), source_(std::move(source)), parser_(&parser) {}
@@ -451,6 +531,15 @@ FieldId Cursor::current_field_id() const { return ts_tree_cursor_current_field_i
 bool Cursor::goto_parent() { return ts_tree_cursor_goto_parent(&this->cursor); }
 bool Cursor::goto_first_child() { return ts_tree_cursor_goto_first_child(&this->cursor); }
 bool Cursor::goto_next_sibling() { return ts_tree_cursor_goto_next_sibling(&this->cursor); }
+int Cursor::skip_n_siblings(int n) {
+    int i = 0;
+    for (; i < n; ++i) {
+        if (!this->goto_next_sibling()) {
+            break;
+        }
+    }
+    return i;
+}
 bool Cursor::goto_first_named_child() {
     if (!this->goto_first_child()) {
         return false;

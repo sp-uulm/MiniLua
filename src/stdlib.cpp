@@ -15,6 +15,16 @@
 
 namespace minilua {
 
+void Environment::add_default_stdlib() {
+    this->add("tostring", to_string);
+    this->add("to_number", to_number);
+    this->add("type", type);
+    this->add("assert", assert_lua);
+    this->add("next", next);
+    this->add("select", select);
+    this->add("print", print);
+}
+
 /**
 Splits a string into two parts. the split happens at the character c which is not included in the
 result.
