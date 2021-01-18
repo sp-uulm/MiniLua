@@ -100,6 +100,7 @@ TEST_CASE("unit_tests lua files") {
         "literals/bools.lua",
         "literals/numbers.lua",
         "literals/string.lua",
+        "literals/table.lua",
         "expressions/binary_operations.lua",
         "expressions/unary_operations.lua",
         "statements/if.lua",

@@ -70,8 +70,9 @@ public:
     auto visit_unary_operation(ts::Node node, Env& env) -> EvalResult;
     auto visit_binary_operation(ts::Node node, Env& env) -> EvalResult;
     auto visit_function_call(ts::Node node, Env& env) -> CallResult;
+    auto visit_field_expression(ts::Node node, Env& env) -> EvalResult;
 
-    auto visit_number(ts::Node node, Env& env) -> EvalResult;
+    auto visit_table_constructor(ts::Node node, Env& env) -> EvalResult;
 
 private:
     [[nodiscard]] auto tracer() const -> std::ostream&;

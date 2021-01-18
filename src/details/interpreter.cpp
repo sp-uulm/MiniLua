@@ -202,11 +202,10 @@ auto Interpreter::visit_statement(ts::Node node, Env& env) -> EvalResult {
         result = this->visit_break_statement(node, env);
     } else if (node.type() == "return_statement"s) {
         result = this->visit_return_statement(node, env);
-    } else if (node.type() == "function_call"s) { // TODO this is actually an expression
-        result = this->visit_function_call(node, env);
     } else if (should_ignore_node(node)) {
     } else {
-        throw UNIMPLEMENTED(node.type());
+        result = this->visit_expression(node, env);
+        // throw UNIMPLEMENTED(node.type());
     }
 
     this->trace_exit_node(node);
@@ -692,6 +691,8 @@ auto Interpreter::visit_expression(ts::Node node, Env& env) -> EvalResult {
         } catch (const std::runtime_error& e) {
             throw InterpreterException(e.what());
         }
+    } else if (node.type() == "table"s) {
+        result = this->visit_table_constructor(node, env);
     } else if (node.type() == "identifier"s) {
         auto variable_name = this->visit_identifier(node, env);
         result.value = env.get_var(variable_name);
@@ -701,9 +702,142 @@ auto Interpreter::visit_expression(ts::Node node, Env& env) -> EvalResult {
         result = this->visit_binary_operation(node, env);
     } else if (node.type() == std::string("function_call")) {
         result = this->visit_function_call(node, env);
+    } else if (node.type() == "function_call"s) {
+        result = this->visit_function_call(node, env);
+    } else if (node.type() == "field_expression"s) {
+        result = this->visit_field_expression(node, env);
     } else {
         throw UNIMPLEMENTED(node.type());
     }
+
+    this->trace_exit_node(node);
+    return result;
+}
+
+auto Interpreter::visit_field_expression(ts::Node node, Env& env) -> EvalResult {
+    assert(node.type() == "field_expression"s);
+    this->trace_enter_node(node);
+
+    EvalResult result;
+
+    auto lhs_result = this->visit_expression(node.child(0).value(), env);
+    result.combine(lhs_result);
+
+    assert(node.child(1).value().type() == "."s);
+
+    ts::Node property_node = node.child(2).value();
+    assert(property_node.type() == "property_identifier"s);
+    std::string key = property_node.text();
+
+    result.value = lhs_result.value[key];
+
+    this->trace_exit_node(node);
+    return result;
+}
+
+auto Interpreter::visit_table_constructor(ts::Node node, Env& env) -> EvalResult {
+    assert(node.type() == "table"s);
+    this->trace_enter_node(node);
+
+    EvalResult result;
+
+    ts::Cursor cursor(node);
+    cursor.goto_first_child();
+
+    assert(cursor.current_node().type() == "{"s);
+
+    cursor.goto_next_sibling();
+
+    Table table;
+
+    int consecutive_key = 1;
+
+    while (true) {
+        if (cursor.current_node().type() == "}"s) {
+            break;
+        }
+        assert(cursor.current_node().type() == "field"s);
+
+        Value key;
+        Value value;
+
+        if (cursor.current_node().child_count() == 1) {
+            // entries without key
+            key = consecutive_key;
+
+            cursor.goto_first_child();
+
+            auto sub_result = this->visit_expression(cursor.current_node(), env);
+            value = sub_result.value;
+            result.combine(sub_result);
+
+            cursor.goto_parent();
+
+            ++consecutive_key;
+        } else if (cursor.current_node().child_count() == 3) {
+            // entries of the form expr = expr
+            cursor.goto_first_child();
+
+            ts::Node current_node = cursor.current_node();
+            assert(current_node.type() == "identifier"s);
+            key = this->visit_identifier(current_node, env);
+
+            cursor.goto_next_sibling();
+            assert(cursor.current_node().type() == "="s);
+            cursor.goto_next_sibling();
+
+            auto sub_result = this->visit_expression(cursor.current_node(), env);
+            value = sub_result.value;
+            result.combine(sub_result);
+
+            cursor.goto_parent();
+        } else if (cursor.current_node().child_count() == 5) { // NOLINT
+            // entries of the form [expr] = expr
+            cursor.goto_first_child();
+            assert(cursor.current_node().type() == "["s);
+
+            cursor.goto_next_sibling();
+            auto key_result = this->visit_expression(cursor.current_node(), env);
+            key = key_result.value;
+            result.combine(key_result);
+
+            cursor.goto_next_sibling();
+            assert(cursor.current_node().type() == "]"s);
+
+            cursor.goto_next_sibling();
+            assert(cursor.current_node().type() == "="s);
+            cursor.goto_next_sibling();
+
+            auto sub_result = this->visit_expression(cursor.current_node(), env);
+            value = sub_result.value;
+            result.combine(sub_result);
+
+            cursor.goto_parent();
+        } else {
+            throw InterpreterException("syntax error in table constructor");
+        }
+
+        // TODO if last entry is an expression and returns a vallist all elements should be
+        // inserted consecutively
+
+        table.set(key, value);
+
+        cursor.goto_next_sibling();
+        if (cursor.current_node().type() == "}"s) {
+            break;
+        }
+
+        assert(cursor.current_node().type() == ","s || cursor.current_node().type() == ";"s);
+
+        cursor.goto_next_sibling();
+        if (cursor.current_node().type() == "}"s) {
+            break;
+        }
+    }
+
+    assert(cursor.current_node().type() == "}"s);
+
+    result.value = table;
 
     this->trace_exit_node(node);
     return result;
