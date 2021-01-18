@@ -281,4 +281,20 @@ auto min(const CallContext& ctx) -> Value {
     }
     return min;
 }
+
+auto modf(const CallContext& ctx) -> Vallist {
+    auto res = to_number(ctx);
+
+    if (res != Nil()) {
+        Number num = std::get<Number>(res);
+        double* iptr = nullptr;
+        num.value = std::modf(num.value, iptr);
+
+        return Vallist({num, *iptr});
+    } else {
+        auto x = ctx.arguments().get(0);
+        throw std::runtime_error(
+            "bad argument #1 to 'modf' (number expected, got " + x.type() + ")");
+    }
+}
 } // namespace minilua::math

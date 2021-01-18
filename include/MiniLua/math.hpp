@@ -39,6 +39,8 @@ auto log(const CallContext& ctx) -> Value;
 auto max(const CallContext& ctx) -> Value;
 
 auto min(const CallContext& ctx) -> Value;
+
+auto modf(const CallContext& ctx) -> Vallist;
 } // namespace minilua::math
 
 #endif
