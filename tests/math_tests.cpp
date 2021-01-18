@@ -1306,3 +1306,70 @@ TEST_CASE("math.min(x, ...)") {
         CHECK(minilua::math::min(ctx) == minilua::Value("Analysis2a"));
     }
 }
+
+TEST_CASE("math.modf(x)") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("Numbers") {
+        SECTION("whole numbers") {
+            int x = 42;
+            minilua::Vallist list({x});
+            ctx = ctx.make_new(list);
+            minilua::Vallist result({42, 0.0});
+
+            CHECK(minilua::math::modf(ctx) == result);
+        }
+
+        SECTION("real numbers") {
+            double x = 42.5;
+            minilua::Vallist list({x});
+            ctx = ctx.make_new(list);
+            minilua::Vallist result({42, 0.5});
+
+            CHECK(minilua::math::modf(ctx) == result);
+
+            x = 2.125;
+            list = minilua::Vallist({x});
+            ctx = ctx.make_new(list);
+            result = minilua::Vallist({2, 0.125});
+
+            CHECK(minilua::math::modf(ctx) == result);
+        }
+    }
+
+    SECTION("Strings") {
+        SECTION("whole numbers") {
+            std::string x = "42";
+            minilua::Vallist list({x});
+            ctx = ctx.make_new(list);
+            minilua::Vallist result({42, 0.0});
+
+            CHECK(minilua::math::modf(ctx) == result);
+        }
+
+        SECTION("real numbers") {
+            std::string x = "42.5";
+            minilua::Vallist list({x});
+            ctx = ctx.make_new(list);
+            minilua::Vallist result({42, 0.5});
+
+            CHECK(minilua::math::modf(ctx) == result);
+
+            x = "2.125";
+            list = minilua::Vallist({x});
+            ctx = ctx.make_new(list);
+            result = minilua::Vallist({2, 0.125});
+
+            CHECK(minilua::math::modf(ctx) == result);
+        }
+    }
+
+    SECTION("invalid input") {
+        std::string s = "Minilua";
+        minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
+        ctx = ctx.make_new(list);
+        CHECK_THROWS_WITH(
+            minilua::math::modf(ctx), "bad argument #1 to 'modf' (number expected, got string)");
+    }
+}
