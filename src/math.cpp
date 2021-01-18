@@ -287,10 +287,10 @@ auto modf(const CallContext& ctx) -> Vallist {
 
     if (res != Nil()) {
         Number num = std::get<Number>(res);
-        double* iptr = nullptr;
-        num.value = std::modf(num.value, iptr);
+        double iptr;
+        num.value = std::modf(num.value, &iptr);
 
-        return Vallist({num, *iptr});
+        return Vallist({iptr, num});
     } else {
         auto x = ctx.arguments().get(0);
         throw std::runtime_error(
