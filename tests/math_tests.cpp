@@ -1373,3 +1373,78 @@ TEST_CASE("math.modf(x)") {
             minilua::math::modf(ctx), "bad argument #1 to 'modf' (number expected, got string)");
     }
 }
+
+TEST_CASE("math.rad(x)") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("Numbers") {
+        int i = 0;
+        minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::rad(ctx) == minilua::Value(0));
+
+        i = 1;
+        list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        minilua::Number n = std::get<minilua::Number>(minilua::math::rad(ctx));
+        CHECK(n.value == Approx(0.017453292519943));
+
+        i = -1;
+        list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        n = std::get<minilua::Number>(minilua::math::rad(ctx));
+        CHECK(n.value == Approx(-0.017453292519943));
+
+        double d = 180;
+        list = minilua::Vallist({minilua::Value(d)});
+        ctx = ctx.make_new(list);
+        n = std::get<minilua::Number>(minilua::math::rad(ctx));
+        CHECK(n.value == Approx(minilua::math::PI));
+
+        d = 2.5;
+        list = minilua::Vallist({minilua::Value(d)});
+        ctx = ctx.make_new(list);
+        n = std::get<minilua::Number>(minilua::math::rad(ctx));
+        CHECK(n.value == Approx(0.043633231299858));
+    }
+
+    SECTION("Strings") {
+        std::string i = "0";
+        minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::rad(ctx) == minilua::Value(0));
+
+        i = "1";
+        list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        minilua::Number n = std::get<minilua::Number>(minilua::math::rad(ctx));
+        CHECK(n.value == Approx(0.017453292519943));
+
+        i = "-1";
+        list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        n = std::get<minilua::Number>(minilua::math::rad(ctx));
+        CHECK(n.value == Approx(-0.017453292519943));
+
+        std::string d = "180";
+        list = minilua::Vallist({minilua::Value(d)});
+        ctx = ctx.make_new(list);
+        n = std::get<minilua::Number>(minilua::math::rad(ctx));
+        CHECK(n.value == Approx(minilua::math::PI));
+
+        d = "2.5";
+        list = minilua::Vallist({minilua::Value(d)});
+        ctx = ctx.make_new(list);
+        n = std::get<minilua::Number>(minilua::math::rad(ctx));
+        CHECK(n.value == Approx(0.043633231299858));
+    }
+
+    SECTION("invalid input") {
+        std::string s = "Minilua";
+        minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
+        ctx = ctx.make_new(list);
+        CHECK_THROWS_WITH(
+            minilua::math::rad(ctx), "bad argument #1 to 'rad' (number expected, got string)");
+    }
+}

@@ -297,4 +297,9 @@ auto modf(const CallContext& ctx) -> Vallist {
             "bad argument #1 to 'modf' (number expected, got " + x.type() + ")");
     }
 }
+
+auto rad(const CallContext& ctx) -> Value {
+    return math_helper(
+        ctx, [](double d) { return d * PI / 180; }, "rad");
+}
 } // namespace minilua::math
