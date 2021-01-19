@@ -306,4 +306,10 @@ auto rad(const CallContext& ctx) -> Value {
 auto sin(const CallContext& ctx) -> Value {
     return math_helper(ctx, static_cast<double (*)(double)>(&std::sin), "sin");
 }
+
+auto sqrt(const CallContext& ctx) -> Value {
+    return math_helper(ctx, static_cast<double (*)(double)>(&std::sqrt), "sqrt");
+}
+
+auto tan(const CallContext& ctx) -> Value {}
 } // namespace minilua::math

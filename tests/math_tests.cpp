@@ -1,5 +1,6 @@
 #include <catch2/catch.hpp>
 #include <cmath>
+#include <iostream>
 #include <list>
 #include <string>
 #include <vector>
@@ -1521,5 +1522,76 @@ TEST_CASE("math.sin(x)") {
         ctx = ctx.make_new(list);
         CHECK_THROWS_WITH(
             minilua::math::sin(ctx), "bad argument #1 to 'sin' (number expected, got string)");
+    }
+}
+
+TEST_CASE("math.sqrt(x)") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("Numbers") {
+        int i = 0;
+        minilua::Vallist list({i});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::sqrt(ctx) == minilua::Value(0));
+
+        i = 1;
+        list = minilua::Vallist({i});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::sqrt(ctx) == minilua::Value(1));
+
+        i = 4;
+        list = minilua::Vallist({i});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::sqrt(ctx) == minilua::Value(2));
+
+        double d = 2.5;
+        list = minilua::Vallist({minilua::Value(d)});
+        ctx = ctx.make_new(list);
+        minilua::Number n = std::get<minilua::Number>(minilua::math::sqrt(ctx));
+        CHECK(n.value == Approx(1.5811388300842));
+
+        i = -1;
+        list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        n = std::get<minilua::Number>(minilua::math::sqrt(ctx));
+        CHECK(isnan(n.value));
+    }
+
+    SECTION("Strings") {
+        std::string i = "0";
+        minilua::Vallist list({i});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::sqrt(ctx) == minilua::Value(0));
+
+        i = "1";
+        list = minilua::Vallist({i});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::sqrt(ctx) == minilua::Value(1));
+
+        i = "4";
+        list = minilua::Vallist({i});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::sqrt(ctx) == minilua::Value(2));
+
+        std::string d = "2.5";
+        list = minilua::Vallist({d});
+        ctx = ctx.make_new(list);
+        minilua::Number n = std::get<minilua::Number>(minilua::math::sqrt(ctx));
+        CHECK(n.value == Approx(1.5811388300842));
+
+        i = "-1";
+        list = minilua::Vallist({i});
+        ctx = ctx.make_new(list);
+        n = std::get<minilua::Number>(minilua::math::sqrt(ctx));
+        CHECK(isnan(n.value));
+    }
+
+    SECTION("invalid input") {
+        std::string s = "Minilua";
+        minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
+        ctx = ctx.make_new(list);
+        CHECK_THROWS_WITH(
+            minilua::math::sqrt(ctx), "bad argument #1 to 'sqrt' (number expected, got string)");
     }
 }
