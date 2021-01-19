@@ -1595,3 +1595,78 @@ TEST_CASE("math.sqrt(x)") {
             minilua::math::sqrt(ctx), "bad argument #1 to 'sqrt' (number expected, got string)");
     }
 }
+
+TEST_CASE("math.tan(x)") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("Numbers") {
+        int i = 0;
+        minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::tan(ctx) == minilua::Value(0));
+
+        i = 1;
+        list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        minilua::Number n = std::get<minilua::Number>(minilua::math::tan(ctx));
+        CHECK(n.value == Approx(1.5574077246549));
+
+        i = -1;
+        list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        n = std::get<minilua::Number>(minilua::math::tan(ctx));
+        CHECK(n.value == Approx(-1.5574077246549));
+
+        double d = 180;
+        list = minilua::Vallist({minilua::Value(d)});
+        ctx = ctx.make_new(list);
+        n = std::get<minilua::Number>(minilua::math::tan(ctx));
+        CHECK(n.value == Approx(1.3386902103512));
+
+        d = 1.579;
+        list = minilua::Vallist({minilua::Value(d)});
+        ctx = ctx.make_new(list);
+        n = std::get<minilua::Number>(minilua::math::tan(ctx));
+        CHECK(n.value == Approx(-121.89388112867));
+    }
+
+    SECTION("Strings") {
+        std::string i = "0";
+        minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::tan(ctx) == minilua::Value(0));
+
+        i = "1";
+        list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        minilua::Number n = std::get<minilua::Number>(minilua::math::tan(ctx));
+        CHECK(n.value == Approx(1.5574077246549));
+
+        i = "-1";
+        list = minilua::Vallist({minilua::Value(i)});
+        ctx = ctx.make_new(list);
+        n = std::get<minilua::Number>(minilua::math::tan(ctx));
+        CHECK(n.value == Approx(-1.5574077246549));
+
+        std::string d = "180";
+        list = minilua::Vallist({minilua::Value(d)});
+        ctx = ctx.make_new(list);
+        n = std::get<minilua::Number>(minilua::math::tan(ctx));
+        CHECK(n.value == Approx(1.3386902103512));
+
+        d = "1.579";
+        list = minilua::Vallist({minilua::Value(d)});
+        ctx = ctx.make_new(list);
+        n = std::get<minilua::Number>(minilua::math::tan(ctx));
+        CHECK(n.value == Approx(-121.89388112867));
+    }
+
+    SECTION("invalid input") {
+        std::string s = "Minilua";
+        minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
+        ctx = ctx.make_new(list);
+        CHECK_THROWS_WITH(
+            minilua::math::tan(ctx), "bad argument #1 to 'tan' (number expected, got string)");
+    }
+}
