@@ -43,6 +43,8 @@ auto min(const CallContext& ctx) -> Value;
 auto modf(const CallContext& ctx) -> Vallist;
 
 auto rad(const CallContext& ctx) -> Value;
+
+auto sin(const CallContext& ctx) -> Value;
 } // namespace minilua::math
 
 #endif

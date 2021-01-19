@@ -302,4 +302,8 @@ auto rad(const CallContext& ctx) -> Value {
     return math_helper(
         ctx, [](double d) { return d * PI / 180; }, "rad");
 }
+
+auto sin(const CallContext& ctx) -> Value {
+    return math_helper(ctx, static_cast<double (*)(double)>(&std::sin), "sin");
+}
 } // namespace minilua::math
