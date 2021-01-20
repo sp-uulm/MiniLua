@@ -347,12 +347,26 @@ public:
      */
     auto explist() -> std::vector<Expression>;
 };
-// TableIndex
+/**
+ * class for table_index nodes
+ */
 class TableIndex {
-    // TODO
+    ts::Node table_index;
+public:
+    TableIndex(ts::Node);
+    /**
+     *
+     * @return a prefix that eveluates to the table of this table index
+     */
+    auto table() -> Prefix;
+    /**
+     *
+     * @return an expression that eveluates to the index
+     */
+    auto index() -> Expression;
 };
 /**
- * class for variable_declarators
+ * class for variable_declarator nodes
  */
 class VariableDeclarator {
     ts::Node dec;

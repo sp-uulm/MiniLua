@@ -306,7 +306,9 @@ const TypeId NODE_VARIABLE_DECLARATION = LUA_LANGUAGE.node_type_id("variable_dec
 const TypeId NODE_LOCAL_VARIABLE_DECLARATION =
     LUA_LANGUAGE.node_type_id("local_variable_declaration", true);
 const TypeId NODE_FIELD_EXPRESSION = LUA_LANGUAGE.node_type_id("field_expression", true);
+const TypeId NODE_TABLE_INDEX = LUA_LANGUAGE.node_type_id("table_index", true);
 const TypeId NODE_VARIABLE_DECLARATOR = LUA_LANGUAGE.node_type_id("variable_declarator", true);
+const TypeId NODE_LOCAL_VARIABLE_DECLARATOR = LUA_LANGUAGE.node_type_id("local_variable_declarator", true);
 const TypeId NODE_DO_STATEMENT = LUA_LANGUAGE.node_type_id("do_statement", true);
 const TypeId NODE_IF_STATEMENT = LUA_LANGUAGE.node_type_id("if_statement", true);
 const TypeId NODE_ELSEIF = LUA_LANGUAGE.node_type_id("elseif", true);

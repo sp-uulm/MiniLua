@@ -219,43 +219,24 @@ auto LoopExpression::step() -> std::optional<Expression> {
     }
 }
 InLoopExpression::InLoopExpression(ts::Node node) : loop_exp(node) {
-    if (node.type_id() != ts::NODE_LOOP_EXPRESSION) {
-        throw std::runtime_error("not a loop_expression node");
+    if (node.type_id() != ts::NODE_LOOP_EXPRESSION || node.named_child_count()!=2) {
+        throw std::runtime_error("not a in_loop_expression node");
     }
 }
 auto InLoopExpression::loop_exps() -> std::vector<Expression> {
-    std::vector<ts::Node> temp_body = loop_exp.children();
-    std::vector<ts::Node> body;
-    std::copy_if(temp_body.begin(), temp_body.end(), std::back_inserter(body), [](ts::Node node) {
-        return node.text() != ",";
-    });
-    for (long unsigned int i = 0; i < body.size(); i++) {
-        if (body[i].type_id() != ts::NODE_IDENTIFIER) {
-            std::vector<Expression> res;
-            std::transform(
-                body.begin() + i + 1, body.end(), std::back_inserter(res),
-                [](ts::Node node) { return Expression(node); });
-            return res;
-        }
-    }
-    throw std::runtime_error("invalid in_loop_expression");
+    std::vector<ts::Node> children = loop_exp.named_child(1).value().named_children();
+    std::vector<Expression> exps;
+    exps.reserve(children.size());
+    std::transform(children.begin(), children.end(),std::back_inserter(exps),[](ts::Node node){return Expression(node);});
+    return exps;
 }
 auto InLoopExpression::loop_vars() -> std::vector<Identifier> {
-    std::vector<ts::Node> temp_body = loop_exp.children();
-    std::vector<ts::Node> body;
-    std::copy_if(temp_body.begin(), temp_body.end(), std::back_inserter(body), [](ts::Node node) {
-        return node.text() != ",";
-    });
-    for (long unsigned int i = 0; i < body.size(); i++) {
-        if (body[i].type_id() != ts::NODE_IDENTIFIER) {
-            std::vector<Identifier> res;
-            std::transform(
-                body.begin(), body.begin() + i, std::back_inserter(res),
-                [](ts::Node node) { return Identifier(node); });
-            return res;
-        }
-    }
-    throw std::runtime_error("invalid in_loop_expression");
+    std::vector<ts::Node> children = loop_exp.named_child(0).value().named_children();
+    std::vector<Identifier> loop_vars;
+    loop_vars.reserve(children.size());
+    std::transform(
+        children.begin(), children.end(),std::back_inserter(loop_vars),[](ts::Node node){return Identifier(node);});
+    return loop_vars;
 }
 // ForInStatement
 ForInStatement::ForInStatement(ts::Node node) : for_in(node) {
@@ -407,15 +388,15 @@ auto Return::explist() -> std::vector<Expression> {
 // VariableDeclaration
 VariableDeclaration::VariableDeclaration(ts::Node node) : var_dec(node) {
     if (node.type_id() != ts::NODE_VARIABLE_DECLARATION || node.named_child_count() < 2 ||
-        node.named_child(0).value().type_id() != 113) {
-        throw std::runtime_error(std::to_string(node.named_child(0)->type_id()));
+        node.named_child(0).value().type_id() != ts::NODE_VARIABLE_DECLARATOR) {
+        throw std::runtime_error("not a variable_declaration node");
     }
 }
 auto VariableDeclaration::declarations() -> std::vector<Expression> {
     std::vector<ts::Node> nodes = var_dec.named_children();
     std::vector<Expression> res;
     auto it = nodes.begin();
-    while (it->type_id() == 113) {
+    while (it->type_id() == ts::NODE_VARIABLE_DECLARATOR) {
         it++;
     }
     res.reserve(nodes.size() - (it - nodes.begin()));
@@ -427,7 +408,7 @@ auto VariableDeclaration::declarators() -> std::vector<VariableDeclarator> {
     std::vector<ts::Node> nodes = var_dec.named_children();
     std::vector<VariableDeclarator> res;
     auto it = nodes.begin();
-    while (it->type_id() == 113) {
+    while (it->type_id() == ts::NODE_VARIABLE_DECLARATOR) {
         it++;
     }
     res.reserve(it - nodes.begin());
@@ -440,7 +421,7 @@ auto VariableDeclaration::declarators() -> std::vector<VariableDeclarator> {
 VariableDeclarator::VariableDeclarator(ts::Node node) : dec(node) {
     if (node.type_id() != ts::NODE_VARIABLE_DECLARATOR && node.type_id() != ts::NODE_IDENTIFIER &&
         node.type_id() != ts::NODE_FIELD_EXPRESSION &&
-        node.type_id() != 113) { // TODO add tableindex
+        node.type_id() != ts::NODE_TABLE_INDEX) {
         throw std::runtime_error("not a variable declarator");
     }
 }
@@ -449,23 +430,26 @@ auto VariableDeclarator::var() -> std::variant<Identifier, FieldExpression, Tabl
         return Identifier(dec);
     } else if (dec.type_id() == ts::NODE_FIELD_EXPRESSION) {
         return FieldExpression(dec);
-    } // TODO add tableindex
-    if (dec.named_child_count() == 1) {
+    } else if(dec.type_id() == ts::NODE_TABLE_INDEX){
+        return TableIndex(dec);
+    }
+    if (dec.named_child(0).has_value()) {
         if (dec.named_child(0)->type_id() == ts::NODE_IDENTIFIER) {
             return Identifier(dec.named_child(0).value());
         } else if (dec.named_child(0)->type_id() == ts::NODE_FIELD_EXPRESSION) {
             return FieldExpression(dec.named_child(0).value());
+        } else if (dec.named_child(0)->type_id() == ts::NODE_TABLE_INDEX) {
+            return TableIndex(dec.named_child(0).value());
         } else {
             throw std::runtime_error("invalid variable declarator");
         }
-    } else {
-        return TableIndex(); // TODO find good constructor for tableindex
+    }else{
+        throw std::runtime_error("invalid variable declarator");
     }
 }
 // LocalVariableDeclaration
 LocalVariableDeclaration::LocalVariableDeclaration(ts::Node node) : local_var_dec(node) {
-    if (node.type_id() != ts::NODE_LOCAL_VARIABLE_DECLARATION || !node.named_child(0).has_value() ||
-        node.named_child(0)->type_id() != ts::NODE_VARIABLE_DECLARATOR) {
+    if (node.type_id() != ts::NODE_LOCAL_VARIABLE_DECLARATION) {
         throw std::runtime_error("not a local_variable_declaration node");
     }
 }
@@ -483,7 +467,7 @@ auto LocalVariableDeclaration::declarations() -> std::vector<Expression> {
 }
 // LocalVariableDeclarator
 LocalVariableDeclarator::LocalVariableDeclarator(ts::Node node) : var_dec(node) {
-    if (node.type_id() != ts::NODE_VARIABLE_DECLARATOR) {
+    if (node.type_id() != ts::NODE_LOCAL_VARIABLE_DECLARATOR) {
         throw std::runtime_error("not a local_variable_declarator node");
     }
 }
@@ -495,6 +479,18 @@ auto LocalVariableDeclarator::vars() -> std::vector<Identifier> {
         return Identifier(node);
     });
     return res;
+}
+//TableIndex
+TableIndex::TableIndex(ts::Node node) : table_index(node) {
+    if (node.type_id() != ts::NODE_TABLE_INDEX || node.named_child_count() != 2) {
+        throw std::runtime_error("not a table_index node");
+    }
+}
+auto TableIndex::table() -> Prefix {
+    return Prefix(table_index.named_child(0).value());
+}
+auto TableIndex::index() -> Expression {
+    return Expression(table_index.named_child(1).value());
 }
 // DoStatement
 DoStatement::DoStatement(ts::Node node) : do_statement(node) {
@@ -753,7 +749,7 @@ auto Field::content() -> std::variant<
 Prefix::Prefix(ts::Node node) : prefix(node) {
     if (!(node.type_id() == ts::NODE_SELF || node.type_id() == ts::NODE_GLOBAL_VARIABLE ||
           node.type_id() == ts::NODE_FUNCTION_CALL || node.type_id() == ts::NODE_IDENTIFIER ||
-          node.type_id() == ts::NODE_FIELD_EXPRESSION)) { // TODO add tableindex
+          node.type_id() == ts::NODE_FIELD_EXPRESSION || node.type_id() == ts::NODE_TABLE_INDEX)) {
         throw std::runtime_error("Not a prefix-node");
     }
 }
@@ -769,7 +765,7 @@ auto Prefix::options()
         return Expression(prefix.child(1).value());
     } else if (
         prefix.type_id() == ts::NODE_IDENTIFIER ||
-        prefix.type_id() == ts::NODE_FIELD_EXPRESSION) { // TODO add table index
+        prefix.type_id() == ts::NODE_FIELD_EXPRESSION || prefix.type_id() == ts::NODE_TABLE_INDEX) {
         return VariableDeclarator(prefix);
     } else {
         throw std::runtime_error("Not a prefix-node");
@@ -820,7 +816,8 @@ auto Expression::options() -> std::variant<
     } else if (
         exp.type_id() == ts::NODE_SELF || exp.type_id() == ts::NODE_FUNCTION_CALL ||
         exp.type_id() == ts::NODE_GLOBAL_VARIABLE || exp.type_id() == ts::NODE_FIELD_EXPRESSION ||
-        (exp.child(0).has_value() && exp.child(0)->text() == "(")) { // TODO add TableIndex to if
+        exp.type_id() == ts::NODE_TABLE_INDEX ||
+        (exp.child(0).has_value() && exp.child(0)->text() == "(")) {
         return Prefix(exp);
     } else {
         throw std::runtime_error("Not an expression-node");

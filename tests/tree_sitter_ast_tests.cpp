@@ -4,7 +4,7 @@
 #include <iostream>
 #include <type_traits>
 namespace minilua::details {
-TEST_CASE("statements", "[tree-sitter][!hide]") {
+TEST_CASE("statements", "[tree-sitter]") {
     ts::Parser parser;
     std::string source = "i,t,l = 5\n"
                          "local z = 42\n"
@@ -52,7 +52,7 @@ TEST_CASE("statements", "[tree-sitter][!hide]") {
         CHECK(statement.at(i).options().index() == i);
     }
 }
-TEST_CASE("expressions", "[tree-sitter][!hide]") {
+TEST_CASE("expressions", "[tree-sitter]") {
     uint exp_count = 29;
     ts::Parser parser;
     std::string source = "...\n"
@@ -163,7 +163,7 @@ TEST_CASE("expressions", "[tree-sitter][!hide]") {
     }
 }
 
-TEST_CASE("do_statements", "[tree-sitter][!hide]") {
+TEST_CASE("do_statements", "[tree-sitter]") {
     ts::Parser parser;
     std::string source = "do\n"
                          "end\n"
@@ -206,7 +206,7 @@ TEST_CASE("do_statements", "[tree-sitter][!hide]") {
     CHECK(dos[4].body().statements().size() == 1);
     CHECK(dos[4].body().ret().has_value());
 }
-TEST_CASE("if_statements", "[tree-sitter][!hide]") {
+TEST_CASE("if_statements", "[tree-sitter]") {
     ts::Parser parser;
     std::string source = "if c<d then\n"
                          "elseif i then\n"
@@ -300,7 +300,7 @@ TEST_CASE("if_statements", "[tree-sitter][!hide]") {
     CHECK(ifs[5].elseifs().empty());
     CHECK(!ifs[5].else_().has_value());
 }
-TEST_CASE("for_statements", "[tree-sitter][!hide]") {
+TEST_CASE("for_statements", "[tree-sitter]") {
     ts::Parser parser;
     std::string source = "for i = 1,2 do\n"
                          "  foo(12)\n"
@@ -372,7 +372,7 @@ TEST_CASE("for_statements", "[tree-sitter][!hide]") {
     auto end3_num = get_if<Number>(&end3->raw());
     CHECK(end3_num->value == 42);
 }
-TEST_CASE("for_in_statements", "[tree-sitter][!hide]") {
+TEST_CASE("for_in_statements", "[tree-sitter]") {
     ts::Parser parser;
     std::string source = "for k, v in next, t, nil do\n"
                          "  print(k, v)\n"
@@ -400,7 +400,7 @@ TEST_CASE("for_in_statements", "[tree-sitter][!hide]") {
     CHECK(fors[1].loop_exp().loop_vars().size() == 5);
     CHECK(fors[1].loop_exp().loop_exps().size() == 1);
 }
-TEST_CASE("function_statements", "[tree-sitter][!hide]") {
+TEST_CASE("function_statements", "[tree-sitter]") {
     ts::Parser parser;
     std::string source = "function foo (a,b,c)\n"
                          "  1+1\n"
@@ -494,7 +494,7 @@ TEST_CASE("function_statements", "[tree-sitter][!hide]") {
     CHECK(func[9].parameters().spread() == NO_SPREAD);
     CHECK(func[9].parameters().params().empty());
 }
-TEST_CASE("while_and_repeat_statements", "[tree-sitter][!hide]") {
+TEST_CASE("while_and_repeat_statements", "[tree-sitter]") {
     ts::Parser parser;
     std::string source = "while i<#table do\n"
                          "  i=i+1\n"
@@ -539,7 +539,7 @@ TEST_CASE("while_and_repeat_statements", "[tree-sitter][!hide]") {
     CHECK(repeat_stat->body().statements().size() == 1);
     CHECK(repeat_stat->body().ret().has_value());
 }
-TEST_CASE("return_statements", "[tree-sitter][!hide]") {
+TEST_CASE("return_statements", "[tree-sitter]") {
     ts::Parser parser;
     std::string source = "do\n"
                          "return a,b,c,d;\n"
@@ -572,7 +572,7 @@ TEST_CASE("return_statements", "[tree-sitter][!hide]") {
     CHECK(returns[2].explist().size() == 1);
     CHECK(std::holds_alternative<Identifier>(returns[2].explist()[0].options()));
 }
-TEST_CASE("var_dec_statements", "[tree-sitter][!hide]") {
+TEST_CASE("var_dec_statements", "[tree-sitter]") {
     ts::Parser parser;
     std::string source = "a = 1\n"
                          "a,b,c,d = 1+2,5+7,a\n"
@@ -581,13 +581,13 @@ TEST_CASE("var_dec_statements", "[tree-sitter][!hide]") {
                          "local i,j = 42,96\n"
                          "\n"
                          "table1.table2.field1 = function() print(2) end\n"
-                         "";
+                         "table1[table2] = 2\n";
     ts::Tree tree = parser.parse_string(source);
     ts::Node root = tree.root_node();
     auto prog = Program(root);
     Body body = prog.body();
     auto stats = body.statements();
-    CHECK(stats.size() == 6);
+    CHECK(stats.size() == 7);
     // 1st statement
     auto opt1 = stats[0].options();
     CHECK(std::holds_alternative<VariableDeclaration>(opt1));
@@ -658,8 +658,28 @@ TEST_CASE("var_dec_statements", "[tree-sitter][!hide]") {
     CHECK(holds_alternative<Identifier>(dec_opt3));
     auto table_id = std::get_if<Identifier>(&dec_opt3);
     CHECK(table_id->str() == "table1"s);
+    //7th statement
+    auto opt7 = stats[6].options();
+    CHECK(std::holds_alternative<VariableDeclaration>(opt7));
+    auto var_dec7 = std::get_if<VariableDeclaration>(&opt7);
+    CHECK(var_dec7->declarations().size()==1);
+    CHECK(var_dec7->declarators().size()==1);
+    auto ti_opt1 = var_dec7->declarators()[0].var();
+    CHECK(std::holds_alternative<TableIndex>(ti_opt1));
+    auto ti1 = std::get_if<TableIndex>(&ti_opt1);
+    auto pref1 = ti1->table().options();
+    CHECK(std::holds_alternative<VariableDeclarator>(pref1));
+    auto pref_dec1 = std::get_if<VariableDeclarator>(&pref1);
+    auto pref_opt1 = pref_dec1->var();
+    CHECK(std::holds_alternative<Identifier>(pref_opt1));
+    auto id1 = std::get_if<Identifier>(&pref_opt1);
+    CHECK(id1->str()=="table1");
+    auto index1_opt = ti1->index().options();
+    CHECK(std::holds_alternative<Identifier>(index1_opt));
+    auto index1 = std::get_if<Identifier>(&index1_opt);
+    CHECK(index1->str()=="table2");
 }
-TEST_CASE("table_statements", "[tree-sitter][!hide]") {
+TEST_CASE("table_statements", "[tree-sitter]") {
     ts::Parser parser;
     std::string source = "{\n"
                          "field1 = \"name\";\n"
@@ -704,7 +724,7 @@ TEST_CASE("table_statements", "[tree-sitter][!hide]") {
     auto content3_opt = field3->options();
     CHECK(std::holds_alternative<FunctionDefinition>(content3_opt));
 }
-TEST_CASE("function_calls", "[tree-sitter][!hide]") {
+TEST_CASE("function_calls", "[tree-sitter]") {
     ts::Parser parser;
     std::string source = "foo(a,b)\n"
                          "table.foo()\n"
@@ -760,3 +780,11 @@ TEST_CASE("function_calls", "[tree-sitter][!hide]") {
     }
 }
 } // namespace minilua::details
+
+TEST_CASE("new_nodes", "[tree-sitter]") {
+    ts::Parser parser;
+    std::string source = "a[\"b\"] = 4+4\n"
+                         "local d";
+    ts::Tree tree = parser.parse_string(source);
+    ts::Node root = tree.root_node();
+}
