@@ -4,6 +4,7 @@
 [submodule "extern/tree-sitter-lua"]
 	path = extern/tree-sitter-lua
 	url = ../../CFU9/tree-sitter-lua.git
+	update = rebase
 [submodule "extern/catch2"]
 	path = extern/catch2
 	url = ../../catchorg/Catch2.git
