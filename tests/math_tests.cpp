@@ -1796,9 +1796,135 @@ TEST_CASE("math.ult(m, n)") {
         }
     }
 
-    SECTION("Invalid input") {
-        SECTION("m is invalid") {}
+    SECTION("invalid formated input (float numbers)") {
+        SECTION("Number, Number") {
+            double m = -1.3278462978346;
+            double n = -2.9837165;
+            minilua::Vallist list({m, n});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::ult(ctx),
+                "bad argument #1 to 'ult' (number has no integer representation)");
 
-        SECTION("n is invalid") {}
+            m = -1;
+            n = 2.5;
+            list = minilua::Vallist({m, n});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::ult(ctx),
+                "bad argument #2 to 'ult' (number has no integer representation)");
+
+            m = 1.42;
+            n = -2;
+            list = minilua::Vallist({m, n});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::ult(ctx),
+                "bad argument #1 to 'ult' (number has no integer representation)");
+        }
+
+        SECTION("Number, String") {
+            double m = -1.3278462978346;
+            std::string n = "-2.9837165";
+            minilua::Vallist list({m, n});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::ult(ctx),
+                "bad argument #1 to 'ult' (number has no integer representation)");
+
+            m = -1;
+            n = "2.5";
+            list = minilua::Vallist({m, n});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::ult(ctx),
+                "bad argument #2 to 'ult' (number has no integer representation)");
+
+            m = 1.42;
+            n = "-2";
+            list = minilua::Vallist({m, n});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::ult(ctx),
+                "bad argument #1 to 'ult' (number has no integer representation)");
+        }
+
+        SECTION("String, Number") {
+            std::string m = "-1.3278462978346";
+            double n = -2.9837165;
+            minilua::Vallist list({m, n});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::ult(ctx),
+                "bad argument #1 to 'ult' (number has no integer representation)");
+
+            m = "-1";
+            n = 2.5;
+            list = minilua::Vallist({m, n});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::ult(ctx),
+                "bad argument #2 to 'ult' (number has no integer representation)");
+
+            m = "1.42";
+            n = -2;
+            list = minilua::Vallist({m, n});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::ult(ctx),
+                "bad argument #1 to 'ult' (number has no integer representation)");
+        }
+
+        SECTION("String, String") {
+            std::string m = "-1.3278462978346";
+            std::string n = "-2.9837165";
+            minilua::Vallist list({m, n});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::ult(ctx),
+                "bad argument #1 to 'ult' (number has no integer representation)");
+
+            m = "-1";
+            n = "2.5";
+            list = minilua::Vallist({m, n});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::ult(ctx),
+                "bad argument #2 to 'ult' (number has no integer representation)");
+
+            m = "1.42";
+            n = "-2";
+            list = minilua::Vallist({m, n});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::ult(ctx),
+                "bad argument #1 to 'ult' (number has no integer representation)");
+        }
+    }
+
+    SECTION("Invalid input") {
+        SECTION("m is invalid") {
+            std::string m = "Minilua";
+            std::string n = "baum";
+            minilua::Vallist list = minilua::Vallist({minilua::Value(m), n});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::ult(ctx), "bad argument #1 to 'ult' (number expected, got string)");
+
+            n = "1";
+            list = minilua::Vallist({minilua::Value(m), n});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::ult(ctx), "bad argument #1 to 'ult' (number expected, got string)");
+        }
+
+        SECTION("n is invalid") {
+            int m = 42;
+            std::string n = "baum";
+            minilua::Vallist list = minilua::Vallist({minilua::Value(m), n});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::ult(ctx), "bad argument #2 to 'ult' (number expected, got string)");
+        }
     }
 }
