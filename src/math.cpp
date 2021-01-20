@@ -316,6 +316,19 @@ auto tan(const CallContext& ctx) -> Value {
     return math_helper(ctx, static_cast<double (*)(double)>(&std::tan), "tan");
 }
 
+auto type(const CallContext& ctx) -> Value {
+    auto x = ctx.arguments().get(0);
+
+    if (x.is_number()) {
+        Number num = std::get<Number>(x);
+        double fraction = std::modf(num.value, &num.value);
+
+        return Value(fraction == 0.0 ? "integer" : "float");
+    } else {
+        return Nil();
+    }
+}
+
 auto ult(const CallContext& ctx) -> Value {
     return math_helper<bool>(
         ctx,

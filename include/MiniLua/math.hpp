@@ -50,6 +50,8 @@ auto sqrt(const CallContext& ctx) -> Value;
 
 auto tan(const CallContext& ctx) -> Value;
 
+auto type(const CallContext& ctx) -> Value;
+
 auto ult(const CallContext& ctx) -> Value;
 } // namespace minilua::math
 
