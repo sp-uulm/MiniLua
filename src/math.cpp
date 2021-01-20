@@ -1,5 +1,6 @@
 #include <cmath>
 #include <iostream>
+#include <regex>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -314,6 +315,35 @@ auto sqrt(const CallContext& ctx) -> Value {
 
 auto tan(const CallContext& ctx) -> Value {
     return math_helper(ctx, static_cast<double (*)(double)>(&std::tan), "tan");
+}
+
+auto to_integer(const CallContext& ctx) -> Value {
+    auto x = ctx.arguments().get(0);
+
+    return std::visit(
+        overloaded{
+            [](Number n) -> Value {
+                if (std::modf(n.value, &n.value) == 0) {
+                    return Value(n.value);
+                } else {
+                    return Nil();
+                }
+            },
+            [](const String& s) -> Value {
+                std::regex pattern_number(R"(\s*-?\d+)");
+                std::regex pattern_hex(R"(\s*-?0[xX][\dA-Fa-f]+)");
+                std::regex pattern_exp(R"(\s*-?\d+\.?\d*[eE]\d+)");
+
+                if (std::regex_match(s.value, pattern_number) ||
+                    std::regex_match(s.value, pattern_hex) ||
+                    std::regex_match(s.value, pattern_exp)) {
+                    return Value(std::stoi(s.value, nullptr, 0));
+                } else {
+                    return Nil();
+                }
+            },
+            [](auto /*unused*/) -> Value { return Nil(); }},
+        x.raw());
 }
 
 auto type(const CallContext& ctx) -> Value {

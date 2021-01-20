@@ -1671,6 +1671,81 @@ TEST_CASE("math.tan(x)") {
     }
 }
 
+TEST_CASE("math.tointeger(x)") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("Numbers") {
+        SECTION("Integers") {
+            int i = 0;
+            minilua::Vallist list({i});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::to_integer(ctx) == minilua::Value(i));
+
+            i = 0xA;
+            list = minilua::Vallist({i});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::to_integer(ctx) == minilua::Value(i));
+        }
+
+        SECTION("Floats") {
+            double i = 1.0;
+            minilua::Vallist list = minilua::Vallist({i});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::to_integer(ctx) == minilua::Value(1));
+
+            i = 10e1;
+            list = minilua::Vallist({i});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::to_integer(ctx) == minilua::Value(100));
+
+            i = 2.5;
+            list = minilua::Vallist({i});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::to_integer(ctx) == minilua::Nil());
+
+            i = 10e-3;
+            list = minilua::Vallist({i});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::to_integer(ctx) == minilua::Nil());
+        }
+    }
+
+    SECTION("Strings") {
+        std::string s = "2";
+        minilua::Vallist list = minilua::Vallist({s});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::to_integer(ctx) == minilua::Value(2));
+
+        s = "2.5";
+        list = minilua::Vallist({s});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::to_integer(ctx) == minilua::Nil());
+
+        s = "0xA";
+        list = minilua::Vallist({s});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::to_integer(ctx) == minilua::Value(10));
+
+        s = "Minilua";
+        list = minilua::Vallist({s});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::to_integer(ctx) == minilua::Nil());
+    }
+
+    SECTION("Bool") {
+        bool b = true;
+        minilua::Vallist list = minilua::Vallist({b});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::to_integer(ctx) == minilua::Nil());
+
+        b = false;
+        list = minilua::Vallist({b});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::to_integer(ctx) == minilua::Nil());
+    }
+}
+
 TEST_CASE("math.type(x)") {
     minilua::Environment env;
     minilua::CallContext ctx(&env);

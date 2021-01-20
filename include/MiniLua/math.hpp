@@ -3,6 +3,7 @@
 
 #include <climits>
 #include <cmath>
+#include <cstddef>
 #include <functional>
 #include <string>
 
@@ -49,6 +50,8 @@ auto sin(const CallContext& ctx) -> Value;
 auto sqrt(const CallContext& ctx) -> Value;
 
 auto tan(const CallContext& ctx) -> Value;
+
+auto to_integer(const CallContext& ctx) -> Value;
 
 auto type(const CallContext& ctx) -> Value;
 
