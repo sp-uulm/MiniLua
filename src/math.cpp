@@ -34,8 +34,9 @@ auto static math_helper(
 }
 
 // gets 2 parameter
+template <class T>
 auto static math_helper(
-    const CallContext& ctx, const std::function<double(double, double)>& function,
+    const CallContext& ctx, const std::function<T(double, double)>& function,
     const std::string& functionname) -> Value {
     Vallist list = Vallist({ctx.arguments().get(0)});
     CallContext new_ctx = ctx.make_new(list);
@@ -313,5 +314,31 @@ auto sqrt(const CallContext& ctx) -> Value {
 
 auto tan(const CallContext& ctx) -> Value {
     return math_helper(ctx, static_cast<double (*)(double)>(&std::tan), "tan");
+}
+
+auto ult(const CallContext& ctx) -> Value {
+    return math_helper<bool>(
+        ctx,
+        [](double m, double n) -> bool {
+            double num_m;
+            double fraction = std::modf(m, &num_m);
+
+            if (fraction == 0.0) {
+                double num_n;
+                fraction = std::modf(n, &num_n);
+                if (fraction == 0.0) {
+                    unsigned long ml = (long)num_m;
+                    unsigned long nl = (long)n;
+                    return ml < nl;
+                } else {
+                    throw std::runtime_error(
+                        "bad argument #2 to 'ult' (number has no integer representation)");
+                }
+            } else {
+                throw std::runtime_error(
+                    "bad argument #1 to 'ult' (number has no integer representation)");
+            }
+        },
+        "ult");
 }
 } // namespace minilua::math

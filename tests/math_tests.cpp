@@ -1670,3 +1670,135 @@ TEST_CASE("math.tan(x)") {
             minilua::math::tan(ctx), "bad argument #1 to 'tan' (number expected, got string)");
     }
 }
+TEST_CASE("math.ult(m, n)") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("well formated input") {
+        SECTION("Number, Number") {
+            int m = -1;
+            int n = -2;
+            minilua::Vallist list({m, n});
+            ctx = ctx.make_new(list);
+            minilua::Bool b = std::get<minilua::Bool>(minilua::math::ult(ctx));
+            CHECK_FALSE(b);
+
+            m = -1;
+            n = 2;
+            list = minilua::Vallist({m, n});
+            ctx = ctx.make_new(list);
+            b = std::get<minilua::Bool>(minilua::math::ult(ctx));
+            CHECK_FALSE(b);
+
+            m = 1;
+            n = -2;
+            list = minilua::Vallist({m, n});
+            ctx = ctx.make_new(list);
+            b = std::get<minilua::Bool>(minilua::math::ult(ctx));
+            CHECK(b);
+
+            m = 1;
+            n = 2;
+            list = minilua::Vallist({m, n});
+            ctx = ctx.make_new(list);
+            b = std::get<minilua::Bool>(minilua::math::ult(ctx));
+            CHECK(b);
+        }
+
+        SECTION("Number, String") {
+            int m = -1;
+            std::string n = "-2";
+            minilua::Vallist list({m, n});
+            ctx = ctx.make_new(list);
+            minilua::Bool b = std::get<minilua::Bool>(minilua::math::ult(ctx));
+            CHECK_FALSE(b);
+
+            m = -1;
+            n = "2";
+            list = minilua::Vallist({m, n});
+            ctx = ctx.make_new(list);
+            b = std::get<minilua::Bool>(minilua::math::ult(ctx));
+            CHECK_FALSE(b);
+
+            m = 1;
+            n = "-2";
+            list = minilua::Vallist({m, n});
+            ctx = ctx.make_new(list);
+            b = std::get<minilua::Bool>(minilua::math::ult(ctx));
+            CHECK(b);
+
+            m = 1;
+            n = "2";
+            list = minilua::Vallist({m, n});
+            ctx = ctx.make_new(list);
+            b = std::get<minilua::Bool>(minilua::math::ult(ctx));
+            CHECK(b);
+        }
+
+        SECTION("String, Number") {
+            std::string m = "-1";
+            int n = -2;
+            minilua::Vallist list({m, n});
+            ctx = ctx.make_new(list);
+            minilua::Bool b = std::get<minilua::Bool>(minilua::math::ult(ctx));
+            CHECK_FALSE(b);
+
+            m = "-1";
+            n = 2;
+            list = minilua::Vallist({m, n});
+            ctx = ctx.make_new(list);
+            b = std::get<minilua::Bool>(minilua::math::ult(ctx));
+            CHECK_FALSE(b);
+
+            m = "1";
+            n = -2;
+            list = minilua::Vallist({m, n});
+            ctx = ctx.make_new(list);
+            b = std::get<minilua::Bool>(minilua::math::ult(ctx));
+            CHECK(b);
+
+            m = "1";
+            n = 2;
+            list = minilua::Vallist({m, n});
+            ctx = ctx.make_new(list);
+            b = std::get<minilua::Bool>(minilua::math::ult(ctx));
+            CHECK(b);
+        }
+
+        SECTION("String, String") {
+            std::string m = "-1";
+            std::string n = "-2";
+            minilua::Vallist list({m, n});
+            ctx = ctx.make_new(list);
+            minilua::Bool b = std::get<minilua::Bool>(minilua::math::ult(ctx));
+            CHECK_FALSE(b);
+
+            m = "-1";
+            n = "2";
+            list = minilua::Vallist({m, n});
+            ctx = ctx.make_new(list);
+            b = std::get<minilua::Bool>(minilua::math::ult(ctx));
+            CHECK_FALSE(b);
+
+            m = "1";
+            n = "-2";
+            list = minilua::Vallist({m, n});
+            ctx = ctx.make_new(list);
+            b = std::get<minilua::Bool>(minilua::math::ult(ctx));
+            CHECK(b);
+
+            m = "1";
+            n = "2";
+            list = minilua::Vallist({m, n});
+            ctx = ctx.make_new(list);
+            b = std::get<minilua::Bool>(minilua::math::ult(ctx));
+            CHECK(b);
+        }
+    }
+
+    SECTION("Invalid input") {
+        SECTION("m is invalid") {}
+
+        SECTION("n is invalid") {}
+    }
+}
