@@ -1,5 +1,6 @@
 #include <cmath>
 #include <iostream>
+#include <random>
 #include <regex>
 #include <stdexcept>
 #include <string>
@@ -303,6 +304,43 @@ auto modf(const CallContext& ctx) -> Vallist {
 auto rad(const CallContext& ctx) -> Value {
     return math_helper(
         ctx, [](double d) { return d * PI / 180; }, "rad");
+}
+
+auto random(const CallContext& ctx) -> Value {
+    auto x = ctx.arguments().get(0);
+    auto y = ctx.arguments().get(1);
+
+    return std::visit(
+        overloaded{
+            [](Nil /*unused*/, Nil /*unused*/) {
+                return Value(std::uniform_real_distribution<double>(0, 1)(random_seed));
+            },
+            [ctx](auto /*unused*/, Nil /*unused*/) {
+                return math_helper(
+                    ctx, [](long x) { return std::uniform_int_distribution<>(1, x)(random_seed); },
+                    "random");
+            },
+            [ctx](auto /*unused*/, auto /*unused*/) -> Value {
+                return math_helper(
+                    ctx, [](long x) { return std::uniform_int_distribution<>(1, x)(random_seed); },
+                    "random");
+            }},
+        x.raw(), y.raw());
+}
+
+void randomseed(const CallContext& ctx) {
+    auto x = ctx.arguments().get(0);
+
+    x = to_number(ctx);
+    if (x != Nil()) {
+        Number num = std::get<Number>(x);
+
+        random_seed = std::default_random_engine((unsigned int)num.value);
+    } else {
+        throw std::runtime_error(
+            "bad argument #1 to 'randomseed' (number expected, got " +
+            ctx.arguments().get(0).type() + ")");
+    }
 }
 
 auto sin(const CallContext& ctx) -> Value {

@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstddef>
 #include <functional>
+#include <random>
 #include <string>
 
 #include "MiniLua/values.hpp"
@@ -14,6 +15,8 @@ const long MAXINTEGER = LONG_MAX;
 const long MININTEGER = LONG_MIN;
 const double PI = M_PI;
 const double HUGE = HUGE_VAL;
+
+std::default_random_engine random_seed;
 
 auto abs(const CallContext& ctx) -> Value;
 
@@ -44,6 +47,10 @@ auto min(const CallContext& ctx) -> Value;
 auto modf(const CallContext& ctx) -> Vallist;
 
 auto rad(const CallContext& ctx) -> Value;
+
+auto random(const CallContext& ctx) -> Value;
+
+void randomseed(const CallContext& ctx);
 
 auto sin(const CallContext& ctx) -> Value;
 
