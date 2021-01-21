@@ -16,7 +16,9 @@ const long MININTEGER = LONG_MIN;
 const double PI = M_PI;
 const double HUGE = HUGE_VAL;
 
-std::default_random_engine random_seed;
+// needs to be in the hpp so randomseed is testable.
+// the only other way would be a getter for this variable
+std::default_random_engine random_seed; // NOLINT
 
 auto abs(const CallContext& ctx) -> Value;
 
