@@ -6,6 +6,7 @@
 #include <cassert>
 #include <functional>
 #include <iostream>
+#include <map>
 #include <optional>
 #include <set>
 
@@ -706,8 +707,105 @@ auto Interpreter::visit_expression(ts::Node node, Env& env) -> EvalResult {
         result = this->visit_function_call(node, env);
     } else if (node.type() == "field_expression"s) {
         result = this->visit_field_expression(node, env);
+    } else if (node.type() == "function"s || node.type() == "function_definition"s) {
+        result = this->visit_function_expression(node, env);
     } else {
         throw UNIMPLEMENTED(node.type());
+    }
+
+    this->trace_exit_node(node);
+    return result;
+}
+
+auto Interpreter::visit_function_expression(ts::Node node, Env& env) -> EvalResult {
+    assert(node.type() == "function"s || node.type() == "function_definition"s);
+    this->trace_enter_node(node);
+
+    EvalResult result;
+
+    ts::Cursor cursor(node);
+    cursor.goto_first_child();
+    cursor.goto_next_sibling();
+
+    std::optional<std::string> ident;
+
+    ts::Node current_node = cursor.current_node();
+    if (current_node.type() == "function_name"s) {
+        ident = this->visit_identifier(current_node.child(0).value(), env);
+        cursor.goto_next_sibling();
+    }
+
+    current_node = cursor.current_node();
+    assert(current_node.type() == "parameters"s);
+
+    cursor.goto_first_child();
+    cursor.goto_next_sibling();
+
+    std::vector<std::string> parameters;
+
+    // TODO vararg parameters
+    while (true) {
+        current_node = cursor.current_node();
+        if (current_node.type() == ")"s) {
+            break;
+        }
+
+        auto ident = this->visit_identifier(current_node, env);
+
+        parameters.push_back(ident);
+
+        // skip comma
+        if (cursor.skip_n_siblings(2) != 2) {
+            break;
+        }
+    }
+    cursor.goto_next_sibling();
+
+    cursor.goto_parent();
+    cursor.goto_next_sibling();
+
+    std::vector<ts::Node> body;
+
+    while (true) {
+        current_node = cursor.current_node();
+        if (current_node.type() == "end"s) {
+            break;
+        }
+
+        body.push_back(current_node);
+
+        if (!cursor.goto_next_sibling()) {
+            break;
+        }
+    }
+
+    Value func = Function(
+        [body = std::move(body), parameters = std::move(parameters),
+         this](const CallContext& ctx) -> CallResult {
+            // setup parameters as local variables
+            Env env(ctx.environment().get_raw_impl().inner);
+            for (int i = 0; i < parameters.size(); ++i) {
+                env.set_local(parameters[i], ctx.arguments().get(i));
+            }
+
+            EvalResult result;
+
+            for (const auto& stmt : body) {
+                auto sub_result = this->visit_statement(stmt, env);
+                result.combine(sub_result);
+                if (sub_result.do_return) {
+                    break;
+                }
+            }
+
+            auto return_value = result.do_return.value_or(Vallist());
+            return CallResult(return_value, result.source_change);
+        });
+
+    if (ident) {
+        env.set_global(*ident, func);
+    } else {
+        result.value = func;
     }
 
     this->trace_exit_node(node);
@@ -942,7 +1040,7 @@ auto Interpreter::visit_function_call(ts::Node node, Env& env) -> CallResult {
     // skip node `(` at the start
     argument = argument->next_sibling();
 
-    while (argument.has_value()) {
+    while (argument.has_value() && argument->type() != ")"s) {
         auto expr = this->visit_expression(argument.value(), env);
         // TODO source_changes
         arguments.push_back(expr.value);
