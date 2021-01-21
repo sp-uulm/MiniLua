@@ -317,12 +317,21 @@ auto random(const CallContext& ctx) -> Value {
             },
             [ctx](auto /*unused*/, Nil /*unused*/) {
                 return math_helper(
-                    ctx, [](long x) { return std::uniform_int_distribution<>(1, x)(random_seed); },
+                    ctx,
+                    [](long x) { return std::uniform_int_distribution<int>(1, x)(random_seed); },
                     "random");
             },
             [ctx](auto /*unused*/, auto /*unused*/) -> Value {
-                return math_helper(
-                    ctx, [](long x) { return std::uniform_int_distribution<>(1, x)(random_seed); },
+                return math_helper<int>(
+                    ctx,
+                    [](long x, long y) {
+                        if (x <= y) {
+                            return std::uniform_int_distribution<int>(x, y)(random_seed);
+                        } else {
+                            throw std::runtime_error(
+                                "bad argument #1 to 'random' (interval is empty)");
+                        }
+                    },
                     "random");
             }},
         x.raw(), y.raw());
