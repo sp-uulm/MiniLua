@@ -2,6 +2,7 @@
 #include <cmath>
 #include <iostream>
 #include <list>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -1447,6 +1448,37 @@ TEST_CASE("math.rad(x)") {
         ctx = ctx.make_new(list);
         CHECK_THROWS_WITH(
             minilua::math::rad(ctx), "bad argument #1 to 'rad' (number expected, got string)");
+    }
+}
+
+TEST_CASE("math.random([x, [y]]") {}
+
+TEST_CASE("math.randomseed(x)") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("Numbers") {
+        int i = 42;
+        minilua::Vallist list({i});
+        ctx = ctx.make_new(list);
+        minilua::math::randomseed(ctx);
+        CHECK(minilua::math::random_seed == std::default_random_engine((unsigned int)i));
+    }
+
+    SECTION("Strings") {
+        std::string i = "42";
+        minilua::Vallist list({i});
+        ctx = ctx.make_new(list);
+        minilua::math::randomseed(ctx);
+        CHECK(minilua::math::random_seed == std::default_random_engine((unsigned int)42));
+    }
+
+    SECTION("invalid input") {
+        std::string s = "Minilua";
+        minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
+        ctx = ctx.make_new(list);
+        CHECK_THROWS_WITH(
+            minilua::math::sin(ctx), "bad argument #1 to 'sin' (number expected, got string)");
     }
 }
 
