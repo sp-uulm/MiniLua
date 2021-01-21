@@ -414,6 +414,15 @@ TEST_CASE("math.atan(x [, y]") {
         }
     }
 
+    SECTION("boolean, boolean") {
+        bool b = true;
+        bool a = false;
+        minilua::Vallist list({a, b});
+        ctx = ctx.make_new(list);
+        CHECK_THROWS_WITH(
+            minilua::math::atan(ctx), "bad argument #1 to 'atan' (number expected, got boolean)");
+    }
+
     SECTION("invalid input") {
         SECTION("invalid input") {
             std::string s = "Minilua";
@@ -876,6 +885,13 @@ TEST_CASE("math.fmod(x, y)") {
         list = minilua::Vallist({minilua::Value(i), minilua::Value(j)});
         ctx = ctx.make_new(list);
         CHECK_THROWS_WITH(minilua::math::fmod(ctx), "bad argument #2 to 'fmod' (zero)");
+
+        i = 0;
+        j = "Baum";
+        list = minilua::Vallist({minilua::Value(i), minilua::Value(j)});
+        ctx = ctx.make_new(list);
+        CHECK_THROWS_WITH(
+            minilua::math::fmod(ctx), "bad argument #2 to 'fmod' (number expected, got string)");
     }
 
     SECTION("String, Integer") {
@@ -922,6 +938,13 @@ TEST_CASE("math.fmod(x, y)") {
         list = minilua::Vallist({minilua::Value(i), minilua::Value(j)});
         ctx = ctx.make_new(list);
         CHECK_THROWS_WITH(minilua::math::fmod(ctx), "bad argument #2 to 'fmod' (zero)");
+
+        i = "lua";
+        j = 0;
+        list = minilua::Vallist({minilua::Value(i), minilua::Value(j)});
+        ctx = ctx.make_new(list);
+        CHECK_THROWS_WITH(
+            minilua::math::fmod(ctx), "bad argument #1 to 'fmod' (number expected, got string)");
     }
 
     SECTION("String, String") {
@@ -1477,7 +1500,8 @@ TEST_CASE("math.randomseed(x)") {
         minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
         ctx = ctx.make_new(list);
         CHECK_THROWS_WITH(
-            minilua::math::sin(ctx), "bad argument #1 to 'sin' (number expected, got string)");
+            minilua::math::randomseed(ctx),
+            "bad argument #1 to 'randomseed' (number expected, got string)");
     }
 }
 

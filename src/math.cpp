@@ -226,7 +226,7 @@ auto fmod(const CallContext& ctx) -> Value {
                 return Value(std::fmod(num1.value, num2.value));
             }
         } else {
-            auto y = ctx.arguments().get(0);
+            auto y = ctx.arguments().get(1);
             throw std::runtime_error(
                 "bad argument #2 to 'fmod' (number expected, got " + y.type() + ")");
         }
