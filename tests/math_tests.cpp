@@ -1,5 +1,6 @@
 #include <catch2/catch.hpp>
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <list>
 #include <random>
@@ -1451,8 +1452,6 @@ TEST_CASE("math.rad(x)") {
     }
 }
 
-TEST_CASE("math.random([x, [y]]") {}
-
 TEST_CASE("math.randomseed(x)") {
     minilua::Environment env;
     minilua::CallContext ctx(&env);
@@ -1479,6 +1478,303 @@ TEST_CASE("math.randomseed(x)") {
         ctx = ctx.make_new(list);
         CHECK_THROWS_WITH(
             minilua::math::sin(ctx), "bad argument #1 to 'sin' (number expected, got string)");
+    }
+}
+
+TEST_CASE("math.random([x, [y]]") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+    int seed = 42;
+
+    // Setup to always produce the same results because of always using the same seed
+    minilua::Vallist list({seed});
+    minilua::CallContext ctx_seed = ctx.make_new(list);
+
+    SECTION("nil, nil") {
+        minilua::math::randomseed(ctx_seed);
+        list = minilua::Vallist({minilua::Nil(), minilua::Nil()});
+        ctx = ctx.make_new(list);
+        minilua::Number n = std::get<minilua::Number>(minilua::math::random(ctx));
+        CHECK(n.value == Approx(0.524587));
+    }
+
+    SECTION("Number, nil") {
+        minilua::math::randomseed(ctx_seed);
+        int i = 1967;
+        list = minilua::Vallist({i, minilua::Nil()});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::random(ctx) == minilua::Value(1));
+
+        minilua::math::randomseed(ctx_seed);
+        i = 0;
+        list = minilua::Vallist({i, minilua::Nil()});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::random(ctx) == minilua::Value(1126542223));
+    }
+
+    SECTION("String, Nil") {
+        SECTION("valid string") {
+            minilua::math::randomseed(ctx_seed);
+            std::string i = "1967";
+            list = minilua::Vallist({i, minilua::Nil()});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::random(ctx) == minilua::Value(1));
+
+            minilua::math::randomseed(ctx_seed);
+            i = "0";
+            list = minilua::Vallist({i, minilua::Nil()});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::random(ctx) == minilua::Value(1126542223));
+        }
+
+        SECTION("Invalid string") {
+            std::string s = "Minilua";
+            list = minilua::Vallist({minilua::Value(s), minilua::Nil()});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::random(ctx),
+                "bad argument #1 to 'random' (number expected, got string)");
+        }
+    }
+
+    SECTION("Boolean, Nil") {
+        minilua::math::randomseed(ctx_seed);
+        bool i = true;
+        list = minilua::Vallist({i, minilua::Nil()});
+        ctx = ctx.make_new(list);
+        CHECK_THROWS_WITH(
+            minilua::math::random(ctx),
+            "bad argument #1 to 'random' (number expected, got boolean)");
+    }
+
+    SECTION("Number, Number") {
+        minilua::math::randomseed(ctx_seed);
+        int i = 1967;
+        int j = 2021;
+        list = minilua::Vallist({i, j});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::random(ctx) == minilua::Value(1967));
+
+        minilua::math::randomseed(ctx_seed);
+        i = 4;
+        j = 4;
+        list = minilua::Vallist({i, j});
+        ctx = ctx.make_new(list);
+        CHECK(minilua::math::random(ctx) == minilua::Value(4));
+
+        minilua::math::randomseed(ctx_seed);
+        i = 123;
+        j = 4;
+        list = minilua::Vallist({i, j});
+        ctx = ctx.make_new(list);
+        CHECK_THROWS_WITH(
+            minilua::math::random(ctx), "bad argument #1 to 'random' (interval is empty)");
+    }
+
+    SECTION("String, Number") {
+        SECTION("valid string") {
+            minilua::math::randomseed(ctx_seed);
+            std::string i = "1967";
+            int j = 2021;
+            list = minilua::Vallist({i, j});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::random(ctx) == minilua::Value(1967));
+
+            minilua::math::randomseed(ctx_seed);
+            i = "4";
+            j = 4;
+            list = minilua::Vallist({i, j});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::random(ctx) == minilua::Value(4));
+
+            minilua::math::randomseed(ctx_seed);
+            i = "123";
+            j = 4;
+            list = minilua::Vallist({i, j});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::random(ctx), "bad argument #1 to 'random' (interval is empty)");
+        }
+
+        SECTION("invalid string") {
+            std::string s = "Minilua";
+            int j = 4;
+            list = minilua::Vallist({minilua::Value(s), j});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::random(ctx),
+                "bad argument #1 to 'random' (number expected, got string)");
+        }
+    }
+
+    SECTION("Boolean, Number") {
+        bool s = false;
+        int j = 4;
+        list = minilua::Vallist({minilua::Value(s), j});
+        ctx = ctx.make_new(list);
+        CHECK_THROWS_WITH(
+            minilua::math::random(ctx),
+            "bad argument #1 to 'random' (number expected, got boolean)");
+    }
+
+    SECTION("Number, String") {
+        SECTION("valid string") {
+            minilua::math::randomseed(ctx_seed);
+            int i = 1967;
+            std::string j = "2021";
+            list = minilua::Vallist({i, j});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::random(ctx) == minilua::Value(1967));
+
+            minilua::math::randomseed(ctx_seed);
+            i = 4;
+            j = "4";
+            list = minilua::Vallist({i, j});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::random(ctx) == minilua::Value(4));
+
+            minilua::math::randomseed(ctx_seed);
+            i = 123;
+            j = "4";
+            list = minilua::Vallist({i, j});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::random(ctx), "bad argument #1 to 'random' (interval is empty)");
+        }
+
+        SECTION("invalid string") {
+            std::string s = "Minilua";
+            int j = 4;
+            list = minilua::Vallist({j, s});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::random(ctx),
+                "bad argument #2 to 'random' (number expected, got string)");
+        }
+    }
+
+    SECTION("Boolean, String") {
+        SECTION("valid string") {
+            minilua::math::randomseed(ctx_seed);
+            bool i = true;
+            std::string j = "2021";
+            list = minilua::Vallist({i, j});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::random(ctx),
+                "bad argument #1 to 'random' (number expected, got boolean)");
+        }
+
+        SECTION("invalid string") {
+            bool j = false;
+            std::string s = "Minilua";
+            list = minilua::Vallist({j, s});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::random(ctx),
+                "bad argument #1 to 'random' (number expected, got boolean)");
+        }
+    }
+
+    SECTION("String, String") {
+        SECTION("Valid, valid") {
+            minilua::math::randomseed(ctx_seed);
+            std::string i = "1967";
+            std::string j = "2021";
+            list = minilua::Vallist({i, j});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::random(ctx) == minilua::Value(1967));
+
+            minilua::math::randomseed(ctx_seed);
+            i = "4";
+            j = "4";
+            list = minilua::Vallist({i, j});
+            ctx = ctx.make_new(list);
+            CHECK(minilua::math::random(ctx) == minilua::Value(4));
+
+            minilua::math::randomseed(ctx_seed);
+            i = "123";
+            j = "4";
+            list = minilua::Vallist({i, j});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::random(ctx), "bad argument #1 to 'random' (interval is empty)");
+        }
+
+        SECTION("Valid, Invalid") {
+            minilua::math::randomseed(ctx_seed);
+            std::string i = "123";
+            std::string j = "Minilua";
+            list = minilua::Vallist({i, j});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::random(ctx),
+                "bad argument #2 to 'random' (number expected, got string)");
+        }
+
+        SECTION("Invalid, Valid") {
+            minilua::math::randomseed(ctx_seed);
+            std::string i = "MiniLua";
+            std::string j = "4";
+            list = minilua::Vallist({i, j});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::random(ctx),
+                "bad argument #1 to 'random' (number expected, got string)");
+        }
+
+        SECTION("Invalid, Invalid") {
+            minilua::math::randomseed(ctx_seed);
+            std::string i = "MiniLua";
+            std::string j = "baum";
+            list = minilua::Vallist({i, j});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::random(ctx),
+                "bad argument #1 to 'random' (number expected, got string)");
+        }
+    }
+
+    SECTION("Number, Boolean") {
+        int j = 4;
+        bool s = false;
+        list = minilua::Vallist({j, s});
+        ctx = ctx.make_new(list);
+        CHECK_THROWS_WITH(
+            minilua::math::random(ctx),
+            "bad argument #2 to 'random' (number expected, got boolean)");
+    }
+
+    SECTION("String, Boolean") {
+        SECTION("Valid string") {
+            std::string j = "4";
+            bool s = false;
+            list = minilua::Vallist({j, s});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::random(ctx),
+                "bad argument #2 to 'random' (number expected, got boolean)");
+        }
+
+        SECTION("Invalid string") {
+            std::string j = "Minilua";
+            bool s = false;
+            list = minilua::Vallist({j, s});
+            ctx = ctx.make_new(list);
+            CHECK_THROWS_WITH(
+                minilua::math::random(ctx),
+                "bad argument #1 to 'random' (number expected, got string)");
+        }
+    }
+
+    SECTION("Boolean, Boolean") {
+        bool s = false;
+        bool j = true;
+        list = minilua::Vallist({minilua::Value(s), j});
+        ctx = ctx.make_new(list);
+        CHECK_THROWS_WITH(
+            minilua::math::random(ctx),
+            "bad argument #1 to 'random' (number expected, got boolean)");
     }
 }
 
