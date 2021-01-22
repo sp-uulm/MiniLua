@@ -1,4 +1,5 @@
 #include "ast.hpp"
+#include <assert.h>
 #include <iostream>
 #include <tree_sitter/tree_sitter.hpp>
 #include <utility>
@@ -97,7 +98,8 @@ auto Program::body() -> Body { return Body(program.named_children()); }
 };*/
 // BinaryOperation
 BinaryOperation::BinaryOperation(ts::Node node) : bin_op(node) {
-    if (node.type_id() != ts::NODE_BINARY_OPERATION || node.child_count() != 3) {
+    assert(node.child_count() == 3);
+    if (node.type_id() != ts::NODE_BINARY_OPERATION) {
         throw std::runtime_error("not a binary_operation node");
     }
 }
@@ -153,7 +155,8 @@ auto BinaryOperation::op() -> BinOpEnum {
 }
 // UnaryOperation
 UnaryOperation::UnaryOperation(ts::Node node) : un_op(node) {
-    if (node.type_id() != ts::NODE_UNARY_OPERATION || node.child_count() != 2) {
+    assert(node.child_count() == 2);
+    if (node.type_id() != ts::NODE_UNARY_OPERATION) {
         throw std::runtime_error("not an unary_operation node");
     }
 }
@@ -180,8 +183,9 @@ auto UnaryOperation::exp() -> Expression { return Expression(un_op.child(0).valu
 
 // ForStatement
 ForStatement::ForStatement(ts::Node node) : for_statement(node) {
-    if (node.type_id() != ts::NODE_FOR_STATEMENT || !node.named_child(0).has_value() ||
-        node.named_child(0).value().type_id() != ts::NODE_LOOP_EXPRESSION) {
+    assert(node.named_child(0).has_value() &&
+                node.named_child(0).value().type_id() == ts::NODE_LOOP_EXPRESSION);
+    if (node.type_id() != ts::NODE_FOR_STATEMENT) {
         throw std::runtime_error("not a for_statement node");
     }
 }
@@ -196,7 +200,8 @@ auto ForStatement::loop_exp() -> LoopExpression {
 }
 
 LoopExpression::LoopExpression(ts::Node node) : loop_exp(node) {
-    if (node.type_id() != ts::NODE_LOOP_EXPRESSION || node.child_count() < 3) {
+    assert(node.named_child_count() == 3 || node.named_child_count() == 4);
+    if (node.type_id() != ts::NODE_LOOP_EXPRESSION) {
         throw std::runtime_error("not a loop_expression node");
     }
 }
@@ -219,7 +224,8 @@ auto LoopExpression::step() -> std::optional<Expression> {
     }
 }
 InLoopExpression::InLoopExpression(ts::Node node) : loop_exp(node) {
-    if (node.type_id() != ts::NODE_LOOP_EXPRESSION || node.named_child_count()!=2) {
+    assert(node.named_child_count()==2);
+    if (node.type_id() != ts::NODE_LOOP_EXPRESSION) {
         throw std::runtime_error("not a in_loop_expression node");
     }
 }
@@ -240,8 +246,9 @@ auto InLoopExpression::loop_vars() -> std::vector<Identifier> {
 }
 // ForInStatement
 ForInStatement::ForInStatement(ts::Node node) : for_in(node) {
-    if (node.type_id() != ts::NODE_FOR_IN_STATEMENT || !node.named_child(0).has_value() ||
-        node.named_child(0)->type_id() != ts::NODE_LOOP_EXPRESSION) {
+    assert(node.named_child(0).has_value() &&
+           node.named_child(0)->type_id() == ts::NODE_LOOP_EXPRESSION);
+    if (node.type_id() != ts::NODE_FOR_IN_STATEMENT) {
         throw std::runtime_error("not a for_in_statement node");
     }
 }
@@ -255,8 +262,9 @@ auto ForInStatement::body() -> Body {
 }
 // WhileStatement
 WhileStatement::WhileStatement(ts::Node node) : while_statement(node) {
-    if (node.type_id() != ts::NODE_WHILE_STATEMENT || !node.named_child(0).has_value() ||
-        node.named_child(0).value().type_id() != ts::NODE_CONDITION_EXPRESSION) {
+    assert(node.named_child(0).has_value() &&
+               node.named_child(0).value().type_id() == ts::NODE_CONDITION_EXPRESSION);
+    if (node.type_id() != ts::NODE_WHILE_STATEMENT) {
         throw std::runtime_error("not a while_statement node");
     }
 }
@@ -270,8 +278,9 @@ auto WhileStatement::exit_cond() -> Expression {
     return Expression(while_statement.named_child(0).value().named_child(0).value());
 }
 RepeatStatement::RepeatStatement(ts::Node node) : repeat_statement(node) {
-    if (node.type_id() != ts::NODE_REPEAT_STATEMENT ||
-        (node.named_children().end() - 1)->type_id() != ts::NODE_CONDITION_EXPRESSION) {
+    assert(node.named_child_count()>=1 && (node.named_children().end() - 1)->type_id() == ts::NODE_CONDITION_EXPRESSION);
+    if (node.type_id() != ts::NODE_REPEAT_STATEMENT)
+         {
         throw std::runtime_error("not a repeat_statement node");
     }
 }
@@ -288,8 +297,9 @@ auto RepeatStatement::until_cond() -> Expression {
 }
 // If
 IfStatement::IfStatement(ts::Node node) : if_statement(node) {
-    if (node.type_id() != ts::NODE_IF_STATEMENT || !node.named_child(0).has_value() ||
-        node.named_child(0).value().type_id() != ts::NODE_CONDITION_EXPRESSION) {
+    assert(node.named_child(0).has_value() &&
+               node.named_child(0).value().type_id() == ts::NODE_CONDITION_EXPRESSION);
+    if (node.type_id() != ts::NODE_IF_STATEMENT) {
         throw std::runtime_error("not an if_statement node");
     }
 }
@@ -355,8 +365,9 @@ Else::Else(ts::Node node) : else_statement(node) {
 auto Else::body() -> Body { return Body(else_statement.named_children()); }
 // ElseIf
 ElseIf::ElseIf(ts::Node node) : else_if(node) {
-    if (node.type_id() != ts::NODE_ELSEIF || !node.named_child(0).has_value() ||
-        node.named_child(0).value().type_id() != ts::NODE_CONDITION_EXPRESSION) {
+    assert(node.named_child(0).has_value() &&
+               node.named_child(0).value().type_id() == ts::NODE_CONDITION_EXPRESSION);
+    if (node.type_id() != ts::NODE_ELSEIF) {
         throw std::runtime_error("not a else_if node");
     }
 }
@@ -387,35 +398,59 @@ auto Return::explist() -> std::vector<Expression> {
 }
 // VariableDeclaration
 VariableDeclaration::VariableDeclaration(ts::Node node) : var_dec(node) {
-    if (node.type_id() != ts::NODE_VARIABLE_DECLARATION || node.named_child_count() < 2 ||
-        node.named_child(0).value().type_id() != ts::NODE_VARIABLE_DECLARATOR) {
+    if (node.type_id() != ts::NODE_VARIABLE_DECLARATION && node.type_id() != ts::NODE_LOCAL_VARIABLE_DECLARATION) {
         throw std::runtime_error("not a variable_declaration node");
+    }else{
+        _local = node.type_id() == ts::NODE_LOCAL_VARIABLE_DECLARATION;
     }
 }
 auto VariableDeclaration::declarations() -> std::vector<Expression> {
-    std::vector<ts::Node> nodes = var_dec.named_children();
     std::vector<Expression> res;
-    auto it = nodes.begin();
-    while (it->type_id() == ts::NODE_VARIABLE_DECLARATOR) {
-        it++;
+    if(_local){
+        std::vector<ts::Node> nodes = var_dec.named_children();
+        res.reserve(nodes.size() - 1);
+        std::transform(nodes.begin() + 1, nodes.end(), std::back_inserter(res), [](ts::Node node) {
+          return Expression(node);
+        });
+        return res;
+    }else {
+        std::vector<ts::Node> nodes = var_dec.named_children();
+        auto it = nodes.begin();
+        while (it->type_id() == ts::NODE_VARIABLE_DECLARATOR) {
+            it++;
+        }
+        res.reserve(nodes.size() - (it - nodes.begin()));
+        std::transform(it, nodes.end(), std::back_inserter(res), [](ts::Node node) {
+            return Expression(node);
+        });
+        return res;
     }
-    res.reserve(nodes.size() - (it - nodes.begin()));
-    std::transform(
-        it, nodes.end(), std::back_inserter(res), [](ts::Node node) { return Expression(node); });
-    return res;
 }
 auto VariableDeclaration::declarators() -> std::vector<VariableDeclarator> {
-    std::vector<ts::Node> nodes = var_dec.named_children();
-    std::vector<VariableDeclarator> res;
-    auto it = nodes.begin();
-    while (it->type_id() == ts::NODE_VARIABLE_DECLARATOR) {
-        it++;
+    if(_local){
+        std::vector<ts::Node> nodes = var_dec.named_child(0).value().named_children();
+        std::vector<VariableDeclarator> res;
+        res.reserve(nodes.size());
+        std::transform(nodes.begin(), nodes.end(), std::back_inserter(res), [](ts::Node node) {
+          return VariableDeclarator(node);
+        });
+        return res;
+    }else {
+        std::vector<ts::Node> nodes = var_dec.named_children();
+        std::vector<VariableDeclarator> res;
+        auto it = nodes.begin();
+        while (it->type_id() == ts::NODE_VARIABLE_DECLARATOR) {
+            it++;
+        }
+        res.reserve(it - nodes.begin());
+        std::transform(nodes.begin(), it, std::back_inserter(res), [](ts::Node node) {
+            return VariableDeclarator(node);
+        });
+        return res;
     }
-    res.reserve(it - nodes.begin());
-    std::transform(nodes.begin(), it, std::back_inserter(res), [](ts::Node node) {
-        return VariableDeclarator(node);
-    });
-    return res;
+}
+auto VariableDeclaration::local() -> bool {
+    return _local;
 }
 // VariableDeclarator
 VariableDeclarator::VariableDeclarator(ts::Node node) : dec(node) {
@@ -447,42 +482,10 @@ auto VariableDeclarator::var() -> std::variant<Identifier, FieldExpression, Tabl
         throw std::runtime_error("invalid variable declarator");
     }
 }
-// LocalVariableDeclaration
-LocalVariableDeclaration::LocalVariableDeclaration(ts::Node node) : local_var_dec(node) {
-    if (node.type_id() != ts::NODE_LOCAL_VARIABLE_DECLARATION) {
-        throw std::runtime_error("not a local_variable_declaration node");
-    }
-}
-auto LocalVariableDeclaration::declarators() -> std::vector<Identifier> {
-    return LocalVariableDeclarator(local_var_dec.named_child(0).value()).vars();
-}
-auto LocalVariableDeclaration::declarations() -> std::vector<Expression> {
-    std::vector<ts::Node> nodes = local_var_dec.named_children();
-    std::vector<Expression> res;
-    res.reserve(nodes.size() - 1);
-    std::transform(nodes.begin() + 1, nodes.end(), std::back_inserter(res), [](ts::Node node) {
-        return Expression(node);
-    });
-    return res;
-}
-// LocalVariableDeclarator
-LocalVariableDeclarator::LocalVariableDeclarator(ts::Node node) : var_dec(node) {
-    if (node.type_id() != ts::NODE_LOCAL_VARIABLE_DECLARATOR) {
-        throw std::runtime_error("not a local_variable_declarator node");
-    }
-}
-auto LocalVariableDeclarator::vars() -> std::vector<Identifier> {
-    std::vector<ts::Node> nodes = var_dec.named_children();
-    std::vector<Identifier> res;
-    res.reserve(nodes.size());
-    std::transform(nodes.begin(), nodes.end(), std::back_inserter(res), [](ts::Node node) {
-        return Identifier(node);
-    });
-    return res;
-}
 //TableIndex
 TableIndex::TableIndex(ts::Node node) : table_index(node) {
-    if (node.type_id() != ts::NODE_TABLE_INDEX || node.named_child_count() != 2) {
+    assert(node.named_child_count()==2);
+    if (node.type_id() != ts::NODE_TABLE_INDEX) {
         throw std::runtime_error("not a table_index node");
     }
 }
@@ -501,7 +504,8 @@ DoStatement::DoStatement(ts::Node node) : do_statement(node) {
 auto DoStatement::body() -> Body { return Body(do_statement.named_children()); }
 // FieldExpression
 FieldExpression::FieldExpression(ts::Node node) : exp(node) {
-    if (node.type_id() != ts::NODE_FIELD_EXPRESSION || node.named_child_count() != 2) {
+    assert(node.named_child_count() == 2);
+    if (node.type_id() != ts::NODE_FIELD_EXPRESSION) {
         throw std::runtime_error("not a field_expression node");
     }
 }
@@ -509,14 +513,16 @@ auto FieldExpression::table_id() -> Prefix { return Prefix(exp.named_child(0).va
 auto FieldExpression::property_id() -> Identifier { return Identifier(exp.named_child(1).value()); }
 // Label
 Label::Label(ts::Node node) : label(node) {
-    if (node.type_id() != ts::NODE_LABEL_STATEMENT || node.named_child_count() < 1) {
+    assert(node.named_child_count()==1);
+    if (node.type_id() != ts::NODE_LABEL_STATEMENT) {
         throw std::runtime_error("not a label node");
     }
 }
 auto Label::id() -> Identifier { return Identifier(label.named_child(0).value()); }
 // GoTo
 GoTo::GoTo(ts::Node node) : go_to(node) {
-    if (node.type_id() != ts::NODE_GOTO_STATEMENT || node.named_child_count() < 1) {
+    assert(node.named_child_count()==1);
+    if (node.type_id() != ts::NODE_GOTO_STATEMENT) {
         throw std::runtime_error("not a go_to node");
     }
 }
@@ -671,8 +677,8 @@ auto LocalFunctionStatement::body() -> Body {
 }
 // FunctionCall
 FunctionCall::FunctionCall(ts::Node node) : func_call(node) {
-    if (node.type_id() != ts::NODE_FUNCTION_CALL || node.named_child_count() < 2 ||
-        node.named_child_count() > 3) {
+    assert(node.named_child_count()==2 || node.named_child_count()==3);
+    if (node.type_id() != ts::NODE_FUNCTION_CALL) {
         throw runtime_error("not a function_call node");
     }
 }
@@ -728,8 +734,8 @@ auto Table::fields() -> std::vector<Field> {
 }
 // Field
 Field::Field(ts::Node node) : field(node) {
-    if (node.type_id() != ts::NODE_FIELD || node.named_child_count() > 2 ||
-        node.named_child_count() < 1) {
+    assert(node.named_child_count()==1 || node.named_child_count()==2);
+    if (node.type_id() != ts::NODE_FIELD) {
         throw runtime_error("not a field node");
     }
 }
@@ -804,7 +810,7 @@ auto Expression::options() -> std::variant<
         std::string str = exp.text();
         return minilua::Value(String(std::string(str.begin() + 1, str.end() - 1)));
     } else if (exp.type_id() == ts::NODE_NUMBER) {
-        return minilua::Value(Number(stoi(exp.text()))); // TODO parse number and put into value
+        return parse_number_literal(exp.text());
     } else if (exp.type_id() == ts::NODE_NIL) {
         return minilua::Value(Value::Type(Nil()));
     } else if (exp.type_id() == ts::NODE_TRUE) {
@@ -840,15 +846,13 @@ Statement::Statement(ts::Node node) : statement(node) {
     }
 }
 auto Statement::options() -> std::variant<
-    VariableDeclaration, LocalVariableDeclaration, DoStatement, IfStatement, WhileStatement,
+    VariableDeclaration, DoStatement, IfStatement, WhileStatement,
     RepeatStatement, ForStatement, ForInStatement, GoTo, Break, Label, FunctionStatement,
     LocalFunctionStatement, FunctionCall, Expression> {
     if (statement.type_id() == ts::NODE_EXPRESSION) {
         return Expression(statement.named_child(0).value());
-    } else if (statement.type_id() == ts::NODE_VARIABLE_DECLARATION) {
+    } else if (statement.type_id() == ts::NODE_VARIABLE_DECLARATION || statement.type_id() == ts::NODE_LOCAL_VARIABLE_DECLARATION) {
         return VariableDeclaration(statement);
-    } else if (statement.type_id() == ts::NODE_LOCAL_VARIABLE_DECLARATION) {
-        return LocalVariableDeclaration(statement);
     } else if (statement.type_id() == ts::NODE_DO_STATEMENT) {
         return DoStatement(statement);
     } else if (statement.type_id() == ts::NODE_IF_STATEMENT) {

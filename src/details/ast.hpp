@@ -380,13 +380,18 @@ public:
     auto var() -> std::variant<Identifier, FieldExpression, TableIndex>;
 };
 /**
- * class for variable_declaration nodes
+ * class for variable_declaration and local_variable_declaration nodes
  */
 class VariableDeclaration {
     ts::Node var_dec;
-
+    bool _local;
 public:
     VariableDeclaration(ts::Node node);
+    /**
+     *
+     * @return true if the declaration is local
+     */
+    auto local() -> bool;
     /**
      *
      * @return a vector containing all variables declared by the varaible declaration
@@ -396,33 +401,6 @@ public:
      *
      * @return a vector with the expressions that get assigned to to the declared variables
      *          there should always be at least one element in it
-     */
-    auto declarations() -> std::vector<Expression>;
-};
-/**
- * class for local_variable_declarator nodes
- */
-class LocalVariableDeclarator {
-    ts::Node var_dec;
-
-public:
-    LocalVariableDeclarator(ts::Node node);
-    auto vars() -> std::vector<Identifier>;
-};
-
-class LocalVariableDeclaration {
-    ts::Node local_var_dec;
-
-public:
-    LocalVariableDeclaration(ts::Node node);
-    /**
-     * this method gets all Identifiers of variables declared in this statement
-     * @return a vector with all Identifiers
-     */
-    auto declarators() -> std::vector<Identifier>;
-    /**
-     *
-     * @return a vector with the expressions that get assigned to to the declaraed variables
      */
     auto declarations() -> std::vector<Expression>;
 };
@@ -713,7 +691,7 @@ public:
      * @return a variant containing the class this statement gets resolved to
      */
     auto options() -> std::variant<
-        VariableDeclaration, LocalVariableDeclaration, DoStatement, IfStatement, WhileStatement,
+        VariableDeclaration, DoStatement, IfStatement, WhileStatement,
         RepeatStatement, ForStatement, ForInStatement, GoTo, Break, Label, FunctionStatement,
         LocalFunctionStatement, FunctionCall, Expression>;
 };
