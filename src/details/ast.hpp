@@ -384,7 +384,7 @@ public:
  */
 class VariableDeclaration {
     ts::Node var_dec;
-    bool _local;
+    bool local_dec;
 public:
     VariableDeclaration(ts::Node node);
     /**

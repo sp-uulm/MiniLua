@@ -401,12 +401,12 @@ VariableDeclaration::VariableDeclaration(ts::Node node) : var_dec(node) {
     if (node.type_id() != ts::NODE_VARIABLE_DECLARATION && node.type_id() != ts::NODE_LOCAL_VARIABLE_DECLARATION) {
         throw std::runtime_error("not a variable_declaration node");
     }else{
-        _local = node.type_id() == ts::NODE_LOCAL_VARIABLE_DECLARATION;
+        local_dec = node.type_id() == ts::NODE_LOCAL_VARIABLE_DECLARATION;
     }
 }
 auto VariableDeclaration::declarations() -> std::vector<Expression> {
     std::vector<Expression> res;
-    if(_local){
+    if(local_dec){
         std::vector<ts::Node> nodes = var_dec.named_children();
         res.reserve(nodes.size() - 1);
         std::transform(nodes.begin() + 1, nodes.end(), std::back_inserter(res), [](ts::Node node) {
@@ -427,7 +427,7 @@ auto VariableDeclaration::declarations() -> std::vector<Expression> {
     }
 }
 auto VariableDeclaration::declarators() -> std::vector<VariableDeclarator> {
-    if(_local){
+    if(local_dec){
         std::vector<ts::Node> nodes = var_dec.named_child(0).value().named_children();
         std::vector<VariableDeclarator> res;
         res.reserve(nodes.size());
@@ -450,7 +450,7 @@ auto VariableDeclaration::declarators() -> std::vector<VariableDeclarator> {
     }
 }
 auto VariableDeclaration::local() -> bool {
-    return _local;
+    return local_dec;
 }
 // VariableDeclarator
 VariableDeclarator::VariableDeclarator(ts::Node node) : dec(node) {
