@@ -79,6 +79,8 @@ $(function() {
 Namespaces</h2></td></tr>
 <tr class="memitem:namespaceminilua_1_1details"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1details.html">details</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:namespaceminilua_1_1math"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1math.html">math</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -225,6 +227,14 @@ Functions</h2></td></tr>
 <tr class="separator:ae5bc6896e4a2b22751243fa5da1094fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ef3b431f2117e9545a4e25a9d33529b"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a0ef3b431f2117e9545a4e25a9d33529b">operator!=</a> (const <a class="el" href="structminilua_1_1String.html">String</a> &amp;a, const <a class="el" href="structminilua_1_1String.html">String</a> &amp;b) noexcept -&gt; bool</td></tr>
 <tr class="separator:a0ef3b431f2117e9545a4e25a9d33529b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aef0e846d6cea7a756dc42586c63c920f"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#aef0e846d6cea7a756dc42586c63c920f">operator&lt;</a> (const <a class="el" href="structminilua_1_1String.html">String</a> &amp;lhs, const <a class="el" href="structminilua_1_1String.html">String</a> &amp;rhs) noexcept -&gt; bool</td></tr>
+<tr class="separator:aef0e846d6cea7a756dc42586c63c920f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd15a6730db0521c0bcf697090af3e17"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#abd15a6730db0521c0bcf697090af3e17">operator&gt;</a> (const <a class="el" href="structminilua_1_1String.html">String</a> &amp;lhs, const <a class="el" href="structminilua_1_1String.html">String</a> &amp;rhs) noexcept -&gt; bool</td></tr>
+<tr class="separator:abd15a6730db0521c0bcf697090af3e17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a78e12a6d90ac2bde3bf3e4debabce3f4"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a78e12a6d90ac2bde3bf3e4debabce3f4">operator&lt;=</a> (const <a class="el" href="structminilua_1_1String.html">String</a> &amp;lhs, const <a class="el" href="structminilua_1_1String.html">String</a> &amp;rhs) noexcept -&gt; bool</td></tr>
+<tr class="separator:a78e12a6d90ac2bde3bf3e4debabce3f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a726d36e57d108af987f02ee0f32f4a42"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a726d36e57d108af987f02ee0f32f4a42">operator&gt;=</a> (const <a class="el" href="structminilua_1_1String.html">String</a> &amp;lhs, const <a class="el" href="structminilua_1_1String.html">String</a> &amp;rhs) noexcept -&gt; bool</td></tr>
+<tr class="separator:a726d36e57d108af987f02ee0f32f4a42"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af51fe8853433b1d966a107db57f05039"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#af51fe8853433b1d966a107db57f05039">operator&lt;&lt;</a> (std::ostream &amp;, const <a class="el" href="structminilua_1_1String.html">String</a> &amp;) -&gt; std::ostream &amp;</td></tr>
 <tr class="separator:af51fe8853433b1d966a107db57f05039"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a80da7dab40edc727e38bea1eec24f944"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a80da7dab40edc727e38bea1eec24f944">operator==</a> (const <a class="el" href="classminilua_1_1CallResult.html">CallResult</a> &amp;, const <a class="el" href="classminilua_1_1CallResult.html">CallResult</a> &amp;) -&gt; bool</td></tr>
@@ -504,7 +514,7 @@ template&lt;size_t , class T &gt; </div>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;&#160;</td>
           <td class="paramname"><em>ctx</em></td><td>)</td>
-          <td> -&gt;  <a class="el" href="classminilua_1_1Vallist.html">Vallist</a></td>
+          <td> -&gt; <a class="el" href="classminilua_1_1Vallist.html">Vallist</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -812,7 +822,7 @@ template&lt;typename T , typename... Args&gt; </div>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;&#160;</td>
           <td class="paramname"><em>ctx</em></td><td>)</td>
-          <td> -&gt;  <a class="el" href="classminilua_1_1Vallist.html">Vallist</a></td>
+          <td> -&gt; <a class="el" href="classminilua_1_1Vallist.html">Vallist</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1809,8 +1819,44 @@ template&lt;typename T , typename... Args&gt; </div>
 
 </div>
 </div>
+<a id="aef0e846d6cea7a756dc42586c63c920f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aef0e846d6cea7a756dc42586c63c920f">&#9670;&nbsp;</a></span>operator&lt;() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::operator&lt; </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structminilua_1_1String.html">String</a> &amp;&#160;</td>
+          <td class="paramname"><em>lhs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structminilua_1_1String.html">String</a> &amp;&#160;</td>
+          <td class="paramname"><em>rhs</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; bool </td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a9d28e8e751916a31b9676089250d6466"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9d28e8e751916a31b9676089250d6466">&#9670;&nbsp;</a></span>operator&lt;() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a9d28e8e751916a31b9676089250d6466">&#9670;&nbsp;</a></span>operator&lt;() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1846,7 +1892,7 @@ template&lt;typename T , typename... Args&gt; </div>
 </div>
 </div>
 <a id="ab5904f39ff326b75f188c0d94c28595f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab5904f39ff326b75f188c0d94c28595f">&#9670;&nbsp;</a></span>operator&lt;() <span class="overload">[2/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ab5904f39ff326b75f188c0d94c28595f">&#9670;&nbsp;</a></span>operator&lt;() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2553,8 +2599,44 @@ template&lt;typename T , typename... Args&gt; </div>
 
 </div>
 </div>
+<a id="a78e12a6d90ac2bde3bf3e4debabce3f4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a78e12a6d90ac2bde3bf3e4debabce3f4">&#9670;&nbsp;</a></span>operator&lt;=() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::operator&lt;= </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structminilua_1_1String.html">String</a> &amp;&#160;</td>
+          <td class="paramname"><em>lhs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structminilua_1_1String.html">String</a> &amp;&#160;</td>
+          <td class="paramname"><em>rhs</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; bool </td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a462b8e7105e15c9814d01d7cb6723331"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a462b8e7105e15c9814d01d7cb6723331">&#9670;&nbsp;</a></span>operator&lt;=() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a462b8e7105e15c9814d01d7cb6723331">&#9670;&nbsp;</a></span>operator&lt;=() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2590,7 +2672,7 @@ template&lt;typename T , typename... Args&gt; </div>
 </div>
 </div>
 <a id="a97ad2ad9d5c847f9e84e5159c3e9a6bc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a97ad2ad9d5c847f9e84e5159c3e9a6bc">&#9670;&nbsp;</a></span>operator&lt;=() <span class="overload">[2/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a97ad2ad9d5c847f9e84e5159c3e9a6bc">&#9670;&nbsp;</a></span>operator&lt;=() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3365,8 +3447,44 @@ template&lt;typename T , typename... Args&gt; </div>
 
 </div>
 </div>
+<a id="abd15a6730db0521c0bcf697090af3e17"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd15a6730db0521c0bcf697090af3e17">&#9670;&nbsp;</a></span>operator&gt;() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::operator&gt; </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structminilua_1_1String.html">String</a> &amp;&#160;</td>
+          <td class="paramname"><em>lhs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structminilua_1_1String.html">String</a> &amp;&#160;</td>
+          <td class="paramname"><em>rhs</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; bool </td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a930ec6aa3b39e298dde92e5f7e21a44a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a930ec6aa3b39e298dde92e5f7e21a44a">&#9670;&nbsp;</a></span>operator&gt;() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a930ec6aa3b39e298dde92e5f7e21a44a">&#9670;&nbsp;</a></span>operator&gt;() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3402,7 +3520,7 @@ template&lt;typename T , typename... Args&gt; </div>
 </div>
 </div>
 <a id="a702942fbd59c4c128c13884afa7736fb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a702942fbd59c4c128c13884afa7736fb">&#9670;&nbsp;</a></span>operator&gt;() <span class="overload">[2/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a702942fbd59c4c128c13884afa7736fb">&#9670;&nbsp;</a></span>operator&gt;() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3437,8 +3555,44 @@ template&lt;typename T , typename... Args&gt; </div>
 
 </div>
 </div>
+<a id="a726d36e57d108af987f02ee0f32f4a42"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a726d36e57d108af987f02ee0f32f4a42">&#9670;&nbsp;</a></span>operator&gt;=() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::operator&gt;= </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structminilua_1_1String.html">String</a> &amp;&#160;</td>
+          <td class="paramname"><em>lhs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structminilua_1_1String.html">String</a> &amp;&#160;</td>
+          <td class="paramname"><em>rhs</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; bool </td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a08b3aa382670c5ad6413de8f49a8f7cb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a08b3aa382670c5ad6413de8f49a8f7cb">&#9670;&nbsp;</a></span>operator&gt;=() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a08b3aa382670c5ad6413de8f49a8f7cb">&#9670;&nbsp;</a></span>operator&gt;=() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3474,7 +3628,7 @@ template&lt;typename T , typename... Args&gt; </div>
 </div>
 </div>
 <a id="a5cc316b73a1880fa55fec4c9b934cf48"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5cc316b73a1880fa55fec4c9b934cf48">&#9670;&nbsp;</a></span>operator&gt;=() <span class="overload">[2/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a5cc316b73a1880fa55fec4c9b934cf48">&#9670;&nbsp;</a></span>operator&gt;=() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3735,7 +3889,7 @@ template&lt;class... Ts&gt; </div>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;&#160;</td>
           <td class="paramname"><em>ctx</em></td><td>)</td>
-          <td> -&gt;  <a class="el" href="classminilua_1_1Vallist.html">Vallist</a></td>
+          <td> -&gt; <a class="el" href="classminilua_1_1Vallist.html">Vallist</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3893,7 +4047,7 @@ template&lt;class... Ts&gt; </div>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;&#160;</td>
           <td class="paramname"><em>ctx</em></td><td>)</td>
-          <td> -&gt;  <a class="el" href="classminilua_1_1Value.html">Value</a></td>
+          <td> -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3931,7 +4085,7 @@ template&lt;class... Ts&gt; </div>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;&#160;</td>
           <td class="paramname"><em>ctx</em></td><td>)</td>
-          <td> -&gt;  <a class="el" href="classminilua_1_1Value.html">Value</a></td>
+          <td> -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
