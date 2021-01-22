@@ -15,6 +15,8 @@
 
 namespace minilua::math {
 
+std::default_random_engine random_seed;
+
 // functions to reduce the duplicate code because almost every math-function does the same thing
 // except the function that is called to determine the new value
 // gets 1 parameter
@@ -431,4 +433,6 @@ auto ult(const CallContext& ctx) -> Value {
         },
         "ult");
 }
+
+auto get_random_seed() -> std::default_random_engine { return random_seed; }
 } // namespace minilua::math

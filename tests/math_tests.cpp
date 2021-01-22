@@ -1484,7 +1484,7 @@ TEST_CASE("math.randomseed(x)") {
         minilua::Vallist list({i});
         ctx = ctx.make_new(list);
         minilua::math::randomseed(ctx);
-        CHECK(minilua::math::random_seed == std::default_random_engine((unsigned int)i));
+        CHECK(minilua::math::get_random_seed() == std::default_random_engine((unsigned int)i));
     }
 
     SECTION("Strings") {
@@ -1492,7 +1492,7 @@ TEST_CASE("math.randomseed(x)") {
         minilua::Vallist list({i});
         ctx = ctx.make_new(list);
         minilua::math::randomseed(ctx);
-        CHECK(minilua::math::random_seed == std::default_random_engine((unsigned int)42));
+        CHECK(minilua::math::get_random_seed() == std::default_random_engine((unsigned int)42));
     }
 
     SECTION("invalid input") {

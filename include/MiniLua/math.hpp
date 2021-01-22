@@ -16,10 +16,6 @@ const long MININTEGER = LONG_MIN;
 const double PI = M_PI;
 const double HUGE = HUGE_VAL;
 
-// needs to be in the hpp so randomseed is testable.
-// the only other way would be a getter for this variable
-std::default_random_engine random_seed; // NOLINT
-
 auto abs(const CallContext& ctx) -> Value;
 
 auto acos(const CallContext& ctx) -> Value;
@@ -65,6 +61,8 @@ auto to_integer(const CallContext& ctx) -> Value;
 auto type(const CallContext& ctx) -> Value;
 
 auto ult(const CallContext& ctx) -> Value;
+
+auto get_random_seed() -> std::default_random_engine;
 } // namespace minilua::math
 
 #endif
