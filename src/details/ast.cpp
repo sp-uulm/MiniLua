@@ -1,4 +1,4 @@
-#include "MiniLua/tree_sitter_ast.hpp"
+#include "ast.hpp"
 #include <iostream>
 #include <tree_sitter/tree_sitter.hpp>
 #include <utility>

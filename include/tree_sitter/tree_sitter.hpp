@@ -384,9 +384,6 @@ public:
     struct unsafe_t {};
     // used as a token for the unsafe constructor
     constexpr static unsafe_t unsafe{};
-    Node(){
-
-    }
     /**
      * Creates a new node from the given tree-sitter node and the tree.
      *

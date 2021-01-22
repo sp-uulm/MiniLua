@@ -1,8 +1,8 @@
 
-#ifndef MINILUA_TREE_SITTER_AST_HPP
-#define MINILUA_TREE_SITTER_AST_HPP
+#ifndef MINILUA_AST_HPP
+#define MINILUA_AST_HPP
 
-#include "values.hpp"
+#include "MiniLua/values.hpp"
 #include <tree_sitter/tree_sitter.hpp>
 #include <variant>
 namespace minilua::details {
@@ -719,4 +719,4 @@ public:
 };
 } // namespace minilua::details
 
-#endif // MINILUA_TREE_SITTER_AST_HPP
+#endif // MINILUA_AST_HPP
