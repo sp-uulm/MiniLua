@@ -9,7 +9,7 @@ add_executable(MiniLua-tests
     public_api/environment.cpp
     tree_sitter.cpp
     stdlib_tests.cpp
-    math_tests.cpp)
+    math_tests.cpp
     tree_sitter_ast_tests.cpp)
 target_include_directories(MiniLua-tests PRIVATE ${tree-sitter_SOURCE_DIR}/lib/include)
 # add include directory to be able to test internal headers
