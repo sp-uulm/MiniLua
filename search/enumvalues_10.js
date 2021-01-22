@@ -1,5 +1,7 @@
 var searchData=
 [
-  ['then_1418',['THEN',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432a9d600b6718759d697f717cd8dd515f31',1,'LuaToken']]],
-  ['true_1419',['TRUE',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432a403e64c2ed72e4c6d5ed621c3838b279',1,'LuaToken']]]
+  ['sem_1608',['SEM',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432a0bb89e877a025959a22e458cf8c9ebdc',1,'LuaToken']]],
+  ['stringlit_1609',['STRINGLIT',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432a31851c2a87122fae8892c24f8a311dbb',1,'LuaToken']]],
+  ['strip_1610',['STRIP',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432aab0316d569bd92736025d398edd7b1d1',1,'LuaToken']]],
+  ['sub_1611',['SUB',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432a3df2040b40cd62d87ba5ed146d0b6274',1,'LuaToken::SUB()'],['../namespaceminilua_1_1details.html#a4ffe3d9c85b6692bed78cee32af7e1b0a241dd841abade20fcb27b8a9f494e1eb',1,'minilua::details::SUB()']]]
 ];

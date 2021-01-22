@@ -1,7 +1,8 @@
 var searchData=
 [
-  ['sem_1414',['SEM',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432a0bb89e877a025959a22e458cf8c9ebdc',1,'LuaToken']]],
-  ['stringlit_1415',['STRINGLIT',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432a31851c2a87122fae8892c24f8a311dbb',1,'LuaToken']]],
-  ['strip_1416',['STRIP',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432aab0316d569bd92736025d398edd7b1d1',1,'LuaToken']]],
-  ['sub_1417',['SUB',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432a3df2040b40cd62d87ba5ed146d0b6274',1,'LuaToken']]]
+  ['rcb_1603',['RCB',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432a8aa2123a60f2a61c5c40e7b08ebcca86',1,'LuaToken']]],
+  ['repeat_1604',['REPEAT',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432a4153ddc149f5e4f9d58a9fdc7d7a9c4a',1,'LuaToken']]],
+  ['return_1605',['RETURN',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432ad8091f82d4dbb1823d2258e6727dbb37',1,'LuaToken']]],
+  ['rrb_1606',['RRB',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432a070b17b558cc3bf9d8f320441dda4517',1,'LuaToken']]],
+  ['rsb_1607',['RSB',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432ae820534b8bb10a152fda4926b90d5a3a',1,'LuaToken']]]
 ];

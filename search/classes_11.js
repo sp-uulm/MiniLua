@@ -1,7 +1,19 @@
 var searchData=
 [
-  ['unarynumericfunctionhelper_779',['UnaryNumericFunctionHelper',['../structminilua_1_1UnaryNumericFunctionHelper.html',1,'minilua']]],
-  ['unaryorigin_780',['UnaryOrigin',['../structminilua_1_1UnaryOrigin.html',1,'minilua']]],
-  ['unimplementedexception_781',['UnimplementedException',['../classminilua_1_1details_1_1UnimplementedException.html',1,'minilua::details']]],
-  ['unsafe_5ft_782',['unsafe_t',['../structts_1_1Node_1_1unsafe__t.html',1,'ts::Node']]]
+  ['self_863',['Self',['../classminilua_1_1details_1_1Self.html',1,'minilua::details']]],
+  ['sourceassignment_864',['SourceAssignment',['../structlua_1_1rt_1_1SourceAssignment.html',1,'lua::rt']]],
+  ['sourcebinop_865',['sourcebinop',['../structlua_1_1rt_1_1sourcebinop.html',1,'lua::rt']]],
+  ['sourcechange_866',['SourceChange',['../structlua_1_1rt_1_1SourceChange.html',1,'lua::rt::SourceChange'],['../structminilua_1_1SourceChange.html',1,'minilua::SourceChange']]],
+  ['sourcechangealternative_867',['SourceChangeAlternative',['../structminilua_1_1SourceChangeAlternative.html',1,'minilua']]],
+  ['sourcechangeand_868',['SourceChangeAnd',['../structlua_1_1rt_1_1SourceChangeAnd.html',1,'lua::rt']]],
+  ['sourcechangecombination_869',['SourceChangeCombination',['../structminilua_1_1SourceChangeCombination.html',1,'minilua']]],
+  ['sourcechangeor_870',['SourceChangeOr',['../structlua_1_1rt_1_1SourceChangeOr.html',1,'lua::rt']]],
+  ['sourcechangetree_871',['SourceChangeTree',['../classminilua_1_1SourceChangeTree.html',1,'minilua']]],
+  ['sourcechangevisitor_872',['SourceChangeVisitor',['../structlua_1_1rt_1_1SourceChangeVisitor.html',1,'lua::rt']]],
+  ['sourceexp_873',['sourceexp',['../structlua_1_1rt_1_1sourceexp.html',1,'lua::rt']]],
+  ['sourceunop_874',['sourceunop',['../structlua_1_1rt_1_1sourceunop.html',1,'lua::rt']]],
+  ['sourceval_875',['sourceval',['../structlua_1_1rt_1_1sourceval.html',1,'lua::rt']]],
+  ['spread_876',['Spread',['../classminilua_1_1details_1_1Spread.html',1,'minilua::details']]],
+  ['statement_877',['Statement',['../classminilua_1_1details_1_1Statement.html',1,'minilua::details']]],
+  ['string_878',['String',['../structminilua_1_1String.html',1,'minilua']]]
 ];
