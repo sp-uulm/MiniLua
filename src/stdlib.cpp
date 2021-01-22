@@ -219,6 +219,6 @@ void print(const CallContext& ctx) {
             gap = "\t";
         }
     }
+    *stdout << std::endl;
 }
-
 } // namespace minilua
