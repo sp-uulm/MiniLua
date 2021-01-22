@@ -1,6 +1,7 @@
 #ifndef MINILUA_VALUES_HPP
 #define MINILUA_VALUES_HPP
 
+#include <algorithm>
 #include <cmath>
 #include <functional>
 #include <string>
@@ -202,6 +203,19 @@ struct String {
 };
 auto operator==(const String& a, const String& b) noexcept -> bool;
 auto operator!=(const String& a, const String& b) noexcept -> bool;
+inline auto operator<(const String& lhs, const String& rhs) noexcept -> bool {
+    return lhs.value < rhs.value;
+}
+inline auto operator>(const String& lhs, const String& rhs) noexcept -> bool {
+    return lhs.value > rhs.value;
+}
+inline auto operator<=(const String& lhs, const String& rhs) noexcept -> bool {
+    return !(lhs > rhs);
+}
+inline auto operator>=(const String& lhs, const String& rhs) noexcept -> bool {
+    return !(lhs < rhs);
+}
+
 auto operator<<(std::ostream&, const String&) -> std::ostream&;
 
 // Forward declaration
