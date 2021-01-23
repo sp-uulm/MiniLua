@@ -124,7 +124,8 @@ Friends</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Contains information for use in the implementation of native functions.</p>
-<p>Contains the arguments and the environment. </p>
+<p>Contains the arguments and the environment.</p>
+<p>The '<a class="el" href="classminilua_1_1CallContext.html">CallContext</a>' and the '<a class="el" href="classminilua_1_1Environment.html">Environment</a>' should not be copied and stored somewhere that outlives the function call. Because the environment may be freed after the call to the function ends. You can however safely store any Values or a copy of the arguments. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a780e56056d700663f495909afe2e3aa2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a780e56056d700663f495909afe2e3aa2">&#9670;&nbsp;</a></span>CallContext() <span class="overload">[1/3]</span></h2>
@@ -499,8 +500,8 @@ template&lt;typename... Args&gt; </div>
 <li><a class="el" href="values_8cpp.html">values.cpp</a></li>
 </ul>
 </div><!-- contents -->
-<div class="ttc" id="anamespaceminilua_html_a2ce17b0d50309e0d4a3a43e71dd592c2"><div class="ttname"><a href="namespaceminilua.html#a2ce17b0d50309e0d4a3a43e71dd592c2">minilua::binary_num_reverse</a></div><div class="ttdeci">auto binary_num_reverse(FnLeft fn_left, FnRight fn_right, std::string origin=&quot;&quot;) -&gt; decltype(auto)</div><div class="ttdef"><b>Definition:</b> values.hpp:867</div></div>
-<div class="ttc" id="anamespaceminilua_html_a3533c865eb291bcf3dff829fb0607af8"><div class="ttname"><a href="namespaceminilua.html#a3533c865eb291bcf3dff829fb0607af8">minilua::unary_num_reverse</a></div><div class="ttdeci">auto unary_num_reverse(Fn fn) -&gt; decltype(auto)</div><div class="ttdef"><b>Definition:</b> values.hpp:856</div></div>
+<div class="ttc" id="anamespaceminilua_html_a2ce17b0d50309e0d4a3a43e71dd592c2"><div class="ttname"><a href="namespaceminilua.html#a2ce17b0d50309e0d4a3a43e71dd592c2">minilua::binary_num_reverse</a></div><div class="ttdeci">auto binary_num_reverse(FnLeft fn_left, FnRight fn_right, std::string origin=&quot;&quot;) -&gt; decltype(auto)</div><div class="ttdef"><b>Definition:</b> values.hpp:872</div></div>
+<div class="ttc" id="anamespaceminilua_html_a3533c865eb291bcf3dff829fb0607af8"><div class="ttname"><a href="namespaceminilua.html#a3533c865eb291bcf3dff829fb0607af8">minilua::unary_num_reverse</a></div><div class="ttdeci">auto unary_num_reverse(Fn fn) -&gt; decltype(auto)</div><div class="ttdef"><b>Definition:</b> values.hpp:861</div></div>
 <!-- start footer part -->
 		<script src="custom.js"></script>
 	</body>

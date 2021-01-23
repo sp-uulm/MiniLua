@@ -1,10 +1,11 @@
 var searchData=
 [
-  ['source_1502',['source',['../structlua_1_1rt_1_1val.html#aa47b02eadad5802bff9e6961f3249a25',1,'lua::rt::val']]],
-  ['source_5fchange_1503',['source_change',['../structminilua_1_1EvalResult.html#a17ea99d4032cbaf409f242751b66600f',1,'minilua::EvalResult']]],
-  ['source_5fchanges_1504',['source_changes',['../structPerformanceStatistics.html#a40b65e225dc6bd1c363425a38d0ee194',1,'PerformanceStatistics']]],
-  ['source_5fcode_1505',['source_code',['../structminilua_1_1Interpreter_1_1Impl.html#a65ae21eece3301303dab4531f03b9bb3',1,'minilua::Interpreter::Impl']]],
-  ['start_1506',['start',['../struct__LuaForStmt.html#ad03f91de092cbe89416c5ba14c039337',1,'_LuaForStmt::start()'],['../structts_1_1Range.html#a90a7fd740f440afcaef97a20cf8071e8',1,'ts::Range::start()'],['../structminilua_1_1Range.html#a644712afde3b9e9bab5f8adc11ddd0cd',1,'minilua::Range::start()']]],
-  ['statements_1507',['statements',['../struct__LuaChunk.html#aa7c41c9d1dbd5a674712a75c937f5132',1,'_LuaChunk']]],
-  ['step_1508',['step',['../struct__LuaForStmt.html#a3a77ba91e82730939a75eefeeefb6d17',1,'_LuaForStmt']]]
+  ['random_5fseed_1525',['random_seed',['../namespaceminilua_1_1math.html#a5d23c697b6d94283d5683438093271fa',1,'minilua::math']]],
+  ['range_1526',['range',['../structts_1_1Edit.html#a9d762f6a8d260b3afd44ba74cab723fa',1,'ts::Edit::range()'],['../structminilua_1_1SourceChange.html#aa972eabb27b09feeb10ece19590fb31f',1,'minilua::SourceChange::range()']]],
+  ['replacement_1527',['replacement',['../structlua_1_1rt_1_1SourceAssignment.html#a62dc808d4f2c1470fff1f75ea4226cac',1,'lua::rt::SourceAssignment::replacement()'],['../structts_1_1Edit.html#a6f807e64b25504aeb11472dda24760f7',1,'ts::Edit::replacement()'],['../structts_1_1AppliedEdit.html#ae82e33dd80f35a6288680dd77b3d3cac',1,'ts::AppliedEdit::replacement()'],['../structminilua_1_1SourceChange.html#ae78e098db583d12d070f2c0514f9d84b',1,'minilua::SourceChange::replacement()']]],
+  ['reverse_1528',['reverse',['../structminilua_1_1BinaryOrigin.html#af6f6e09e4101528cc1150d04727c5974',1,'minilua::BinaryOrigin::reverse()'],['../structminilua_1_1UnaryOrigin.html#aa5e5d7efe4254e7b2956741b17682733',1,'minilua::UnaryOrigin::reverse()'],['../structminilua_1_1UnaryNumericFunctionHelper.html#ae77edd9db1a92524496f5f4a8818e58e',1,'minilua::UnaryNumericFunctionHelper::reverse()']]],
+  ['reverse_5fleft_1529',['reverse_left',['../structminilua_1_1BinaryNumericFunctionHelper.html#a54029fbe9815dc7504905aeb5d84b76d',1,'minilua::BinaryNumericFunctionHelper']]],
+  ['reverse_5fright_1530',['reverse_right',['../structminilua_1_1BinaryNumericFunctionHelper.html#add056a1e1a8aa5831e14d1942130d593',1,'minilua::BinaryNumericFunctionHelper']]],
+  ['rhs_1531',['rhs',['../structlua_1_1rt_1_1sourcebinop.html#a6caa4878410ec64803c4bf4e1583908e',1,'lua::rt::sourcebinop::rhs()'],['../struct__LuaOp.html#acb308df040d7571da209d6ff907a5121',1,'_LuaOp::rhs()'],['../struct__LuaField.html#a4531b292bb1ebdddb4b0c45c43a17d99',1,'_LuaField::rhs()'],['../structminilua_1_1BinaryOrigin.html#a1847d476b0d065c6739c35eab3d151b3',1,'minilua::BinaryOrigin::rhs()']]],
+  ['row_1532',['row',['../structts_1_1Point.html#a91f0366e1f13a4d061b1d7bbc5beb65b',1,'ts::Point']]]
 ];

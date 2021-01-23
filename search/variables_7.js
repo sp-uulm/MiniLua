@@ -1,8 +1,9 @@
 var searchData=
 [
-  ['length_1424',['length',['../structLuaToken.html#ac181911f81019f7f4475c1647441a9cf',1,'LuaToken']]],
-  ['lhs_1425',['lhs',['../structlua_1_1rt_1_1sourcebinop.html#a28b6572eb9ad98f146bca41cf03f928e',1,'lua::rt::sourcebinop::lhs()'],['../struct__LuaOp.html#a5a842c05abbac3845f2bdc661654599f',1,'_LuaOp::lhs()'],['../struct__LuaField.html#a8ae4ced01ee145059f6dad95cbead601',1,'_LuaField::lhs()'],['../structminilua_1_1BinaryOrigin.html#ab5190d94d2619b5d7814948a1686e256',1,'minilua::BinaryOrigin::lhs()']]],
-  ['line_1426',['line',['../structminilua_1_1Location.html#afc07cd9061ce91baa5d371994d2ed8e9',1,'minilua::Location']]],
-  ['location_1427',['location',['../structlua_1_1rt_1_1sourceval.html#a427a244311218d4e74817352812c0e3c',1,'lua::rt::sourceval::location()'],['../structminilua_1_1LiteralOrigin.html#a4bab1da3252ea0656f647b353e43724e',1,'minilua::LiteralOrigin::location()'],['../structminilua_1_1BinaryOrigin.html#a55a7e8afeb09d109faca0cc0c42bf2ae',1,'minilua::BinaryOrigin::location()'],['../structminilua_1_1UnaryOrigin.html#afd5bfd8d0a9beab931ce8ac16a5cb17d',1,'minilua::UnaryOrigin::location()'],['../structminilua_1_1CallContext_1_1Impl.html#ae1d9bd1143eebc0e37fc2714e5b3fc59',1,'minilua::CallContext::Impl::location()']]],
-  ['lua_5flanguage_1428',['LUA_LANGUAGE',['../namespacets.html#a6fc84ba87debaa4766a887c96094ea25',1,'ts']]]
+  ['id_1449',['id',['../structts_1_1Match.html#aa2b1dc6cc3e7ce54630a93e237d63f3d',1,'ts::Match']]],
+  ['identifier_1450',['identifier',['../structlua_1_1rt_1_1sourceexp.html#a644ad658c3b8c091064b045d1e6da207',1,'lua::rt::sourceexp']]],
+  ['index_1451',['index',['../struct__LuaIndexVar.html#a9cca9de5e70705b7c044fdd03b4cd487',1,'_LuaIndexVar::index()'],['../structts_1_1Capture.html#a900f0a4b8f48af427f5410245c49b580',1,'ts::Capture::index()']]],
+  ['inner_1452',['inner',['../structminilua_1_1Environment_1_1Impl.html#ac0e433a4ced038e427b130145a50c7f5',1,'minilua::Environment::Impl']]],
+  ['is_5fprintable_5fv_1453',['is_printable_v',['../namespaceminilua.html#afa6a738a3391891d976983e28a2a75ba',1,'minilua']]],
+  ['iter_1454',['iter',['../structminilua_1_1Table_1_1iterator_1_1Impl.html#a6d867f5147ed4adfbef364746a943bee',1,'minilua::Table::iterator::Impl::iter()'],['../structminilua_1_1Table_1_1const__iterator_1_1Impl.html#ab15f29a304b8d27d52e10510a9c4b185',1,'minilua::Table::const_iterator::Impl::iter()']]]
 ];

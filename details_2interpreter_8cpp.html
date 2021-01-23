@@ -71,17 +71,23 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#define-members">Macros</a>  </div>
+<a href="#define-members">Macros</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">interpreter.cpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="src_2details_2interpreter_8hpp_source.html">interpreter.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="environment_8hpp_source.html">MiniLua/environment.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="include_2MiniLua_2interpreter_8hpp_source.html">MiniLua/interpreter.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="tree__sitter_8hpp_source.html">tree_sitter/tree_sitter.hpp</a>&quot;</code><br />
+<code>#include &lt;algorithm&gt;</code><br />
 <code>#include &lt;cassert&gt;</code><br />
 <code>#include &lt;functional&gt;</code><br />
 <code>#include &lt;iostream&gt;</code><br />
+<code>#include &lt;iterator&gt;</code><br />
+<code>#include &lt;map&gt;</code><br />
+<code>#include &lt;optional&gt;</code><br />
 <code>#include &lt;set&gt;</code><br />
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
@@ -100,6 +106,11 @@ Namespaces</h2></td></tr>
 Macros</h2></td></tr>
 <tr class="memitem:a3eb6e226f9844fd1d67025b481011e32"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="details_2interpreter_8cpp.html#a3eb6e226f9844fd1d67025b481011e32">UNIMPLEMENTED</a>(what)</td></tr>
 <tr class="separator:a3eb6e226f9844fd1d67025b481011e32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:a92e0595b2a611525620ca17c901301fc"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1details.html#a92e0595b2a611525620ca17c901301fc">minilua::details::operator&lt;&lt;</a> (std::ostream &amp;o, const EvalResult &amp;self) -&gt; std::ostream &amp;</td></tr>
+<tr class="separator:a92e0595b2a611525620ca17c901301fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="a3eb6e226f9844fd1d67025b481011e32"></a>
