@@ -49,6 +49,8 @@ auto Env::get_var(const std::string& name) -> Value {
         return this->get_global(name);
     }
 }
+void Env::set_varargs(std::optional<Vallist> vallist) { this->varargs = std::move(vallist); }
+auto Env::get_varargs() const -> std::optional<Vallist> { return this->varargs; }
 
 void Env::set_stdin(std::istream* in) {
     if (in == nullptr) {

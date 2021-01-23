@@ -72,6 +72,7 @@ public:
     auto visit_function_call(ts::Node node, Env& env) -> CallResult;
     auto visit_field_expression(ts::Node node, Env& env) -> EvalResult;
     auto visit_function_expression(ts::Node node, Env& env) -> EvalResult;
+    auto visit_vararg_expression(ts::Node node, Env& env) -> EvalResult;
 
     auto visit_table_constructor(ts::Node node, Env& env) -> EvalResult;
 

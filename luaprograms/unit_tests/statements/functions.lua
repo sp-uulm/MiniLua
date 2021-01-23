@@ -43,3 +43,14 @@ function f5(x, y)
 end
 assert(f5(1, 1) == 2)
 assert(f5(2, 4) == 6)
+
+-- TODO varargs
+-- a5 = 0
+-- function f5 (...)
+--     a5 = #{...}
+-- end
+-- f5(1, 2, 3, 4)
+-- assert(a5 == 4)
+-- f5(1)
+-- assert(a5 == 1)
+--

@@ -106,6 +106,7 @@ TEST_CASE("unit_tests lua files") {
         "statements/if.lua",
         "statements/while.lua",
         "statements/repeat_until.lua",
+        "statements/functions.lua",
         "local_variables.lua",
     };
     // NOTE: exptects to be run from build directory

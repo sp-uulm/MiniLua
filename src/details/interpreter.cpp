@@ -3,9 +3,11 @@
 #include "MiniLua/interpreter.hpp"
 #include "tree_sitter/tree_sitter.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <functional>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <optional>
 #include <set>
@@ -709,9 +711,30 @@ auto Interpreter::visit_expression(ts::Node node, Env& env) -> EvalResult {
         result = this->visit_field_expression(node, env);
     } else if (node.type() == "function"s || node.type() == "function_definition"s) {
         result = this->visit_function_expression(node, env);
+    } else if (node.type() == "spread"s) {
+        // TODO implement actual spread operator (this is for varargs)
+        result = this->visit_vararg_expression(node, env);
     } else {
         throw UNIMPLEMENTED(node.type());
     }
+
+    this->trace_exit_node(node);
+    return result;
+}
+
+auto Interpreter::visit_vararg_expression(ts::Node node, Env& env) -> EvalResult {
+    assert(node.type() == "spread"s);
+    this->trace_enter_node(node);
+
+    EvalResult result;
+
+    auto varargs = env.get_varargs();
+    if (!varargs.has_value()) {
+        throw InterpreterException("cannot use '...' outside a vararg function");
+    }
+
+    // TODO return the whole vallist
+    result.value = varargs->get(0);
 
     this->trace_exit_node(node);
     return result;
@@ -742,17 +765,22 @@ auto Interpreter::visit_function_expression(ts::Node node, Env& env) -> EvalResu
     cursor.goto_next_sibling();
 
     std::vector<std::string> parameters;
+    bool vararg = false;
 
-    // TODO vararg parameters
     while (true) {
         current_node = cursor.current_node();
         if (current_node.type() == ")"s) {
             break;
         }
 
-        auto ident = this->visit_identifier(current_node, env);
-
-        parameters.push_back(ident);
+        if (current_node.type() == "identifier"s) {
+            auto ident = this->visit_identifier(current_node, env);
+            parameters.push_back(ident);
+        } else if (current_node.type() == "spread"s) {
+            vararg = true;
+            cursor.goto_next_sibling();
+            assert(cursor.current_node().type() == ")"s);
+        }
 
         // skip comma
         if (cursor.skip_n_siblings(2) != 2) {
@@ -780,12 +808,27 @@ auto Interpreter::visit_function_expression(ts::Node node, Env& env) -> EvalResu
     }
 
     Value func = Function(
-        [body = std::move(body), parameters = std::move(parameters),
+        [body = std::move(body), parameters = std::move(parameters), vararg,
          this](const CallContext& ctx) -> CallResult {
             // setup parameters as local variables
             Env env(ctx.environment().get_raw_impl().inner);
             for (int i = 0; i < parameters.size(); ++i) {
                 env.set_local(parameters[i], ctx.arguments().get(i));
+            }
+
+            if (vararg && parameters.size() < ctx.arguments().size()) {
+                std::vector<Value> varargs;
+                varargs.reserve(ctx.arguments().size() - parameters.size());
+                std::copy(
+                    ctx.arguments().begin() + parameters.size(), ctx.arguments().end(),
+                    std::back_inserter(varargs));
+                env.set_varargs(varargs);
+            } else {
+                env.set_varargs(std::nullopt);
+            }
+
+            if (env.get_varargs()) {
+                std::cerr << "varargs: " << *env.get_varargs() << "\n";
             }
 
             EvalResult result;

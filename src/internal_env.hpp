@@ -39,6 +39,7 @@ using LocalEnv = std::unordered_map<std::string, std::shared_ptr<Value>>;
 class Env {
     Table _global;
     LocalEnv _local;
+    std::optional<Vallist> varargs;
 
     // iostreams
     std::istream* in;
@@ -106,6 +107,13 @@ public:
      * Get the value of a variable `name` or Nil if it is not set.
      */
     auto get_var(const std::string& name) -> Value;
+
+    /**
+     * Setter and getter for the varargs of the immediately enclosing varargs
+     * function.
+     */
+    void set_varargs(std::optional<Vallist> vallist);
+    auto get_varargs() const -> std::optional<Vallist>;
 
     /**
      * Sets stdin/out/err stream to use in lua code.
