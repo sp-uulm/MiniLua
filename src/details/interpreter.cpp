@@ -656,7 +656,7 @@ auto Interpreter::visit_local_variable_declaration(ts::Node node, Env& env) -> E
 }
 
 auto Interpreter::visit_variable_declarator(ts::Node node, Env& env) -> std::string {
-    assert(node.type() == std::string("variable_declarator"));
+    assert(node.type() == "variable_declarator"s || node.type() == "local_variable_declarator"s);
     this->trace_enter_node(node);
     return this->visit_identifier(node.child(0).value(), env);
 }
