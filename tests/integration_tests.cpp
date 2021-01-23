@@ -100,10 +100,15 @@ TEST_CASE("unit_tests lua files") {
         "literals/bools.lua",
         "literals/numbers.lua",
         "literals/string.lua",
+        "literals/table.lua",
         "expressions/binary_operations.lua",
         "expressions/unary_operations.lua",
         "statements/if.lua",
-        "statements/while.lua"};
+        "statements/while.lua",
+        "statements/repeat_until.lua",
+        "statements/functions.lua",
+        "local_variables.lua",
+    };
     // NOTE: exptects to be run from build directory
     for (const auto& file : test_files) {
         std::string path = "../luaprograms/unit_tests/" + file;
