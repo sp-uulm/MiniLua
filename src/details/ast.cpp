@@ -904,7 +904,7 @@ Statement::Statement(ts::Node node) : statement(node) {
           node.type_id() == ts::NODE_LABEL_STATEMENT || node.type_id() == ts::NODE_FUNCTION ||
           node.type_id() == ts::NODE_LOCAL_FUNCTION || node.type_id() == ts::NODE_FUNCTION_CALL ||
           (node.child(0).has_value() && node.child(0)->text() == ";"))) {
-        throw std::runtime_error("Not a statement-node" + to_string(node.type_id()));
+        throw std::runtime_error("Not a statement-node " + std::string(node.type()));
     }
 }
 auto Statement::options() -> std::variant<
