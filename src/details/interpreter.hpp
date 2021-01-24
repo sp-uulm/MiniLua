@@ -4,6 +4,7 @@
 #include "../internal_env.hpp"
 #include "MiniLua/environment.hpp"
 #include "MiniLua/interpreter.hpp"
+#include "ast.hpp"
 #include "tree_sitter/tree_sitter.hpp"
 
 namespace minilua::details {
@@ -43,17 +44,18 @@ public:
     Interpreter(const InterpreterConfig& config);
     auto run(const ts::Tree& tree, Env& env) -> EvalResult;
 
-    auto visit_root(ts::Node node, Env& env) -> EvalResult;
+private:
+    auto visit_root(ast::Program program, Env& env) -> EvalResult;
 
-    auto visit_identifier(ts::Node node, Env& env) -> std::string;
+    auto visit_identifier(ast::Identifier ident, Env& env) -> std::string;
 
-    auto visit_statement(ts::Node node, Env& env) -> EvalResult;
+    auto visit_statement(ast::Statement statement, Env& env) -> EvalResult;
 
-    auto visit_variable_declaration(ts::Node node, Env& env) -> EvalResult;
+    auto visit_variable_declaration(ast::VariableDeclaration decl, Env& env) -> EvalResult;
     auto visit_local_variable_declaration(ts::Node node, Env& env) -> EvalResult;
     auto visit_variable_declarator(ts::Node node, Env& env) -> std::string;
 
-    auto visit_break_statement(ts::Node node, Env& env) -> EvalResult;
+    auto visit_break_statement(Env& env) -> EvalResult;
     auto visit_return_statement(ts::Node node, Env& env) -> EvalResult;
 
     auto visit_do_statement(ts::Node node, Env& env) -> EvalResult;
@@ -76,7 +78,7 @@ public:
 
     auto visit_table_constructor(ts::Node node, Env& env) -> EvalResult;
 
-private:
+    // helper methods for debugging/tracing
     [[nodiscard]] auto tracer() const -> std::ostream&;
     void
     trace_enter_node(ts::Node node, std::optional<std::string> method_name = std::nullopt) const;

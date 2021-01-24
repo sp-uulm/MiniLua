@@ -1,6 +1,7 @@
 #include "interpreter.hpp"
 #include "MiniLua/environment.hpp"
 #include "MiniLua/interpreter.hpp"
+#include "ast.hpp"
 #include "tree_sitter/tree_sitter.hpp"
 
 #include <algorithm>
@@ -83,11 +84,11 @@ Interpreter::Interpreter(const InterpreterConfig& config) : config(config) {}
 
 auto Interpreter::run(const ts::Tree& tree, Env& env) -> EvalResult {
     try {
-        return this->visit_root(tree.root_node(), env);
+        return this->visit_root(ast::Program(tree.root_node()), env);
     } catch (const InterpreterException&) {
         throw;
     } catch (const std::exception& e) {
-        throw InterpreterException("unknown error");
+        throw InterpreterException("unknown error: "s + e.what());
     }
 }
 
@@ -163,55 +164,67 @@ static auto make_environment(Env& env) -> Environment {
 }
 
 // interpreter implementation
-auto Interpreter::visit_root(ts::Node node, Env& env) -> EvalResult {
-    assert(node.type() == std::string("program"));
-    this->trace_enter_node(node);
+auto Interpreter::visit_root(ast::Program program, Env& env) -> EvalResult {
+    this->trace_enter_node(program.raw());
 
     EvalResult result;
 
-    for (auto child : node.children()) {
-        EvalResult sub_result = this->visit_statement(child, env);
-        result.combine(sub_result);
+    auto body = program.body();
 
-        if (result.do_return) {
-            // TODO properly return the vallist
-            this->trace_exit_node(node);
-            return result;
-        }
+    for (auto child : body.statements()) {
+        std::cerr << ts::debug_print_node(child.raw()) << "\n";
+        EvalResult sub_result = this->visit_statement(child.raw(), env);
+        result.combine(sub_result);
     }
 
-    this->trace_exit_node(node);
+    if (body.ret()) {
+        // result.combine(this->visit_return_statement(body.ret().value(), env));
+        // TODO properly return the vallist
+    }
+
+    this->trace_exit_node(program.raw());
     return result;
 }
 
-auto Interpreter::visit_statement(ts::Node node, Env& env) -> EvalResult {
-    this->trace_enter_node(node);
+auto Interpreter::visit_statement(ast::Statement statement, Env& env) -> EvalResult {
+    this->trace_enter_node(statement.raw());
 
-    EvalResult result;
+    auto result = std::visit(
+        overloaded{
+            [this, &env](ast::VariableDeclaration node) {
+                return this->visit_variable_declaration(node.raw(), env);
+            },
+            [this, &env](ast::DoStatement node) {
+                return this->visit_do_statement(node.raw(), env);
+            },
+            [this, &env](ast::IfStatement node) {
+                return this->visit_if_statement(node.raw(), env);
+            },
+            [this, &env](ast::WhileStatement node) {
+                return this->visit_while_statement(node.raw(), env);
+            },
+            [this, &env](ast::RepeatStatement node) {
+                return this->visit_repeat_until_statement(node.raw(), env);
+            },
+            [this, &env](ast::ForStatement node) -> EvalResult { throw UNIMPLEMENTED("for"); },
+            [this, &env](ast::ForInStatement node) -> EvalResult { throw UNIMPLEMENTED("for in"); },
+            [this, &env](ast::GoTo node) -> EvalResult { throw UNIMPLEMENTED("goto"); },
+            [this, &env](ast::Break node) { return this->visit_break_statement(env); },
+            [this, &env](ast::Label node) -> EvalResult { throw UNIMPLEMENTED("goto"); },
+            [this, &env](ast::FunctionStatement node) {
+                return this->visit_function_expression(node.raw(), env);
+            },
+            [this, &env](ast::LocalFunctionStatement node) {
+                return this->visit_function_expression(node.raw(), env);
+            },
+            [this, &env](ast::FunctionCall node) -> EvalResult {
+                return this->visit_function_call(node.raw(), env);
+            },
+            [this, &env](ast::Expression node) { return this->visit_expression(node.raw(), env); },
+        },
+        statement.options());
 
-    if (node.type() == "variable_declaration"s) {
-        result = this->visit_variable_declaration(node, env);
-    } else if (node.type() == "local_variable_declaration"s) {
-        result = this->visit_local_variable_declaration(node, env);
-    } else if (node.type() == "do_statement"s) {
-        result = this->visit_do_statement(node, env);
-    } else if (node.type() == "if_statement"s) {
-        result = this->visit_if_statement(node, env);
-    } else if (node.type() == "while_statement"s) {
-        result = this->visit_while_statement(node, env);
-    } else if (node.type() == "repeat_statement"s) {
-        result = this->visit_repeat_until_statement(node, env);
-    } else if (node.type() == "break_statement"s) {
-        result = this->visit_break_statement(node, env);
-    } else if (node.type() == "return_statement"s) {
-        result = this->visit_return_statement(node, env);
-    } else if (should_ignore_node(node)) {
-    } else {
-        result = this->visit_expression(node, env);
-        // throw UNIMPLEMENTED(node.type());
-    }
-
-    this->trace_exit_node(node);
+    this->trace_exit_node(statement.raw());
 
     if (!result.do_return) {
         result.value = Nil();
@@ -560,14 +573,9 @@ auto Interpreter::visit_repeat_until_statement(ts::Node node, Env& env) -> EvalR
     return result;
 }
 
-auto Interpreter::visit_break_statement(ts::Node node, Env& env) -> EvalResult {
-    assert(node.type() == "break_statement"s);
-    this->trace_enter_node(node);
-
+auto Interpreter::visit_break_statement(Env& env) -> EvalResult {
     EvalResult result;
     result.do_break = true;
-
-    this->trace_exit_node(node);
     return result;
 }
 auto Interpreter::visit_return_statement(ts::Node node, Env& env) -> EvalResult {
@@ -605,23 +613,40 @@ auto Interpreter::visit_return_statement(ts::Node node, Env& env) -> EvalResult 
     return result;
 }
 
-auto Interpreter::visit_variable_declaration(ts::Node node, Env& env) -> EvalResult {
-    assert(node.type() == std::string("variable_declaration"));
-    this->trace_enter_node(node);
+auto Interpreter::visit_variable_declaration(ast::VariableDeclaration decl, Env& env)
+    -> EvalResult {
+    this->trace_enter_node(decl.raw());
 
     EvalResult result;
 
-    auto declarator = node.child(0).value();
-    assert(node.child(1).value().type() == "="s);
-    auto expr = node.child(2).value();
+    auto exprs = decl.declarations();
 
-    auto expr_result = this->visit_expression(expr, env);
+    std::vector<Value> expr_results;
+    expr_results.reserve(exprs.size());
+    std::transform(
+        exprs.begin(), exprs.end(), std::back_inserter(expr_results),
+        [this, &result, &env](ast::Expression expr) {
+            auto sub_result = this->visit_expression(expr.raw(), env);
+            result.combine(sub_result);
+            return sub_result.value;
+        });
 
-    env.set_var(this->visit_variable_declarator(declarator, env), expr_result.value);
+    const auto vallist = Vallist(expr_results);
+    auto targets = decl.declarators();
 
-    result.combine(expr_result);
+    for (int i = 0; i < decl.declarators().size(); ++i) {
+        auto target = targets[i].var();
+        const auto& value = vallist.get(i);
+        std::visit(
+            overloaded{
+                [this, &env, &value](ast::Identifier ident) {
+                    env.set_var(this->visit_identifier(ident, env), value);
+                },
+                [](auto node) { throw UNIMPLEMENTED(node.raw().type()); }},
+            target);
+    }
 
-    this->trace_exit_node(node);
+    this->trace_exit_node(decl.raw());
     return result;
 }
 
@@ -661,11 +686,10 @@ auto Interpreter::visit_variable_declarator(ts::Node node, Env& env) -> std::str
     return this->visit_identifier(node.child(0).value(), env);
 }
 
-auto Interpreter::visit_identifier(ts::Node node, Env& env) -> std::string {
-    assert(node.type() == std::string("identifier"));
-    this->trace_enter_node(node);
-    this->trace_exit_node(node);
-    return node.text();
+auto Interpreter::visit_identifier(ast::Identifier ident, Env& env) -> std::string {
+    this->trace_enter_node(ident.raw());
+    this->trace_exit_node(ident.raw());
+    return ident.str();
 }
 
 auto Interpreter::visit_expression(ts::Node node, Env& env) -> EvalResult {
