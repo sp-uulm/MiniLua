@@ -172,8 +172,7 @@ auto Interpreter::visit_root(ast::Program program, Env& env) -> EvalResult {
     auto body = program.body();
 
     for (auto child : body.statements()) {
-        std::cerr << ts::debug_print_node(child.raw()) << "\n";
-        EvalResult sub_result = this->visit_statement(child.raw(), env);
+        EvalResult sub_result = this->visit_statement(child, env);
         result.combine(sub_result);
     }
 
@@ -192,14 +191,10 @@ auto Interpreter::visit_statement(ast::Statement statement, Env& env) -> EvalRes
     auto result = std::visit(
         overloaded{
             [this, &env](ast::VariableDeclaration node) {
-                return this->visit_variable_declaration(node.raw(), env);
+                return this->visit_variable_declaration(node, env);
             },
-            [this, &env](ast::DoStatement node) {
-                return this->visit_do_statement(node.raw(), env);
-            },
-            [this, &env](ast::IfStatement node) {
-                return this->visit_if_statement(node.raw(), env);
-            },
+            [this, &env](ast::DoStatement node) { return this->visit_do_statement(node, env); },
+            [this, &env](ast::IfStatement node) { return this->visit_if_statement(node, env); },
             [this, &env](ast::WhileStatement node) {
                 return this->visit_while_statement(node.raw(), env);
             },
@@ -233,226 +228,88 @@ auto Interpreter::visit_statement(ast::Statement statement, Env& env) -> EvalRes
     return result;
 }
 
-auto Interpreter::visit_do_statement(ts::Node node, Env& env) -> EvalResult {
-    assert(node.type() == "do_statement"s);
-    this->trace_enter_node(node);
+auto Interpreter::visit_do_statement(ast::DoStatement do_stmt, Env& env) -> EvalResult {
+    this->trace_enter_node(do_stmt.raw());
 
-    EvalResult result;
+    auto result = this->visit_block(do_stmt.body(), env);
 
-    ts::Cursor cursor{node};
-    // skip first "do" node
-    if (!cursor.goto_first_child() || !cursor.goto_next_sibling()) {
-        return result;
-    }
-
-    Env block_env = this->enter_block(env);
-
-    ts::Node current_node = cursor.current_node();
-    while (current_node.type() != "end"s) {
-        auto body_result = this->visit_statement(current_node, block_env);
-        result.combine(body_result);
-
-        if (result.do_break) {
-            this->trace_exit_node(node, std::nullopt, "break");
-            return result;
-        }
-        if (result.do_return) {
-            this->trace_exit_node(node, std::nullopt, "return");
-            return result;
-        }
-
-        if (!cursor.goto_next_sibling()) {
-            throw InterpreterException("syntax error: found no end node of if statement");
-        }
-        current_node = cursor.current_node();
-    }
-
-    this->trace_exit_node(node);
+    this->trace_exit_node(do_stmt.raw());
     return result;
 }
 
-auto Interpreter::visit_if_statement(ts::Node node, Env& env) -> EvalResult {
-    assert(node.type() == "if_statement"s);
-    this->trace_enter_node(node);
-
-    EvalResult result;
-
-    assert(node.child(0).value().type() == "if"s);
-    auto condition_node = node.child(1).value();
-    assert(node.child(2).value().type() == "then"s);
-
-    auto condition_result = this->visit_expression(condition_node.child(0).value(), env);
-    result.combine(condition_result);
-
-    // NOTE we create a cursor from the root if_statement node because we need
-    // to be able to see the siblings of the children
-    ts::Cursor cursor{node};
-    // navigate to first child after "then"
-    cursor.goto_first_child();
-    cursor.skip_n_siblings(3);
-
-    // "then block"
-    if (condition_result.value) {
-        auto then_result = this->visit_if_arm(cursor, env);
-        result.combine(then_result);
-
-        this->trace_exit_node(node);
-        return result;
-    } else {
-        // step through (but ignore) body
-        cursor.skip_siblings_while([](ts::Node node) {
-            return node.type() != "elseif"s && node.type() != "else"s && node.type() != "end"s;
-        });
-    }
-
-    // elseif blocks
-    do {
-        ts::Node current_node = cursor.current_node();
-        if (current_node.type() != "elseif"s) {
-            break;
-        }
-
-        auto [elseif_result, was_executed] = this->visit_elseif_statement(current_node, env);
-
-        result.combine(elseif_result);
-
-        if (was_executed) {
-            this->trace_exit_node(node);
-            return result;
-        }
-    } while (cursor.goto_next_sibling());
-
-    // else block
-    if (cursor.current_node().type() == "else"s) {
-        auto else_result = this->visit_else_statement(cursor.current_node(), env);
-        result.combine(else_result);
-
-        if (result.do_break) {
-            this->trace_exit_node(node, std::nullopt, "break");
-            return result;
-        }
-        if (result.do_return) {
-            this->trace_exit_node(node, std::nullopt, "return");
-            return result;
-        }
-    }
-
-    auto last_node = node.child(node.child_count() - 1).value();
-    if (last_node.type() != "end"s) {
-        throw InterpreterException(
-            "Last node of if is not `end` but `" + std::string(last_node.type()) + "`");
-    }
-
-    this->trace_exit_node(node);
-    return result;
-}
-auto Interpreter::visit_if_arm(ts::Cursor& cursor, Env& env) -> EvalResult {
-    // NOTE expects cursor to be at the first node of the body or on "end", "elseif" or "else"
+auto Interpreter::visit_block(ast::Body block, Env& env) -> EvalResult {
     EvalResult result;
 
     Env block_env = this->enter_block(env);
 
-    ts::Node current_node = cursor.current_node();
-    while (current_node.type() != "end"s && current_node.type() != "elseif"s &&
-           current_node.type() != "else"s) {
-        auto body_result = this->visit_statement(current_node, block_env);
-        result.combine(body_result);
+    for (auto stmt : block.statements()) {
+        auto sub_result = this->visit_statement(stmt, block_env);
+        result.combine(sub_result);
 
         if (result.do_break) {
+            this->trace_exit_node(stmt.raw(), std::nullopt, "break");
             return result;
         }
         if (result.do_return) {
+            this->trace_exit_node(stmt.raw(), std::nullopt, "return");
             return result;
         }
+    }
 
-        if (!cursor.goto_next_sibling()) {
-            throw InterpreterException("syntax error: found no end node of if statement");
-        }
-        current_node = cursor.current_node();
+    auto return_stmt = block.ret();
+    if (return_stmt) {
+        auto sub_result = this->visit_return_statement(return_stmt->raw(), block_env);
+        result.combine(sub_result);
     }
 
     return result;
 }
-// returns true if the elseif body was executed
-auto Interpreter::visit_elseif_statement(ts::Node node, Env& env) -> std::pair<EvalResult, bool> {
-    assert(node.type() == "elseif"s);
-    this->trace_enter_node(node);
+
+auto Interpreter::visit_if_statement(ast::IfStatement if_stmt, Env& env) -> EvalResult {
+    this->trace_enter_node(if_stmt.raw());
 
     EvalResult result;
 
-    assert(node.child(0).value().type() == "elseif"s);
+    {
+        // if condition condition
+        auto condition = if_stmt.cond();
+        auto condition_result = this->visit_expression(condition.raw(), env);
+        result.combine(condition_result);
 
-    auto condition_node = node.child(1).value();
-    assert(condition_node.type() == "condition_expression"s);
+        // "then" block
+        if (condition_result.value) {
+            auto body_result = this->visit_block(if_stmt.body(), env);
+            result.combine(body_result);
 
-    assert(node.child(2).value().type() == "then"s);
-
-    auto condition_result = this->visit_expression(condition_node.child(0).value(), env);
-    result.combine(condition_result);
-
-    if (!condition_result.value) {
-        return std::make_pair(result, false);
-    }
-
-    ts::Cursor cursor(node);
-    cursor.goto_first_child();
-    if (cursor.skip_n_siblings(3) < 3) {
-        // TODO should never happen
-        return std::make_pair(result, true);
-    }
-
-    Env block_env = this->enter_block(env);
-
-    do {
-        auto body_node = cursor.current_node();
-        auto body_result = this->visit_statement(body_node, block_env);
-        result.combine(body_result);
-
-        if (result.do_break) {
-            this->trace_exit_node(node, std::nullopt, "break");
-            return std::make_pair(result, true);
-        }
-        if (result.do_return) {
-            this->trace_exit_node(node, std::nullopt, "return");
-            return std::make_pair(result, true);
-        }
-    } while (cursor.goto_next_sibling());
-
-    this->trace_exit_node(node);
-    return std::make_pair(result, true);
-}
-auto Interpreter::visit_else_statement(ts::Node node, Env& env) -> EvalResult {
-    assert(node.type() == "else"s);
-    this->trace_enter_node(node);
-
-    EvalResult result;
-
-    assert(node.child(0).value().type() == "else"s);
-
-    ts::Cursor cursor(node);
-    cursor.goto_first_child();
-    if (!cursor.goto_next_sibling()) {
-        return result;
-    }
-
-    Env block_env = this->enter_block(env);
-
-    do {
-        auto body_node = cursor.current_node();
-        auto body_result = this->visit_statement(body_node, block_env);
-        result.combine(body_result);
-
-        if (result.do_break) {
-            this->trace_exit_node(node, std::nullopt, "break");
+            this->trace_exit_node(if_stmt.raw());
             return result;
         }
-        if (result.do_return) {
-            this->trace_exit_node(node, std::nullopt, "return");
+    }
+
+    // "else if" blocks
+    for (auto elseif_stmt : if_stmt.elseifs()) {
+        // else if condition
+        auto condition = elseif_stmt.cond();
+        auto condition_result = this->visit_expression(condition.raw(), env);
+        result.combine(condition_result);
+
+        if (condition_result.value) {
+            auto body_result = this->visit_block(elseif_stmt.body(), env);
+            result.combine(body_result);
+
+            this->trace_exit_node(if_stmt.raw());
             return result;
         }
-    } while (cursor.goto_next_sibling());
+    }
 
-    this->trace_exit_node(node);
+    // "else" block
+    auto else_stmt = if_stmt.else_();
+    if (else_stmt) {
+        auto body_result = this->visit_block(else_stmt->body(), env);
+        result.combine(body_result);
+    }
+
+    this->trace_exit_node(if_stmt.raw());
     return result;
 }
 
@@ -637,13 +494,32 @@ auto Interpreter::visit_variable_declaration(ast::VariableDeclaration decl, Env&
     for (int i = 0; i < decl.declarators().size(); ++i) {
         auto target = targets[i].var();
         const auto& value = vallist.get(i);
-        std::visit(
-            overloaded{
-                [this, &env, &value](ast::Identifier ident) {
-                    env.set_var(this->visit_identifier(ident, env), value);
+
+        if (decl.local()) {
+            std::visit(
+                overloaded{
+                    [this, &env, &value](ast::Identifier ident) {
+                        env.set_local(this->visit_identifier(ident, env), value);
+                    },
+                    [](ast::FieldExpression /*node*/) {
+                        throw InterpreterException(
+                            "Field expression not allowed as target of local declaration");
+                    },
+                    [](ast::TableIndex /*node*/) {
+                        throw InterpreterException(
+                            "Table access not allowed as target of local declaration");
+                    },
                 },
-                [](auto node) { throw UNIMPLEMENTED(node.raw().type()); }},
-            target);
+                target);
+        } else {
+            std::visit(
+                overloaded{
+                    [this, &env, &value](ast::Identifier ident) {
+                        env.set_var(this->visit_identifier(ident, env), value);
+                    },
+                    [](auto node) { throw UNIMPLEMENTED(node.raw().type()); }},
+                target);
+        }
     }
 
     this->trace_exit_node(decl.raw());

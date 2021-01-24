@@ -58,12 +58,11 @@ private:
     auto visit_break_statement(Env& env) -> EvalResult;
     auto visit_return_statement(ts::Node node, Env& env) -> EvalResult;
 
-    auto visit_do_statement(ts::Node node, Env& env) -> EvalResult;
+    auto visit_do_statement(ast::DoStatement stmt, Env& env) -> EvalResult;
 
-    auto visit_if_statement(ts::Node node, Env& env) -> EvalResult;
-    auto visit_if_arm(ts::Cursor& cursor, Env& env) -> EvalResult;
-    auto visit_elseif_statement(ts::Node node, Env& env) -> std::pair<EvalResult, bool>;
-    auto visit_else_statement(ts::Node node, Env& env) -> EvalResult;
+    auto visit_block(ast::Body block, Env& env) -> EvalResult;
+
+    auto visit_if_statement(ast::IfStatement if_stmt, Env& env) -> EvalResult;
 
     auto visit_while_statement(ts::Node node, Env& env) -> EvalResult;
     auto visit_repeat_until_statement(ts::Node node, Env& env) -> EvalResult;
