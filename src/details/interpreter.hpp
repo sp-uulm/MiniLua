@@ -52,20 +52,19 @@ private:
     auto visit_statement(ast::Statement statement, Env& env) -> EvalResult;
 
     auto visit_variable_declaration(ast::VariableDeclaration decl, Env& env) -> EvalResult;
-    auto visit_local_variable_declaration(ts::Node node, Env& env) -> EvalResult;
-    auto visit_variable_declarator(ts::Node node, Env& env) -> std::string;
 
     auto visit_break_statement(Env& env) -> EvalResult;
-    auto visit_return_statement(ts::Node node, Env& env) -> EvalResult;
+    auto visit_return_statement(ast::Return return_stmt, Env& env) -> EvalResult;
 
     auto visit_do_statement(ast::DoStatement stmt, Env& env) -> EvalResult;
 
     auto visit_block(ast::Body block, Env& env) -> EvalResult;
+    auto visit_block_with_local_env(ast::Body block, Env& env) -> EvalResult;
 
     auto visit_if_statement(ast::IfStatement if_stmt, Env& env) -> EvalResult;
 
-    auto visit_while_statement(ts::Node node, Env& env) -> EvalResult;
-    auto visit_repeat_until_statement(ts::Node node, Env& env) -> EvalResult;
+    auto visit_while_statement(ast::WhileStatement while_stmt, Env& env) -> EvalResult;
+    auto visit_repeat_until_statement(ast::RepeatStatement repeat_stmt, Env& env) -> EvalResult;
 
     auto visit_expression(ts::Node node, Env& env) -> EvalResult;
     auto visit_unary_operation(ts::Node node, Env& env) -> EvalResult;
