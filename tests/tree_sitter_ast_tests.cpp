@@ -3,7 +3,9 @@
 #include <catch2/catch.hpp>
 #include <iostream>
 #include <type_traits>
-namespace minilua::details {
+
+namespace minilua::details::ast {
+
 TEST_CASE("statements", "[tree-sitter]") {
     ts::Parser parser;
     std::string source = "i,t,l = 5\n"
@@ -591,7 +593,7 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     auto opt1 = stats[0].options();
     CHECK(std::holds_alternative<VariableDeclaration>(opt1));
     auto var_dec1 = std::get_if<VariableDeclaration>(&opt1);
-    CHECK(!var_dec1 -> local());
+    CHECK(!var_dec1->local());
     CHECK(var_dec1->declarations().size() == 1);
     CHECK(var_dec1->declarators().size() == 1);
     CHECK(std::holds_alternative<Identifier>(var_dec1->declarators()[0].var()));
@@ -600,7 +602,7 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     auto opt2 = stats[1].options();
     CHECK(std::holds_alternative<VariableDeclaration>(opt2));
     auto var_dec2 = std::get_if<VariableDeclaration>(&opt2);
-    CHECK(!var_dec2 -> local());
+    CHECK(!var_dec2->local());
     CHECK(var_dec2->declarations().size() == 3);
     CHECK(var_dec2->declarators().size() == 4);
     for (uint i = 0; i < 4; i++) {
@@ -619,7 +621,7 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     CHECK(std::holds_alternative<Identifier>(var_dec3->declarators()[0].var()));
     auto id1_opt = var_dec3->declarators()[0].var();
     auto id1 = std::get_if<Identifier>(&id1_opt);
-    CHECK(id1 -> str() == "e"s);
+    CHECK(id1->str() == "e"s);
     // 4th statement
     auto opt4 = stats[3].options();
     CHECK(std::holds_alternative<VariableDeclaration>(opt4));
@@ -630,15 +632,15 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     CHECK(std::holds_alternative<Identifier>(var_dec4->declarators()[0].var()));
     auto id2_opt = var_dec4->declarators()[0].var();
     auto id2 = std::get_if<Identifier>(&id2_opt);
-    CHECK(id2 -> str() == "f"s);
+    CHECK(id2->str() == "f"s);
     CHECK(std::holds_alternative<Identifier>(var_dec4->declarators()[1].var()));
     auto id3_opt = var_dec4->declarators()[1].var();
     auto id3 = std::get_if<Identifier>(&id3_opt);
-    CHECK(id3 -> str() == "g"s);
+    CHECK(id3->str() == "g"s);
     CHECK(std::holds_alternative<Identifier>(var_dec4->declarators()[2].var()));
     auto id4_opt = var_dec4->declarators()[2].var();
     auto id4 = std::get_if<Identifier>(&id4_opt);
-    CHECK(id4 -> str() == "h"s);
+    CHECK(id4->str() == "h"s);
     // 5th statement
     auto opt5 = stats[4].options();
     CHECK(std::holds_alternative<VariableDeclaration>(opt5));
@@ -651,11 +653,11 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     CHECK(std::holds_alternative<Identifier>(var_dec5->declarators()[0].var()));
     auto id5_opt = var_dec5->declarators()[0].var();
     auto id5 = std::get_if<Identifier>(&id5_opt);
-    CHECK(id5 -> str() == "i"s);
+    CHECK(id5->str() == "i"s);
     CHECK(std::holds_alternative<Identifier>(var_dec5->declarators()[1].var()));
     auto id6_opt = var_dec5->declarators()[1].var();
     auto id6 = std::get_if<Identifier>(&id6_opt);
-    CHECK(id6 -> str() == "j"s);
+    CHECK(id6->str() == "j"s);
     // 6th statement
     auto opt6 = stats[5].options();
     CHECK(std::holds_alternative<VariableDeclaration>(opt6));
@@ -680,12 +682,12 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     CHECK(holds_alternative<Identifier>(dec_opt3));
     auto table_id = std::get_if<Identifier>(&dec_opt3);
     CHECK(table_id->str() == "table1"s);
-    //7th statement
+    // 7th statement
     auto opt7 = stats[6].options();
     CHECK(std::holds_alternative<VariableDeclaration>(opt7));
     auto var_dec7 = std::get_if<VariableDeclaration>(&opt7);
-    CHECK(var_dec7->declarations().size()==1);
-    CHECK(var_dec7->declarators().size()==1);
+    CHECK(var_dec7->declarations().size() == 1);
+    CHECK(var_dec7->declarators().size() == 1);
     auto ti_opt1 = var_dec7->declarators()[0].var();
     CHECK(std::holds_alternative<TableIndex>(ti_opt1));
     auto ti1 = std::get_if<TableIndex>(&ti_opt1);
@@ -695,11 +697,11 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     auto pref_opt1 = pref_dec1->var();
     CHECK(std::holds_alternative<Identifier>(pref_opt1));
     auto id7 = std::get_if<Identifier>(&pref_opt1);
-    CHECK(id7->str()=="table1");
+    CHECK(id7->str() == "table1");
     auto index1_opt = ti1->index().options();
     CHECK(std::holds_alternative<Identifier>(index1_opt));
     auto index1 = std::get_if<Identifier>(&index1_opt);
-    CHECK(index1->str()=="table2");
+    CHECK(index1->str() == "table2");
 }
 TEST_CASE("table_statements", "[tree-sitter]") {
     ts::Parser parser;
@@ -801,4 +803,5 @@ TEST_CASE("function_calls", "[tree-sitter]") {
         CHECK(std::holds_alternative<Expression>(table->fields()[i].content()));
     }
 }
-} // namespace minilua::details
+
+} // namespace minilua::details::ast
