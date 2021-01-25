@@ -500,7 +500,7 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
                 return this->visit_binary_operation(binary_op, env);
             },
             [this, &env](ast::UnaryOperation unary_op) {
-                return this->visit_unary_operation(unary_op.raw(), env);
+                return this->visit_unary_operation(unary_op, env);
             },
             [&node](Value&& value) {
                 EvalResult result;
@@ -854,27 +854,29 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
     return result;
 }
 
-auto Interpreter::visit_unary_operation(ts::Node node, Env& env) -> EvalResult {
-    assert(node.type() == std::string("unary_operation"));
-    this->trace_enter_node(node);
+auto Interpreter::visit_unary_operation(ast::UnaryOperation unary_op, Env& env) -> EvalResult {
+    this->trace_enter_node(unary_op.raw());
 
-    auto operator_node = node.child(0).value();
-    auto expr = node.child(1).value();
+    EvalResult result = this->visit_expression(unary_op.exp(), env);
 
-    EvalResult result = this->visit_expression(expr, env);
+    auto range = convert_range(unary_op.raw().range());
 
-    if (operator_node.type() == "-"s) {
-        result.value = result.value.negate(convert_range(node.range()));
-    } else if (operator_node.type() == "not"s) {
-        result.value = result.value.invert(convert_range(node.range()));
-    } else if (operator_node.type() == "#"s) {
-        result.value = result.value.len(convert_range(node.range()));
-    } else {
-        throw InterpreterException(
-            "encountered unknown unary operator `" + std::string(operator_node.type()) + "`");
+    switch (unary_op.op()) {
+    case ast::UnOpEnum::NOT:
+        result.value = result.value.invert(range);
+        break;
+    case ast::UnOpEnum::NEG:
+        result.value = result.value.negate(range);
+        break;
+    case ast::UnOpEnum::LEN:
+        result.value = result.value.len(range);
+        break;
+    case ast::UnOpEnum::BWNOT:
+        throw UNIMPLEMENTED("bitwise not");
+        break;
     }
 
-    this->trace_exit_node(node);
+    this->trace_exit_node(unary_op.raw());
     return result;
 }
 

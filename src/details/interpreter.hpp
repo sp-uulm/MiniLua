@@ -69,7 +69,7 @@ private:
     auto visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult;
 
     auto visit_expression(ast::Expression expr, Env& env) -> EvalResult;
-    auto visit_unary_operation(ts::Node node, Env& env) -> EvalResult;
+    auto visit_unary_operation(ast::UnaryOperation unary_op, Env& env) -> EvalResult;
     auto visit_binary_operation(ast::BinaryOperation bin_op, Env& env) -> EvalResult;
     auto visit_function_call(ast::FunctionCall call, Env& env) -> EvalResult;
     auto visit_field_expression(ts::Node node, Env& env) -> EvalResult;

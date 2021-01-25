@@ -179,7 +179,7 @@ auto UnaryOperation::op() -> UnOpEnum {
     }
 }
 
-auto UnaryOperation::exp() -> Expression { return Expression(un_op.child(0).value()); }
+auto UnaryOperation::exp() -> Expression { return Expression(un_op.child(1).value()); }
 auto UnaryOperation::raw() -> ts::Node { return this->un_op; }
 
 /*std::ostream& operator<<(std::ostream& os, UnaryOperation& unaryOperation){
