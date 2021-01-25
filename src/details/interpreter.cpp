@@ -215,11 +215,12 @@ auto Interpreter::visit_statement(ast::Statement statement, Env& env) -> EvalRes
             [this, &env](ast::Label node) -> EvalResult { throw UNIMPLEMENTED("label"); },
             [this, &env](ast::FunctionStatement node) {
                 // TODO desugar this to variable and assignment
-                return this->visit_function_expression(node.raw(), env);
+                return this->visit_function_statement(node, env);
             },
-            [this, &env](ast::LocalFunctionStatement node) {
+            [this, &env](ast::LocalFunctionStatement node) -> EvalResult {
                 // TODO desugar this to variable and assignment
-                return this->visit_function_expression(node.raw(), env);
+                // return this->visit_function_statement(node, env);
+                throw UNIMPLEMENTED("local function definition");
             },
             [this, &env](ast::FunctionCall node) -> EvalResult {
                 return this->visit_function_call(node, env);
@@ -494,7 +495,7 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
             [this, &env](ast::Prefix prefix) { return this->visit_prefix(prefix, env); },
             [](ast::Next) -> EvalResult { throw UNIMPLEMENTED("next"); },
             [this, &env](ast::FunctionDefinition function_definition) {
-                return this->visit_function_expression(function_definition.raw(), env);
+                return this->visit_function_expression(function_definition, env);
             },
             [this, &env](ast::Table table) {
                 return this->visit_table_constructor(table.raw(), env);
@@ -541,78 +542,36 @@ auto Interpreter::visit_vararg_expression(ts::Node node, Env& env) -> EvalResult
     return result;
 }
 
-auto Interpreter::visit_function_expression(ts::Node node, Env& env) -> EvalResult {
-    assert(node.type() == "function"s || node.type() == "function_definition"s);
-    this->trace_enter_node(node);
+auto Interpreter::visit_function_expression(ast::FunctionDefinition function_definition, Env& env)
+    -> EvalResult {
+    this->trace_enter_node(function_definition.raw());
 
     EvalResult result;
 
-    ts::Cursor cursor(node);
-    cursor.goto_first_child();
-    cursor.goto_next_sibling();
+    auto parameters = function_definition.parameters();
 
-    std::optional<std::string> ident;
-
-    ts::Node current_node = cursor.current_node();
-    if (current_node.type() == "function_name"s) {
-        ident = this->visit_identifier(current_node.child(0).value(), env);
-        cursor.goto_next_sibling();
+    if (parameters.leading_self()) {
+        throw UNIMPLEMENTED("self as function parameter");
     }
 
-    current_node = cursor.current_node();
-    assert(current_node.type() == "parameters"s);
-
-    cursor.goto_first_child();
-    cursor.goto_next_sibling();
-
-    std::vector<std::string> parameters;
-    bool vararg = false;
-
-    while (true) {
-        current_node = cursor.current_node();
-        if (current_node.type() == ")"s) {
-            break;
-        }
-
-        if (current_node.type() == "identifier"s) {
-            auto ident = this->visit_identifier(current_node, env);
-            parameters.push_back(ident);
-        } else if (current_node.type() == "spread"s) {
-            vararg = true;
-            cursor.goto_next_sibling();
-            assert(cursor.current_node().type() == ")"s);
-        }
-
-        // skip comma
-        if (cursor.skip_n_siblings(2) != 2) {
-            break;
-        }
+    std::vector<std::string> actual_parameters;
+    {
+        auto raw_params = parameters.params();
+        actual_parameters.reserve(raw_params.size());
+        std::transform(
+            raw_params.begin(), raw_params.end(), std::back_inserter(actual_parameters),
+            [this, &env](auto ident) { return this->visit_identifier(ident, env); });
     }
-    cursor.goto_next_sibling();
 
-    cursor.goto_parent();
-    cursor.goto_next_sibling();
+    bool vararg = parameters.spread() != ast::NO_SPREAD;
 
-    std::vector<ts::Node> body;
-
-    while (true) {
-        current_node = cursor.current_node();
-        if (current_node.type() == "end"s) {
-            break;
-        }
-
-        body.push_back(current_node);
-
-        if (!cursor.goto_next_sibling()) {
-            break;
-        }
-    }
+    auto body = function_definition.body();
 
     Value func = Function(
-        [body = std::move(body), parameters = std::move(parameters), vararg,
+        [body = std::move(body), parameters = std::move(actual_parameters), vararg,
          this](const CallContext& ctx) -> CallResult {
             // setup parameters as local variables
-            Env env(ctx.environment().get_raw_impl().inner);
+            Env env = Env(ctx.environment().get_raw_impl().inner);
             for (int i = 0; i < parameters.size(); ++i) {
                 env.set_local(parameters[i], ctx.arguments().get(i));
             }
@@ -632,27 +591,85 @@ auto Interpreter::visit_function_expression(ts::Node node, Env& env) -> EvalResu
                 std::cerr << "varargs: " << *env.get_varargs() << "\n";
             }
 
-            EvalResult result;
-
-            for (const auto& stmt : body) {
-                auto sub_result = this->visit_statement(stmt, env);
-                result.combine(sub_result);
-                if (sub_result.do_return) {
-                    break;
-                }
-            }
+            auto result = this->visit_block_with_local_env(body, env);
 
             auto return_value = result.do_return.value_or(Vallist());
             return CallResult(return_value, result.source_change);
         });
 
-    if (ident) {
-        env.set_global(*ident, func);
-    } else {
-        result.value = func;
+    result.value = func;
+
+    this->trace_exit_node(function_definition.raw());
+    return result;
+}
+
+// TODO remove once we can desugar function statements
+auto Interpreter::visit_function_statement(ast::FunctionStatement function_statement, Env& env)
+    -> EvalResult {
+    this->trace_enter_node(function_statement.raw());
+
+    EvalResult result;
+
+    auto parameters = function_statement.parameters();
+
+    if (parameters.leading_self()) {
+        throw UNIMPLEMENTED("self as function parameter");
     }
 
-    this->trace_exit_node(node);
+    std::vector<std::string> actual_parameters;
+    {
+        auto raw_params = parameters.params();
+        actual_parameters.reserve(raw_params.size());
+        std::transform(
+            raw_params.begin(), raw_params.end(), std::back_inserter(actual_parameters),
+            [this, &env](auto ident) { return this->visit_identifier(ident, env); });
+    }
+
+    bool vararg = parameters.spread() != ast::NO_SPREAD;
+
+    auto body = function_statement.body();
+
+    Value func = Function(
+        [body = std::move(body), parameters = std::move(actual_parameters), vararg,
+         this](const CallContext& ctx) -> CallResult {
+            // setup parameters as local variables
+            Env env = Env(ctx.environment().get_raw_impl().inner);
+            for (int i = 0; i < parameters.size(); ++i) {
+                env.set_local(parameters[i], ctx.arguments().get(i));
+            }
+
+            if (vararg && parameters.size() < ctx.arguments().size()) {
+                std::vector<Value> varargs;
+                varargs.reserve(ctx.arguments().size() - parameters.size());
+                std::copy(
+                    ctx.arguments().begin() + parameters.size(), ctx.arguments().end(),
+                    std::back_inserter(varargs));
+                env.set_varargs(varargs);
+            } else {
+                env.set_varargs(std::nullopt);
+            }
+
+            if (env.get_varargs()) {
+                std::cerr << "varargs: " << *env.get_varargs() << "\n";
+            }
+
+            auto result = this->visit_block_with_local_env(body, env);
+
+            auto return_value = result.do_return.value_or(Vallist());
+            return CallResult(return_value, result.source_change);
+        });
+
+    auto function_name = function_statement.name();
+    auto identifiers = function_name.identifier();
+
+    if (identifiers.size() != 1 || function_name.method()) {
+        throw UNIMPLEMENTED("function complicated name");
+    }
+
+    auto ident = this->visit_identifier(identifiers[0], env);
+    env.set_global(ident, func);
+
+    this->trace_exit_node(function_statement.raw());
     return result;
 }
 
@@ -921,7 +938,7 @@ auto Interpreter::visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult {
             [this, &env](ast::FunctionCall call) {
                 return EvalResult(this->visit_function_call(call, env));
             },
-            [this, &env](ast::Expression expr) { return this->visit_expression(expr.raw(), env); }},
+            [this, &env](ast::Expression expr) { return this->visit_expression(expr, env); }},
         prefix.options());
 
     this->trace_exit_node(prefix.raw());

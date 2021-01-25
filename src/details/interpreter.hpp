@@ -74,7 +74,12 @@ private:
     auto visit_function_call(ast::FunctionCall call, Env& env) -> EvalResult;
     auto visit_field_expression(ts::Node node, Env& env) -> EvalResult;
     auto visit_table_index(ast::TableIndex table_index, Env& env) -> EvalResult;
-    auto visit_function_expression(ts::Node node, Env& env) -> EvalResult;
+
+    auto visit_function_expression(ast::FunctionDefinition function_definition, Env& env)
+        -> EvalResult;
+    auto visit_function_statement(ast::FunctionStatement function_statement, Env& env)
+        -> EvalResult;
+
     auto visit_vararg_expression(ts::Node node, Env& env) -> EvalResult;
 
     auto visit_table_constructor(ts::Node node, Env& env) -> EvalResult;

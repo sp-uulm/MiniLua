@@ -38,12 +38,11 @@ end
 f4()
 assert(a4 == 1)
 
--- TODO until return statements in function work in the ast
--- function f5(x, y)
---     return x + y
--- end
--- assert(f5(1, 1) == 2)
--- assert(f5(2, 4) == 6)
+function f5(x, y)
+    return x + y
+end
+assert(f5(1, 1) == 2)
+assert(f5(2, 4) == 6)
 
 -- TODO varargs
 -- a5 = 0
