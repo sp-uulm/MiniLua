@@ -656,6 +656,27 @@ auto Interpreter::visit_function_expression(ts::Node node, Env& env) -> EvalResu
     return result;
 }
 
+auto Interpreter::visit_table_index(ast::TableIndex table_index, Env& env) -> EvalResult {
+    this->trace_enter_node(table_index.raw());
+
+    EvalResult result;
+
+    auto prefix_result = this->visit_prefix(table_index.table(), env);
+    result.combine(prefix_result);
+
+    auto table = prefix_result.value;
+
+    auto index_result = this->visit_expression(table_index.index(), env);
+    result.combine(index_result);
+
+    auto index = index_result.value;
+
+    result.value = table[index];
+
+    this->trace_exit_node(table_index.raw());
+    return result;
+}
+
 auto Interpreter::visit_field_expression(ts::Node node, Env& env) -> EvalResult {
     assert(node.type() == "field_expression"s);
     this->trace_enter_node(node);
@@ -889,10 +910,11 @@ auto Interpreter::visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult {
                             return result;
                         },
                         [this, &env](ast::FieldExpression field) {
+                            // TODO desugar to table index
                             return this->visit_field_expression(field.raw(), env);
                         },
-                        [](ast::TableIndex table_index) -> EvalResult {
-                            throw UNIMPLEMENTED("table index");
+                        [this, &env](ast::TableIndex table_index) -> EvalResult {
+                            return this->visit_table_index(table_index, env);
                         }},
                     variable_decl.var());
             },
