@@ -486,6 +486,8 @@ auto Interpreter::visit_identifier(ast::Identifier ident, Env& env) -> std::stri
 auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult {
     this->trace_enter_node(expr.raw());
 
+    auto node = expr.raw();
+
     EvalResult result = std::visit(
         overloaded{
             [this, &env](ast::Spread) -> EvalResult {
@@ -506,9 +508,10 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
             [this, &env](ast::UnaryOperation unary_op) {
                 return this->visit_unary_operation(unary_op.raw(), env);
             },
-            [](Value value) {
+            [&node](Value&& value) {
                 EvalResult result;
-                result.value = value;
+                result.value =
+                    value.with_origin(LiteralOrigin{.location = convert_range(node.range())});
                 return result;
             },
             [this, &env](ast::Identifier ident) {
