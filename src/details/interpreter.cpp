@@ -691,24 +691,20 @@ auto Interpreter::visit_table_index(ast::TableIndex table_index, Env& env) -> Ev
     return result;
 }
 
-auto Interpreter::visit_field_expression(ts::Node node, Env& env) -> EvalResult {
-    assert(node.type() == "field_expression"s);
-    this->trace_enter_node(node);
+auto Interpreter::visit_field_expression(ast::FieldExpression field_expression, Env& env)
+    -> EvalResult {
+    this->trace_enter_node(field_expression.raw());
 
     EvalResult result;
 
-    auto lhs_result = this->visit_expression(node.child(0).value(), env);
-    result.combine(lhs_result);
+    auto table_result = this->visit_prefix(field_expression.table_id(), env);
+    result.combine(table_result);
 
-    assert(node.child(1).value().type() == "."s);
+    std::string key = this->visit_identifier(field_expression.property_id(), env);
 
-    ts::Node property_node = node.child(2).value();
-    assert(property_node.type() == "property_identifier"s);
-    std::string key = property_node.text();
+    result.value = table_result.value[key];
 
-    result.value = lhs_result.value[key];
-
-    this->trace_exit_node(node);
+    this->trace_exit_node(field_expression.raw());
     return result;
 }
 
@@ -897,7 +893,7 @@ auto Interpreter::visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult {
                         },
                         [this, &env](ast::FieldExpression field) {
                             // TODO desugar to table index
-                            return this->visit_field_expression(field.raw(), env);
+                            return this->visit_field_expression(field, env);
                         },
                         [this, &env](ast::TableIndex table_index) -> EvalResult {
                             return this->visit_table_index(table_index, env);

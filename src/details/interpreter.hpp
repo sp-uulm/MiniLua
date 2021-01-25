@@ -72,7 +72,7 @@ private:
     auto visit_unary_operation(ast::UnaryOperation unary_op, Env& env) -> EvalResult;
     auto visit_binary_operation(ast::BinaryOperation bin_op, Env& env) -> EvalResult;
     auto visit_function_call(ast::FunctionCall call, Env& env) -> EvalResult;
-    auto visit_field_expression(ts::Node node, Env& env) -> EvalResult;
+    auto visit_field_expression(ast::FieldExpression field_expression, Env& env) -> EvalResult;
     auto visit_table_index(ast::TableIndex table_index, Env& env) -> EvalResult;
 
     auto visit_function_expression(ast::FunctionDefinition function_definition, Env& env)
