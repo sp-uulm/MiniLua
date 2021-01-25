@@ -141,17 +141,17 @@ auto BinaryOperation::op() -> BinOpEnum {
     } else if (op_str == "or"s) {
         return BinOpEnum::OR;
     } else if (op_str == "<<"s) {
-        return BinOpEnum::BSL;
+        return BinOpEnum::SHIFT_LEFT;
     } else if (op_str == ">>"s) {
-        return BinOpEnum::BSR;
+        return BinOpEnum::SHIFT_RIGHT;
     } else if (op_str == "//"s) {
-        return BinOpEnum::INTDIV;
+        return BinOpEnum::INT_DIV;
     } else if (op_str == "|"s) {
-        return BinOpEnum::BWOR;
+        return BinOpEnum::BIT_OR;
     } else if (op_str == "&"s) {
-        return BinOpEnum::BWAND;
+        return BinOpEnum::BIT_AND;
     } else if (op_str == "~"s) {
-        return BinOpEnum::BWNOT;
+        return BinOpEnum::BIT_XOR;
     } else {
         throw std::runtime_error("Unknown Binary Operator: " + op_str);
     }

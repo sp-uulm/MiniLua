@@ -75,27 +75,27 @@ public:
  * this enum holds all possible BinaryOperators in lua
  */
 enum class BinOpEnum {
-    ADD,    //      +
-    SUB,    //      -
-    MUL,    //      *
-    DIV,    //      /
-    MOD,    //      %
-    POW,    //      ^
-    LT,     //       <
-    GT,     //       >
-    LEQ,    //      <=
-    GEQ,    //      >=
-    EQ,     //       ==
-    NEQ,    //      ~=
-    CONCAT, //   ..
-    AND,    //      and
-    OR,     //       or
-    BSL,    //      <<
-    BSR,    //      >>
-    BWNOT,  //    ~
-    BWOR,   //     |
-    BWAND,  //    &
-    INTDIV  //    //
+    ADD,         //      +
+    SUB,         //      -
+    MUL,         //      *
+    DIV,         //      /
+    MOD,         //      %
+    POW,         //      ^
+    LT,          //       <
+    GT,          //       >
+    LEQ,         //      <=
+    GEQ,         //      >=
+    EQ,          //       ==
+    NEQ,         //      ~=
+    CONCAT,      //   ..
+    AND,         //      and
+    OR,          //       or
+    SHIFT_LEFT,  //      <<
+    SHIFT_RIGHT, //      >>
+    BIT_XOR,     //    ~
+    BIT_OR,      //     |
+    BIT_AND,     //    &
+    INT_DIV      //    //
 };
 /**
  * class for binary_operation nodes

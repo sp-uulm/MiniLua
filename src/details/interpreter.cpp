@@ -497,7 +497,7 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
             },
             [this, &env](ast::Table table) { return this->visit_table_constructor(table, env); },
             [this, &env](ast::BinaryOperation binary_op) {
-                return this->visit_binary_operation(binary_op.raw(), env);
+                return this->visit_binary_operation(binary_op, env);
             },
             [this, &env](ast::UnaryOperation unary_op) {
                 return this->visit_unary_operation(unary_op.raw(), env);
@@ -768,20 +768,15 @@ auto Interpreter::visit_table_constructor(ast::Table table_constructor, Env& env
     return result;
 }
 
-auto Interpreter::visit_binary_operation(ts::Node node, Env& env) -> EvalResult {
-    assert(node.type() == std::string("binary_operation"));
-    this->trace_enter_node(node);
+auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) -> EvalResult {
+    this->trace_enter_node(bin_op.raw());
 
     EvalResult result;
 
-    auto origin = convert_range(node.range());
+    auto origin = convert_range(bin_op.raw().range());
 
-    auto lhs_node = node.child(0).value();
-    auto operator_node = node.child(1).value();
-    auto rhs_node = node.child(2).value();
-
-    EvalResult lhs_result = this->visit_expression(lhs_node, env);
-    EvalResult rhs_result = this->visit_expression(rhs_node, env);
+    auto lhs_result = this->visit_expression(bin_op.left(), env);
+    auto rhs_result = this->visit_expression(bin_op.right(), env);
 
     auto impl_operator = [&result, &lhs_result, &rhs_result, &origin](auto f) {
         auto value = std::invoke(f, lhs_result.value, rhs_result.value, origin);
@@ -789,46 +784,73 @@ auto Interpreter::visit_binary_operation(ts::Node node, Env& env) -> EvalResult 
         result.value = value;
     };
 
-    if (operator_node.type() == "=="s) {
-        impl_operator(&Value::equals);
-    } else if (operator_node.type() == "~="s) {
-        impl_operator(&Value::unequals);
-    } else if (operator_node.type() == ">="s) {
-        impl_operator(&Value::greater_than_or_equal);
-    } else if (operator_node.type() == ">"s) {
-        impl_operator(&Value::greater_than);
-    } else if (operator_node.type() == "<="s) {
-        impl_operator(&Value::less_than_or_equal);
-    } else if (operator_node.type() == "<"s) {
-        impl_operator(&Value::less_than);
-    } else if (operator_node.type() == "+"s) {
+    switch (bin_op.op()) {
+    case ast::BinOpEnum::ADD:
         impl_operator(&Value::add);
-    } else if (operator_node.type() == "-"s) {
+        break;
+    case ast::BinOpEnum::SUB:
         impl_operator(&Value::sub);
-    } else if (operator_node.type() == "*"s) {
+        break;
+    case ast::BinOpEnum::MUL:
         impl_operator(&Value::mul);
-    } else if (operator_node.type() == "/"s) {
+        break;
+    case ast::BinOpEnum::DIV:
         impl_operator(&Value::div);
-    } else if (operator_node.type() == "^"s) {
-        impl_operator(&Value::pow);
-    } else if (operator_node.type() == "%"s) {
+        break;
+    case ast::BinOpEnum::MOD:
         impl_operator(&Value::mod);
-    } else if (operator_node.type() == "&"s) {
-        impl_operator(&Value::bit_and);
-    } else if (operator_node.type() == "|"s) {
-        impl_operator(&Value::bit_or);
-    } else if (operator_node.type() == "and"s) {
-        impl_operator(&Value::logic_and);
-    } else if (operator_node.type() == "or"s) {
-        impl_operator(&Value::logic_or);
-    } else if (operator_node.type() == ".."s) {
+        break;
+    case ast::BinOpEnum::POW:
+        impl_operator(&Value::pow);
+        break;
+    case ast::BinOpEnum::LT:
+        impl_operator(&Value::less_than);
+        break;
+    case ast::BinOpEnum::GT:
+        impl_operator(&Value::greater_than);
+        break;
+    case ast::BinOpEnum::LEQ:
+        impl_operator(&Value::less_than_or_equal);
+        break;
+    case ast::BinOpEnum::GEQ:
+        impl_operator(&Value::greater_than_or_equal);
+        break;
+    case ast::BinOpEnum::EQ:
+        impl_operator(&Value::equals);
+        break;
+    case ast::BinOpEnum::NEQ:
+        impl_operator(&Value::unequals);
+        break;
+    case ast::BinOpEnum::CONCAT:
         impl_operator(&Value::concat);
-    } else {
-        throw InterpreterException(
-            "encountered unknown binary operator `" + std::string(operator_node.type()) + "`");
+        break;
+    case ast::BinOpEnum::AND:
+        impl_operator(&Value::logic_and);
+        break;
+    case ast::BinOpEnum::OR:
+        impl_operator(&Value::logic_or);
+        break;
+    case ast::BinOpEnum::SHIFT_LEFT:
+        throw UNIMPLEMENTED("shift left");
+        break;
+    case ast::BinOpEnum::SHIFT_RIGHT:
+        throw UNIMPLEMENTED("shift right");
+        break;
+    case ast::BinOpEnum::BIT_XOR:
+        throw UNIMPLEMENTED("bitwise xor");
+        break;
+    case ast::BinOpEnum::BIT_OR:
+        impl_operator(&Value::bit_or);
+        break;
+    case ast::BinOpEnum::BIT_AND:
+        impl_operator(&Value::bit_and);
+        break;
+    case ast::BinOpEnum::INT_DIV:
+        throw UNIMPLEMENTED("intdiv");
+        break;
     }
 
-    this->trace_exit_node(node);
+    this->trace_exit_node(bin_op.raw());
     return result;
 }
 
