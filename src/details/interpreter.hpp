@@ -82,7 +82,7 @@ private:
 
     auto visit_vararg_expression(ts::Node node, Env& env) -> EvalResult;
 
-    auto visit_table_constructor(ts::Node node, Env& env) -> EvalResult;
+    auto visit_table_constructor(ast::Table table_constructor, Env& env) -> EvalResult;
 
     // helper methods for debugging/tracing
     [[nodiscard]] auto tracer() const -> std::ostream&;

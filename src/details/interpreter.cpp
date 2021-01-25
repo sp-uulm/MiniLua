@@ -149,10 +149,6 @@ auto Interpreter::enter_block(Env& env) -> Env {
 // helper functions
 static const std::set<std::string> IGNORE_NODES{";", "comment"};
 
-static auto should_ignore_node(ts::Node node) -> bool {
-    return IGNORE_NODES.find(node.type()) != IGNORE_NODES.end();
-}
-
 static auto convert_range(ts::Range range) -> Range {
     return Range{
         .start = {range.start.point.row, range.start.point.column, range.start.byte},
@@ -225,7 +221,7 @@ auto Interpreter::visit_statement(ast::Statement statement, Env& env) -> EvalRes
             [this, &env](ast::FunctionCall node) -> EvalResult {
                 return this->visit_function_call(node, env);
             },
-            [this, &env](ast::Expression node) { return this->visit_expression(node.raw(), env); },
+            [this, &env](ast::Expression node) { return this->visit_expression(node, env); },
         },
         statement.options());
 
@@ -499,9 +495,7 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
             [this, &env](ast::FunctionDefinition function_definition) {
                 return this->visit_function_expression(function_definition, env);
             },
-            [this, &env](ast::Table table) {
-                return this->visit_table_constructor(table.raw(), env);
-            },
+            [this, &env](ast::Table table) { return this->visit_table_constructor(table, env); },
             [this, &env](ast::BinaryOperation binary_op) {
                 return this->visit_binary_operation(binary_op.raw(), env);
             },
@@ -718,111 +712,59 @@ auto Interpreter::visit_field_expression(ts::Node node, Env& env) -> EvalResult 
     return result;
 }
 
-auto Interpreter::visit_table_constructor(ts::Node node, Env& env) -> EvalResult {
-    assert(node.type() == "table"s);
-    this->trace_enter_node(node);
+auto Interpreter::visit_table_constructor(ast::Table table_constructor, Env& env) -> EvalResult {
+    this->trace_enter_node(table_constructor.raw());
 
     EvalResult result;
 
-    ts::Cursor cursor(node);
-    cursor.goto_first_child();
-
-    assert(cursor.current_node().type() == "{"s);
-
-    cursor.goto_next_sibling();
-
     Table table;
 
+    // TODO move the consecutive_key logic to table because it is not completely correct
     int consecutive_key = 1;
 
-    while (true) {
-        if (cursor.current_node().type() == "}"s) {
-            break;
-        }
-        assert(cursor.current_node().type() == "field"s);
+    const auto fields = table_constructor.fields();
+    for (auto field : fields) {
+        auto [key, value] = std::visit(
+            overloaded{
+                [this, &env, &result](
+                    std::pair<ast::Expression, ast::Expression> field) -> std::pair<Value, Value> {
+                    auto key_result = this->visit_expression(field.first, env);
+                    result.combine(key_result);
 
-        Value key;
-        Value value;
+                    auto value_result = this->visit_expression(field.second, env);
+                    result.combine(value_result);
 
-        if (cursor.current_node().child_count() == 1) {
-            // entries without key
-            key = consecutive_key;
+                    return std::make_pair(key_result.value, value_result.value);
+                },
+                [this, &env, &result](
+                    std::pair<ast::Identifier, ast::Expression> field) -> std::pair<Value, Value> {
+                    auto key = this->visit_identifier(field.first, env);
 
-            cursor.goto_first_child();
+                    auto value_result = this->visit_expression(field.second, env);
+                    result.combine(value_result);
 
-            auto sub_result = this->visit_expression(cursor.current_node(), env);
-            value = sub_result.value;
-            result.combine(sub_result);
-
-            cursor.goto_parent();
-
-            ++consecutive_key;
-        } else if (cursor.current_node().child_count() == 3) {
-            // entries of the form expr = expr
-            cursor.goto_first_child();
-
-            ts::Node current_node = cursor.current_node();
-            assert(current_node.type() == "identifier"s);
-            key = this->visit_identifier(current_node, env);
-
-            cursor.goto_next_sibling();
-            assert(cursor.current_node().type() == "="s);
-            cursor.goto_next_sibling();
-
-            auto sub_result = this->visit_expression(cursor.current_node(), env);
-            value = sub_result.value;
-            result.combine(sub_result);
-
-            cursor.goto_parent();
-        } else if (cursor.current_node().child_count() == 5) { // NOLINT
-            // entries of the form [expr] = expr
-            cursor.goto_first_child();
-            assert(cursor.current_node().type() == "["s);
-
-            cursor.goto_next_sibling();
-            auto key_result = this->visit_expression(cursor.current_node(), env);
-            key = key_result.value;
-            result.combine(key_result);
-
-            cursor.goto_next_sibling();
-            assert(cursor.current_node().type() == "]"s);
-
-            cursor.goto_next_sibling();
-            assert(cursor.current_node().type() == "="s);
-            cursor.goto_next_sibling();
-
-            auto sub_result = this->visit_expression(cursor.current_node(), env);
-            value = sub_result.value;
-            result.combine(sub_result);
-
-            cursor.goto_parent();
-        } else {
-            throw InterpreterException("syntax error in table constructor");
-        }
-
-        // TODO if last entry is an expression and returns a vallist all elements should be
-        // inserted consecutively
+                    return std::make_pair(key, value_result.value);
+                },
+                [this, &env, &result,
+                 &consecutive_key](ast::Expression item) -> std::pair<Value, Value> {
+                    auto item_result = this->visit_expression(item, env);
+                    result.combine(item_result);
+                    auto key = consecutive_key;
+                    consecutive_key++;
+                    return std::make_pair(key, item_result.value);
+                },
+            },
+            field.content());
 
         table.set(key, value);
-
-        cursor.goto_next_sibling();
-        if (cursor.current_node().type() == "}"s) {
-            break;
-        }
-
-        assert(cursor.current_node().type() == ","s || cursor.current_node().type() == ";"s);
-
-        cursor.goto_next_sibling();
-        if (cursor.current_node().type() == "}"s) {
-            break;
-        }
     }
 
-    assert(cursor.current_node().type() == "}"s);
+    // TODO if last entry is an expression and returns a vallist all elements should be
+    // inserted consecutively
 
     result.value = table;
 
-    this->trace_exit_node(node);
+    this->trace_exit_node(table_constructor.raw());
     return result;
 }
 
