@@ -80,7 +80,7 @@ private:
     auto visit_function_statement(ast::FunctionStatement function_statement, Env& env)
         -> EvalResult;
 
-    auto visit_vararg_expression(ts::Node node, Env& env) -> EvalResult;
+    auto visit_vararg_expression(Env& env) -> EvalResult;
 
     auto visit_table_constructor(ast::Table table_constructor, Env& env) -> EvalResult;
 

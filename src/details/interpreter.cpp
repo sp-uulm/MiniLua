@@ -486,10 +486,7 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
 
     EvalResult result = std::visit(
         overloaded{
-            [this, &env](ast::Spread) -> EvalResult {
-                throw UNIMPLEMENTED("spread");
-                // return this->visit_vararg_expression(node, env);
-            },
+            [this, &env](ast::Spread) -> EvalResult { return this->visit_vararg_expression(env); },
             [this, &env](ast::Prefix prefix) { return this->visit_prefix(prefix, env); },
             [](ast::Next) -> EvalResult { throw UNIMPLEMENTED("next"); },
             [this, &env](ast::FunctionDefinition function_definition) {
@@ -521,10 +518,7 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
     return result;
 }
 
-auto Interpreter::visit_vararg_expression(ts::Node node, Env& env) -> EvalResult {
-    assert(node.type() == "spread"s);
-    this->trace_enter_node(node);
-
+auto Interpreter::visit_vararg_expression(Env& env) -> EvalResult {
     EvalResult result;
 
     auto varargs = env.get_varargs();
@@ -535,7 +529,6 @@ auto Interpreter::visit_vararg_expression(ts::Node node, Env& env) -> EvalResult
     // TODO return the whole vallist
     result.value = varargs->get(0);
 
-    this->trace_exit_node(node);
     return result;
 }
 
