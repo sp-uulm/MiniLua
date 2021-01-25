@@ -1,4 +1,5 @@
 #include "ast.hpp"
+#include "MiniLua/values.hpp"
 #include <assert.h>
 #include <iostream>
 #include <tree_sitter/tree_sitter.hpp>
@@ -847,7 +848,9 @@ Expression::Expression(ts::Node node) : exp(node) {
           node.type_id() == ts::NODE_FALSE || node.type_id() == ts::NODE_TRUE ||
           node.type_id() == ts::NODE_IDENTIFIER ||
           (node.type_id() == ts::NODE_SELF || node.type_id() == ts::NODE_GLOBAL_VARIABLE ||
-           node.type_id() == ts::NODE_FUNCTION_CALL || node.child(0)->text() == "("))) {
+           node.type_id() == ts::NODE_FUNCTION_CALL ||
+           node.type_id() == ts::NODE_FIELD_EXPRESSION || node.type_id() == ts::NODE_TABLE_INDEX ||
+           node.child(0)->text() == "("))) {
         throw std::runtime_error("Not an expression-node");
     }
 }
@@ -867,8 +870,7 @@ auto Expression::options() -> std::variant<
     } else if (exp.type_id() == ts::NODE_UNARY_OPERATION) {
         return UnaryOperation(exp);
     } else if (exp.type_id() == ts::NODE_STRING) {
-        std::string str = exp.text();
-        return minilua::Value(String(std::string(str.begin() + 1, str.end() - 1)));
+        return parse_string_literal(exp.text());
     } else if (exp.type_id() == ts::NODE_NUMBER) {
         return parse_number_literal(exp.text());
     } else if (exp.type_id() == ts::NODE_NIL) {

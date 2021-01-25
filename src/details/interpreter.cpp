@@ -202,11 +202,17 @@ auto Interpreter::visit_statement(ast::Statement statement, Env& env) -> EvalRes
             [this, &env](ast::RepeatStatement node) {
                 return this->visit_repeat_until_statement(node, env);
             },
-            [this, &env](ast::ForStatement node) -> EvalResult { throw UNIMPLEMENTED("for"); },
-            [this, &env](ast::ForInStatement node) -> EvalResult { throw UNIMPLEMENTED("for in"); },
+            [this, &env](ast::ForStatement node) -> EvalResult {
+                // TODO desugar this
+                throw UNIMPLEMENTED("for");
+            },
+            [this, &env](ast::ForInStatement node) -> EvalResult {
+                // TODO desugar this
+                throw UNIMPLEMENTED("for in");
+            },
             [this, &env](ast::GoTo node) -> EvalResult { throw UNIMPLEMENTED("goto"); },
             [this, &env](ast::Break node) { return this->visit_break_statement(env); },
-            [this, &env](ast::Label node) -> EvalResult { throw UNIMPLEMENTED("goto"); },
+            [this, &env](ast::Label node) -> EvalResult { throw UNIMPLEMENTED("label"); },
             [this, &env](ast::FunctionStatement node) {
                 // TODO desugar this to variable and assignment
                 return this->visit_function_expression(node.raw(), env);
@@ -476,57 +482,44 @@ auto Interpreter::visit_identifier(ast::Identifier ident, Env& env) -> std::stri
     return ident.str();
 }
 
-auto Interpreter::visit_expression(ts::Node node, Env& env) -> EvalResult {
-    this->trace_enter_node(node);
+auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult {
+    this->trace_enter_node(expr.raw());
 
-    EvalResult result;
+    EvalResult result = std::visit(
+        overloaded{
+            [this, &env](ast::Spread) -> EvalResult {
+                throw UNIMPLEMENTED("spread");
+                // return this->visit_vararg_expression(node, env);
+            },
+            [this, &env](ast::Prefix prefix) { return this->visit_prefix(prefix, env); },
+            [](ast::Next) -> EvalResult { throw UNIMPLEMENTED("next"); },
+            [this, &env](ast::FunctionDefinition function_definition) {
+                return this->visit_function_expression(function_definition.raw(), env);
+            },
+            [this, &env](ast::Table table) {
+                return this->visit_table_constructor(table.raw(), env);
+            },
+            [this, &env](ast::BinaryOperation binary_op) {
+                return this->visit_binary_operation(binary_op.raw(), env);
+            },
+            [this, &env](ast::UnaryOperation unary_op) {
+                return this->visit_unary_operation(unary_op.raw(), env);
+            },
+            [](Value value) {
+                EvalResult result;
+                result.value = value;
+                return result;
+            },
+            [this, &env](ast::Identifier ident) {
+                auto variable_name = this->visit_identifier(ident, env);
+                EvalResult result;
+                result.value = env.get_var(variable_name);
+                return result;
+            },
+        },
+        expr.options());
 
-    if (node.type() == "number"s) {
-        auto value = parse_number_literal(node.text());
-        Origin origin = LiteralOrigin{.location = convert_range(node.range())};
-        result.value = value.with_origin(origin);
-    } else if (node.type() == "true"s) {
-        Origin origin = LiteralOrigin{.location = convert_range(node.range())};
-        result.value = Value(true).with_origin(origin);
-    } else if (node.type() == "false"s) {
-        Origin origin = LiteralOrigin{.location = convert_range(node.range())};
-        result.value = Value(false).with_origin(origin);
-    } else if (node.type() == "nil"s) {
-        Origin origin = LiteralOrigin{.location = convert_range(node.range())};
-        result.value = Value(Nil()).with_origin(origin);
-    } else if (node.type() == "string"s) {
-        try {
-            auto value = parse_string_literal(node.text());
-            Origin origin = LiteralOrigin{.location = convert_range(node.range())};
-            result.value = value.with_origin(origin);
-        } catch (const std::runtime_error& e) {
-            throw InterpreterException(e.what());
-        }
-    } else if (node.type() == "table"s) {
-        result = this->visit_table_constructor(node, env);
-    } else if (node.type() == "identifier"s) {
-        auto variable_name = this->visit_identifier(node, env);
-        result.value = env.get_var(variable_name);
-    } else if (node.type() == "unary_operation"s) {
-        result = this->visit_unary_operation(node, env);
-    } else if (node.type() == "binary_operation"s) {
-        result = this->visit_binary_operation(node, env);
-    } else if (node.type() == std::string("function_call")) {
-        result = this->visit_function_call(node, env);
-    } else if (node.type() == "function_call"s) {
-        result = this->visit_function_call(node, env);
-    } else if (node.type() == "field_expression"s) {
-        result = this->visit_field_expression(node, env);
-    } else if (node.type() == "function"s || node.type() == "function_definition"s) {
-        result = this->visit_function_expression(node, env);
-    } else if (node.type() == "spread"s) {
-        // TODO implement actual spread operator (this is for varargs)
-        result = this->visit_vararg_expression(node, env);
-    } else {
-        throw UNIMPLEMENTED(node.type());
-    }
-
-    this->trace_exit_node(node);
+    this->trace_exit_node(expr.raw());
     return result;
 }
 
@@ -895,8 +888,8 @@ auto Interpreter::visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult {
                             result.value = env.get_var(this->visit_identifier(ident, env));
                             return result;
                         },
-                        [](ast::FieldExpression field) -> EvalResult {
-                            throw UNIMPLEMENTED("field expression");
+                        [this, &env](ast::FieldExpression field) {
+                            return this->visit_field_expression(field.raw(), env);
                         },
                         [](ast::TableIndex table_index) -> EvalResult {
                             throw UNIMPLEMENTED("table index");
