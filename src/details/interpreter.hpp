@@ -16,7 +16,7 @@ struct EvalResult {
     std::optional<SourceChangeTree> source_change;
 
     EvalResult();
-    EvalResult(const CallResult&);
+    explicit EvalResult(const CallResult&);
 
     /**
      * Combines another 'EvalResult' into this one.
@@ -66,10 +66,12 @@ private:
     auto visit_while_statement(ast::WhileStatement while_stmt, Env& env) -> EvalResult;
     auto visit_repeat_until_statement(ast::RepeatStatement repeat_stmt, Env& env) -> EvalResult;
 
+    auto visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult;
+
     auto visit_expression(ts::Node node, Env& env) -> EvalResult;
     auto visit_unary_operation(ts::Node node, Env& env) -> EvalResult;
     auto visit_binary_operation(ts::Node node, Env& env) -> EvalResult;
-    auto visit_function_call(ts::Node node, Env& env) -> CallResult;
+    auto visit_function_call(ast::FunctionCall call, Env& env) -> EvalResult;
     auto visit_field_expression(ts::Node node, Env& env) -> EvalResult;
     auto visit_function_expression(ts::Node node, Env& env) -> EvalResult;
     auto visit_vararg_expression(ts::Node node, Env& env) -> EvalResult;

@@ -208,13 +208,15 @@ auto Interpreter::visit_statement(ast::Statement statement, Env& env) -> EvalRes
             [this, &env](ast::Break node) { return this->visit_break_statement(env); },
             [this, &env](ast::Label node) -> EvalResult { throw UNIMPLEMENTED("goto"); },
             [this, &env](ast::FunctionStatement node) {
+                // TODO desugar this to variable and assignment
                 return this->visit_function_expression(node.raw(), env);
             },
             [this, &env](ast::LocalFunctionStatement node) {
+                // TODO desugar this to variable and assignment
                 return this->visit_function_expression(node.raw(), env);
             },
             [this, &env](ast::FunctionCall node) -> EvalResult {
-                return this->visit_function_call(node.raw(), env);
+                return this->visit_function_call(node, env);
             },
             [this, &env](ast::Expression node) { return this->visit_expression(node.raw(), env); },
         },
@@ -878,47 +880,81 @@ auto Interpreter::visit_unary_operation(ts::Node node, Env& env) -> EvalResult {
     return result;
 }
 
-auto Interpreter::visit_function_call(ts::Node node, Env& env) -> CallResult {
-    assert(node.type() == std::string("function_call"));
-    this->trace_enter_node(node);
+auto Interpreter::visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult {
+    this->trace_enter_node(prefix.raw());
 
-    auto function_name = this->visit_identifier(node.named_child(0).value(), env);
+    EvalResult result = std::visit(
+        overloaded{
+            [](ast::Self) -> EvalResult { throw UNIMPLEMENTED("self"); },
+            [](ast::GlobalVariable var) -> EvalResult { throw UNIMPLEMENTED("global variables"); },
+            [this, &env](ast::VariableDeclarator variable_decl) {
+                return std::visit(
+                    overloaded{
+                        [this, &env](ast::Identifier ident) {
+                            EvalResult result;
+                            result.value = env.get_var(this->visit_identifier(ident, env));
+                            return result;
+                        },
+                        [](ast::FieldExpression field) -> EvalResult {
+                            throw UNIMPLEMENTED("field expression");
+                        },
+                        [](ast::TableIndex table_index) -> EvalResult {
+                            throw UNIMPLEMENTED("table index");
+                        }},
+                    variable_decl.var());
+            },
+            [this, &env](ast::FunctionCall call) {
+                return EvalResult(this->visit_function_call(call, env));
+            },
+            [this, &env](ast::Expression expr) { return this->visit_expression(expr.raw(), env); }},
+        prefix.options());
 
-    std::vector<Value> arguments;
-    auto argument = node.named_child(1).value().child(0);
-    // skip node `(` at the start
-    argument = argument->next_sibling();
+    this->trace_exit_node(prefix.raw());
+    return result;
+}
 
-    while (argument.has_value() && argument->type() != ")"s) {
-        auto expr = this->visit_expression(argument.value(), env);
-        // TODO source_changes
-        arguments.push_back(expr.value);
+auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalResult {
+    this->trace_enter_node(call.raw());
 
-        // skip nodes `,` in the middle and node `)` at the end
-        argument = argument->next_sibling();
-        argument = argument->next_sibling();
+    EvalResult result;
+
+    auto function_obj_result = this->visit_prefix(call.id(), env);
+    result.combine(function_obj_result);
+
+    if (call.method()) {
+        throw UNIMPLEMENTED("method calls");
     }
 
-    this->trace_function_call(function_name, arguments);
+    auto argument_exprs = call.args();
+    std::vector<Value> arguments;
+
+    for (auto arg_expr : argument_exprs) {
+        auto expr_result = this->visit_expression(arg_expr.raw(), env);
+        result.combine(expr_result);
+        arguments.push_back(expr_result.value);
+    }
+
+    // TODO add back function call tracing
+    // this->trace_function_call(function_name, arguments);
 
     // call function
     // this will produce an error if the obj is not callable
-    auto obj = env.get_var(function_name);
+    auto obj = function_obj_result.value;
     Environment environment = make_environment(env);
     auto ctx = CallContext(&environment).make_new(Vallist(arguments));
 
-    CallResult result;
     try {
-        result = obj.call(ctx);
+        CallResult call_result = obj.call(ctx);
+        result.combine(EvalResult(call_result));
     } catch (const std::runtime_error& e) {
-        std::string pos = node.range().start.point.pretty(true);
-        throw InterpreterException(
-            std::string("failed to call ") + function_name + " (" + pos + ") : " + e.what());
+        std::string pos = call.raw().range().start.point.pretty(true);
+        throw InterpreterException("failed to call function  ("s + pos + ") : " + e.what());
     }
 
-    this->trace_function_call_result(function_name, result);
+    // TODO add back function call tracing
+    // this->trace_function_call_result(function_name, result);
 
-    this->trace_exit_node(node);
+    this->trace_exit_node(call.raw());
     return result;
 }
 
