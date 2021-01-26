@@ -1233,6 +1233,7 @@ struct Vallist::Impl {
     std::vector<Value> values;
 };
 Vallist::Vallist() = default;
+Vallist::Vallist(Value value) : Vallist({std::move(value)}) {}
 Vallist::Vallist(std::vector<Value> values)
     : impl(make_owning<Vallist::Impl>(Vallist::Impl{std::move(values)})) {}
 Vallist::Vallist(std::initializer_list<Value> values)
