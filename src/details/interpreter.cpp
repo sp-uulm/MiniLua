@@ -12,6 +12,7 @@
 #include <map>
 #include <optional>
 #include <set>
+#include <sstream>
 #include <utility>
 
 namespace minilua::details {
@@ -117,8 +118,10 @@ void Interpreter::trace_exit_node(
         this->tracer() << "\n";
     }
 }
+
 void Interpreter::trace_function_call(
-    const std::string& function_name, const std::vector<Value>& arguments) const {
+    ast::Prefix prefix, const std::vector<Value>& arguments) const {
+    auto function_name = std::string(prefix.raw().text());
     if (this->config.trace_calls) {
         this->tracer() << "Calling function: " << function_name << " with arguments (";
         for (const auto& arg : arguments) {
@@ -127,8 +130,8 @@ void Interpreter::trace_function_call(
         this->tracer() << ")\n";
     }
 }
-void Interpreter::trace_function_call_result(
-    const std::string& function_name, const CallResult& result) const {
+void Interpreter::trace_function_call_result(ast::Prefix prefix, const CallResult& result) const {
+    auto function_name = std::string(prefix.raw().text());
     if (this->config.trace_calls) {
         this->tracer() << "Function call to: " << function_name << " resulted in "
                        << result.values();
@@ -924,8 +927,7 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
         arguments.push_back(expr_result.value);
     }
 
-    // TODO add back function call tracing
-    // this->trace_function_call(function_name, arguments);
+    this->trace_function_call(call.id(), arguments);
 
     // call function
     // this will produce an error if the obj is not callable
@@ -936,13 +938,12 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
     try {
         CallResult call_result = obj.call(ctx);
         result.combine(EvalResult(call_result));
+
+        this->trace_function_call_result(call.id(), call_result);
     } catch (const std::runtime_error& e) {
         std::string pos = call.raw().range().start.point.pretty(true);
         throw InterpreterException("failed to call function  ("s + pos + ") : " + e.what());
     }
-
-    // TODO add back function call tracing
-    // this->trace_function_call_result(function_name, result);
 
     this->trace_exit_node(call.raw());
     return result;
