@@ -16,6 +16,7 @@ struct EvalResult {
     std::optional<SourceChangeTree> source_change;
 
     EvalResult();
+    explicit EvalResult(Vallist values);
     explicit EvalResult(const CallResult&);
 
     /**

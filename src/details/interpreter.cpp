@@ -31,7 +31,9 @@ public:
         what)
 
 // struct EvalResult
-EvalResult::EvalResult() : values(), do_break(false), do_return(false), source_change() {}
+EvalResult::EvalResult() : values(), do_break(false), do_return(false) {}
+EvalResult::EvalResult(Vallist values)
+    : values(std::move(values)), do_break(false), do_return(false) {}
 EvalResult::EvalResult(const CallResult& call_result)
     : values(call_result.values()), do_break(false), do_return(false),
       source_change(call_result.source_change()) {}
@@ -503,6 +505,7 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
             },
             [&node](ast::Literal literal) {
                 EvalResult result;
+
                 Value value;
                 switch(literal.type()){
                     case ast::LiteralType::TRUE:
@@ -521,15 +524,13 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
                         value = parse_string_literal(literal.content());
                         break;
                 }
-              auto origin = LiteralOrigin{.location = literal.range()};
-              result.values = Vallist(value.with_origin(origin));
-              return result;
+                auto origin = LiteralOrigin{.location = literal.range()};
+                result.values = Vallist(value.with_origin(origin));
+                return result;
             },
             [this, &env](ast::Identifier ident) {
                 auto variable_name = this->visit_identifier(ident, env);
-                EvalResult result;
-                result.values = Vallist(env.get_var(variable_name));
-                return result;
+                return EvalResult(Vallist(env.get_var(variable_name)));
             },
         },
         expr.options());
@@ -538,16 +539,12 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
 }
 
 auto Interpreter::visit_vararg_expression(Env& env) -> EvalResult {
-    EvalResult result;
-
     auto varargs = env.get_varargs();
     if (!varargs.has_value()) {
         throw InterpreterException("cannot use '...' outside a vararg function");
     }
 
-    result.values = varargs.value();
-
-    return result;
+    return EvalResult(varargs.value());
 }
 
 auto Interpreter::visit_function_expression(ast::FunctionDefinition function_definition, Env& env)
@@ -796,7 +793,7 @@ auto Interpreter::visit_table_constructor(ast::Table table_constructor, Env& env
                     auto item_result = this->visit_expression(item, env);
                     result.combine(item_result);
 
-                    for (auto value : item_result.values) {
+                    for (const auto& value : item_result.values) {
                         auto key = consecutive_key;
                         consecutive_key++;
                         table.set(key, value);
@@ -827,52 +824,29 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
         result.values = Vallist(value);
     };
 
+#define IMPL(op, method)                                                                           \
+    case ast::BinOpEnum::op:                                                                       \
+        impl_operator(&Value::method);                                                             \
+        break;
+
     switch (bin_op.binary_operator()) {
-    case ast::BinOpEnum::ADD:
-        impl_operator(&Value::add);
-        break;
-    case ast::BinOpEnum::SUB:
-        impl_operator(&Value::sub);
-        break;
-    case ast::BinOpEnum::MUL:
-        impl_operator(&Value::mul);
-        break;
-    case ast::BinOpEnum::DIV:
-        impl_operator(&Value::div);
-        break;
-    case ast::BinOpEnum::MOD:
-        impl_operator(&Value::mod);
-        break;
-    case ast::BinOpEnum::POW:
-        impl_operator(&Value::pow);
-        break;
-    case ast::BinOpEnum::LT:
-        impl_operator(&Value::less_than);
-        break;
-    case ast::BinOpEnum::GT:
-        impl_operator(&Value::greater_than);
-        break;
-    case ast::BinOpEnum::LEQ:
-        impl_operator(&Value::less_than_or_equal);
-        break;
-    case ast::BinOpEnum::GEQ:
-        impl_operator(&Value::greater_than_or_equal);
-        break;
-    case ast::BinOpEnum::EQ:
-        impl_operator(&Value::equals);
-        break;
-    case ast::BinOpEnum::NEQ:
-        impl_operator(&Value::unequals);
-        break;
-    case ast::BinOpEnum::CONCAT:
-        impl_operator(&Value::concat);
-        break;
-    case ast::BinOpEnum::AND:
-        impl_operator(&Value::logic_and);
-        break;
-    case ast::BinOpEnum::OR:
-        impl_operator(&Value::logic_or);
-        break;
+        IMPL(ADD, add)
+        IMPL(SUB, sub)
+        IMPL(MUL, mul)
+        IMPL(DIV, div)
+        IMPL(MOD, mod)
+        IMPL(POW, pow)
+        IMPL(LT, less_than)
+        IMPL(LEQ, less_than_or_equal)
+        IMPL(GT, greater_than)
+        IMPL(GEQ, greater_than_or_equal)
+        IMPL(EQ, equals)
+        IMPL(NEQ, unequals)
+        IMPL(CONCAT, concat)
+        IMPL(OR, logic_or)
+        IMPL(AND, logic_and)
+        IMPL(BIT_OR, bit_or)
+        IMPL(BIT_AND, bit_and)
     case ast::BinOpEnum::SHIFT_LEFT:
         throw UNIMPLEMENTED("shift left");
         break;
@@ -882,16 +856,12 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
     case ast::BinOpEnum::BIT_XOR:
         throw UNIMPLEMENTED("bitwise xor");
         break;
-    case ast::BinOpEnum::BIT_OR:
-        impl_operator(&Value::bit_or);
-        break;
-    case ast::BinOpEnum::BIT_AND:
-        impl_operator(&Value::bit_and);
-        break;
     case ast::BinOpEnum::INT_DIV:
         throw UNIMPLEMENTED("intdiv");
         break;
     }
+
+#undef IMPL
 
     return result;
 }
@@ -903,20 +873,21 @@ auto Interpreter::visit_unary_operation(ast::UnaryOperation unary_op, Env& env) 
 
     auto range = convert_range(unary_op.raw().range());
 
+#define IMPL(op, method)                                                                           \
+    case ast::UnOpEnum::op:                                                                        \
+        result.values = Vallist(result.values.get(0).method(range));                               \
+        break;
+
     switch (unary_op.unary_operator()) {
-    case ast::UnOpEnum::NOT:
-        result.values = Vallist(result.values.get(0).invert(range));
-        break;
-    case ast::UnOpEnum::NEG:
-        result.values = Vallist(result.values.get(0).negate(range));
-        break;
-    case ast::UnOpEnum::LEN:
-        result.values = Vallist(result.values.get(0).len(range));
-        break;
+        IMPL(NOT, invert)
+        IMPL(NEG, negate)
+        IMPL(LEN, len)
     case ast::UnOpEnum::BWNOT:
         throw UNIMPLEMENTED("bitwise not");
         break;
     }
+
+#undef IMPL
 
     return result;
 }
