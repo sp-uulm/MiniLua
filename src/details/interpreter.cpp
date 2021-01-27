@@ -113,7 +113,6 @@ void Interpreter::trace_exit_node(
         this->tracer() << "\n";
     }
 }
-
 void Interpreter::trace_function_call(
     ast::Prefix prefix, const std::vector<Value>& arguments) const {
     auto function_name = std::string(prefix.raw().text());
@@ -136,7 +135,6 @@ void Interpreter::trace_function_call_result(ast::Prefix prefix, const CallResul
         this->tracer() << "\n";
     }
 }
-
 void Interpreter::trace_exprlists(
     std::vector<ast::Expression>& exprlist, const Vallist& result) const {
     if (this->config.trace_exprlists) {
@@ -165,17 +163,11 @@ auto Interpreter::enter_block(Env& env) -> Env {
 }
 
 // helper functions
-static const std::set<std::string> IGNORE_NODES{";", "comment"};
-
 static auto convert_range(ts::Range range) -> Range {
     return Range{
         .start = {range.start.point.row, range.start.point.column, range.start.byte},
         .end = {range.end.point.row, range.end.point.column, range.end.byte},
     };
-}
-
-static auto make_environment(Env& env) -> Environment {
-    return Environment(Environment::Impl{env});
 }
 
 // interpreter implementation
@@ -989,7 +981,7 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
     // call function
     // this will produce an error if the obj is not callable
     auto obj = function_obj_result.values.get(0);
-    Environment environment = make_environment(env);
+    auto environment = Environment(env);
     auto ctx = CallContext(&environment).make_new(arguments);
 
     try {
