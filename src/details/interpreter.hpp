@@ -58,6 +58,9 @@ private:
 
     auto visit_do_statement(ast::DoStatement stmt, Env& env) -> EvalResult;
 
+    /**
+     * Helpers to create new scope for a block.
+     */
     auto visit_block(ast::Body block, Env& env) -> EvalResult;
     auto visit_block_with_local_env(ast::Body block, Env& env) -> EvalResult;
 
@@ -118,7 +121,33 @@ private:
     void trace_function_call_result(ast::Prefix prefix, const CallResult& result) const;
     void trace_exprlists(std::vector<ast::Expression>& exprlist, const Vallist& result) const;
 
-    auto enter_block(Env& env) -> Env;
+    void trace_enter_block(Env& env);
+
+    /**
+     * Helper class that will trace entry and exit of a method.
+     *
+     * # Usage
+     *
+     * Add the following to be beginning of the method you want to trace:
+     *
+     * ```
+     * auto _ = NodeTracer(this, ast_element.raw(), "method_name");
+     * ```
+     *
+     * The constructor will call 'trace_enter_node' and the destructor (which
+     * is always run before exiting the method) will call 'trace_exit_node'.
+     */
+    class NodeTracer {
+        Interpreter& interpreter;
+        ts::Node node;
+        std::optional<std::string> method_name;
+
+    public:
+        NodeTracer(
+            Interpreter* interpreter, ts::Node node,
+            std::optional<std::string> method_name = std::nullopt);
+        ~NodeTracer();
+    };
 };
 
 } // namespace minilua::details
