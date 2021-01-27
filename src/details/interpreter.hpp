@@ -116,6 +116,7 @@ private:
         std::optional<std::string> reason = std::nullopt) const;
     void trace_function_call(ast::Prefix prefix, const std::vector<Value>& arguments) const;
     void trace_function_call_result(ast::Prefix prefix, const CallResult& result) const;
+    void trace_exprlists(std::vector<ast::Expression>& exprlist, const Vallist& result) const;
 
     auto enter_block(Env& env) -> Env;
 };

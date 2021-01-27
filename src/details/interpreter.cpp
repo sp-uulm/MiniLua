@@ -126,14 +126,34 @@ void Interpreter::trace_function_call(
     }
 }
 void Interpreter::trace_function_call_result(ast::Prefix prefix, const CallResult& result) const {
-    auto function_name = std::string(prefix.raw().text());
     if (this->config.trace_calls) {
+        auto function_name = std::string(prefix.raw().text());
         this->tracer() << "Function call to: " << function_name << " resulted in "
                        << result.values();
         if (result.source_change().has_value()) {
             this->tracer() << " with source changes " << result.source_change().value();
         }
         this->tracer() << "\n";
+    }
+}
+
+void Interpreter::trace_exprlists(
+    std::vector<ast::Expression>& exprlist, const Vallist& result) const {
+    if (this->config.trace_exprlists) {
+        this->tracer() << "Exprlist: (";
+        const auto* sep = "";
+        for (auto& expr : exprlist) {
+            this->tracer() << sep << expr.raw().text();
+            sep = ", ";
+        }
+        this->tracer() << ") resulted in (";
+
+        sep = "";
+        for (const auto& value : result) {
+            this->tracer() << sep << value;
+            sep = ", ";
+        }
+        this->tracer() << ")\n";
     }
 }
 
@@ -421,6 +441,8 @@ auto Interpreter::visit_expression_list(std::vector<ast::Expression> expressions
     }
 
     result.values = return_values;
+
+    this->trace_exprlists(expressions, result.values);
 
     return result;
 }
