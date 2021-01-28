@@ -976,7 +976,7 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
     EvalResult exprlist_result = this->visit_expression_list(call.args(), env);
     auto arguments = exprlist_result.values;
 
-    this->trace_function_call(call.id(), std::vector(arguments.begin(), arguments.end()));
+    this->trace_function_call(call.id(), std::vector<Value>(arguments.begin(), arguments.end()));
 
     // call function
     // this will produce an error if the obj is not callable
