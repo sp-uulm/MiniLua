@@ -21,11 +21,15 @@ class Value;
  * c++ I/O streams (std::cin, etc).
  */
 class Environment {
+public:
     struct Impl;
+
+private:
     owning_ptr<Impl> impl;
 
 public:
     Environment();
+    explicit Environment(Impl);
     Environment(const Environment&);
     // can't use noexcept = default in older compilers (pre c++20 compilers)
     // NOLINTNEXTLINE
@@ -87,6 +91,9 @@ public:
      * Returns the number of variables.
      */
     [[nodiscard]] auto size() const -> size_t;
+
+    // only for internal use
+    auto get_raw_impl() -> Impl&;
 
     friend auto operator==(const Environment&, const Environment&) noexcept -> bool;
     friend auto operator!=(const Environment&, const Environment&) noexcept -> bool;

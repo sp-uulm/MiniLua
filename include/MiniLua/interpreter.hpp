@@ -34,7 +34,6 @@ struct EvalResult {
     std::optional<SourceChangeTree> source_change;
 
     EvalResult();
-    EvalResult(const CallResult&);
 };
 
 auto operator<<(std::ostream&, const EvalResult&) -> std::ostream&;
@@ -43,6 +42,7 @@ struct InterpreterConfig {
     std::ostream* target;
     bool trace_nodes;
     bool trace_calls;
+    bool trace_enter_block;
 
     InterpreterConfig();
     InterpreterConfig(bool);

@@ -2,7 +2,7 @@
 
 ![MiniLua](https://github.com/sp-uulm/MiniLua/workflows/MiniLua/badge.svg)
 
-MiniLua is a small lua interpreter that implements additional features like source location tracking. It is currently used in and developed for the interactive_script rqt plugin.
+MiniLua is a small lua interpreter that implements additional features like source location tracking. It is currently used in and developed for the interactive_script rqt plugin. The targeted lua-version is Lua 5.3
 
 Also see: [Dokumentation](https://sp-uulm.github.io/MiniLua/)
 

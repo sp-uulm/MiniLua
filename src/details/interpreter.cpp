@@ -1,11 +1,19 @@
 #include "interpreter.hpp"
+#include "MiniLua/environment.hpp"
 #include "MiniLua/interpreter.hpp"
+#include "ast.hpp"
 #include "tree_sitter/tree_sitter.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <functional>
 #include <iostream>
+#include <iterator>
+#include <map>
+#include <optional>
 #include <set>
+#include <sstream>
+#include <utility>
 
 namespace minilua::details {
 
@@ -22,16 +30,67 @@ public:
             ")",                                                                                   \
         what)
 
+// struct EvalResult
+EvalResult::EvalResult() : value(), do_break(false), do_return(std::nullopt), source_change() {}
+EvalResult::EvalResult(const CallResult& call_result)
+    : value(std::get<0>(call_result.values().tuple<1>())), do_break(false), do_return(std::nullopt),
+      source_change(call_result.source_change()) {}
+
+static auto combine_source_changes(
+    const std::optional<SourceChangeTree>& lhs, const std::optional<SourceChangeTree>& rhs)
+    -> std::optional<SourceChangeTree> {
+    if (lhs.has_value() && rhs.has_value()) {
+        return SourceChangeCombination({*lhs, *rhs});
+    } else if (lhs.has_value()) {
+        return lhs;
+    } else {
+        return rhs;
+    }
+}
+
+void EvalResult::combine(const EvalResult& other) {
+    this->value = other.value;
+    this->do_break = other.do_break;
+    this->do_return = other.do_return;
+    this->source_change = combine_source_changes(this->source_change, other.source_change);
+}
+
+EvalResult::operator minilua::EvalResult() const {
+    minilua::EvalResult result;
+    result.value = this->value;
+    result.source_change = this->source_change;
+    return result;
+}
+
+auto operator<<(std::ostream& o, const EvalResult& self) -> std::ostream& {
+    o << "EvalResult{ "
+      << ".value = " << self.value << ", .do_break = " << self.do_break << ", .do_return = ";
+    if (self.do_return) {
+        o << *self.do_return;
+    } else {
+        o << "nullopt";
+    }
+
+    o << ", .source_change = ";
+    if (self.source_change.has_value()) {
+        o << *self.source_change;
+    } else {
+        o << "nullopt";
+    }
+
+    return o << "}";
+}
+
 // class Interpreter
 Interpreter::Interpreter(const InterpreterConfig& config) : config(config) {}
 
-auto Interpreter::run(const ts::Tree& tree, Environment& env) -> EvalResult {
+auto Interpreter::run(const ts::Tree& tree, Env& env) -> EvalResult {
     try {
-        return this->visit_root(tree.root_node(), env);
+        return this->visit_root(ast::Program(tree.root_node()), env);
     } catch (const InterpreterException&) {
         throw;
     } catch (const std::exception& e) {
-        throw InterpreterException("unknown error");
+        throw InterpreterException("unknown error: "s + e.what());
     }
 }
 
@@ -45,17 +104,24 @@ void Interpreter::trace_enter_node(ts::Node node, std::optional<std::string> met
         this->tracer() << "\n";
     }
 }
-void Interpreter::trace_exit_node(ts::Node node, std::optional<std::string> method_name) const {
+void Interpreter::trace_exit_node(
+    ts::Node node, std::optional<std::string> method_name,
+    std::optional<std::string> reason) const {
     if (this->config.trace_nodes) {
         this->tracer() << "Exit node: " << ts::debug_print_node(node);
         if (method_name) {
             this->tracer() << " (method: " << method_name.value() << ")";
         }
+        if (reason) {
+            this->tracer() << " reason: " << reason.value();
+        }
         this->tracer() << "\n";
     }
 }
+
 void Interpreter::trace_function_call(
-    const std::string& function_name, const std::vector<Value>& arguments) const {
+    ast::Prefix prefix, const std::vector<Value>& arguments) const {
+    auto function_name = std::string(prefix.raw().text());
     if (this->config.trace_calls) {
         this->tracer() << "Calling function: " << function_name << " with arguments (";
         for (const auto& arg : arguments) {
@@ -64,8 +130,8 @@ void Interpreter::trace_function_call(
         this->tracer() << ")\n";
     }
 }
-void Interpreter::trace_function_call_result(
-    const std::string& function_name, const CallResult& result) const {
+void Interpreter::trace_function_call_result(ast::Prefix prefix, const CallResult& result) const {
+    auto function_name = std::string(prefix.raw().text());
     if (this->config.trace_calls) {
         this->tracer() << "Function call to: " << function_name << " resulted in "
                        << result.values();
@@ -76,24 +142,15 @@ void Interpreter::trace_function_call_result(
     }
 }
 
-auto Interpreter::combine_source_changes(
-    const std::optional<SourceChangeTree>& lhs, const std::optional<SourceChangeTree>& rhs)
-    -> std::optional<SourceChangeTree> {
-    if (lhs.has_value() && rhs.has_value()) {
-        return SourceChangeCombination({*lhs, *rhs});
-    } else if (lhs.has_value()) {
-        return lhs;
-    } else {
-        return rhs;
+auto Interpreter::enter_block(Env& env) -> Env {
+    if (this->config.trace_enter_block) {
+        this->tracer() << "Enter block: " << env << "\n";
     }
+    return Env(env);
 }
 
 // helper functions
 static const std::set<std::string> IGNORE_NODES{";", "comment"};
-
-static auto should_ignore_node(ts::Node node) -> bool {
-    return IGNORE_NODES.find(node.type()) != IGNORE_NODES.end();
-}
 
 static auto convert_range(ts::Range range) -> Range {
     return Range{
@@ -102,446 +159,793 @@ static auto convert_range(ts::Range range) -> Range {
     };
 }
 
+static auto make_environment(Env& env) -> Environment {
+    return Environment(Environment::Impl{env});
+}
+
 // interpreter implementation
-auto Interpreter::visit_root(ts::Node node, Environment& env) -> EvalResult {
-    assert(node.type() == std::string("program"));
-    this->trace_enter_node(node);
+auto Interpreter::visit_root(ast::Program program, Env& env) -> EvalResult {
+    this->trace_enter_node(program.raw());
 
     EvalResult result;
 
-    for (auto child : node.children()) {
+    auto body = program.body();
+
+    for (auto child : body.statements()) {
         EvalResult sub_result = this->visit_statement(child, env);
-        // TODO on "return" set value
-        result.source_change =
-            this->combine_source_changes(result.source_change, sub_result.source_change);
+        result.combine(sub_result);
     }
 
-    this->trace_exit_node(node);
+    if (body.ret()) {
+        // result.combine(this->visit_return_statement(body.ret().value(), env));
+        // TODO properly return the vallist
+    }
+
+    this->trace_exit_node(program.raw());
+    return result;
+}
+
+auto Interpreter::visit_statement(ast::Statement statement, Env& env) -> EvalResult {
+    this->trace_enter_node(statement.raw());
+
+    auto result = std::visit(
+        overloaded{
+            [this, &env](ast::VariableDeclaration node) {
+                return this->visit_variable_declaration(node, env);
+            },
+            [this, &env](ast::DoStatement node) { return this->visit_do_statement(node, env); },
+            [this, &env](ast::IfStatement node) { return this->visit_if_statement(node, env); },
+            [this, &env](ast::WhileStatement node) {
+                return this->visit_while_statement(node, env);
+            },
+            [this, &env](ast::RepeatStatement node) {
+                return this->visit_repeat_until_statement(node, env);
+            },
+            [this, &env](ast::ForStatement node) -> EvalResult {
+                // TODO desugar this
+                throw UNIMPLEMENTED("for");
+            },
+            [this, &env](ast::ForInStatement node) -> EvalResult {
+                // TODO desugar this
+                throw UNIMPLEMENTED("for in");
+            },
+            [this, &env](ast::GoTo node) -> EvalResult { throw UNIMPLEMENTED("goto"); },
+            [this, &env](ast::Break node) { return this->visit_break_statement(env); },
+            [this, &env](ast::Label node) -> EvalResult { throw UNIMPLEMENTED("label"); },
+            [this, &env](ast::FunctionStatement node) {
+                // TODO desugar this to variable and assignment
+                return this->visit_function_statement(node, env);
+            },
+            [this, &env](ast::LocalFunctionStatement node) -> EvalResult {
+                // TODO desugar this to variable and assignment
+                // return this->visit_function_statement(node, env);
+                throw UNIMPLEMENTED("local function definition");
+            },
+            [this, &env](ast::FunctionCall node) -> EvalResult {
+                return this->visit_function_call(node, env);
+            },
+            [this, &env](ast::Expression node) { return this->visit_expression(node, env); },
+        },
+        statement.options());
+
+    this->trace_exit_node(statement.raw());
+
+    if (!result.do_return) {
+        result.value = Nil();
+    }
 
     return result;
 }
 
-auto Interpreter::visit_statement(ts::Node node, Environment& env) -> EvalResult {
-    this->trace_enter_node(node);
+auto Interpreter::visit_do_statement(ast::DoStatement do_stmt, Env& env) -> EvalResult {
+    this->trace_enter_node(do_stmt.raw());
 
-    EvalResult result;
+    auto result = this->visit_block(do_stmt.body(), env);
 
-    if (node.type() == "variable_declaration"s) {
-        result = this->visit_variable_declaration(node, env);
-    } else if (node.type() == "if_statement"s) {
-        result = this->visit_if_statement(node, env);
-    } else if (node.type() == "while_statement"s) {
-        result = this->visit_while_statement(node, env);
-    } else if (node.type() == "function_call"s) { // TODO this is actually an expression
-        result = this->visit_function_call(node, env);
-    } else if (should_ignore_node(node)) {
-    } else {
-        throw UNIMPLEMENTED(node.type());
-    }
-
-    this->trace_exit_node(node);
-
+    this->trace_exit_node(do_stmt.raw());
     return result;
 }
 
-auto Interpreter::visit_if_statement(ts::Node node, Environment& env) -> EvalResult {
-    assert(node.type() == "if_statement"s);
-    this->trace_enter_node(node);
-
+auto Interpreter::visit_block(ast::Body block, Env& env) -> EvalResult {
+    Env block_env = this->enter_block(env);
+    return this->visit_block_with_local_env(std::move(block), block_env);
+}
+auto Interpreter::visit_block_with_local_env(ast::Body block, Env& block_env) -> EvalResult {
     EvalResult result;
 
-    assert(node.child(0).value().type() == "if"s);
-    auto condition_node = node.child(1).value();
-    assert(node.child(2).value().type() == "then"s);
+    for (auto stmt : block.statements()) {
+        auto sub_result = this->visit_statement(stmt, block_env);
+        result.combine(sub_result);
 
-    auto condition_result = this->visit_expression(condition_node.child(0).value(), env);
-    result.source_change =
-        combine_source_changes(result.source_change, condition_result.source_change);
-
-    // NOTE we create a cursor from the root if_statement node because we need
-    // to be able to see the siblings of the children
-    ts::Cursor cursor{node};
-    // navigate to first child after "then"
-    cursor.goto_first_child();
-    cursor.skip_n_siblings(3);
-
-    // "then block"
-    if (condition_result.value) {
-        auto then_result = this->visit_if_arm(cursor, env);
-        result.source_change =
-            combine_source_changes(result.source_change, then_result.source_change);
-        return result;
-    } else {
-        // step through (but ignore) body
-        cursor.skip_siblings_while([](ts::Node node) {
-            return node.type() != "elseif"s && node.type() != "else"s && node.type() != "end"s;
-        });
-    }
-
-    // elseif blocks
-    do {
-        ts::Node current_node = cursor.current_node();
-        if (current_node.type() != "elseif"s) {
-            break;
-        }
-
-        auto [elseif_result, was_executed] = this->visit_elseif_statement(current_node, env);
-
-        result.source_change =
-            combine_source_changes(result.source_change, elseif_result.source_change);
-
-        if (was_executed) {
+        if (result.do_break) {
+            this->trace_exit_node(stmt.raw(), std::nullopt, "break");
             return result;
         }
-    } while (cursor.goto_next_sibling());
-
-    // else block
-    if (cursor.current_node().type() == "else"s) {
-        auto else_result = this->visit_else_statement(cursor.current_node(), env);
-        result.source_change =
-            combine_source_changes(result.source_change, else_result.source_change);
-    }
-
-    auto last_node = node.child(node.child_count() - 1).value();
-    if (last_node.type() != "end"s) {
-        throw InterpreterException(
-            "Last node of if is not `end` but `" + std::string(last_node.type()) + "`");
-    }
-
-    this->trace_exit_node(node);
-    return result;
-}
-auto Interpreter::visit_if_arm(ts::Cursor& cursor, Environment& env) -> EvalResult {
-    // NOTE expects cursor to be at the first node of the body or on "end", "elseif" or "else"
-    EvalResult result;
-
-    ts::Node current_node = cursor.current_node();
-    while (current_node.type() != "end"s && current_node.type() != "elseif"s &&
-           current_node.type() != "else"s) {
-        auto body_result = this->visit_statement(current_node, env);
-        result.source_change =
-            combine_source_changes(result.source_change, body_result.source_change);
-
-        if (!cursor.goto_next_sibling()) {
-            throw InterpreterException("syntax error: found no end node of if statement");
+        if (result.do_return) {
+            this->trace_exit_node(stmt.raw(), std::nullopt, "return");
+            return result;
         }
-        current_node = cursor.current_node();
+    }
+
+    auto return_stmt = block.ret();
+    if (return_stmt) {
+        auto sub_result = this->visit_return_statement(return_stmt->raw(), block_env);
+        result.combine(sub_result);
     }
 
     return result;
 }
-// returns true if the elseif body was executed
-auto Interpreter::visit_elseif_statement(ts::Node node, Environment& env)
-    -> std::pair<EvalResult, bool> {
-    assert(node.type() == "elseif"s);
-    this->trace_enter_node(node);
+
+auto Interpreter::visit_if_statement(ast::IfStatement if_stmt, Env& env) -> EvalResult {
+    this->trace_enter_node(if_stmt.raw());
 
     EvalResult result;
 
-    assert(node.child(0).value().type() == "elseif"s);
+    {
+        // if condition condition
+        auto condition = if_stmt.cond();
+        auto condition_result = this->visit_expression(condition.raw(), env);
+        result.combine(condition_result);
 
-    auto condition_node = node.child(1).value();
-    assert(condition_node.type() == "condition_expression"s);
+        // "then" block
+        if (condition_result.value) {
+            auto body_result = this->visit_block(if_stmt.body(), env);
+            result.combine(body_result);
 
-    assert(node.child(2).value().type() == "then"s);
-
-    auto condition_result = this->visit_expression(condition_node.child(0).value(), env);
-    result.source_change =
-        combine_source_changes(result.source_change, condition_result.source_change);
-
-    if (!condition_result.value) {
-        return std::make_pair(result, false);
+            this->trace_exit_node(if_stmt.raw());
+            return result;
+        }
     }
 
-    ts::Cursor cursor(node);
-    cursor.goto_first_child();
-    if (cursor.skip_n_siblings(3) < 3) {
-        // TODO should never happen
-        return std::make_pair(result, true);
+    // "else if" blocks
+    for (auto elseif_stmt : if_stmt.elseifs()) {
+        // else if condition
+        auto condition = elseif_stmt.cond();
+        auto condition_result = this->visit_expression(condition.raw(), env);
+        result.combine(condition_result);
+
+        if (condition_result.value) {
+            auto body_result = this->visit_block(elseif_stmt.body(), env);
+            result.combine(body_result);
+
+            this->trace_exit_node(if_stmt.raw());
+            return result;
+        }
     }
 
-    cursor.foreach_remaining_siblings([this, &env, &result](ts::Node body_node) {
-        auto body_result = this->visit_statement(body_node, env);
-        result.source_change =
-            combine_source_changes(result.source_change, body_result.source_change);
-    });
-
-    this->trace_exit_node(node);
-    return std::make_pair(result, true);
-}
-auto Interpreter::visit_else_statement(ts::Node node, Environment& env) -> EvalResult {
-    assert(node.type() == "else"s);
-    this->trace_enter_node(node);
-
-    EvalResult result;
-
-    assert(node.child(0).value().type() == "else"s);
-
-    ts::Cursor cursor(node);
-    cursor.goto_first_child();
-    if (!cursor.goto_next_sibling()) {
-        return result;
+    // "else" block
+    auto else_stmt = if_stmt.else_();
+    if (else_stmt) {
+        auto body_result = this->visit_block(else_stmt->body(), env);
+        result.combine(body_result);
     }
 
-    cursor.foreach_remaining_siblings([this, &env, &result](ts::Node body_node) {
-        auto body_result = this->visit_statement(body_node, env);
-        result.source_change =
-            combine_source_changes(result.source_change, body_result.source_change);
-    });
-
-    this->trace_exit_node(node);
+    this->trace_exit_node(if_stmt.raw());
     return result;
 }
 
-auto Interpreter::visit_while_statement(ts::Node node, Environment& env) -> EvalResult {
-    assert(node.type() == "while_statement"s);
-    this->trace_enter_node(node);
+auto Interpreter::visit_while_statement(ast::WhileStatement while_stmt, Env& env) -> EvalResult {
+    this->trace_enter_node(while_stmt.raw());
 
     EvalResult result;
 
-    assert(node.child(0).value().type() == "while"s);
-
-    auto condition_node = node.child(1).value();
-    assert(condition_node.type() == "condition_expression"s);
-
-    assert(node.child(2).value().type() == "do"s);
-
-    ts::Cursor cursor(node);
+    auto condition = while_stmt.exit_cond();
 
     while (true) {
-        auto condition_result = this->visit_expression(condition_node.child(0).value(), env);
-        result.source_change =
-            combine_source_changes(result.source_change, condition_result.source_change);
+        auto condition_result = this->visit_expression(condition.raw(), env);
+        result.combine(condition_result);
 
         if (!condition_result.value) {
+            this->trace_exit_node(while_stmt.raw());
             return result;
         }
 
-        cursor.reset(node);
-        cursor.goto_first_child();
-        if (cursor.skip_n_siblings(3) < 3) {
+        auto block_result = this->visit_block(while_stmt.body(), env);
+        result.combine(block_result);
+
+        if (result.do_break) {
+            this->trace_exit_node(while_stmt.raw(), std::nullopt, "break");
+            result.do_break = false;
+            return result;
+        }
+        if (result.do_return) {
+            this->trace_exit_node(while_stmt.raw(), std::nullopt, "return");
+            return result;
+        }
+    }
+
+    this->trace_exit_node(while_stmt.raw());
+    return result;
+}
+
+auto Interpreter::visit_repeat_until_statement(ast::RepeatStatement repeat_stmt, Env& env)
+    -> EvalResult {
+    this->trace_enter_node(repeat_stmt.raw());
+
+    EvalResult result;
+
+    auto body = repeat_stmt.body();
+    auto condition = repeat_stmt.until_cond();
+
+    while (true) {
+        Env block_env = this->enter_block(env);
+
+        auto block_result = this->visit_block_with_local_env(body, block_env);
+        result.combine(block_result);
+
+        if (result.do_break) {
+            this->trace_exit_node(repeat_stmt.raw(), std::nullopt, "break");
+            result.do_break = false;
+            return result;
+        }
+        if (result.do_return) {
+            this->trace_exit_node(repeat_stmt.raw(), std::nullopt, "return");
             return result;
         }
 
-        do {
-            ts::Node body_node = cursor.current_node();
+        // the condition is part of the same block and can access local variables
+        // declared in the repeat block
+        auto condition_result = this->visit_expression(condition.raw(), block_env);
+        result.combine(condition_result);
 
-            if (body_node.type() == "end"s) {
-                break;
+        if (condition_result.value) {
+            return result;
+        }
+    }
+
+    this->trace_exit_node(repeat_stmt.raw());
+    return result;
+}
+
+auto Interpreter::visit_break_statement(Env& env) -> EvalResult {
+    EvalResult result;
+    result.do_break = true;
+    return result;
+}
+auto Interpreter::visit_return_statement(ast::Return return_stmt, Env& env) -> EvalResult {
+    this->trace_enter_node(return_stmt.raw());
+
+    EvalResult result;
+    std::vector<Value> return_values;
+
+    for (auto expr : return_stmt.explist()) {
+        auto sub_result = this->visit_expression(expr.raw(), env);
+        result.combine(sub_result);
+        return_values.push_back(sub_result.value);
+    }
+
+    result.do_return = Vallist(return_values);
+
+    this->trace_exit_node(return_stmt.raw());
+    return result;
+}
+
+auto Interpreter::visit_variable_declaration(ast::VariableDeclaration decl, Env& env)
+    -> EvalResult {
+    this->trace_enter_node(decl.raw());
+
+    EvalResult result;
+
+    auto exprs = decl.declarations();
+
+    std::vector<Value> expr_results;
+    expr_results.reserve(exprs.size());
+    std::transform(
+        exprs.begin(), exprs.end(), std::back_inserter(expr_results),
+        [this, &result, &env](ast::Expression expr) {
+            auto sub_result = this->visit_expression(expr.raw(), env);
+            result.combine(sub_result);
+            return sub_result.value;
+        });
+
+    const auto vallist = Vallist(expr_results);
+    auto targets = decl.declarators();
+
+    for (int i = 0; i < decl.declarators().size(); ++i) {
+        auto target = targets[i].var();
+        const auto& value = vallist.get(i);
+
+        if (decl.local()) {
+            std::visit(
+                overloaded{
+                    [this, &env, &value](ast::Identifier ident) {
+                        env.set_local(this->visit_identifier(ident, env), value);
+                    },
+                    [](ast::FieldExpression /*node*/) {
+                        throw InterpreterException(
+                            "Field expression not allowed as target of local declaration");
+                    },
+                    [](ast::TableIndex /*node*/) {
+                        throw InterpreterException(
+                            "Table access not allowed as target of local declaration");
+                    },
+                },
+                target);
+        } else {
+            std::visit(
+                overloaded{
+                    [this, &env, &value](ast::Identifier ident) {
+                        env.set_var(this->visit_identifier(ident, env), value);
+                    },
+                    [](auto node) { throw UNIMPLEMENTED(node.raw().type()); }},
+                target);
+        }
+    }
+
+    this->trace_exit_node(decl.raw());
+    return result;
+}
+
+auto Interpreter::visit_identifier(ast::Identifier ident, Env& env) -> std::string {
+    this->trace_enter_node(ident.raw());
+    this->trace_exit_node(ident.raw());
+    return ident.str();
+}
+
+auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult {
+    this->trace_enter_node(expr.raw());
+
+    auto node = expr.raw();
+
+    EvalResult result = std::visit(
+        overloaded{
+            [this, &env](ast::Spread) -> EvalResult { return this->visit_vararg_expression(env); },
+            [this, &env](ast::Prefix prefix) { return this->visit_prefix(prefix, env); },
+            [](ast::Next) -> EvalResult { throw UNIMPLEMENTED("next"); },
+            [this, &env](ast::FunctionDefinition function_definition) {
+                return this->visit_function_expression(function_definition, env);
+            },
+            [this, &env](ast::Table table) { return this->visit_table_constructor(table, env); },
+            [this, &env](ast::BinaryOperation binary_op) {
+                return this->visit_binary_operation(binary_op, env);
+            },
+            [this, &env](ast::UnaryOperation unary_op) {
+                return this->visit_unary_operation(unary_op, env);
+            },
+            [&node](Value&& value) {
+                EvalResult result;
+                result.value =
+                    value.with_origin(LiteralOrigin{.location = convert_range(node.range())});
+                return result;
+            },
+            [this, &env](ast::Identifier ident) {
+                auto variable_name = this->visit_identifier(ident, env);
+                EvalResult result;
+                result.value = env.get_var(variable_name);
+                return result;
+            },
+        },
+        expr.options());
+
+    this->trace_exit_node(expr.raw());
+    return result;
+}
+
+auto Interpreter::visit_vararg_expression(Env& env) -> EvalResult {
+    EvalResult result;
+
+    auto varargs = env.get_varargs();
+    if (!varargs.has_value()) {
+        throw InterpreterException("cannot use '...' outside a vararg function");
+    }
+
+    // TODO return the whole vallist
+    result.value = varargs->get(0);
+
+    return result;
+}
+
+auto Interpreter::visit_function_expression(ast::FunctionDefinition function_definition, Env& env)
+    -> EvalResult {
+    this->trace_enter_node(function_definition.raw());
+
+    EvalResult result;
+
+    auto parameters = function_definition.parameters();
+
+    if (parameters.leading_self()) {
+        throw UNIMPLEMENTED("self as function parameter");
+    }
+
+    std::vector<std::string> actual_parameters;
+    {
+        auto raw_params = parameters.params();
+        actual_parameters.reserve(raw_params.size());
+        std::transform(
+            raw_params.begin(), raw_params.end(), std::back_inserter(actual_parameters),
+            [this, &env](auto ident) { return this->visit_identifier(ident, env); });
+    }
+
+    bool vararg = parameters.spread() != ast::NO_SPREAD;
+
+    auto body = function_definition.body();
+
+    Value func = Function(
+        [body = std::move(body), parameters = std::move(actual_parameters), vararg,
+         this](const CallContext& ctx) -> CallResult {
+            // setup parameters as local variables
+            Env env = Env(ctx.environment().get_raw_impl().inner);
+            for (int i = 0; i < parameters.size(); ++i) {
+                env.set_local(parameters[i], ctx.arguments().get(i));
             }
 
-            auto body_result = this->visit_statement(body_node, env);
-            result.source_change =
-                combine_source_changes(result.source_change, body_result.source_change);
-        } while (cursor.goto_next_sibling());
+            if (vararg && parameters.size() < ctx.arguments().size()) {
+                std::vector<Value> varargs;
+                varargs.reserve(ctx.arguments().size() - parameters.size());
+                std::copy(
+                    ctx.arguments().begin() + parameters.size(), ctx.arguments().end(),
+                    std::back_inserter(varargs));
+                env.set_varargs(varargs);
+            } else {
+                env.set_varargs(std::nullopt);
+            }
+
+            if (env.get_varargs()) {
+                std::cerr << "varargs: " << *env.get_varargs() << "\n";
+            }
+
+            auto result = this->visit_block_with_local_env(body, env);
+
+            auto return_value = result.do_return.value_or(Vallist());
+            return CallResult(return_value, result.source_change);
+        });
+
+    result.value = func;
+
+    this->trace_exit_node(function_definition.raw());
+    return result;
+}
+
+// TODO remove once we can desugar function statements
+auto Interpreter::visit_function_statement(ast::FunctionStatement function_statement, Env& env)
+    -> EvalResult {
+    this->trace_enter_node(function_statement.raw());
+
+    EvalResult result;
+
+    auto parameters = function_statement.parameters();
+
+    if (parameters.leading_self()) {
+        throw UNIMPLEMENTED("self as function parameter");
     }
 
-    this->trace_exit_node(node);
-    return result;
-}
-
-auto Interpreter::visit_variable_declaration(ts::Node node, Environment& env) -> EvalResult {
-    assert(node.type() == std::string("variable_declaration"));
-    this->trace_enter_node(node);
-
-    EvalResult result;
-
-    auto declarator = node.named_child(0).value();
-    auto expr = node.named_child(1).value();
-
-    auto expr_result = this->visit_expression(expr, env);
-
-    env.add(this->visit_variable_declarator(declarator, env), expr_result.value);
-
-    result.source_change = combine_source_changes(result.source_change, expr_result.source_change);
-
-    this->trace_exit_node(node);
-    return result;
-}
-auto Interpreter::visit_variable_declarator(ts::Node node, Environment& env) -> std::string {
-    assert(node.type() == std::string("variable_declarator"));
-    this->trace_enter_node(node);
-    return this->visit_identifier(node.child(0).value(), env);
-}
-
-auto Interpreter::visit_identifier(ts::Node node, Environment& env) -> std::string {
-    assert(node.type() == std::string("identifier"));
-    this->trace_enter_node(node);
-    this->trace_exit_node(node);
-    return node.text();
-}
-
-auto Interpreter::visit_expression(ts::Node node, Environment& env) -> EvalResult {
-    this->trace_enter_node(node);
-
-    EvalResult result;
-
-    if (node.type() == "number"s) {
-        auto value = parse_number_literal(node.text());
-        Origin origin = LiteralOrigin{.location = convert_range(node.range())};
-        result.value = value.with_origin(origin);
-    } else if (node.type() == "true"s) {
-        Origin origin = LiteralOrigin{.location = convert_range(node.range())};
-        result.value = Value(true).with_origin(origin);
-    } else if (node.type() == "false"s) {
-        Origin origin = LiteralOrigin{.location = convert_range(node.range())};
-        result.value = Value(false).with_origin(origin);
-    } else if (node.type() == "nil"s) {
-        Origin origin = LiteralOrigin{.location = convert_range(node.range())};
-        result.value = Value(Nil()).with_origin(origin);
-    } else if (node.type() == "string"s) {
-        try {
-            auto value = parse_string_literal(node.text());
-            Origin origin = LiteralOrigin{.location = convert_range(node.range())};
-            result.value = value.with_origin(origin);
-        } catch (const std::runtime_error& e) {
-            throw InterpreterException(e.what());
-        }
-    } else if (node.type() == "identifier"s) {
-        auto variable_name = this->visit_identifier(node, env);
-        result.value = env.get(variable_name);
-    } else if (node.type() == "unary_operation"s) {
-        result = this->visit_unary_operation(node, env);
-    } else if (node.type() == "binary_operation"s) {
-        result = this->visit_binary_operation(node, env);
-    } else if (node.type() == std::string("function_call")) {
-        result = this->visit_function_call(node, env);
-    } else {
-        throw UNIMPLEMENTED(node.type());
+    std::vector<std::string> actual_parameters;
+    {
+        auto raw_params = parameters.params();
+        actual_parameters.reserve(raw_params.size());
+        std::transform(
+            raw_params.begin(), raw_params.end(), std::back_inserter(actual_parameters),
+            [this, &env](auto ident) { return this->visit_identifier(ident, env); });
     }
 
-    this->trace_exit_node(node);
+    bool vararg = parameters.spread() != ast::NO_SPREAD;
+
+    auto body = function_statement.body();
+
+    Value func = Function(
+        [body = std::move(body), parameters = std::move(actual_parameters), vararg,
+         this](const CallContext& ctx) -> CallResult {
+            // setup parameters as local variables
+            Env env = Env(ctx.environment().get_raw_impl().inner);
+            for (int i = 0; i < parameters.size(); ++i) {
+                env.set_local(parameters[i], ctx.arguments().get(i));
+            }
+
+            if (vararg && parameters.size() < ctx.arguments().size()) {
+                std::vector<Value> varargs;
+                varargs.reserve(ctx.arguments().size() - parameters.size());
+                std::copy(
+                    ctx.arguments().begin() + parameters.size(), ctx.arguments().end(),
+                    std::back_inserter(varargs));
+                env.set_varargs(varargs);
+            } else {
+                env.set_varargs(std::nullopt);
+            }
+
+            if (env.get_varargs()) {
+                std::cerr << "varargs: " << *env.get_varargs() << "\n";
+            }
+
+            auto result = this->visit_block_with_local_env(body, env);
+
+            auto return_value = result.do_return.value_or(Vallist());
+            return CallResult(return_value, result.source_change);
+        });
+
+    auto function_name = function_statement.name();
+    auto identifiers = function_name.identifier();
+
+    if (identifiers.size() != 1 || function_name.method()) {
+        throw UNIMPLEMENTED("function complicated name");
+    }
+
+    auto ident = this->visit_identifier(identifiers[0], env);
+    env.set_global(ident, func);
+
+    this->trace_exit_node(function_statement.raw());
     return result;
 }
 
-auto Interpreter::visit_binary_operation(ts::Node node, Environment& env) -> EvalResult {
-    assert(node.type() == std::string("binary_operation"));
-    this->trace_enter_node(node);
+auto Interpreter::visit_table_index(ast::TableIndex table_index, Env& env) -> EvalResult {
+    this->trace_enter_node(table_index.raw());
 
     EvalResult result;
 
-    auto origin = convert_range(node.range());
+    auto prefix_result = this->visit_prefix(table_index.table(), env);
+    result.combine(prefix_result);
 
-    auto lhs_node = node.child(0).value();
-    auto operator_node = node.child(1).value();
-    auto rhs_node = node.child(2).value();
+    auto table = prefix_result.value;
 
-    EvalResult lhs_result = this->visit_expression(lhs_node, env);
-    EvalResult rhs_result = this->visit_expression(rhs_node, env);
+    auto index_result = this->visit_expression(table_index.index(), env);
+    result.combine(index_result);
 
-    auto impl_operator = [this, &result, &lhs_result, &rhs_result, &origin](auto f) {
-        result.value = std::invoke(f, lhs_result.value, rhs_result.value, origin);
-        result.source_change =
-            combine_source_changes(lhs_result.source_change, rhs_result.source_change);
+    auto index = index_result.value;
+
+    result.value = table[index];
+
+    this->trace_exit_node(table_index.raw());
+    return result;
+}
+
+auto Interpreter::visit_field_expression(ast::FieldExpression field_expression, Env& env)
+    -> EvalResult {
+    this->trace_enter_node(field_expression.raw());
+
+    EvalResult result;
+
+    auto table_result = this->visit_prefix(field_expression.table_id(), env);
+    result.combine(table_result);
+
+    std::string key = this->visit_identifier(field_expression.property_id(), env);
+
+    result.value = table_result.value[key];
+
+    this->trace_exit_node(field_expression.raw());
+    return result;
+}
+
+auto Interpreter::visit_table_constructor(ast::Table table_constructor, Env& env) -> EvalResult {
+    this->trace_enter_node(table_constructor.raw());
+
+    EvalResult result;
+
+    Table table;
+
+    // TODO move the consecutive_key logic to table because it is not completely correct
+    int consecutive_key = 1;
+
+    const auto fields = table_constructor.fields();
+    for (auto field : fields) {
+        auto [key, value] = std::visit(
+            overloaded{
+                [this, &env, &result](
+                    std::pair<ast::Expression, ast::Expression> field) -> std::pair<Value, Value> {
+                    auto key_result = this->visit_expression(field.first, env);
+                    result.combine(key_result);
+
+                    auto value_result = this->visit_expression(field.second, env);
+                    result.combine(value_result);
+
+                    return std::make_pair(key_result.value, value_result.value);
+                },
+                [this, &env, &result](
+                    std::pair<ast::Identifier, ast::Expression> field) -> std::pair<Value, Value> {
+                    auto key = this->visit_identifier(field.first, env);
+
+                    auto value_result = this->visit_expression(field.second, env);
+                    result.combine(value_result);
+
+                    return std::make_pair(key, value_result.value);
+                },
+                [this, &env, &result,
+                 &consecutive_key](ast::Expression item) -> std::pair<Value, Value> {
+                    auto item_result = this->visit_expression(item, env);
+                    result.combine(item_result);
+                    auto key = consecutive_key;
+                    consecutive_key++;
+                    return std::make_pair(key, item_result.value);
+                },
+            },
+            field.content());
+
+        table.set(key, value);
+    }
+
+    // TODO if last entry is an expression and returns a vallist all elements should be
+    // inserted consecutively
+
+    result.value = table;
+
+    this->trace_exit_node(table_constructor.raw());
+    return result;
+}
+
+auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) -> EvalResult {
+    this->trace_enter_node(bin_op.raw());
+
+    EvalResult result;
+
+    auto origin = convert_range(bin_op.raw().range());
+
+    auto lhs_result = this->visit_expression(bin_op.left(), env);
+    auto rhs_result = this->visit_expression(bin_op.right(), env);
+
+    auto impl_operator = [&result, &lhs_result, &rhs_result, &origin](auto f) {
+        auto value = std::invoke(f, lhs_result.value, rhs_result.value, origin);
+        result.combine(rhs_result);
+        result.value = value;
     };
 
-    if (operator_node.type() == "=="s) {
-        impl_operator(&Value::equals);
-    } else if (operator_node.type() == "~="s) {
-        impl_operator(&Value::unequals);
-    } else if (operator_node.type() == ">="s) {
-        impl_operator(&Value::greater_than_or_equal);
-    } else if (operator_node.type() == ">"s) {
-        impl_operator(&Value::greater_than);
-    } else if (operator_node.type() == "<="s) {
-        impl_operator(&Value::less_than_or_equal);
-    } else if (operator_node.type() == "<"s) {
-        impl_operator(&Value::less_than);
-    } else if (operator_node.type() == "+"s) {
+    switch (bin_op.op()) {
+    case ast::BinOpEnum::ADD:
         impl_operator(&Value::add);
-    } else if (operator_node.type() == "-"s) {
+        break;
+    case ast::BinOpEnum::SUB:
         impl_operator(&Value::sub);
-    } else if (operator_node.type() == "*"s) {
+        break;
+    case ast::BinOpEnum::MUL:
         impl_operator(&Value::mul);
-    } else if (operator_node.type() == "/"s) {
+        break;
+    case ast::BinOpEnum::DIV:
         impl_operator(&Value::div);
-    } else if (operator_node.type() == "^"s) {
-        impl_operator(&Value::pow);
-    } else if (operator_node.type() == "%"s) {
+        break;
+    case ast::BinOpEnum::MOD:
         impl_operator(&Value::mod);
-    } else if (operator_node.type() == "&"s) {
-        impl_operator(&Value::bit_and);
-    } else if (operator_node.type() == "|"s) {
-        impl_operator(&Value::bit_or);
-    } else if (operator_node.type() == "and"s) {
-        impl_operator(&Value::logic_and);
-    } else if (operator_node.type() == "or"s) {
-        impl_operator(&Value::logic_or);
-    } else if (operator_node.type() == ".."s) {
+        break;
+    case ast::BinOpEnum::POW:
+        impl_operator(&Value::pow);
+        break;
+    case ast::BinOpEnum::LT:
+        impl_operator(&Value::less_than);
+        break;
+    case ast::BinOpEnum::GT:
+        impl_operator(&Value::greater_than);
+        break;
+    case ast::BinOpEnum::LEQ:
+        impl_operator(&Value::less_than_or_equal);
+        break;
+    case ast::BinOpEnum::GEQ:
+        impl_operator(&Value::greater_than_or_equal);
+        break;
+    case ast::BinOpEnum::EQ:
+        impl_operator(&Value::equals);
+        break;
+    case ast::BinOpEnum::NEQ:
+        impl_operator(&Value::unequals);
+        break;
+    case ast::BinOpEnum::CONCAT:
         impl_operator(&Value::concat);
-    } else {
-        throw InterpreterException(
-            "encountered unknown binary operator `" + std::string(operator_node.type()) + "`");
+        break;
+    case ast::BinOpEnum::AND:
+        impl_operator(&Value::logic_and);
+        break;
+    case ast::BinOpEnum::OR:
+        impl_operator(&Value::logic_or);
+        break;
+    case ast::BinOpEnum::SHIFT_LEFT:
+        throw UNIMPLEMENTED("shift left");
+        break;
+    case ast::BinOpEnum::SHIFT_RIGHT:
+        throw UNIMPLEMENTED("shift right");
+        break;
+    case ast::BinOpEnum::BIT_XOR:
+        throw UNIMPLEMENTED("bitwise xor");
+        break;
+    case ast::BinOpEnum::BIT_OR:
+        impl_operator(&Value::bit_or);
+        break;
+    case ast::BinOpEnum::BIT_AND:
+        impl_operator(&Value::bit_and);
+        break;
+    case ast::BinOpEnum::INT_DIV:
+        throw UNIMPLEMENTED("intdiv");
+        break;
     }
 
-    this->trace_exit_node(node);
+    this->trace_exit_node(bin_op.raw());
     return result;
 }
 
-auto Interpreter::visit_unary_operation(ts::Node node, Environment& env) -> EvalResult {
-    assert(node.type() == std::string("unary_operation"));
-    this->trace_enter_node(node);
+auto Interpreter::visit_unary_operation(ast::UnaryOperation unary_op, Env& env) -> EvalResult {
+    this->trace_enter_node(unary_op.raw());
 
-    auto operator_node = node.child(0).value();
-    auto expr = node.child(1).value();
+    EvalResult result = this->visit_expression(unary_op.exp(), env);
 
-    EvalResult result = this->visit_expression(expr, env);
+    auto range = convert_range(unary_op.raw().range());
 
-    if (operator_node.type() == "-"s) {
-        result.value = result.value.negate(convert_range(node.range()));
-    } else if (operator_node.type() == "not"s) {
-        result.value = result.value.invert(convert_range(node.range()));
-    } else if (operator_node.type() == "#"s) {
-        result.value = result.value.len(convert_range(node.range()));
-    } else {
-        throw InterpreterException(
-            "encountered unknown unary operator `" + std::string(operator_node.type()) + "`");
+    switch (unary_op.op()) {
+    case ast::UnOpEnum::NOT:
+        result.value = result.value.invert(range);
+        break;
+    case ast::UnOpEnum::NEG:
+        result.value = result.value.negate(range);
+        break;
+    case ast::UnOpEnum::LEN:
+        result.value = result.value.len(range);
+        break;
+    case ast::UnOpEnum::BWNOT:
+        throw UNIMPLEMENTED("bitwise not");
+        break;
     }
 
-    this->trace_exit_node(node);
+    this->trace_exit_node(unary_op.raw());
     return result;
 }
 
-auto Interpreter::visit_function_call(ts::Node node, Environment& env) -> CallResult {
-    assert(node.type() == std::string("function_call"));
-    this->trace_enter_node(node);
+auto Interpreter::visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult {
+    this->trace_enter_node(prefix.raw());
 
-    auto function_name = this->visit_identifier(node.named_child(0).value(), env);
+    EvalResult result = std::visit(
+        overloaded{
+            [](ast::Self) -> EvalResult { throw UNIMPLEMENTED("self"); },
+            [](ast::GlobalVariable var) -> EvalResult { throw UNIMPLEMENTED("global variables"); },
+            [this, &env](ast::VariableDeclarator variable_decl) {
+                return std::visit(
+                    overloaded{
+                        [this, &env](ast::Identifier ident) {
+                            EvalResult result;
+                            result.value = env.get_var(this->visit_identifier(ident, env));
+                            return result;
+                        },
+                        [this, &env](ast::FieldExpression field) {
+                            // TODO desugar to table index
+                            return this->visit_field_expression(field, env);
+                        },
+                        [this, &env](ast::TableIndex table_index) -> EvalResult {
+                            return this->visit_table_index(table_index, env);
+                        }},
+                    variable_decl.var());
+            },
+            [this, &env](ast::FunctionCall call) {
+                return EvalResult(this->visit_function_call(call, env));
+            },
+            [this, &env](ast::Expression expr) { return this->visit_expression(expr, env); }},
+        prefix.options());
 
+    this->trace_exit_node(prefix.raw());
+    return result;
+}
+
+auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalResult {
+    this->trace_enter_node(call.raw());
+
+    EvalResult result;
+
+    auto function_obj_result = this->visit_prefix(call.id(), env);
+    result.combine(function_obj_result);
+
+    if (call.method()) {
+        throw UNIMPLEMENTED("method calls");
+    }
+
+    auto argument_exprs = call.args();
     std::vector<Value> arguments;
-    auto argument = node.named_child(1).value().child(0);
-    // skip node `(` at the start
-    argument = argument->next_sibling();
 
-    while (argument.has_value()) {
-        auto expr = this->visit_expression(argument.value(), env);
-        // TODO source_changes
-        arguments.push_back(expr.value);
-
-        // skip nodes `,` in the middle and node `)` at the end
-        argument = argument->next_sibling();
-        argument = argument->next_sibling();
+    for (auto arg_expr : argument_exprs) {
+        auto expr_result = this->visit_expression(arg_expr.raw(), env);
+        result.combine(expr_result);
+        arguments.push_back(expr_result.value);
     }
 
-    this->trace_function_call(function_name, arguments);
+    this->trace_function_call(call.id(), arguments);
 
     // call function
     // this will produce an error if the obj is not callable
-    auto obj = env.get(function_name);
-    auto ctx = CallContext(&env).make_new(Vallist(arguments));
+    auto obj = function_obj_result.value;
+    Environment environment = make_environment(env);
+    auto ctx = CallContext(&environment).make_new(Vallist(arguments));
 
-    CallResult result;
     try {
-        result = obj.call(ctx);
+        CallResult call_result = obj.call(ctx);
+        result.combine(EvalResult(call_result));
+
+        this->trace_function_call_result(call.id(), call_result);
     } catch (const std::runtime_error& e) {
-        std::string pos = node.range().start.point.pretty(true);
-        throw InterpreterException(
-            std::string("failed to call ") + function_name + " (" + pos + ") : " + e.what());
+        std::string pos = call.raw().range().start.point.pretty(true);
+        throw InterpreterException("failed to call function  ("s + pos + ") : " + e.what());
     }
 
-    this->trace_function_call_result(function_name, result);
-
-    this->trace_exit_node(node);
+    this->trace_exit_node(call.raw());
     return result;
 }
 

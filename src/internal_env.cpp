@@ -49,6 +49,8 @@ auto Env::get_var(const std::string& name) -> Value {
         return this->get_global(name);
     }
 }
+void Env::set_varargs(std::optional<Vallist> vallist) { this->varargs = std::move(vallist); }
+auto Env::get_varargs() const -> std::optional<Vallist> { return this->varargs; }
 
 void Env::set_stdin(std::istream* in) {
     if (in == nullptr) {
@@ -72,5 +74,17 @@ void Env::set_stderr(std::ostream* err) {
 auto Env::get_stdin() -> std::istream* { return this->in; }
 auto Env::get_stdout() -> std::ostream* { return this->out; }
 auto Env::get_stderr() -> std::ostream* { return this->err; }
+
+auto operator<<(std::ostream& os, const Env& self) -> std::ostream& {
+    os << "Env{ .global = " << self.global() << ", .local = {";
+
+    const auto* sep = "";
+    for (const auto& [key, value] : self.local()) {
+        os << sep << "\"" << key << "\": " << value;
+        sep = ", ";
+    }
+
+    return os << "}\n";
+}
 
 }; // namespace minilua
