@@ -377,6 +377,10 @@ auto log(const CallContext& ctx) -> Value {
 auto max(const CallContext& ctx) -> Value {
     auto args = ctx.arguments();
 
+    if (args.size() == 0) {
+        throw std::runtime_error("bad argument #1 to 'max' (value expected)");
+    }
+
     Value max = *args.begin();
     for (const auto& a : args) {
         if (a.greater_than(max)) {
@@ -388,6 +392,10 @@ auto max(const CallContext& ctx) -> Value {
 
 auto min(const CallContext& ctx) -> Value {
     auto args = ctx.arguments();
+
+    if (args.size() == 0) {
+        throw std::runtime_error("bad argument #1 to 'min' (value expected)");
+    }
 
     Value min = *args.begin();
     for (const auto& a : args) {

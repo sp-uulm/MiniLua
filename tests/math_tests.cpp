@@ -1274,6 +1274,10 @@ TEST_CASE("math.max(x, ...)") {
         ctx = ctx.make_new(list);
         CHECK(minilua::math::max(ctx) == minilua::Value("zug"));
     }
+
+    SECTION("No arguemts") {
+        CHECK_THROWS_WITH(minilua::math::max(ctx), "bad argument #1 to 'max' (value expected)");
+    }
 }
 
 TEST_CASE("math.min(x, ...)") {
@@ -1330,6 +1334,10 @@ TEST_CASE("math.min(x, ...)") {
         list = minilua::Vallist(v);
         ctx = ctx.make_new(list);
         CHECK(minilua::math::min(ctx) == minilua::Value("Analysis2a"));
+    }
+
+    SECTION("No arguemts") {
+        CHECK_THROWS_WITH(minilua::math::min(ctx), "bad argument #1 to 'min' (value expected)");
     }
 }
 
