@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['globalvariable_835',['GlobalVariable',['../classminilua_1_1details_1_1GlobalVariable.html',1,'minilua::details']]],
-  ['goto_836',['GoTo',['../classminilua_1_1details_1_1GoTo.html',1,'minilua::details']]]
+  ['globalvariable_812',['GlobalVariable',['../classminilua_1_1details_1_1ast_1_1GlobalVariable.html',1,'minilua::details::ast']]],
+  ['goto_813',['GoTo',['../classminilua_1_1details_1_1ast_1_1GoTo.html',1,'minilua::details::ast']]]
 ];
