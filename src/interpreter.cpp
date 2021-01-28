@@ -42,10 +42,10 @@ void InterpreterConfig::all(bool def) {
 InterpreterException::InterpreterException(const std::string& what) : std::runtime_error(what) {}
 
 struct Interpreter::Impl {
-    ts::Parser parser;       // NOLINT(misc-non-private-member-variables-in-classes)
-    std::string source_code; // NOLINT(misc-non-private-member-variables-in-classes)
-    ts::Tree tree;           // NOLINT(misc-non-private-member-variables-in-classes)
-    Environment env;         // NOLINT(misc-non-private-member-variables-in-classes)
+    ts::Parser parser;
+    std::string source_code;
+    ts::Tree tree;
+    Environment env;
 
     Impl(std::string initial_source_code, Environment env)
         : source_code(std::move(initial_source_code)), tree(parser.parse_string(this->source_code)),
