@@ -44,6 +44,8 @@ struct InterpreterConfig {
     bool trace_calls;
     bool trace_enter_block;
     bool trace_exprlists;
+    bool trace_break;
+    bool trace_varargs;
 
     InterpreterConfig();
     InterpreterConfig(bool);

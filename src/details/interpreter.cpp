@@ -228,7 +228,7 @@ auto Interpreter::visit_statement(ast::Statement statement, Env& env) -> EvalRes
                 throw UNIMPLEMENTED("for in");
             },
             [this, &env](ast::GoTo node) -> EvalResult { throw UNIMPLEMENTED("goto"); },
-            [this, &env](ast::Break node) { return this->visit_break_statement(env); },
+            [this, &env](ast::Break node) { return this->visit_break_statement(); },
             [this, &env](ast::Label node) -> EvalResult { throw UNIMPLEMENTED("label"); },
             [this, &env](ast::FunctionStatement node) {
                 // TODO desugar this to variable and assignment
@@ -289,6 +289,7 @@ auto Interpreter::visit_if_statement(ast::IfStatement if_stmt, Env& env) -> Eval
 
     EvalResult result;
 
+    // NOTE: scope is here so I can reuse variable names without problems
     {
         // if condition condition
         auto condition = if_stmt.condition();
@@ -304,13 +305,13 @@ auto Interpreter::visit_if_statement(ast::IfStatement if_stmt, Env& env) -> Eval
         }
     }
 
-    // "else if" blocks
     for (auto elseif_stmt : if_stmt.elseifs()) {
         // else if condition
         auto condition = elseif_stmt.condition();
         auto condition_result = this->visit_expression(condition, env);
         result.combine(condition_result);
 
+        // "else if" block
         if (condition_result.values.get(0)) {
             auto body_result = this->visit_block(elseif_stmt.body(), env);
             result.combine(body_result);
@@ -340,6 +341,7 @@ auto Interpreter::visit_while_statement(ast::WhileStatement while_stmt, Env& env
         auto condition_result = this->visit_expression(condition, env);
         result.combine(condition_result);
 
+        // repeat while condition is true
         if (!condition_result.values.get(0)) {
             return result;
         }
@@ -387,6 +389,7 @@ auto Interpreter::visit_repeat_until_statement(ast::RepeatStatement repeat_stmt,
         auto condition_result = this->visit_expression(condition, block_env);
         result.combine(condition_result);
 
+        // repeat until condition is true
         if (condition_result.values.get(0)) {
             return result;
         }
@@ -395,7 +398,11 @@ auto Interpreter::visit_repeat_until_statement(ast::RepeatStatement repeat_stmt,
     return result;
 }
 
-auto Interpreter::visit_break_statement(Env& env) -> EvalResult {
+auto Interpreter::visit_break_statement() -> EvalResult {
+    if (this->config.trace_break) {
+        this->tracer() << "break\n";
+    }
+
     EvalResult result;
     result.do_break = true;
     return result;
@@ -453,6 +460,7 @@ auto Interpreter::visit_variable_declaration(ast::VariableDeclaration decl, Env&
         const auto& value = vallist.get(i);
 
         if (decl.local()) {
+            // the only target that is allowed for local declarations is an identifier
             std::visit(
                 overloaded{
                     [this, &env, &value](ast::Identifier ident) {
@@ -494,7 +502,9 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
 
     EvalResult result = std::visit(
         overloaded{
-            [this, &env](ast::Spread) -> EvalResult { return this->visit_vararg_expression(env); },
+            [this, &env](ast::Spread /*unused*/) -> EvalResult {
+                return this->visit_vararg_expression(env);
+            },
             [this, &env](ast::Prefix prefix) { return this->visit_prefix(prefix, env); },
             [this, &env](ast::FunctionDefinition function_definition) {
                 return this->visit_function_expression(function_definition, env);
@@ -543,11 +553,61 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
 
 auto Interpreter::visit_vararg_expression(Env& env) -> EvalResult {
     auto varargs = env.get_varargs();
+
     if (!varargs.has_value()) {
         throw InterpreterException("cannot use '...' outside a vararg function");
     }
 
+    if (this->config.trace_varargs) {
+        this->tracer() << "varargs: " << *varargs << "\n";
+    }
+
     return EvalResult(varargs.value());
+}
+
+auto FunctionImpl::operator()(const CallContext& ctx) -> CallResult {
+    // setup parameters as local variables
+    auto env = Env(this->env);
+    for (int i = 0; i < parameters.size(); ++i) {
+        env.set_local(parameters[i], ctx.arguments().get(i));
+    }
+
+    // add varargs to the environment
+    if (vararg) {
+        std::vector<Value> varargs;
+        if (parameters.size() < ctx.arguments().size()) {
+            varargs.reserve(ctx.arguments().size() - parameters.size());
+            std::copy(
+                ctx.arguments().begin() + parameters.size(), ctx.arguments().end(),
+                std::back_inserter(varargs));
+        }
+        env.set_varargs(varargs);
+    } else {
+        // explicitly unset varargs because it is only allowed to use the
+        // expression `...` directly inside the vararg function and not
+        // in nested functions
+        env.set_varargs(std::nullopt);
+    }
+
+    // execute the actual function in the correct environment
+    auto result = interpreter.visit_block_with_local_env(body, env);
+
+    auto return_value = Vallist();
+    if (result.do_return) {
+        return_value = result.values;
+    }
+    return CallResult(return_value, result.source_change);
+}
+
+auto Interpreter::visit_parameter_list(std::vector<ast::Identifier> raw_params, Env& env)
+    -> std::vector<std::string> {
+    std::vector<std::string> actual_parameters;
+    actual_parameters.reserve(raw_params.size());
+    std::transform(
+        raw_params.begin(), raw_params.end(), std::back_inserter(actual_parameters),
+        [this, &env](auto ident) { return this->visit_identifier(ident, env); });
+
+    return actual_parameters;
 }
 
 auto Interpreter::visit_function_expression(ast::FunctionDefinition function_definition, Env& env)
@@ -562,51 +622,20 @@ auto Interpreter::visit_function_expression(ast::FunctionDefinition function_def
         throw UNIMPLEMENTED("self as function parameter");
     }
 
-    std::vector<std::string> actual_parameters;
-    {
-        auto raw_params = parameters.params();
-        actual_parameters.reserve(raw_params.size());
-        std::transform(
-            raw_params.begin(), raw_params.end(), std::back_inserter(actual_parameters),
-            [this, &env](auto ident) { return this->visit_identifier(ident, env); });
-    }
+    std::vector<std::string> actual_parameters =
+        this->visit_parameter_list(parameters.params(), env);
 
     bool vararg = parameters.spread() != ast::NO_SPREAD;
 
     auto body = function_definition.body();
 
-    Value func = Function(
-        [body = std::move(body), parameters = std::move(actual_parameters), vararg,
-         this](const CallContext& ctx) -> CallResult {
-            // setup parameters as local variables
-            Env env = Env(ctx.environment().get_raw_impl().inner);
-            for (int i = 0; i < parameters.size(); ++i) {
-                env.set_local(parameters[i], ctx.arguments().get(i));
-            }
-
-            if (vararg && parameters.size() < ctx.arguments().size()) {
-                std::vector<Value> varargs;
-                varargs.reserve(ctx.arguments().size() - parameters.size());
-                std::copy(
-                    ctx.arguments().begin() + parameters.size(), ctx.arguments().end(),
-                    std::back_inserter(varargs));
-                env.set_varargs(varargs);
-            } else {
-                env.set_varargs(std::nullopt);
-            }
-
-            if (env.get_varargs()) {
-                std::cerr << "varargs: " << *env.get_varargs() << "\n";
-            }
-
-            auto result = this->visit_block_with_local_env(body, env);
-
-            auto return_value = Vallist();
-            if (result.do_return) {
-                return_value = result.values;
-            }
-            return CallResult(return_value, result.source_change);
-        });
+    Value func = Function(FunctionImpl{
+        .body = std::move(body),
+        .env = Env(env),
+        .parameters = std::move(actual_parameters),
+        .vararg = vararg,
+        .interpreter = *this,
+    });
 
     result.values = Vallist(func);
 
@@ -626,51 +655,20 @@ auto Interpreter::visit_function_statement(ast::FunctionStatement function_state
         throw UNIMPLEMENTED("self as function parameter");
     }
 
-    std::vector<std::string> actual_parameters;
-    {
-        auto raw_params = parameters.params();
-        actual_parameters.reserve(raw_params.size());
-        std::transform(
-            raw_params.begin(), raw_params.end(), std::back_inserter(actual_parameters),
-            [this, &env](auto ident) { return this->visit_identifier(ident, env); });
-    }
+    std::vector<std::string> actual_parameters =
+        this->visit_parameter_list(parameters.params(), env);
 
     bool vararg = parameters.spread() != ast::NO_SPREAD;
 
     auto body = function_statement.body();
 
-    Value func = Function(
-        [body = std::move(body), parameters = std::move(actual_parameters), vararg,
-         this](const CallContext& ctx) -> CallResult {
-            // setup parameters as local variables
-            Env env = Env(ctx.environment().get_raw_impl().inner);
-            for (int i = 0; i < parameters.size(); ++i) {
-                env.set_local(parameters[i], ctx.arguments().get(i));
-            }
-
-            if (vararg && parameters.size() < ctx.arguments().size()) {
-                std::vector<Value> varargs;
-                varargs.reserve(ctx.arguments().size() - parameters.size());
-                std::copy(
-                    ctx.arguments().begin() + parameters.size(), ctx.arguments().end(),
-                    std::back_inserter(varargs));
-                env.set_varargs(varargs);
-            } else {
-                env.set_varargs(std::nullopt);
-            }
-
-            if (env.get_varargs()) {
-                std::cerr << "varargs: " << *env.get_varargs() << "\n";
-            }
-
-            auto result = this->visit_block_with_local_env(body, env);
-
-            auto return_value = Vallist();
-            if (result.do_return) {
-                return_value = result.values;
-            }
-            return CallResult(return_value, result.source_change);
-        });
+    Value func = Function(FunctionImpl{
+        .body = std::move(body),
+        .env = Env(env),
+        .parameters = std::move(actual_parameters),
+        .vararg = vararg,
+        .interpreter = *this,
+    });
 
     auto function_name = function_statement.name();
     auto identifiers = function_name.identifier();
@@ -687,22 +685,20 @@ auto Interpreter::visit_function_statement(ast::FunctionStatement function_state
 
 auto Interpreter::visit_table_index(ast::TableIndex table_index, Env& env) -> EvalResult {
     auto _ = NodeTracer(this, table_index.raw(), "visit_table_index");
-    this->trace_enter_node(table_index.raw(), "visit_table_index");
 
     EvalResult result;
 
+    // evaluate the prefix (i.e. the part before the square brackets)
     auto prefix_result = this->visit_prefix(table_index.table(), env);
     result.combine(prefix_result);
-
     auto table = prefix_result.values.get(0);
 
+    // evaluate the index (i.e. the part inside the square brackets)
     auto index_result = this->visit_expression(table_index.index(), env);
     result.combine(index_result);
-
     auto index = index_result.values.get(0);
 
     result.values = Vallist(table[index]);
-
     return result;
 }
 
@@ -712,13 +708,13 @@ auto Interpreter::visit_field_expression(ast::FieldExpression field_expression, 
 
     EvalResult result;
 
+    // evaluate the prefix (i.e. the part before the dot)
     auto table_result = this->visit_prefix(field_expression.table_id(), env);
     result.combine(table_result);
 
     std::string key = this->visit_identifier(field_expression.property_id(), env);
 
     result.values = Vallist(table_result.values.get(0)[key]);
-
     return result;
 }
 

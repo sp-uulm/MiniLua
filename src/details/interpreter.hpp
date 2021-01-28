@@ -25,8 +25,11 @@ struct EvalResult {
      * return multiple values. For places where we only expect a single value
      * we will only take the first value of the Vallist (or nil if the list
      * is empty).
+     *
+     * NOTE: This might hold values that should not be accessible. Take care
+     * where in the interpreter you read/forward the values.
      */
-    Vallist values; // NOLINT(misc-non-private-member-variables-in-classes)
+    Vallist values;
 
     /**
      * Flags to indicate if the interpreter should break/return.
@@ -34,8 +37,8 @@ struct EvalResult {
      * This is set when encountering a ` or `return` and unset when the break
      * or return is *applied* (i.e. in a loop or when returning from a function).
      */
-    bool do_break;  // NOLINT(misc-non-private-member-variables-in-classes)
-    bool do_return; // NOLINT(misc-non-private-member-variables-in-classes)
+    bool do_break;
+    bool do_return;
 
     /**
      * Tracks optional source changes that are generated during execution.
@@ -46,8 +49,7 @@ struct EvalResult {
      * Use EvalResult::combine to easily merge multiple [EvalResults](@ref EvalResult)
      * and their source changes.
      */
-    std::optional<SourceChangeTree>
-        source_change; // NOLINT(misc-non-private-member-variables-in-classes)
+    std::optional<SourceChangeTree> source_change;
 
     EvalResult();
     explicit EvalResult(Vallist values);
@@ -121,7 +123,7 @@ private:
     auto visit_block_with_local_env(ast::Body block, Env& env) -> EvalResult;
 
     // control flow
-    auto visit_break_statement(Env& env) -> EvalResult;
+    auto visit_break_statement() -> EvalResult;
     auto visit_return_statement(ast::Return return_stmt, Env& env) -> EvalResult;
     auto visit_if_statement(ast::IfStatement if_stmt, Env& env) -> EvalResult;
     auto visit_while_statement(ast::WhileStatement while_stmt, Env& env) -> EvalResult;
@@ -162,6 +164,8 @@ private:
      * ```
      */
     auto visit_expression_list(std::vector<ast::Expression> expressions, Env& env) -> EvalResult;
+    auto visit_parameter_list(std::vector<ast::Identifier> raw_params, Env& env)
+        -> std::vector<std::string>;
 
     // helper methods for debugging/tracing
     [[nodiscard]] auto tracer() const -> std::ostream&;
@@ -201,6 +205,27 @@ private:
             std::optional<std::string> method_name = std::nullopt);
         ~NodeTracer();
     };
+
+    friend struct FunctionImpl;
+};
+
+/**
+ * The *implementation* of a lua function.
+ *
+ * This is a bit more ergonomic than creating a lambda.
+ */
+struct FunctionImpl {
+    ast::Body body;
+    /**
+     * Store a copy of the environment to correctly capture the local variables
+     * that are accessible when creating the function.
+     */
+    Env env;
+    std::vector<std::string> parameters;
+    bool vararg;
+    Interpreter& interpreter;
+
+    auto operator()(const CallContext& ctx) -> CallResult;
 };
 
 } // namespace minilua::details

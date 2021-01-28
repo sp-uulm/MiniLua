@@ -27,15 +27,15 @@ auto operator<<(std::ostream& o, const EvalResult& self) -> std::ostream& {
 }
 
 // struct InterpreterConfig
-InterpreterConfig::InterpreterConfig()
-    : target(&std::cerr), trace_nodes(false), trace_calls(false), trace_enter_block(false),
-      trace_exprlists(false) {}
+InterpreterConfig::InterpreterConfig() : target(&std::cerr) { this->all(false); }
 InterpreterConfig::InterpreterConfig(bool def) : InterpreterConfig() { this->all(def); }
 void InterpreterConfig::all(bool def) {
     this->trace_nodes = def;
     this->trace_calls = def;
     this->trace_enter_block = def;
     this->trace_exprlists = def;
+    this->trace_break = def;
+    this->trace_varargs = def;
 }
 
 // class InterpreterException
