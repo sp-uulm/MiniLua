@@ -38,6 +38,9 @@ EvalResult::EvalResult(const CallResult& call_result)
     : values(call_result.values()), do_break(false), do_return(false),
       source_change(call_result.source_change()) {}
 
+/**
+ * Helper function to combine two optional source changes.
+ */
 static auto combine_source_changes(
     const std::optional<SourceChangeTree>& lhs, const std::optional<SourceChangeTree>& rhs)
     -> std::optional<SourceChangeTree> {
