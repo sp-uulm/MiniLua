@@ -1,19 +1,22 @@
-
 #ifndef MINILUA_AST_HPP
 #define MINILUA_AST_HPP
 
 #include "MiniLua/values.hpp"
 #include <tree_sitter/tree_sitter.hpp>
 #include <variant>
-namespace minilua::details {
+
+namespace minilua::details::ast {
+
 #define INDEX_FIELD std::pair<Expression, Expression>
 #define ID_FIELD std::pair<Identifier, Expression>
+
 // Some forward declarations
 class Expression;
 class Statement;
 class Prefix;
 class Return;
 class FieldExpression;
+
 /**
  * The Body class groups a variable amount of statements together
  * the last statement of a Body might be a return_statement
@@ -49,6 +52,8 @@ public:
      * @return a Body containing the full program
      */
     auto body() -> Body;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for identifier_nodes
@@ -63,32 +68,34 @@ public:
      * @return the identifer as a string
      */
     auto str() -> std::string;
+
+    auto raw() -> ts::Node;
 };
 /**
  * this enum holds all possible BinaryOperators in lua
  */
 enum class BinOpEnum {
-    ADD,    //      +
-    SUB,    //      -
-    MUL,    //      *
-    DIV,    //      /
-    MOD,    //      %
-    POW,    //      ^
-    LT,     //       <
-    GT,     //       >
-    LEQ,    //      <=
-    GEQ,    //      >=
-    EQ,     //       ==
-    NEQ,    //      ~=
-    CONCAT, //   ..
-    AND,    //      and
-    OR,     //       or
-    BSL,    //      <<
-    BSR,    //      >>
-    BWNOT,  //    ~
-    BWOR,   //     |
-    BWAND,  //    &
-    INTDIV  //    //
+    ADD,         //      +
+    SUB,         //      -
+    MUL,         //      *
+    DIV,         //      /
+    MOD,         //      %
+    POW,         //      ^
+    LT,          //       <
+    GT,          //       >
+    LEQ,         //      <=
+    GEQ,         //      >=
+    EQ,          //       ==
+    NEQ,         //      ~=
+    CONCAT,      //   ..
+    AND,         //      and
+    OR,          //       or
+    SHIFT_LEFT,  //      <<
+    SHIFT_RIGHT, //      >>
+    BIT_XOR,     //    ~
+    BIT_OR,      //     |
+    BIT_AND,     //    &
+    INT_DIV      //    //
 };
 /**
  * class for binary_operation nodes
@@ -113,6 +120,8 @@ public:
      * @return the operator of the operation
      */
     auto op() -> BinOpEnum;
+
+    auto raw() -> ts::Node;
 };
 /**
  * This enum holds all unary Operators of lua
@@ -141,6 +150,8 @@ public:
      * @return the operand of
      */
     auto exp() -> Expression;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for loop_expression  nodes
@@ -171,6 +182,8 @@ public:
      * @return the end value of the loop variable
      */
     auto end() -> Expression;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for for_statement nodes
@@ -190,6 +203,8 @@ public:
      * @return a Body containing all statements inside the loop
      */
     auto body() -> Body;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for in_loop_expression nodes
@@ -209,6 +224,8 @@ public:
      * @return the loop expressions
      */
     auto loop_exps() -> std::vector<Expression>;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for for_in_statement nodes
@@ -228,6 +245,8 @@ public:
      * @return the corresponding loop expression
      */
     auto loop_exp() -> InLoopExpression;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for while_statement nodes
@@ -248,6 +267,8 @@ public:
      * @return a body with all statements inside the loop
      */
     auto body() -> Body;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for repeat_statement nodes
@@ -268,6 +289,8 @@ public:
      * @return a body with all statements inside the loop
      */
     auto body() -> Body;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for else_if nodes
@@ -287,6 +310,8 @@ public:
      * @return an expression that holds the conditional expression of the else_if_statement
      */
     auto cond() -> Expression;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for else nodes
@@ -301,6 +326,8 @@ public:
      * @return a body containing the statements in the else block
      */
     auto body() -> Body;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for if_statement nodes
@@ -331,6 +358,8 @@ public:
      *          otherwise an empty optional
      */
     auto else_() -> std::optional<Else>;
+
+    auto raw() -> ts::Node;
 };
 /**
  * a class for return_statement nodes
@@ -346,12 +375,15 @@ public:
      *          the vector can be empty
      */
     auto explist() -> std::vector<Expression>;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for table_index nodes
  */
 class TableIndex {
     ts::Node table_index;
+
 public:
     TableIndex(ts::Node);
     /**
@@ -364,6 +396,8 @@ public:
      * @return an expression that eveluates to the index
      */
     auto index() -> Expression;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for variable_declarator nodes
@@ -378,6 +412,8 @@ public:
      * @return a variant containing the class this variable declarator gets resolved to
      */
     auto var() -> std::variant<Identifier, FieldExpression, TableIndex>;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for variable_declaration and local_variable_declaration nodes
@@ -385,6 +421,7 @@ public:
 class VariableDeclaration {
     ts::Node var_dec;
     bool local_dec;
+
 public:
     VariableDeclaration(ts::Node node);
     /**
@@ -403,6 +440,8 @@ public:
      *          there should always be at least one element in it
      */
     auto declarations() -> std::vector<Expression>;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for field_expression nodes
@@ -422,6 +461,8 @@ public:
      * @return an Identifier for a property of the Table
      */
     auto property_id() -> Identifier;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for do_statement nodes
@@ -436,6 +477,8 @@ public:
      * @return a body containing all statements of the do block
      */
     auto body() -> Body;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for go_to_statements
@@ -450,6 +493,8 @@ public:
      * @return the Identifier of the Label that is specified
      */
     auto label() -> Identifier;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for label_statements
@@ -464,6 +509,8 @@ public:
      * @return the identifier of this label
      */
     auto id() -> Identifier;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for function_name nodes
@@ -489,6 +536,8 @@ public:
      * the function-/method- name if the function is a method
      */
     auto method() -> std::optional<Identifier>;
+
+    auto raw() -> ts::Node;
 };
 /**
  * an enum defining the different positions a Spread can occur in the parameters of a method
@@ -523,6 +572,8 @@ public:
      *          SpreadPos::NO_SPREAD if there is no spread amongst the parameters
      */
     auto spread() -> SpreadPos;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for function_definition nodes
@@ -542,6 +593,8 @@ public:
      * @return the parameters of this function
      */
     auto parameters() -> Parameters;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for function_statements
@@ -566,6 +619,8 @@ public:
      * @return a Parameter class containing all information about the Parameters of this function
      */
     auto parameters() -> Parameters;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for local_function_statements
@@ -578,6 +633,8 @@ public:
     auto name() -> Identifier;
     auto body() -> Body;
     auto parameters() -> Parameters;
+
+    auto raw() -> ts::Node;
 };
 class FunctionCall {
     ts::Node func_call;
@@ -599,6 +656,8 @@ public:
      */
     auto method() -> std::optional<Identifier>;
     auto args() -> std::vector<Expression>;
+
+    auto raw() -> ts::Node;
 };
 enum GV { _G, _VERSION };
 class GlobalVariable {
@@ -611,6 +670,8 @@ public:
      * @return the Type of this Global Variable
      */
     auto type() -> GV;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for field_nodes
@@ -629,6 +690,8 @@ public:
      * @return a variant containing the right format for the field
      */
     auto content() -> std::variant<INDEX_FIELD, ID_FIELD, Expression>;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for table nodes
@@ -643,6 +706,8 @@ public:
      * @return a vector containing all fields of the table
      */
     auto fields() -> std::vector<Field>;
+
+    auto raw() -> ts::Node;
 };
 // a few empty classes that are just used as additional return types
 class Spread {};
@@ -663,6 +728,8 @@ public:
      */
     auto options()
         -> std::variant<Self, GlobalVariable, VariableDeclarator, FunctionCall, Expression>;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for expression nodes
@@ -679,6 +746,8 @@ public:
     auto options() -> std::variant<
         Spread, Prefix, Next, FunctionDefinition, Table, BinaryOperation, UnaryOperation,
         minilua::Value, Identifier>;
+
+    auto raw() -> ts::Node;
 };
 
 class Statement {
@@ -691,10 +760,12 @@ public:
      * @return a variant containing the class this statement gets resolved to
      */
     auto options() -> std::variant<
-        VariableDeclaration, DoStatement, IfStatement, WhileStatement,
-        RepeatStatement, ForStatement, ForInStatement, GoTo, Break, Label, FunctionStatement,
-        LocalFunctionStatement, FunctionCall, Expression>;
+        VariableDeclaration, DoStatement, IfStatement, WhileStatement, RepeatStatement,
+        ForStatement, ForInStatement, GoTo, Break, Label, FunctionStatement, LocalFunctionStatement,
+        FunctionCall, Expression>;
+
+    auto raw() -> ts::Node;
 };
-} // namespace minilua::details
+} // namespace minilua::details::ast
 
 #endif // MINILUA_AST_HPP

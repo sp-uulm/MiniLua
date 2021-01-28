@@ -113,7 +113,23 @@ TEST_CASE("unit_tests lua files") {
     for (const auto& file : test_files) {
         std::string path = "../luaprograms/unit_tests/" + file;
         DYNAMIC_SECTION("File: " << path) {
-            const std::string program = read_input_from_file(path);
+            // TODO remove once comments work
+            std::string program = read_input_from_file(path);
+
+            while (true) {
+                auto start_pos = program.find("--");
+                if (start_pos == std::string::npos) {
+                    break;
+                }
+
+                auto end_pos = program.find('\n', start_pos);
+                if (end_pos == std::string::npos) {
+                    end_pos = program.size() - 1;
+                }
+
+                auto count = end_pos - start_pos + 1;
+                program.replace(start_pos, count, "");
+            }
 
             minilua::Interpreter interpreter;
             interpreter.environment().add_default_stdlib();

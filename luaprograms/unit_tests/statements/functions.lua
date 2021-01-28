@@ -53,4 +53,17 @@ assert(f5(2, 4) == 6)
 -- assert(a5 == 4)
 -- f5(1)
 -- assert(a5 == 1)
---
+
+function f6(s)
+    assert(type(s) == "string")
+end
+f6"hi"
+f6'hi'
+f6[[hi]]
+(f6("hi"))
+;(f6("hi"))
+
+function f7(t)
+    assert(t.key == 42)
+end
+f7{key = 42}
