@@ -34,10 +34,12 @@ class Value;
  * You can use a Vallist in destructuring assignments. You have to specify the
  * number of values you want. If the number is lower than the amount of values
  * it will simply return the first values. If the number is higher than the
- * amount of values it will return references to a Nil value for the remaining
- * values. Note: This will actually return 'std::reference_wrapper's because
+ * amount of values it will return references to a `Nil` value for the remaining
+ * values.
+ *
+ * NOTE: This will actually return 'std::reference_wrapper's because
  * it's not possible to put references inside a tuple. That means that you have
- * to call 'get' on the values.
+ * to call `get` on the values to use them:
  *
  * ```
  * auto& [one, two, three] = vallist.tuple<3>();
@@ -45,7 +47,10 @@ class Value;
  * two.get();
  * ```
  *
- * You can iterate over a Vallist and you can get one element by index using 'get'.
+ * You can iterate over a Vallist and you can get one element by index using `Vallist::get`.
+ * Iteration only works for the exact number of elements (like for `std::vector`),
+ * so you need to be carful not to dereference a pointer into an empty Vallist).
+ * `get` will return `Nil` values if the element you request is not in the Vallist.
  */
 class Vallist {
     struct Impl;
@@ -106,9 +111,9 @@ public:
      * const auto& [val1, val2, val3] = vallist.tuple<3>();
      * ```
      *
-     * NOTE: The values will be 'std::reference_wrapper's becuase it's not
-     * possible to put references in a tuple. You have to call 'get' on the
-     * values before using it.
+     * NOTE: The values will be `std::reference_wrapper`s becuase it's not
+     * possible to put references in a tuple. You have to call `get` on the
+     * values before using them.
      */
     template <std::size_t N> [[nodiscard]] auto tuple() const {
         return tuple(std::make_index_sequence<N>{});
@@ -323,12 +328,16 @@ public:
     [[nodiscard]] auto cend() const -> const_iterator;
 
     [[nodiscard]] auto to_literal() const -> std::string;
+
     /**
-     * @brief next returns the next index of the table and its associated value after index. If
-     * there is no value at the index an error is thrown.
-     * @param key is the index you want to get the next element. Key is the index
-     * @return nil when called with the last index or an the empty table. Else it returns the next
-     * index and its associated value after the value at index.
+     * Next returns the next index of the table and its associated value after index.
+     *
+     * If there is no value at the index an exception is thrown.
+     *
+     * @param key The index you want to get the next element.
+     *
+     * @return An empty `Vallist` when called with the last index or on an empty
+     * table. Else it returns the next index and its associated value.
      */
     [[nodiscard]] auto next(const Value& key) const -> Vallist;
 
@@ -338,7 +347,7 @@ public:
 
     friend struct std::hash<Table>;
 
-    // TODO maybe return proxy "entry" type
+    // TODO maybe return proxy "entry" type to avoid unnecessary Nil values
     auto operator[](const Value&) -> Value&;
     auto operator[](const Value&) const -> const Value&;
 
@@ -353,10 +362,10 @@ struct UnaryOrigin;
  *
  * Contains the arguments and the environment.
  *
- * The 'CallContext' and the 'Environment' should not be copied and stored
+ * The `CallContext` and the `Environment` should not be copied and stored
  * somewhere that outlives the function call. Because the environment may be
  * freed after the call to the function ends. You can however safely store any
- * Values or a copy of the arguments.
+ * `Value`s or a copy of the arguments.
  */
 class CallContext {
     struct Impl;
@@ -392,15 +401,20 @@ public:
     [[nodiscard]] auto call_location() const -> std::optional<Range>;
 
     /**
-     * Returns a reference to the global environment.
-     * You can't access local variables with this.
+     * Returns a reference to the environment.
+     *
+     * For `Function`s created in C++ you can only access the global
+     * environment.
+     *
+     * For functions created in lua you can access the global environment and
+     * local variables that were in scope when creating the function.
      */
     [[nodiscard]] auto environment() const -> Environment&;
 
     /**
-     * Returns the value of a global variable accessible from the function.
+     * Returns the value of a variable accessible from the function.
      *
-     * Returns Nil if the variable is not accessible or does not exist.
+     * Returns `Nil` if the variable is not accessible or does not exist.
      */
     [[nodiscard]] auto get(const std::string& name) const -> Value;
 
@@ -410,7 +424,7 @@ public:
     [[nodiscard]] auto arguments() const -> const Vallist&;
 
     /**
-     * Convenience methods for writing functions one or two numeric arguments
+     * Convenience methods for writing functions with one or two numeric arguments
      * that should track the origin (e.g. sqrt or pow).
      *
      * Usage:
@@ -461,30 +475,28 @@ public:
      * Get the source change.
      */
     [[nodiscard]] auto source_change() const -> const std::optional<SourceChangeTree>&;
-
-    // friend auto operator<<(std::ostream&, const CallResult&) -> std::ostream&;
 };
 
 auto operator==(const CallResult&, const CallResult&) -> bool;
 auto operator<<(std::ostream&, const CallResult&) -> std::ostream&;
 
 /**
- * A function (in lua or implemented natively).
+ * A function (in lua or implemented natively in C++).
  *
  * Notes for implementing native functions:
  *
  * You get a `CallContext` as only argument. You can retrieve the actual
  * arguments and the global environment from the context.
  *
- * When using lua `Value`s you can use the normal c++ operators. Note that `^`
- * performs the pow operation like in lua (and not xor like usually in c++).
- * These operators will track the origin and can be later forces to a different
+ * When using lua `Value`s you can use the normal C++ operators. Note that `^`
+ * performs the pow operation like in lua (and not xor like usually in C++).
+ * These operators will track the origin and can be later forced to a different
  * value.
  *
  * Care must be taken when there are control flow constructs in your native
  * function (e.g. `if`, `while`, ...). Because this might break the source change
- * mechanism if you use operators on Values. If you use control flow constructs
- * you have to remove the origin from the returned Value with `Value::remove_origin`.
+ * mechanism if you use operators on `Value`s. If you use control flow constructs
+ * you should remove the origin from the returned Value with `Value::remove_origin`.
  */
 class Function {
     using FnType = CallResult(CallContext);
@@ -566,17 +578,28 @@ template <> struct hash<minilua::Function> {
 
 namespace minilua {
 
+/**
+ * Default origin for `Value`s.
+ */
 struct NoOrigin {};
 auto operator==(const NoOrigin&, const NoOrigin&) noexcept -> bool;
 auto operator!=(const NoOrigin&, const NoOrigin&) noexcept -> bool;
 auto operator<<(std::ostream&, const NoOrigin&) -> std::ostream&;
 
+/**
+ * Can be used for externally produced values but is mainly a placeholder.
+ *
+ * TODO future use could include allowing to specify a function to change the
+ * external value (like it is possible for values produced from literals).
+ */
 struct ExternalOrigin {};
 auto operator==(const ExternalOrigin&, const ExternalOrigin&) noexcept -> bool;
 auto operator!=(const ExternalOrigin&, const ExternalOrigin&) noexcept -> bool;
 auto operator<<(std::ostream&, const ExternalOrigin&) -> std::ostream&;
 
-// Value was created from a literal in code.
+/**
+ * Origin for a Value that was created from a literal in code.
+ */
 struct LiteralOrigin {
     Range location;
 };
@@ -585,7 +608,10 @@ auto operator==(const LiteralOrigin&, const LiteralOrigin&) noexcept -> bool;
 auto operator!=(const LiteralOrigin&, const LiteralOrigin&) noexcept -> bool;
 auto operator<<(std::ostream&, const LiteralOrigin&) -> std::ostream&;
 
-// Value was created in a binary operation (or some functions with two arguments) using lhs and rhs.
+/**
+ * Origin for a Value that was created in a binary operation
+ * (or some functions with two arguments) using lhs and rhs.
+ */
 struct BinaryOrigin {
     using ReverseFn = std::optional<SourceChangeTree>(const Value&, const Value&, const Value&);
 
@@ -600,7 +626,10 @@ auto operator==(const BinaryOrigin&, const BinaryOrigin&) noexcept -> bool;
 auto operator!=(const BinaryOrigin&, const BinaryOrigin&) noexcept -> bool;
 auto operator<<(std::ostream&, const BinaryOrigin&) -> std::ostream&;
 
-// Value was created in a unary operation (or some functions with one argument) using val.
+/**
+ * Origin for a Value that was created in a unary operation
+ * (or some functions with one argument) using val.
+ */
 struct UnaryOrigin {
     using ReverseFn = std::optional<SourceChangeTree>(const Value&, const Value&);
 
@@ -616,6 +645,13 @@ auto operator<<(std::ostream&, const UnaryOrigin&) -> std::ostream&;
 
 /**
  * The origin of a value.
+ *
+ * Defaults to `NoOrigin`.
+ *
+ * Using `BinaryOrigin` and `UnaryOrigin` this build a tree to track the changes
+ * made to a Value while running a lua program.
+ *
+ * You can manually walk the tree using the variant returned by `raw`.
  */
 class Origin {
 public:
@@ -653,9 +689,13 @@ auto operator<<(std::ostream&, const Origin&) -> std::ostream&;
 
 namespace std {
 
-// behaves like std::get(std::variant) but only accepts types as template parameter
+/**
+ * Behaves like `std::get(std::variant)` but only accepts types as template parameter.
+ */
 template <typename T> auto get(minilua::Origin& origin) -> T& { return std::get<T>(origin.raw()); }
-
+/**
+ * Behaves like `std::get(std::variant)` but only accepts types as template parameter.
+ */
 template <typename T> auto get(const minilua::Origin& origin) -> const T& {
     return std::get<T>(origin.raw());
 }

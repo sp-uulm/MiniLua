@@ -38,6 +38,13 @@ struct EvalResult {
 
 auto operator<<(std::ostream&, const EvalResult&) -> std::ostream&;
 
+/**
+ * Configuration of the interpreter.
+ *
+ * This controls the debug logging.
+ *
+ * The target defaults to `std::cerr`.
+ */
 struct InterpreterConfig {
     std::ostream* target;
     bool trace_nodes;
