@@ -502,8 +502,26 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
             [this, &env](ast::UnaryOperation unary_op) {
                 return this->visit_unary_operation(unary_op, env);
             },
-            [&node](Value&& value) {
+            [&node](ast::Literal literal) {
                 EvalResult result;
+                Value value;
+                switch(literal.type()){
+                    case ast::LiteralType::TRUE:
+                        value = Value(Bool(true));
+                        break;
+                    case ast::LiteralType::FALSE:
+                        value = Value(Bool(false));
+                        break;
+                    case ast::LiteralType::NIL:
+                        value = Value(Nil());
+                        break;
+                    case ast::LiteralType::NUMBER:
+                        value = parse_number_literal(literal.content());
+                        break;
+                    case ast::LiteralType::STRING:
+                        value = parse_string_literal(literal.content());
+                        break;
+                }
                 result.value =
                     value.with_origin(LiteralOrigin{.location = convert_range(node.range())});
                 return result;

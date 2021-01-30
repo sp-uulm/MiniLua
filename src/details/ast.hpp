@@ -19,6 +19,15 @@ class FieldExpression;
 using IndexField = std::pair<Expression, Expression>;
 using IdentifierField = std::pair<Identifier, Expression>;
 
+enum class LiteralType{TRUE,FALSE,NIL,NUMBER,STRING};
+class Literal {
+    std::string literal_content;
+    LiteralType literal_type;
+public:
+    Literal(LiteralType,std::string);
+    auto content() const -> std::string;
+    auto type() const -> LiteralType;
+};
 /**
  * The Body class groups a variable amount of statements together
  * the last statement of a Body might be a return_statement
@@ -728,7 +737,7 @@ public:
      */
     auto options() const -> std::variant<
         Spread, Prefix, FunctionDefinition, Table, BinaryOperation, UnaryOperation,
-        minilua::Value, Identifier>;
+        Literal, Identifier>;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
 };
@@ -748,15 +757,6 @@ public:
         FunctionCall, Expression>;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
-};
-enum class LiteralType{TRUE,FALSE,NIL,NUMBER,STRING};
-class Literal {
-    std::string literal_content;
-    LiteralType literal_type;
-public:
-    Literal(LiteralType,std::string);
-    auto content() const -> std::string;
-    auto type() const -> LiteralType;
 };
 } // namespace minilua::details::ast
 

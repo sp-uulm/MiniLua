@@ -837,7 +837,7 @@ Expression::Expression(ts::Node node) : exp(node) {
 }
 auto Expression::options() const-> std::variant<
     Spread, Prefix, FunctionDefinition, Table, BinaryOperation, UnaryOperation,
-    minilua::Value, Identifier> {
+    Literal, Identifier> {
     if (this->exp.type_id() == ts::NODE_SPREAD) {
         return Spread();
     } else if (this->exp.type_id() == ts::NODE_FUNCTION_DEFINITION) {
@@ -849,15 +849,15 @@ auto Expression::options() const-> std::variant<
     } else if (this->exp.type_id() == ts::NODE_UNARY_OPERATION) {
         return UnaryOperation(this->exp);
     } else if (this->exp.type_id() == ts::NODE_STRING) {
-        return parse_string_literal(this->exp.text());
+        return Literal(LiteralType::STRING,this->exp.text());
     } else if (this->exp.type_id() == ts::NODE_NUMBER) {
-        return parse_number_literal(this->exp.text());
+        return Literal(LiteralType::NUMBER,this->exp.text());
     } else if (this->exp.type_id() == ts::NODE_NIL) {
-        return minilua::Value(Value::Type(Nil()));
+        return Literal(LiteralType::NIL,this->exp.text());
     } else if (this->exp.type_id() == ts::NODE_TRUE) {
-        return minilua::Value(true);
+        return Literal(LiteralType::TRUE,this->exp.text());
     } else if (this->exp.type_id() == ts::NODE_FALSE) {
-        return minilua::Value(false);
+        return Literal(LiteralType::FALSE,this->exp.text());
     } else if (this->exp.type_id() == ts::NODE_IDENTIFIER) {
         return Identifier(this->exp);
     } else if (

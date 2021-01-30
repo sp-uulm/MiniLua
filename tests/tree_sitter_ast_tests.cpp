@@ -128,22 +128,17 @@ TEST_CASE("expressions", "[tree-sitter]") {
     }
 
     auto nil = exps[25].options();
-    CHECK(holds_alternative<Value>(nil));
-    auto* temp = get_if<Value>(&nil);
-    CHECK(temp->is_nil());
+    CHECK(holds_alternative<Literal>(nil));
+    auto* temp = get_if<Literal>(&nil);
+    CHECK(temp->type() == LiteralType::NIL);
     auto _true = exps[26].options();
-    CHECK(holds_alternative<Value>(_true));
-    temp = get_if<Value>(&_true);
-    CHECK(temp->is_bool());
-    CHECK(temp == Value(true));
-    auto* b = get_if<Bool>(&(temp->raw()));
-    CHECK(b->operator bool());
+    CHECK(holds_alternative<Literal>(_true));
+    temp = get_if<Literal>(&_true);
+    CHECK(temp->type() == LiteralType::TRUE);
     auto _false = exps[27].options();
-    CHECK(holds_alternative<Value>(_false));
-    temp = get_if<Value>(&_false);
-    CHECK(temp->is_bool());
-    b = get_if<Bool>(&(temp->raw()));
-    CHECK(!(b->operator bool()));
+    CHECK(holds_alternative<Literal>(_false));
+    temp = get_if<Literal>(&_false);
+    CHECK(temp->type() == LiteralType::FALSE);
     auto id = exps[28].options();
     CHECK(holds_alternative<Identifier>(id));
     Identifier temp2 = *get_if<Identifier>(&id);
@@ -261,13 +256,13 @@ TEST_CASE("if_statements", "[tree-sitter]") {
     CHECK(holds_alternative<Identifier>(ifs[0].elseifs()[0].condition().options()));
     CHECK(ifs[0].elseifs()[0].body().statements().size() == 1);
     CHECK(!ifs[0].elseifs()[0].body().return_statement().has_value());
-    CHECK(holds_alternative<Value>(ifs[0].elseifs()[1].condition().options()));
+    CHECK(holds_alternative<Literal>(ifs[0].elseifs()[1].condition().options()));
     CHECK(ifs[0].elseifs()[1].body().statements().size() == 2);
     CHECK(!ifs[0].elseifs()[1].body().return_statement().has_value());
     CHECK(ifs[0].else_statement().has_value());
     CHECK(ifs[0].else_statement().value().body().statements().empty());
     CHECK(ifs[0].else_statement().value().body().return_statement().has_value());
-    CHECK(std::holds_alternative<Value>(
+    CHECK(std::holds_alternative<Literal>(
         ifs[0].else_statement().value().body().return_statement().value().exp_list()[0].options()));
     CHECK(ifs[1].body().statements().empty());
     CHECK(ifs[1].body().return_statement().has_value());
@@ -281,7 +276,7 @@ TEST_CASE("if_statements", "[tree-sitter]") {
     CHECK(ifs[2].else_statement().has_value());
     CHECK(ifs[2].else_statement().value().body().statements().size() == 1);
     CHECK(!ifs[2].else_statement().value().body().return_statement().has_value());
-    CHECK(holds_alternative<Value>(ifs[3].condition().options()));
+    CHECK(holds_alternative<Literal>(ifs[3].condition().options()));
     CHECK(ifs[3].body().statements().empty());
     CHECK(!ifs[3].body().return_statement().has_value());
     CHECK(ifs[3].elseifs().empty());
@@ -335,21 +330,15 @@ TEST_CASE("for_statements", "[tree-sitter]") {
     CHECK(!fors[0].body().return_statement().has_value());
     CHECK(fors[0].loop_expression().variable().string() == "i"s);
     auto start1_opt = fors[0].loop_expression().start().options();
-    CHECK(holds_alternative<Value>(start1_opt));
-    auto* start1 = get_if<Value>(&start1_opt);
-    CHECK(start1->is_number());
-    CHECK(holds_alternative<Number>(start1->raw()));
-    if (auto* num1 = get_if<minilua::Number>(&start1->raw())) {
-        CHECK(num1->value == 1);
-    }
+    CHECK(holds_alternative<Literal>(start1_opt));
+    auto* start1 = get_if<Literal>(&start1_opt);
+    CHECK(start1->type() == LiteralType::NUMBER);
+    CHECK(start1->content() == "1"s);
     auto end1_opt = fors[0].loop_expression().end().options();
-    CHECK(holds_alternative<Value>(end1_opt));
-    auto* end1 = get_if<Value>(&end1_opt);
-    CHECK(end1->is_number());
-    CHECK(holds_alternative<Number>(end1->raw()));
-    if (auto* num2 = get_if<minilua::Number>(&end1->raw())) {
-        CHECK(num2->value == 2);
-    }
+    CHECK(holds_alternative<Literal>(end1_opt));
+    auto* end1 = get_if<Literal>(&end1_opt);
+    CHECK(end1->type() == LiteralType::NUMBER);
+    CHECK(end1->content() == "2"s);
     CHECK(!fors[0].loop_expression().step().has_value());
     // 2nd loop just to check if the empty body works fine here
     CHECK(fors[1].body().statements().empty());
@@ -368,11 +357,10 @@ TEST_CASE("for_statements", "[tree-sitter]") {
     auto step3 = get_if<Identifier>(&step3_opt);
     CHECK(step3->string() == "b"s);
     auto end3_opt = fors[2].loop_expression().end().options();
-    CHECK(holds_alternative<Value>(end3_opt));
-    auto end3 = get_if<Value>(&end3_opt);
-    CHECK(end3->is_number());
-    auto end3_num = get_if<Number>(&end3->raw());
-    CHECK(end3_num->value == 42);
+    CHECK(holds_alternative<Literal>(end3_opt));
+    auto end3 = get_if<Literal>(&end3_opt);
+    CHECK(end3->type() == LiteralType::NUMBER);
+    CHECK(end3->content() == "42"s);
 }
 TEST_CASE("for_in_statements", "[tree-sitter]") {
     ts::Parser parser;
@@ -602,7 +590,7 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     CHECK(var_dec1->declarations().size() == 1);
     CHECK(var_dec1->declarators().size() == 1);
     CHECK(std::holds_alternative<Identifier>(var_dec1->declarators()[0].options()));
-    CHECK(std::holds_alternative<Value>(var_dec1->declarations()[0].options()));
+    CHECK(std::holds_alternative<Literal>(var_dec1->declarations()[0].options()));
     // 2nd statement
     auto opt2 = stats[1].options();
     CHECK(std::holds_alternative<VariableDeclaration>(opt2));
@@ -653,8 +641,8 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     CHECK(var_dec5->local());
     CHECK(var_dec5->declarations().size() == 2);
     CHECK(var_dec5->declarators().size() == 2);
-    CHECK(std::holds_alternative<Value>(var_dec5->declarations()[0].options()));
-    CHECK(std::holds_alternative<Value>(var_dec5->declarations()[1].options()));
+    CHECK(std::holds_alternative<Literal>(var_dec5->declarations()[0].options()));
+    CHECK(std::holds_alternative<Literal>(var_dec5->declarations()[1].options()));
     CHECK(std::holds_alternative<Identifier>(var_dec5->declarators()[0].options()));
     auto id5_opt = var_dec5->declarators()[0].options();
     auto id5 = std::get_if<Identifier>(&id5_opt);
@@ -735,13 +723,11 @@ TEST_CASE("table_statements", "[tree-sitter]") {
     CHECK(std::holds_alternative<IdentifierField>(field1_opt));
     auto field1 = std::get_if<IdentifierField>(&field1_opt);
     CHECK(field1->first.string() == "field1"s);
-    CHECK(std::holds_alternative<Value>(field1->second.options()));
+    CHECK(std::holds_alternative<Literal>(field1->second.options()));
     auto content1_opt = field1->second.options();
-    auto content1 = std::get_if<Value>(&content1_opt);
-    CHECK(content1->is_string());
-    auto raw = content1->raw();
-    auto content1_str = get_if<String>(&raw);
-    CHECK(content1_str->value == "name"s);
+    auto content1 = std::get_if<Literal>(&content1_opt);
+    CHECK(content1->type() == LiteralType::STRING);
+    CHECK(content1->content() == "\"name\""s);
     auto field2_opt = fields[1].content();
     CHECK(std::holds_alternative<IndexField>(field2_opt));
     auto field2 = std::get_if<IndexField>(&field2_opt);
@@ -797,11 +783,11 @@ TEST_CASE("function_calls", "[tree-sitter]") {
     CHECK(func_calls[2].args().empty());
 
     CHECK(func_calls[3].args().size() == 1);
-    CHECK(std::holds_alternative<Value>(func_calls[3].args()[0].options()));
+    CHECK(std::holds_alternative<Literal>(func_calls[3].args()[0].options()));
     auto opt4 = func_calls[3].args()[0].options();
-    auto str = std::get_if<Value>(&opt4);
-    CHECK(str->is_string());
-
+    auto str = std::get_if<Literal>(&opt4);
+    CHECK(str->type() == LiteralType::STRING);
+    CHECK(str->content() == "\"abc\"");
     CHECK(func_calls[4].args().size() == 1);
     CHECK(std::holds_alternative<Table>(func_calls[4].args()[0].options()));
     auto opt5 = func_calls[4].args()[0].options();
