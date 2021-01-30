@@ -443,6 +443,7 @@ auto CallContext::arguments() const -> const Vallist& { return impl->args; }
     -> std::tuple<double, double, BinaryOrigin> {
     auto arg1 = this->arguments().get(0);
     auto arg2 = this->arguments().get(1);
+
     auto num1 = std::get<minilua::Number>(arg1).value;
     auto num2 = std::get<minilua::Number>(arg2).value;
 
@@ -790,6 +791,48 @@ auto Value::operator[](const Value& index) const -> const Value& {
 
 Value::operator bool() const {
     return std::visit([](const auto& value) { return bool(value); }, this->impl->val);
+}
+
+static std::regex to_number_pattern(
+    R"((\s*-?\d+\.?\d*)|(\s*-?0[xX][\dA-Fa-f]+\.?[\dA-Fa-f]*)|(\s*-?\d+\.?\d*[eE]-?\d+))",
+    std::regex::ECMAScript | std::regex::optimize);
+
+auto Value::to_number(Value base, std::optional<Range> location) const -> Value {
+    // TODO add origin with location
+    return std::visit(
+        overloaded{
+            [](const String& number, const Nil& /*nil*/) -> Value {
+                // if the string matches the expected format we parse it other return nil
+                if (std::regex_match(number.value, to_number_pattern)) {
+                    return std::stod(number.value);
+                } else {
+                    return Nil();
+                }
+            },
+            [](const String& number, const Number& base) -> Value {
+                // the base has to be between 2 adn 36 (because numbers with other bases
+                // are not representable strings)
+                if (base < 2 || base > 36) { // NOLINT
+                    throw std::runtime_error(
+                        "base is to high or to low. base must be >= 2 and <= 36");
+                } else {
+                    std::regex pattern_number(R"(\s*-?[a-zA-Z0-9]+)");
+                    // number must be interpreted as an integer numeral in that base
+                    if (std::regex_match(number.value, pattern_number)) {
+                        try {
+                            return std::stoi(number.value, nullptr, base.value);
+                        } catch (const std::invalid_argument& /*unused*/) {
+                            // invalid base returns nil
+                            return Nil();
+                        }
+                    } else {
+                        return Nil();
+                    }
+                }
+            },
+            [](const Number& number, const Nil& /*unused*/) -> Value { return number; },
+            [](const auto& /*a*/, const auto& /*b*/) -> Value { return Nil(); }},
+        this->raw(), base.raw());
 }
 
 template <typename Fn, typename FnRev>

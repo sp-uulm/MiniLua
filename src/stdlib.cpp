@@ -74,48 +74,7 @@ auto to_number(const CallContext& ctx) -> Value {
     auto number = ctx.arguments().get(0);
     auto base = ctx.arguments().get(1);
 
-    return std::visit(
-        overloaded{
-            [](const String& number, Nil /*nil*/) -> Value {
-                // Yes: parse number to double
-                // No: return Nil
-                std::regex pattern_number(R"(\s*-?\d+\.?\d*)");
-                std::regex pattern_hex(R"(\s*-?0[xX][\dA-Fa-f]+\.?[\dA-Fa-f]*)");
-                std::regex pattern_exp(R"(\s*-?\d+\.?\d*[eE]-?\d+)");
-
-                if (std::regex_match(number.value, pattern_number) ||
-                    std::regex_match(number.value, pattern_hex) ||
-                    std::regex_match(number.value, pattern_exp)) {
-                    return std::stod(number.value);
-                } else {
-                    return Nil();
-                }
-            },
-            [](const String& number, Number base) -> Value {
-                // Interval of base, with strings only numbers between base 2 and base 36 are
-                // possible to show
-                if (base < 2 || base > 36) { // NOLINT
-                    throw std::runtime_error(
-                        "base is to high or to low. base must be >= 2 and <= 36");
-                } else {
-                    std::regex pattern_number(R"(\s*-?[a-zA-Z0-9]+)");
-                    // number must be interpreted as an integer numeral in that base
-                    if (std::regex_match(number.value, pattern_number)) {
-                        try {
-                            return std::stoi(number.value, nullptr, base.value);
-                        } catch (const std::invalid_argument& /*unused*/) {
-                            // invalid base returns nil
-                            return Nil();
-                        }
-
-                    } else {
-                        return Nil();
-                    }
-                }
-            },
-            [](Number number, Nil /*unused*/) -> Value { return number; },
-            [](auto /*a*/, auto /*b*/) -> Value { return Nil(); }},
-        number.raw(), base.raw());
+    return number.to_number(base, ctx.call_location());
 }
 
 auto type(const CallContext& ctx) -> Value {

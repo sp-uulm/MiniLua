@@ -737,7 +737,7 @@ public:
 
     [[nodiscard]] auto remove_origin() const -> Value;
     [[nodiscard]] auto with_origin(Origin new_origin) const -> Value;
-    auto type() const -> std::string;
+    [[nodiscard]] auto type() const -> std::string;
 
     /**
      * Forces this value to become 'new_value'. Does not actually change the
@@ -764,6 +764,18 @@ public:
     auto operator[](const Value&) const -> const Value&;
 
     explicit operator bool() const;
+
+    /**
+     * Converts the value to a `Number`.
+     *
+     * If the value is already a number we return it. If it is a string we try to
+     * parse it. In all other cases and if parsing fails we return `Nil`.
+     *
+     * If you provide a `base` the value has to be a string representing an integer
+     * in that base. Otherwise `Nil` is returned.
+     */
+    [[nodiscard]] auto
+    to_number(Value base = Nil(), std::optional<Range> location = std::nullopt) const -> Value;
 
     /*
      * Source location tracking versions of the c++ operators.
