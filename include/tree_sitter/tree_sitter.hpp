@@ -292,7 +292,6 @@ const Language LUA_LANGUAGE = Language(tree_sitter_lua());
 const TypeId NODE_BREAK_STATEMENT = LUA_LANGUAGE.node_type_id("break_statement", true);
 const TypeId NODE_SPREAD = LUA_LANGUAGE.node_type_id("spread", true);
 const TypeId NODE_SELF = LUA_LANGUAGE.node_type_id("self", true);
-const TypeId NODE_NEXT = LUA_LANGUAGE.node_type_id("next", true);
 const TypeId NODE_NUMBER = LUA_LANGUAGE.node_type_id("number", true);
 const TypeId NODE_NIL = LUA_LANGUAGE.node_type_id("nil", true);
 const TypeId NODE_TRUE = LUA_LANGUAGE.node_type_id("true", true);

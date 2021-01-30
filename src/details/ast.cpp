@@ -7,7 +7,7 @@ using namespace std::string_literals;
 namespace minilua::details {
 // Body
 Body::Body(std::vector<ts::Node> node_vec) : nodes(std::move(node_vec)) {}
-auto Body::ret() -> std::optional<Return> {
+auto Body::return_statement() -> std::optional<Return> {
     if (nodes.empty() || nodes[nodes.size() - 1].type_id() != ts::NODE_RETURN_STATEMENT) {
         return {};
     } else {
@@ -40,7 +40,7 @@ Identifier::Identifier(ts::Node node) : id(node) {
         throw std::runtime_error("not an identifier node" + to_string(node.type_id()));
     }
 }
-auto Identifier::str() -> std::string { return id.text(); }
+auto Identifier::string() -> std::string { return id.text(); }
 // Program
 Program::Program(ts::Node node) : program(node) {
     if (node.type_id() != ts::NODE_PROGRAM) {
@@ -105,7 +105,7 @@ BinaryOperation::BinaryOperation(ts::Node node) : bin_op(node) {
 }
 auto BinaryOperation::left() -> Expression { return Expression(bin_op.child(0).value()); }
 auto BinaryOperation::right() -> Expression { return Expression(bin_op.child(2).value()); }
-auto BinaryOperation::op() -> BinOpEnum {
+auto BinaryOperation::bin_operator() -> BinOpEnum {
     std::string op_str = bin_op.child(1)->text();
     if (op_str == "+"s) {
         return BinOpEnum::ADD;
@@ -161,7 +161,7 @@ UnaryOperation::UnaryOperation(ts::Node node) : un_op(node) {
     assert(node.child_count() == 2);
 }
 
-auto UnaryOperation::op() -> UnOpEnum {
+auto UnaryOperation::unary_operator() -> UnOpEnum {
     if (this->un_op.child(0)->text() == "not"s) {
         return UnOpEnum::NOT;
     } else if (this->un_op.child(0)->text() == "-"s) {
@@ -175,7 +175,7 @@ auto UnaryOperation::op() -> UnOpEnum {
     }
 }
 
-auto UnaryOperation::exp() -> Expression { return Expression(un_op.child(0).value()); }
+auto UnaryOperation::expression() -> Expression { return Expression(un_op.child(1).value()); }
 
 /*std::ostream& operator<<(std::ostream& os, UnaryOperation& unaryOperation){
     return os << (int)unaryOperation.op() << unaryOperation.exp().type();
@@ -195,7 +195,7 @@ auto ForStatement::body() -> Body {
     return Body(body);
 }
 
-auto ForStatement::loop_exp() -> LoopExpression {
+auto ForStatement::loop_expression() -> LoopExpression {
     return LoopExpression(for_statement.named_child(0).value());
 }
 
@@ -252,7 +252,7 @@ ForInStatement::ForInStatement(ts::Node node) : for_in(node) {
     assert(node.named_child(0).has_value() &&
            node.named_child(0)->type_id() == ts::NODE_LOOP_EXPRESSION);
 }
-auto ForInStatement::loop_exp() -> InLoopExpression {
+auto ForInStatement::loop_expression() -> InLoopExpression {
     return InLoopExpression(for_in.named_child(0).value());
 }
 auto ForInStatement::body() -> Body {
@@ -274,7 +274,7 @@ auto WhileStatement::body() -> Body {
     body.erase(body.begin());
     return Body(body);
 }
-auto WhileStatement::exit_cond() -> Expression {
+auto WhileStatement::repeat_conditon() -> Expression {
     return Expression(while_statement.named_child(0).value().named_child(0).value());
 }
 RepeatStatement::RepeatStatement(ts::Node node) : repeat_statement(node) {
@@ -289,7 +289,7 @@ auto RepeatStatement::body() -> Body {
     body.pop_back();
     return Body(body);
 }
-auto RepeatStatement::until_cond() -> Expression {
+auto RepeatStatement::repeat_condition() -> Expression {
     return Expression(repeat_statement.named_child(repeat_statement.named_child_count() - 1)
                           .value()
                           .named_child(0)
@@ -303,10 +303,10 @@ IfStatement::IfStatement(ts::Node node) : if_statement(node) {
     assert(node.named_child(0).has_value() &&
            node.named_child(0).value().type_id() == ts::NODE_CONDITION_EXPRESSION);
 }
-auto IfStatement::cond() -> Expression {
+auto IfStatement::condition() -> Expression {
     return Expression(if_statement.named_child(0).value().named_child(0).value());
 }
-auto IfStatement::else_() -> std::optional<Else> {
+auto IfStatement::else_statement() -> std::optional<Else> {
     if (if_statement.named_child(if_statement.named_child_count() - 1).has_value() &&
         if_statement.named_child(if_statement.named_child_count() - 1)->type_id() ==
             ts::NODE_ELSE) {
@@ -376,12 +376,12 @@ auto ElseIf::body() -> Body {
     body.erase(body.begin());
     return Body(body);
 }
-auto ElseIf::cond() -> Expression {
+auto ElseIf::condition() -> Expression {
     return Expression(else_if.named_child(0).value().named_child(0).value());
 }
 // Return
 Return::Return(ts::Node node) : expressions(node) {}
-auto Return::explist() -> std::vector<Expression> {
+auto Return::exp_list() -> std::vector<Expression> {
     std::vector<ts::Node> exps = expressions.named_children();
     std::vector<ts::Node>::iterator end;
     std::vector<Expression> res;
@@ -606,11 +606,14 @@ auto Parameters::params() -> std::vector<Identifier> {
 }
 // FunctionName
 FunctionName::FunctionName(ts::Node node) : func_name(node) {
-    if (node.type_id() != ts::NODE_FUNCTION_NAME) {
+    if (node.type_id() != ts::NODE_FUNCTION_NAME && node.type_id() != ts::NODE_IDENTIFIER) {
         throw std::runtime_error("Not a function_name node");
     }
 }
 auto FunctionName::method() -> std::optional<Identifier> {
+    if(func_name.type_id() == ts::NODE_IDENTIFIER){
+        return {};
+    }
     if (func_name.named_child(func_name.named_child_count() - 1)->type_id() == ts::NODE_METHOD) {
         return Identifier(func_name.named_child(func_name.named_child_count() - 1).value());
     } else {
@@ -618,6 +621,9 @@ auto FunctionName::method() -> std::optional<Identifier> {
     }
 }
 auto FunctionName::identifier() -> std::vector<Identifier> {
+    if(func_name.type_id() == ts::NODE_IDENTIFIER){
+        return std::vector<Identifier>{Identifier(func_name)};
+    }
     if (func_name.named_child(0)->type_id() == ts::NODE_IDENTIFIER) {
         return std::vector<Identifier>{Identifier(func_name.named_child(0).value())};
     } else {
@@ -645,9 +651,10 @@ auto FunctionDefinition::body() -> Body {
 }
 // FunctionStatement
 FunctionStatement::FunctionStatement(ts::Node node) : func_stat(node) {
-    if (node.type_id() != ts::NODE_FUNCTION) {
+    if (node.type_id() != ts::NODE_FUNCTION && node.type_id() != ts::NODE_LOCAL_FUNCTION) {
         throw std::runtime_error("not a function(_statement) node");
     }
+    is_local = node.type_id() == ts::NODE_LOCAL_FUNCTION;
 }
 auto FunctionStatement::body() -> Body {
     std::vector<ts::Node> children = func_stat.named_children();
@@ -659,8 +666,11 @@ auto FunctionStatement::name() -> FunctionName {
 auto FunctionStatement::parameters() -> Parameters {
     return Parameters(func_stat.named_child(1).value());
 }
+auto FunctionStatement::local() -> bool {
+    return is_local;
+}
 // LocalFunctionStatement
-LocalFunctionStatement::LocalFunctionStatement(ts::Node node) : func_stat(node) {
+/*LocalFunctionStatement::LocalFunctionStatement(ts::Node node) : func_stat(node) {
     if (node.type_id() != ts::NODE_LOCAL_FUNCTION) {
         throw std::runtime_error("not a function(_statement) node");
     }
@@ -674,7 +684,7 @@ auto LocalFunctionStatement::name() -> Identifier {
 auto LocalFunctionStatement::body() -> Body {
     std::vector<ts::Node> children = func_stat.named_children();
     return Body(std::vector<ts::Node>(children.begin() + 2, children.end()));
-}
+}*/
 // FunctionCall
 FunctionCall::FunctionCall(ts::Node node) : func_call(node) {
     if (node.type_id() != ts::NODE_FUNCTION_CALL) {
@@ -779,25 +789,23 @@ auto Prefix::options()
 }
 // Expression
 Expression::Expression(ts::Node node) : exp(node) {
-    if (!(node.type_id() == ts::NODE_SPREAD || node.type_id() == ts::NODE_NEXT ||
+    if (!(node.type_id() == ts::NODE_SPREAD ||
           node.type_id() == ts::NODE_FUNCTION_DEFINITION || node.type_id() == ts::NODE_TABLE ||
           node.type_id() == ts::NODE_BINARY_OPERATION ||
           node.type_id() == ts::NODE_UNARY_OPERATION || node.type_id() == ts::NODE_STRING ||
           node.type_id() == ts::NODE_NUMBER || node.type_id() == ts::NODE_NIL ||
           node.type_id() == ts::NODE_FALSE || node.type_id() == ts::NODE_TRUE ||
           node.type_id() == ts::NODE_IDENTIFIER ||
-          (node.type_id() == ts::NODE_SELF || node.type_id() == ts::NODE_GLOBAL_VARIABLE ||
-           node.type_id() == ts::NODE_FUNCTION_CALL || node.child(0)->text() == "("))) {
+          node.type_id() == ts::NODE_SELF || node.type_id() == ts::NODE_GLOBAL_VARIABLE ||
+           node.type_id() == ts::NODE_FUNCTION_CALL || node.child(0)->text() == "(")) {
         throw std::runtime_error("Not an expression-node");
     }
 }
 auto Expression::options() -> std::variant<
-    Spread, Prefix, Next, FunctionDefinition, Table, BinaryOperation, UnaryOperation,
+    Spread, Prefix, FunctionDefinition, Table, BinaryOperation, UnaryOperation,
     minilua::Value, Identifier> {
     if (exp.type_id() == ts::NODE_SPREAD) {
         return Spread();
-    } else if (exp.type_id() == ts::NODE_NEXT) {
-        return Next();
     } else if (exp.type_id() == ts::NODE_FUNCTION_DEFINITION) {
         return FunctionDefinition(exp);
     } else if (exp.type_id() == ts::NODE_TABLE) {
@@ -807,8 +815,7 @@ auto Expression::options() -> std::variant<
     } else if (exp.type_id() == ts::NODE_UNARY_OPERATION) {
         return UnaryOperation(exp);
     } else if (exp.type_id() == ts::NODE_STRING) {
-        std::string str = exp.text();
-        return minilua::Value(String(std::string(str.begin() + 1, str.end() - 1)));
+        return parse_string_literal(exp.text());
     } else if (exp.type_id() == ts::NODE_NUMBER) {
         return parse_number_literal(exp.text());
     } else if (exp.type_id() == ts::NODE_NIL) {
@@ -848,7 +855,7 @@ Statement::Statement(ts::Node node) : statement(node) {
 auto Statement::options() -> std::variant<
     VariableDeclaration, DoStatement, IfStatement, WhileStatement,
     RepeatStatement, ForStatement, ForInStatement, GoTo, Break, Label, FunctionStatement,
-    LocalFunctionStatement, FunctionCall, Expression> {
+    FunctionCall, Expression> {
     if (statement.type_id() == ts::NODE_EXPRESSION) {
         return Expression(statement.named_child(0).value());
     } else if (statement.type_id() == ts::NODE_VARIABLE_DECLARATION || statement.type_id() == ts::NODE_LOCAL_VARIABLE_DECLARATION) {
@@ -874,11 +881,14 @@ auto Statement::options() -> std::variant<
     } else if (statement.type_id() == ts::NODE_FUNCTION) {
         return FunctionStatement(statement);
     } else if (statement.type_id() == ts::NODE_LOCAL_FUNCTION) {
-        return LocalFunctionStatement(statement);
+        return FunctionStatement(statement);
     } else if (statement.type_id() == ts::NODE_FUNCTION_CALL) {
         return FunctionCall(statement);
     } else {
         throw std::runtime_error("Not a statement-node");
     }
 }
+Literal::Literal(LiteralType type, std::string string) : literal_content(string), literal_type(type){};
+auto Literal::type() const -> LiteralType {return literal_type;}
+auto Literal::content() const -> std::string {return literal_content;}
 } // namespace minilua::details
