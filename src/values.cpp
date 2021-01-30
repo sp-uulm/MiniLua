@@ -429,7 +429,7 @@ auto CallContext::arguments() const -> const Vallist& { return impl->args; }
 [[nodiscard]] auto CallContext::unary_numeric_arg_helper() const
     -> std::tuple<double, UnaryOrigin> {
     auto arg = this->arguments().get(0);
-    auto num = std::get<minilua::Number>(arg).value;
+    auto num = std::get<Number>(arg.to_number(Nil(), this->call_location())).value;
 
     auto origin = minilua::UnaryOrigin{
         .val = minilua::make_owning<minilua::Value>(arg),
@@ -444,8 +444,8 @@ auto CallContext::arguments() const -> const Vallist& { return impl->args; }
     auto arg1 = this->arguments().get(0);
     auto arg2 = this->arguments().get(1);
 
-    auto num1 = std::get<minilua::Number>(arg1).value;
-    auto num2 = std::get<minilua::Number>(arg2).value;
+    auto num1 = std::get<Number>(arg1.to_number(Nil(), this->call_location())).value;
+    auto num2 = std::get<Number>(arg2.to_number(Nil(), this->call_location())).value;
 
     auto origin = minilua::BinaryOrigin{
         .lhs = minilua::make_owning<minilua::Value>(arg1),
