@@ -442,7 +442,7 @@ auto Interpreter::visit_variable_declaration(ast::VariableDeclaration decl, Env&
     auto targets = decl.declarators();
 
     for (int i = 0; i < decl.declarators().size(); ++i) {
-        auto target = targets[i].var();
+        auto target = targets[i].options();
         const auto& value = vallist.get(i);
 
         if (decl.local()) {
@@ -776,7 +776,7 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
         result.value = value;
     };
 
-    switch (bin_op.bin_operator()) {
+    switch (bin_op.binary_operator()) {
     case ast::BinOpEnum::ADD:
         impl_operator(&Value::add);
         break;
@@ -894,7 +894,7 @@ auto Interpreter::visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult {
                         [this, &env](ast::TableIndex table_index) -> EvalResult {
                             return this->visit_table_index(table_index, env);
                         }},
-                    variable_decl.var());
+                    variable_decl.options());
             },
             [this, &env](ast::FunctionCall call) {
                 return EvalResult(this->visit_function_call(call, env));

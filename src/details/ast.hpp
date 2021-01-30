@@ -53,9 +53,9 @@ public:
      * the children nodes of the Program get put into a Body class by this method
      * @return a Body containing the full program
      */
-    auto body() -> Body;
-
-    auto raw() -> ts::Node;
+    auto body() const -> Body;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for identifier_nodes
@@ -69,9 +69,9 @@ public:
      * get the identifier name as a string
      * @return the identifer as a string
      */
-    auto string() -> std::string;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto string() const -> std::string;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * this enum holds all possible BinaryOperators in lua
@@ -111,19 +111,19 @@ public:
      *
      * @return The left operand
      */
-    auto left() -> Expression;
+    auto left() const -> Expression;
     /**
      *
      * @return The right operand
      */
-    auto right() -> Expression;
+    auto right() const -> Expression;
     /**
      *
      * @return the operator of the operation
      */
-    auto bin_operator() -> BinOpEnum;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto binary_operator() const -> BinOpEnum;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * This enum holds all unary Operators of lua
@@ -146,14 +146,14 @@ public:
      *
      * @return the operator of the operation
      */
-    auto unary_operator() -> UnOpEnum;
+    auto unary_operator() const -> UnOpEnum;
     /**
      *
      * @return the operand of
      */
-    auto expression() -> Expression;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto expression() const -> Expression;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for loop_expression  nodes
@@ -167,25 +167,25 @@ public:
      *
      * @return The identifier of the loop variable
      */
-    auto variable() -> Identifier;
+    auto variable() const -> Identifier;
     /**
      *
      * @return The start value of the loop variable
      */
-    auto start() -> Expression;
+    auto start() const -> Expression;
     /**
      *
      * @return the step size of the loop variable if specified
      *          otherwise an empty optional (then the step size is 1 by default)
      */
-    auto step() -> std::optional<Expression>;
+    auto step() const -> std::optional<Expression>;
     /**
      *
      * @return the end value of the loop variable
      */
-    auto end() -> Expression;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto end() const -> Expression;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for for_statement nodes
@@ -199,14 +199,14 @@ public:
      *
      * @return returns the loop expression of the loop
      */
-    auto loop_expression() -> LoopExpression;
+    auto loop_expression() const -> LoopExpression;
     /**
      *
      * @return a Body containing all statements inside the loop
      */
-    auto body() -> Body;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto body() const -> Body;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for in_loop_expression nodes
@@ -220,14 +220,14 @@ public:
      *
      * @return all identifiers that are specified as loop variables by the loop
      */
-    auto loop_vars() -> std::vector<Identifier>;
+    auto loop_vars() const -> std::vector<Identifier>;
     /**
      * the loop expressions usually should eveluate to a functioncall
      * @return the loop expressions
      */
-    auto loop_exps() -> std::vector<Expression>;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto loop_exps() const -> std::vector<Expression>;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for for_in_statement nodes
@@ -241,14 +241,14 @@ public:
      *
      * @return a Body containing all statements inside the loop
      */
-    auto body() -> Body;
+    auto body() const -> Body;
     /**
      *
      * @return the corresponding loop expression
      */
-    auto loop_expression() -> InLoopExpression;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto loop_expression() const -> InLoopExpression;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for while_statement nodes
@@ -259,18 +259,16 @@ class WhileStatement {
 public:
     explicit WhileStatement(ts::Node node);
     /**
-     * This method gets the contitional expression of the loop. In while loops this is always
-     * checked before executing the body statements
      * @return an expression containing the conditional expression of the loop
      */
-    auto repeat_conditon() -> Expression;
+    auto repeat_conditon() const -> Expression;
     /**
      *
      * @return a body with all statements inside the loop
      */
-    auto body() -> Body;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto body() const -> Body;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for repeat_statement nodes
@@ -281,18 +279,16 @@ class RepeatStatement {
 public:
     explicit RepeatStatement(ts::Node node);
     /**
-     * This method gets the conditional expression of the loop. In repeat loops this is always
-     * checked after executing the statements of the body
      * @return an expression containing the conditional expression of the loop
      */
-    auto repeat_condition() -> Expression;
+    auto repeat_condition() const -> Expression;
     /**
      *
      * @return a body with all statements inside the loop
      */
-    auto body() -> Body;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto body() const -> Body;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for else_if nodes
@@ -306,14 +302,14 @@ public:
      *
      * @return a body with all statements inside the else if statement
      */
-    auto body() -> Body;
+    auto body() const -> Body;
     /**
      *
      * @return an expression that holds the conditional expression of the else_if_statement
      */
-    auto condition() -> Expression;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto condition() const -> Expression;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for else nodes
@@ -327,9 +323,9 @@ public:
      *
      * @return a body containing the statements in the else block
      */
-    auto body() -> Body;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto body() const -> Body;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for if_statement nodes
@@ -341,27 +337,27 @@ public:
     explicit IfStatement(ts::Node node);
     /**
      *
-     * @return a ody conatining the statements of the if block excluding else_if and else statements
+     * @return a body containing the statements of the if block excluding else_if and else statements
      */
-    auto body() -> Body;
+    auto body() const -> Body;
     /**
      *
      * @return all else_if statements that are inside this if_statement
      */
-    auto elseifs() -> std::vector<ElseIf>;
+    auto elseifs() const -> std::vector<ElseIf>;
     /**
      *
      * @return an expression that holds the conditional expression of the if_statement
      */
-    auto condition() -> Expression;
+    auto condition() const -> Expression;
     /**
      *
      * @return an Else class if there is one
      *          otherwise an empty optional
      */
-    auto else_statement() -> std::optional<Else>;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto else_statement() const -> std::optional<Else>;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * a class for return_statement nodes
@@ -376,9 +372,9 @@ public:
      * @return a vector holding all expressions that will be returned by this statement
      *          the vector can be empty
      */
-    auto exp_list() -> std::vector<Expression>;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto exp_list() const -> std::vector<Expression>;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for table_index nodes
@@ -392,14 +388,14 @@ public:
      *
      * @return a prefix that eveluates to the table of this table index
      */
-    auto table() -> Prefix;
+    auto table() const -> Prefix;
     /**
      *
      * @return an expression that eveluates to the index
      */
-    auto index() -> Expression;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto index() const -> Expression;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for variable_declarator nodes
@@ -413,9 +409,9 @@ public:
      *
      * @return a variant containing the class this variable declarator gets resolved to
      */
-    auto var() -> std::variant<Identifier, FieldExpression, TableIndex>;
-    auto raw() -> ts::Node;
-    auto range() -> ts::Range;
+    auto options() const -> std::variant<Identifier, FieldExpression, TableIndex>;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for variable_declaration and local_variable_declaration nodes
@@ -430,20 +426,19 @@ public:
      *
      * @return true if the declaration is local
      */
-    auto local() -> bool;
+    auto local() const -> bool;
     /**
      *
      * @return a vector containing all variables declared by the varaible declaration
      */
-    auto declarators() -> std::vector<VariableDeclarator>;
+    auto declarators() const -> std::vector<VariableDeclarator>;
     /**
      *
      * @return a vector with the expressions that get assigned to to the declared variables
-     *          there should always be at least one element in it
      */
-    auto declarations() -> std::vector<Expression>;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto declarations() const-> std::vector<Expression>;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for field_expression nodes
@@ -457,14 +452,14 @@ public:
      *
      * @return a Prefix containing the Identifier for the table
      */
-    auto table_id() -> Prefix;
+    auto table_id() const -> Prefix;
     /**
      *
      * @return an Identifier for a property of the Table
      */
-    auto property_id() -> Identifier;
-    auto raw() -> ts::Node;
-    auto range() -> ts::Range;
+    auto property_id() const -> Identifier;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for do_statement nodes
@@ -478,9 +473,9 @@ public:
      *
      * @return a body containing all statements of the do block
      */
-    auto body() -> Body;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto body() const -> Body;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for go_to_statements
@@ -494,9 +489,9 @@ public:
      *
      * @return the Identifier of the Label that is specified
      */
-    auto label() -> Identifier;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto label() const -> Identifier;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for label_statements
@@ -510,9 +505,9 @@ public:
      *
      * @return the identifier of this label
      */
-    auto id() -> Identifier;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto id() const -> Identifier;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for function_name nodes
@@ -528,7 +523,7 @@ public:
      * @return a vector containing all identifiers used for the function name
      *
      */
-    auto identifier() -> std::vector<Identifier>;
+    auto identifier() const -> std::vector<Identifier>;
     /**
      * The identifier returned here is the last one if it is present
      * e.g. identifiers() returns [id_1,id_2] and method returns id_5 then the full functionname is:
@@ -537,9 +532,9 @@ public:
      * an empty optional if the function is not a method
      * the function-/method- name if the function is a method
      */
-    auto method() -> std::optional<Identifier>;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto method() const -> std::optional<Identifier>;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * an enum defining the different positions a Spread can occur in the parameters of a method
@@ -559,13 +554,13 @@ public:
      * @return true if the first parameter is "self"
      *          false otherwise
      */
-    auto leading_self() -> bool;
+    auto leading_self() const -> bool;
     /**
      *
      * @return a vector containing all parameters excluding a potential spread at the beginning or
      * and or a potential self at the beginning
      */
-    auto params() -> std::vector<Identifier>;
+    auto params() const -> std::vector<Identifier>;
     /**
      * specifies the position of a potential spread contained within the parameters
      * SpreadPos::BEGIN and a leading self is not possible
@@ -573,9 +568,9 @@ public:
      *          SpreadPos::END if there is a spread as the last parameter
      *          SpreadPos::NO_SPREAD if there is no spread amongst the parameters
      */
-    auto spread() -> SpreadPos;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto spread() const -> SpreadPos;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for function_definition nodes
@@ -589,14 +584,14 @@ public:
      *
      * @return a body containing all statements of this function
      */
-    auto body() -> Body;
+    auto body() const -> Body;
     /**
      *
      * @return the parameters of this function
      */
-    auto parameters() -> Parameters;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto parameters() const -> Parameters;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for function_statements
@@ -610,34 +605,21 @@ public:
      *
      * @return a FunctionName class that can be resolved to the function name
      */
-    auto name() -> FunctionName;
+    auto name() const -> FunctionName;
     /**
      *
      * @return a body containing all statements of this function
      */
-    auto body() -> Body;
+    auto body() const -> Body;
     /**
      *
      * @return a Parameter class containing all information about the Parameters of this function
      */
-    auto parameters() -> Parameters;
-    auto local() -> bool;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto parameters() const -> Parameters;
+    auto local() const -> bool;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
-/**
- * class for local_function_statements
- */
-/*class LocalFunctionStatement {
-    ts::Node func_stat;
-
-public:
-    explicit LocalFunctionStatement(ts::Node);
-    auto name() -> Identifier;
-    auto body() -> Body;
-    auto parameters() -> Parameters;
-    auto raw() -> ts::Node;
-};*/
 class FunctionCall {
     ts::Node func_call;
 
@@ -649,17 +631,17 @@ public:
      * If the call is a method call id() the Prefix should refer to to a table
      * else the Prefix states the functionname
      */
-    auto id() -> Prefix;
+    auto id() const -> Prefix;
     /**
      *
      * @return
      * an empty optional if it is not a method call
      * the functionname if it is a method call
      */
-    auto method() -> std::optional<Identifier>;
-    auto args() -> std::vector<Expression>;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto method() const -> std::optional<Identifier>;
+    auto args() const -> std::vector<Expression>;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 enum GV { _G, _VERSION };
 class GlobalVariable {
@@ -671,9 +653,9 @@ public:
      *
      * @return the Type of this Global Variable
      */
-    auto type() -> GV;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto type() const -> GV;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for field_nodes
@@ -691,9 +673,9 @@ public:
      * the Expression is
      * @return a variant containing the right format for the field
      */
-    auto content() -> std::variant<IndexField , IdentifierField , Expression>;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto content() const -> std::variant<IndexField , IdentifierField , Expression>;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for table nodes
@@ -707,9 +689,9 @@ public:
      *
      * @return a vector containing all fields of the table
      */
-    auto fields() -> std::vector<Field>;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto fields() const -> std::vector<Field>;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 // a few empty classes that are just used as additional return types
 class Spread {};
@@ -727,10 +709,10 @@ public:
      *
      * @return a variant containing the class this Prefix gets resolved to
      */
-    auto options()
+    auto options() const
         -> std::variant<Self, GlobalVariable, VariableDeclarator, FunctionCall, Expression>;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 /**
  * class for expression nodes
@@ -744,11 +726,11 @@ public:
      *
      * @return a variant containing the class this expression gets resolved to
      */
-    auto options() -> std::variant<
+    auto options() const -> std::variant<
         Spread, Prefix, FunctionDefinition, Table, BinaryOperation, UnaryOperation,
         minilua::Value, Identifier>;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 
 class Statement {
@@ -760,12 +742,12 @@ public:
      *
      * @return a variant containing the class this statement gets resolved to
      */
-    auto options() -> std::variant<
+    auto options() const -> std::variant<
         VariableDeclaration, DoStatement, IfStatement, WhileStatement,
         RepeatStatement, ForStatement, ForInStatement, GoTo, Break, Label, FunctionStatement,
         FunctionCall, Expression>;
-    auto range() -> ts::Range;
-    auto raw() -> ts::Node;
+    auto range() const -> minilua::Range;
+    auto raw() const -> ts::Node;
 };
 enum class LiteralType{TRUE,FALSE,NIL,NUMBER,STRING};
 class Literal {

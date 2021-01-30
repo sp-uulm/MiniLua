@@ -123,7 +123,7 @@ TEST_CASE("expressions", "[tree-sitter]") {
         });
     for (uint i = 0; i < bin_ops.size(); i++) {
         CHECK(
-            bin_ops[i].bin_operator() ==
+            bin_ops[i].binary_operator() ==
             (BinOpEnum)i); // Bin Operations are in the same sequence as in the BinOpEnum
     }
 
@@ -601,7 +601,7 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     CHECK(!var_dec1->local());
     CHECK(var_dec1->declarations().size() == 1);
     CHECK(var_dec1->declarators().size() == 1);
-    CHECK(std::holds_alternative<Identifier>(var_dec1->declarators()[0].var()));
+    CHECK(std::holds_alternative<Identifier>(var_dec1->declarators()[0].options()));
     CHECK(std::holds_alternative<Value>(var_dec1->declarations()[0].options()));
     // 2nd statement
     auto opt2 = stats[1].options();
@@ -611,7 +611,7 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     CHECK(var_dec2->declarations().size() == 3);
     CHECK(var_dec2->declarators().size() == 4);
     for (uint i = 0; i < 4; i++) {
-        CHECK(std::holds_alternative<Identifier>(var_dec2->declarators()[i].var()));
+        CHECK(std::holds_alternative<Identifier>(var_dec2->declarators()[i].options()));
     }
     CHECK(std::holds_alternative<BinaryOperation>(var_dec2->declarations()[0].options()));
     CHECK(std::holds_alternative<BinaryOperation>(var_dec2->declarations()[1].options()));
@@ -623,8 +623,8 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     CHECK(var_dec3->local());
     CHECK(var_dec3->declarations().empty());
     CHECK(var_dec3->declarators().size() == 1);
-    CHECK(std::holds_alternative<Identifier>(var_dec3->declarators()[0].var()));
-    auto id1_opt = var_dec3->declarators()[0].var();
+    CHECK(std::holds_alternative<Identifier>(var_dec3->declarators()[0].options()));
+    auto id1_opt = var_dec3->declarators()[0].options();
     auto id1 = std::get_if<Identifier>(&id1_opt);
     CHECK(id1->string() == "e"s);
     // 4th statement
@@ -634,16 +634,16 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     CHECK(var_dec4->local());
     CHECK(var_dec4->declarations().empty());
     CHECK(var_dec4->declarators().size() == 3);
-    CHECK(std::holds_alternative<Identifier>(var_dec4->declarators()[0].var()));
-    auto id2_opt = var_dec4->declarators()[0].var();
+    CHECK(std::holds_alternative<Identifier>(var_dec4->declarators()[0].options()));
+    auto id2_opt = var_dec4->declarators()[0].options();
     auto id2 = std::get_if<Identifier>(&id2_opt);
     CHECK(id2->string() == "f"s);
-    CHECK(std::holds_alternative<Identifier>(var_dec4->declarators()[1].var()));
-    auto id3_opt = var_dec4->declarators()[1].var();
+    CHECK(std::holds_alternative<Identifier>(var_dec4->declarators()[1].options()));
+    auto id3_opt = var_dec4->declarators()[1].options();
     auto id3 = std::get_if<Identifier>(&id3_opt);
     CHECK(id3->string() == "g"s);
-    CHECK(std::holds_alternative<Identifier>(var_dec4->declarators()[2].var()));
-    auto id4_opt = var_dec4->declarators()[2].var();
+    CHECK(std::holds_alternative<Identifier>(var_dec4->declarators()[2].options()));
+    auto id4_opt = var_dec4->declarators()[2].options();
     auto id4 = std::get_if<Identifier>(&id4_opt);
     CHECK(id4->string() == "h"s);
     // 5th statement
@@ -655,12 +655,12 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     CHECK(var_dec5->declarators().size() == 2);
     CHECK(std::holds_alternative<Value>(var_dec5->declarations()[0].options()));
     CHECK(std::holds_alternative<Value>(var_dec5->declarations()[1].options()));
-    CHECK(std::holds_alternative<Identifier>(var_dec5->declarators()[0].var()));
-    auto id5_opt = var_dec5->declarators()[0].var();
+    CHECK(std::holds_alternative<Identifier>(var_dec5->declarators()[0].options()));
+    auto id5_opt = var_dec5->declarators()[0].options();
     auto id5 = std::get_if<Identifier>(&id5_opt);
     CHECK(id5->string() == "i"s);
-    CHECK(std::holds_alternative<Identifier>(var_dec5->declarators()[1].var()));
-    auto id6_opt = var_dec5->declarators()[1].var();
+    CHECK(std::holds_alternative<Identifier>(var_dec5->declarators()[1].options()));
+    auto id6_opt = var_dec5->declarators()[1].options();
     auto id6 = std::get_if<Identifier>(&id6_opt);
     CHECK(id6->string() == "j"s);
     // 6th statement
@@ -669,21 +669,21 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     auto var_dec6 = std::get_if<VariableDeclaration>(&opt6);
     CHECK(var_dec6->declarators().size() == 1);
     auto declarator = var_dec6->declarators()[0];
-    auto dec_opt1 = declarator.var();
+    auto dec_opt1 = declarator.options();
     CHECK(std::holds_alternative<FieldExpression>(dec_opt1));
     auto fe1 = std::get_if<FieldExpression>(&dec_opt1);
     CHECK(fe1->property_id().string() == "field1");
     auto prefix1 = fe1->table_id().options();
     CHECK(std::holds_alternative<VariableDeclarator>(prefix1));
     auto dec2 = get_if<VariableDeclarator>(&prefix1);
-    auto dec_opt2 = dec2->var();
+    auto dec_opt2 = dec2->options();
     CHECK(holds_alternative<FieldExpression>(dec_opt2));
     auto fe2 = std::get_if<FieldExpression>(&dec_opt2);
     CHECK(fe2->property_id().string() == "table2");
     auto prefix2 = fe2->table_id().options();
     CHECK(std::holds_alternative<VariableDeclarator>(prefix2));
     auto dec3 = std::get_if<VariableDeclarator>(&prefix2);
-    auto dec_opt3 = dec3->var();
+    auto dec_opt3 = dec3->options();
     CHECK(holds_alternative<Identifier>(dec_opt3));
     auto table_id = std::get_if<Identifier>(&dec_opt3);
     CHECK(table_id->string() == "table1"s);
@@ -693,13 +693,13 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     auto var_dec7 = std::get_if<VariableDeclaration>(&opt7);
     CHECK(var_dec7->declarations().size() == 1);
     CHECK(var_dec7->declarators().size() == 1);
-    auto ti_opt1 = var_dec7->declarators()[0].var();
+    auto ti_opt1 = var_dec7->declarators()[0].options();
     CHECK(std::holds_alternative<TableIndex>(ti_opt1));
     auto ti1 = std::get_if<TableIndex>(&ti_opt1);
     auto pref1 = ti1->table().options();
     CHECK(std::holds_alternative<VariableDeclarator>(pref1));
     auto pref_dec1 = std::get_if<VariableDeclarator>(&pref1);
-    auto pref_opt1 = pref_dec1->var();
+    auto pref_opt1 = pref_dec1->options();
     CHECK(std::holds_alternative<Identifier>(pref_opt1));
     auto id7 = std::get_if<Identifier>(&pref_opt1);
     CHECK(id7->string()=="table1");
@@ -779,21 +779,21 @@ TEST_CASE("function_calls", "[tree-sitter]") {
     CHECK(std::holds_alternative<VariableDeclarator>(func_calls[0].id().options()));
     auto opt1 = func_calls[0].id().options();
     auto name1 = std::get_if<VariableDeclarator>(&opt1);
-    CHECK(holds_alternative<Identifier>(name1->var()));
+    CHECK(holds_alternative<Identifier>(name1->options()));
     CHECK(func_calls[0].args().size() == 2);
 
     CHECK(!func_calls[1].method().has_value());
     CHECK(std::holds_alternative<VariableDeclarator>(func_calls[1].id().options()));
     auto opt2 = func_calls[1].id().options();
     auto name2 = std::get_if<VariableDeclarator>(&opt2);
-    CHECK(holds_alternative<FieldExpression>(name2->var()));
+    CHECK(holds_alternative<FieldExpression>(name2->options()));
     CHECK(func_calls[1].args().empty());
 
     CHECK(func_calls[2].method().has_value());
     CHECK(std::holds_alternative<VariableDeclarator>(func_calls[2].id().options()));
     auto opt3 = func_calls[2].id().options();
     auto name3 = std::get_if<VariableDeclarator>(&opt3);
-    CHECK(holds_alternative<Identifier>(name3->var()));
+    CHECK(holds_alternative<Identifier>(name3->options()));
     CHECK(func_calls[2].args().empty());
 
     CHECK(func_calls[3].args().size() == 1);
@@ -841,7 +841,7 @@ TEST_CASE("comment_test", "[tree-sitter]") {
     CHECK(std::holds_alternative<BinaryOperation>(exps[1].options()));
     auto exp2_opt = exps[1].options();
     auto bin1 = std::get_if<BinaryOperation>(&exp2_opt);
-    CHECK(bin1->bin_operator() == BinOpEnum::ADD);
+    CHECK(bin1->binary_operator() == BinOpEnum::ADD);
     CHECK(std::holds_alternative<Identifier>(bin1->left().options()));
     auto operand_left_opt = bin1->left().options();
     auto operand_left = std::get_if<Identifier>(&operand_left_opt);
