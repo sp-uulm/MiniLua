@@ -227,6 +227,15 @@ auto operator<<(std::ostream&, const String&) -> std::ostream&;
 // Forward declaration
 class CallContext;
 
+/**
+ * Table is basically a `std::map`.
+ *
+ * Aditionally table is aliasable. That means two variables (or two `Table` `Value`s)
+ * can refer to the same actual table.
+ *
+ * NOTE: With the current implementation this can lead to memory leaks if you create
+ * a cycle. I.e. a field of the table references (directly or indirectly) the table itself.
+ */
 class Table {
     struct Impl;
     std::shared_ptr<Impl> impl;
@@ -707,8 +716,24 @@ namespace minilua {
 /**
  * Represents a value in lua.
  *
- * You can use most normal c++ operators on these value (+, -, *, /, []). If the
- * operation can't be performed on the actual value type an exception will be thrown.
+ * You can use most normal C++ operators on these value (`+`, `-`, `*`, `/`, `[]`, ...). If the
+ * operation can't be performed on the actual value type an exception will be thrown. Logical
+ * operators are implemented like they work in lua (i.e. `"hi" && true == "hi"`).
+ *
+ * There are also variants of all the operators that track the origin of the values.
+ *
+ * You can get the underlying value either via `std::visit(lambdas, value.raw())`
+ * or using `std::get<T>(value)` where `T` is any of the underlying types.
+ *
+ * Most values can not be changed (i.e. if you add two numbers you create a new value).
+ *
+ * `Function` and `Table` are different in that they act like reference (or act like they are
+ * behind a `std::shared_ptr`). I.e. two variables can refer to the same table and function.
+ * In the case of function this is irrelevant because (from the outside) they are immutable.
+ * However tables can be mutated from multiple variables.
+ *
+ * NOTE: The current implementation of Table can lead to a memory leak if you create cycles with
+ * them. I.e. a field in the table refers (directly or indirectly) to the table that owns it.
  */
 class Value {
     struct Impl;
@@ -732,7 +757,10 @@ public:
     Value(Function val);
 
     /**
-     * NOTE: Functions with a parameter of CallContext& does not work.
+     * Overloaded constructor usable with references to lambdas and functions.
+     *
+     * NOTE: Functions with a parameter of `CallContext&` does not work.
+     * Only `CallContext` and `const CallContext&`.
      */
     template <typename Fn, typename = std::enable_if_t<std::is_invocable_v<Fn, CallContext>>>
     Value(Fn val) : Value(Function(std::forward<Fn>(val))) {}
@@ -756,12 +784,15 @@ public:
     [[nodiscard]] auto raw() const -> const Type&;
 
     /**
-     * Returns the value as a literal string that can be directly inserted in lua code.
+     * Returns the Value as a literal string that can be directly inserted in lua code.
      *
-     * Throws a 'std::runtime_error' if the value is a function.
+     * Throws a `std::runtime_error` if the value is a `Function`.
      */
     [[nodiscard]] auto to_literal() const -> std::string;
 
+    /**
+     * Checks if the value is a string a valid identifier.
+     */
     [[nodiscard]] auto is_valid_identifier() const -> bool;
 
     [[nodiscard]] auto is_nil() const -> bool;
@@ -777,15 +808,15 @@ public:
 
     [[nodiscard]] auto remove_origin() const -> Value;
     [[nodiscard]] auto with_origin(Origin new_origin) const -> Value;
-    auto type() const -> std::string;
+    [[nodiscard]] auto type() const -> std::string;
 
     /**
-     * Forces this value to become 'new_value'. Does not actually change the
-     * value. This will only return a SourceChange that (when applied) would
-     * result in the this value being changed.
+     * Tries to force this value to become `new_value`. Does not actually change
+     * the value. This will only return a `SourceChange` that (when applied) would
+     * result in the this value being changed to `new_value`.
      *
-     * The return value should be returned in NativeFunctions otherwise this
-     * does not have an effect.
+     * The return value should be returned in `Function`s otherwise this
+     * does not have any effect.
      *
      * This throws an exception if the types of the values didn't match.
      */
@@ -803,16 +834,23 @@ public:
     auto operator[](const Value&) -> Value&;
     auto operator[](const Value&) const -> const Value&;
 
+    /**
+     * Convertes the value to a bool according to the lua rules.
+     *
+     * `Nil` and `false` is converted to `false`. Everything else is converted
+     * to true.
+     */
     explicit operator bool() const;
 
-    /*
-     * Source location tracking versions of the c++ operators.
+    /**
+     * @name Operator variants that allow adding the locationof the operator in lua code.
      *
-     * Can be used in the interpreter to add the source location of the operation.
+     * Mostly for use in the interpreter.
      */
+    /** @{ */
 
     /**
-     * unary - operator
+     * unary `-` operator
      */
     [[nodiscard]] auto negate(std::optional<Range> location = std::nullopt) const -> Value;
     [[nodiscard]] auto add(const Value& rhs, std::optional<Range> location = std::nullopt) const
@@ -838,11 +876,11 @@ public:
     [[nodiscard]] auto
     logic_or(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
     /**
-     * unary not operator
+     * unary `not` operator
      */
     [[nodiscard]] auto invert(std::optional<Range> location = std::nullopt) const -> Value;
     /**
-     * unary # operator
+     * unary `#` operator
      */
     [[nodiscard]] auto len(std::optional<Range> location = std::nullopt) const -> Value;
     [[nodiscard]] auto equals(const Value& rhs, std::optional<Range> location = std::nullopt) const
@@ -861,6 +899,7 @@ public:
         -> Value;
     [[nodiscard]] auto concat(const Value& rhs, std::optional<Range> location = std::nullopt) const
         -> Value;
+    /** @} */
 
     friend auto operator-(const Value&) -> Value;
     friend auto operator+(const Value&, const Value&) -> Value;
@@ -884,9 +923,13 @@ auto operator<<(std::ostream&, const Value&) -> std::ostream&;
 
 namespace std {
 
-// behaves like std::get(std::variant) but only accepts types as template parameter
+/**
+ * Behaves like `std::get(std::variant)` but only accepts types as template parameter.
+ */
 template <typename T> auto get(minilua::Value& value) -> T& { return std::get<T>(value.raw()); }
-
+/**
+ * Behaves like `std::get(const std::variant&)` but only accepts types as template parameter.
+ */
 template <typename T> auto get(const minilua::Value& value) -> const T& {
     return std::get<T>(value.raw());
 }
@@ -969,6 +1012,9 @@ template <class... Ts> BinaryNumericFunctionHelper(Ts...) -> BinaryNumericFuncti
  * Parse a string into a lua value number.
  */
 auto parse_number_literal(const std::string& str) -> Value;
+/**
+ * Parse and escape a string into a lua value string.
+ */
 auto parse_string_literal(const std::string& str) -> Value;
 
 } // namespace minilua
