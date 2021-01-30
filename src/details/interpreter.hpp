@@ -96,13 +96,13 @@ private:
      * Expressions evaluate to (where `{}` denotes a Vallist):
      *
      * ```
-     * {1, 2, 3}, "hi", nil, 5, {1, 2}, {7, 8, 9}
+     * {42, 2, 3}, "hi", nil, 5, {22, 17}, {7, 8, 9}
      * ```
      *
      * The result will be:
      *
      * ```
-     * 1, "hi", nil, 5, 1, 7, 8, 9
+     * 42, "hi", nil, 5, 22, 7, 8, 9
      * ```
      */
     auto visit_expression_list(std::vector<ast::Expression> expressions, Env& env) -> EvalResult;
