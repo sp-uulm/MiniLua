@@ -3,7 +3,9 @@
 #include <catch2/catch.hpp>
 #include <iostream>
 #include <type_traits>
-namespace minilua::details {
+
+namespace minilua::details::ast {
+
 TEST_CASE("statements", "[tree-sitter]") {
     ts::Parser parser;
     std::string source = "i,t,l = 5\n"
@@ -596,7 +598,7 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     auto opt1 = stats[0].options();
     CHECK(std::holds_alternative<VariableDeclaration>(opt1));
     auto var_dec1 = std::get_if<VariableDeclaration>(&opt1);
-    CHECK(!var_dec1 -> local());
+    CHECK(!var_dec1->local());
     CHECK(var_dec1->declarations().size() == 1);
     CHECK(var_dec1->declarators().size() == 1);
     CHECK(std::holds_alternative<Identifier>(var_dec1->declarators()[0].var()));
@@ -605,7 +607,7 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     auto opt2 = stats[1].options();
     CHECK(std::holds_alternative<VariableDeclaration>(opt2));
     auto var_dec2 = std::get_if<VariableDeclaration>(&opt2);
-    CHECK(!var_dec2 -> local());
+    CHECK(!var_dec2->local());
     CHECK(var_dec2->declarations().size() == 3);
     CHECK(var_dec2->declarators().size() == 4);
     for (uint i = 0; i < 4; i++) {
@@ -689,8 +691,8 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     auto opt7 = stats[6].options();
     CHECK(std::holds_alternative<VariableDeclaration>(opt7));
     auto var_dec7 = std::get_if<VariableDeclaration>(&opt7);
-    CHECK(var_dec7->declarations().size()==1);
-    CHECK(var_dec7->declarators().size()==1);
+    CHECK(var_dec7->declarations().size() == 1);
+    CHECK(var_dec7->declarators().size() == 1);
     auto ti_opt1 = var_dec7->declarators()[0].var();
     CHECK(std::holds_alternative<TableIndex>(ti_opt1));
     auto ti1 = std::get_if<TableIndex>(&ti_opt1);
@@ -850,4 +852,4 @@ TEST_CASE("comment_test", "[tree-sitter]") {
     CHECK(operand_right->string()=="b"s);
 }
 
-} // namespace minilua::details
+} // namespace minilua::details::ast

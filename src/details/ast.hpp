@@ -5,7 +5,9 @@
 #include "MiniLua/values.hpp"
 #include <tree_sitter/tree_sitter.hpp>
 #include <variant>
-namespace minilua::details {
+
+namespace minilua::details::ast {
+
 // Some forward declarations
 class Expression;
 class Identifier;
@@ -52,6 +54,8 @@ public:
      * @return a Body containing the full program
      */
     auto body() -> Body;
+
+    auto raw() -> ts::Node;
 };
 /**
  * class for identifier_nodes
@@ -67,32 +71,33 @@ public:
      */
     auto string() -> std::string;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * this enum holds all possible BinaryOperators in lua
  */
 enum class BinOpEnum {
-    ADD,    //      +
-    SUB,    //      -
-    MUL,    //      *
-    DIV,    //      /
-    MOD,    //      %
-    POW,    //      ^
-    LT,     //       <
-    GT,     //       >
-    LEQ,    //      <=
-    GEQ,    //      >=
-    EQ,     //       ==
-    NEQ,    //      ~=
-    CONCAT, //   ..
-    AND,    //      and
-    OR,     //       or
-    BSL,    //      <<
-    BSR,    //      >>
-    BWNOT,  //    ~
-    BWOR,   //     |
-    BWAND,  //    &
-    INTDIV  //    //
+    ADD,         //      +
+    SUB,         //      -
+    MUL,         //      *
+    DIV,         //      /
+    MOD,         //      %
+    POW,         //      ^
+    LT,          //       <
+    GT,          //       >
+    LEQ,         //      <=
+    GEQ,         //      >=
+    EQ,          //       ==
+    NEQ,         //      ~=
+    CONCAT,      //   ..
+    AND,         //      and
+    OR,          //       or
+    SHIFT_LEFT,  //      <<
+    SHIFT_RIGHT, //      >>
+    BIT_XOR,     //    ~
+    BIT_OR,      //     |
+    BIT_AND,     //    &
+    INT_DIV      //    //
 };
 /**
  * class for binary_operation nodes
@@ -118,6 +123,7 @@ public:
      */
     auto bin_operator() -> BinOpEnum;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * This enum holds all unary Operators of lua
@@ -147,6 +153,7 @@ public:
      */
     auto expression() -> Expression;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * class for loop_expression  nodes
@@ -178,6 +185,7 @@ public:
      */
     auto end() -> Expression;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * class for for_statement nodes
@@ -198,6 +206,7 @@ public:
      */
     auto body() -> Body;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * class for in_loop_expression nodes
@@ -218,6 +227,7 @@ public:
      */
     auto loop_exps() -> std::vector<Expression>;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * class for for_in_statement nodes
@@ -238,6 +248,7 @@ public:
      */
     auto loop_expression() -> InLoopExpression;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * class for while_statement nodes
@@ -259,6 +270,7 @@ public:
      */
     auto body() -> Body;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * class for repeat_statement nodes
@@ -280,6 +292,7 @@ public:
      */
     auto body() -> Body;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * class for else_if nodes
@@ -300,6 +313,7 @@ public:
      */
     auto condition() -> Expression;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * class for else nodes
@@ -315,6 +329,7 @@ public:
      */
     auto body() -> Body;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * class for if_statement nodes
@@ -346,6 +361,7 @@ public:
      */
     auto else_statement() -> std::optional<Else>;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * a class for return_statement nodes
@@ -362,12 +378,14 @@ public:
      */
     auto exp_list() -> std::vector<Expression>;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * class for table_index nodes
  */
 class TableIndex {
     ts::Node table_index;
+
 public:
     explicit TableIndex(ts::Node);
     /**
@@ -381,6 +399,7 @@ public:
      */
     auto index() -> Expression;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * class for variable_declarator nodes
@@ -395,6 +414,7 @@ public:
      * @return a variant containing the class this variable declarator gets resolved to
      */
     auto var() -> std::variant<Identifier, FieldExpression, TableIndex>;
+    auto raw() -> ts::Node;
     auto range() -> ts::Range;
 };
 /**
@@ -403,6 +423,7 @@ public:
 class VariableDeclaration {
     ts::Node var_dec;
     bool local_dec;
+
 public:
     explicit VariableDeclaration(ts::Node node);
     /**
@@ -422,6 +443,7 @@ public:
      */
     auto declarations() -> std::vector<Expression>;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * class for field_expression nodes
@@ -441,6 +463,7 @@ public:
      * @return an Identifier for a property of the Table
      */
     auto property_id() -> Identifier;
+    auto raw() -> ts::Node;
     auto range() -> ts::Range;
 };
 /**
@@ -457,6 +480,7 @@ public:
      */
     auto body() -> Body;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * class for go_to_statements
@@ -472,6 +496,7 @@ public:
      */
     auto label() -> Identifier;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * class for label_statements
@@ -487,6 +512,7 @@ public:
      */
     auto id() -> Identifier;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * class for function_name nodes
@@ -513,6 +539,7 @@ public:
      */
     auto method() -> std::optional<Identifier>;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * an enum defining the different positions a Spread can occur in the parameters of a method
@@ -548,6 +575,7 @@ public:
      */
     auto spread() -> SpreadPos;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * class for function_definition nodes
@@ -568,6 +596,7 @@ public:
      */
     auto parameters() -> Parameters;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * class for function_statements
@@ -592,9 +621,9 @@ public:
      * @return a Parameter class containing all information about the Parameters of this function
      */
     auto parameters() -> Parameters;
-
     auto local() -> bool;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * class for local_function_statements
@@ -607,6 +636,7 @@ public:
     auto name() -> Identifier;
     auto body() -> Body;
     auto parameters() -> Parameters;
+    auto raw() -> ts::Node;
 };*/
 class FunctionCall {
     ts::Node func_call;
@@ -629,6 +659,7 @@ public:
     auto method() -> std::optional<Identifier>;
     auto args() -> std::vector<Expression>;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 enum GV { _G, _VERSION };
 class GlobalVariable {
@@ -642,6 +673,7 @@ public:
      */
     auto type() -> GV;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * class for field_nodes
@@ -661,6 +693,7 @@ public:
      */
     auto content() -> std::variant<IndexField , IdentifierField , Expression>;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * class for table nodes
@@ -676,6 +709,7 @@ public:
      */
     auto fields() -> std::vector<Field>;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 // a few empty classes that are just used as additional return types
 class Spread {};
@@ -696,6 +730,7 @@ public:
     auto options()
         -> std::variant<Self, GlobalVariable, VariableDeclarator, FunctionCall, Expression>;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 /**
  * class for expression nodes
@@ -713,6 +748,7 @@ public:
         Spread, Prefix, FunctionDefinition, Table, BinaryOperation, UnaryOperation,
         minilua::Value, Identifier>;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 
 class Statement {
@@ -729,6 +765,7 @@ public:
         RepeatStatement, ForStatement, ForInStatement, GoTo, Break, Label, FunctionStatement,
         FunctionCall, Expression>;
     auto range() -> ts::Range;
+    auto raw() -> ts::Node;
 };
 enum class LiteralType{TRUE,FALSE,NIL,NUMBER,STRING};
 class Literal {
@@ -739,6 +776,6 @@ public:
     auto content() const -> std::string;
     auto type() const -> LiteralType;
 };
-} // namespace minilua::details
+} // namespace minilua::details::ast
 
 #endif // MINILUA_AST_HPP
