@@ -43,6 +43,7 @@ struct InterpreterConfig {
     bool trace_nodes;
     bool trace_calls;
     bool trace_enter_block;
+    bool trace_exprlists;
 
     InterpreterConfig();
     InterpreterConfig(bool);

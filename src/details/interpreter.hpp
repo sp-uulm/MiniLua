@@ -10,9 +10,9 @@
 namespace minilua::details {
 
 struct EvalResult {
-    Value value;
+    Vallist values;
     bool do_break;
-    std::optional<Vallist> do_return;
+    bool do_return;
     std::optional<SourceChangeTree> source_change;
 
     EvalResult();
@@ -84,6 +84,29 @@ private:
 
     auto visit_table_constructor(ast::Table table_constructor, Env& env) -> EvalResult;
 
+    /**
+     * Evaluates a list of expressions (like return values, function parameters, etc).
+     *
+     * The result contains a vallist with all the evaluated values. If the expression evaluate to
+     * a Vallist only the first value is taken (except for the last expression). If the last
+     * expression evaluates to a Vallist it will be appended.
+     *
+     * Example:
+     *
+     * Expressions evaluate to (where `{}` denotes a Vallist):
+     *
+     * ```
+     * {42, 2, 3}, "hi", nil, 5, {22, 17}, {7, 8, 9}
+     * ```
+     *
+     * The result will be:
+     *
+     * ```
+     * 42, "hi", nil, 5, 22, 7, 8, 9
+     * ```
+     */
+    auto visit_expression_list(std::vector<ast::Expression> expressions, Env& env) -> EvalResult;
+
     // helper methods for debugging/tracing
     [[nodiscard]] auto tracer() const -> std::ostream&;
     void
@@ -93,6 +116,7 @@ private:
         std::optional<std::string> reason = std::nullopt) const;
     void trace_function_call(ast::Prefix prefix, const std::vector<Value>& arguments) const;
     void trace_function_call_result(ast::Prefix prefix, const CallResult& result) const;
+    void trace_exprlists(std::vector<ast::Expression>& exprlist, const Vallist& result) const;
 
     auto enter_block(Env& env) -> Env;
 };
