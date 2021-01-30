@@ -433,8 +433,8 @@ public:
     [[nodiscard]] auto arguments() const -> const Vallist&;
 
     /**
-     * Convenience methods for writing functions with one or two numeric arguments
-     * that should track the origin (e.g. sqrt or pow).
+     * Convenience method for writing functions with one numeric argument
+     * that should track the origin (e.g. pow).
      *
      * Usage:
      *
@@ -444,13 +444,23 @@ public:
      * // ...
      * ```
      *
+     * See also: `CallContext::binary_numeric_args_helper`.
+     */
+    [[nodiscard]] auto unary_numeric_arg_helper() const -> std::tuple<double, UnaryOrigin>;
+    /**
+     * Convenience method for writing functions with two numeric arguments
+     * that should track the origin (e.g. sqrt).
+     *
+     * Usage:
+     *
      * ```cpp
      * auto [arg1, arg2, origin] = ctx.binary_numeric_arg_helper();
      * origin.reverse = binary_num_reverse(...);
      * // ...
      * ```
+     *
+     * See also: `CallContext::unary_numeric_arg_helper`.
      */
-    [[nodiscard]] auto unary_numeric_arg_helper() const -> std::tuple<double, UnaryOrigin>;
     [[nodiscard]] auto binary_numeric_args_helper() const
         -> std::tuple<double, double, BinaryOrigin>;
 
@@ -938,10 +948,20 @@ template <typename T> auto get(const minilua::Value& value) -> const T& {
 
 namespace minilua {
 
-/**
+/*
  * Helper functions for writing functions that should be forcable.
  */
 
+/**
+ * Helper to create the reverse function for `UnaryOrigin` or `UnaryNumericFunctionHelper`.
+ *
+ * You only need to supply a function that accepts two `double`s (the new and old values)
+ * and returns `double` (the new value for the parameter).
+ *
+ * NOTE: Don't use this if the reverse can fail.
+ *
+ * See also: @ref binary_num_reverse.
+ */
 template <typename Fn> auto unary_num_reverse(Fn fn) -> decltype(auto) {
     return [fn](const Value& new_value, const Value& old_value) -> std::optional<SourceChangeTree> {
         if (!new_value.is_number() || !old_value.is_number()) {
@@ -952,6 +972,16 @@ template <typename Fn> auto unary_num_reverse(Fn fn) -> decltype(auto) {
     };
 }
 
+/**
+ * Helper to create the reverse function for `BinaryOrigin` or `BinaryNumericFunctionHelper`.
+ *
+ * You only need to supply a function that accepts two `double`s (the new value and old lhs/rhs
+ * value) and returns `double` (the new value for the lhs/rhs parameter).
+ *
+ * NOTE: Don't use this if the reverse can fail.
+ *
+ * See also: @ref unary_num_reverse.
+ */
 template <typename FnLeft, typename FnRight>
 auto binary_num_reverse(FnLeft fn_left, FnRight fn_right, std::string origin = "")
     -> decltype(auto) {
@@ -977,10 +1007,38 @@ auto binary_num_reverse(FnLeft fn_left, FnRight fn_right, std::string origin = "
     };
 }
 
-// use by constructing with lambdas directly and immediately invoke with the CallContext
+/**
+ * Helper for creating reversible numeric unary function.
+ *
+ * NOTE: Don't use this if the reverse can fail.
+ *
+ * With this helper you don't have to manually match the `Value`s you just have to
+ * provide functions that take `double` values and return `double` values for:
+ *
+ * 1. the normal function you want to write
+ * 2. the reverse function for propagating the changed result to the parameter
+ *
+ * Usage (using the deduction guide):
+ *
+ * ```
+ * function sqrt_impl(const CallContext& ctx) -> Value {
+ *     return minilua::UnaryNumericFunctionHelper{
+ *         [](double param) { return std::sqrt(param); },
+ *         [](double new_value, double old_param) { return new_value * new_value; },
+ *      }(ctx);
+ * }
+ * ```
+ *
+ * Note the call at the end.
+ *
+ * It's also possible to directly use the `UnaryNumericFunctionHelper` as the
+ * argument to `Function` because it is callable with a `CallContext` argument.
+ *
+ * See also: `BinaryNumericFunctionHelper`.
+ */
 template <typename Fn, typename Reverse> struct UnaryNumericFunctionHelper {
-    Fn function;     // NOLINT
-    Reverse reverse; // NOLINT
+    Fn function;
+    Reverse reverse;
 
     auto operator()(const CallContext& ctx) -> Value {
         auto [arg1, origin] = ctx.unary_numeric_arg_helper();
@@ -988,14 +1046,45 @@ template <typename Fn, typename Reverse> struct UnaryNumericFunctionHelper {
         return Value(this->function(arg1)).with_origin(origin);
     }
 };
-// deduction guide
-template <class... Ts> UnaryNumericFunctionHelper(Ts...) -> UnaryNumericFunctionHelper<Ts...>;
+/** deduction guide */
+template <typename... Ts> UnaryNumericFunctionHelper(Ts...) -> UnaryNumericFunctionHelper<Ts...>;
 
+/**
+ * Helper for creating a reversible numeric binary function.
+ *
+ * NOTE: Don't use this if the reverse can fail.
+ *
+ * With this helper you don't have to manually match the `Value`s you just have to
+ * provide functions that take `double` values and return `double` values for:
+ *
+ * 1. the normal function you want to write
+ * 2. the reverse function for propagating the changed result to the left parameter
+ * 3. the reverse function for propagating the changed result to the right parameter
+ *
+ * Usage (using the deduction guide):
+ *
+ * ```
+ * function pow_impl(const CallContext& ctx) -> Value {
+ *     return minilua::BinaryNumericFunctionHelper{
+ *         [](double lhs, double rhs) { return std::pow(lhs, rhs); },
+ *         [](double new_value, double old_rhs) { return std::pow(new_value, 1 / old_rhs); },
+ *         [](double new_value, double old_lhs) { return std::log(new_value) / std::log(old_lhs); }
+ *      }(ctx);
+ * }
+ * ```
+ *
+ * Note the call at the end.
+ *
+ * It's also possible to directly use the `BinaryNumericFunctionHelper` as the
+ * argument to `Function` because it is callable with a `CallContext` argument.
+ *
+ * See also: `UnaryNumericFunctionHelper`.
+ */
 template <typename Fn, typename ReverseLeft, typename ReverseRight>
 struct BinaryNumericFunctionHelper {
-    Fn function;                // NOLINT
-    ReverseLeft reverse_left;   // NOLINT
-    ReverseRight reverse_right; // NOLINT
+    Fn function;
+    ReverseLeft reverse_left;
+    ReverseRight reverse_right;
 
     auto operator()(const CallContext& ctx) -> Value {
         auto [arg1, arg2, origin] = ctx.binary_numeric_args_helper();
@@ -1003,7 +1092,7 @@ struct BinaryNumericFunctionHelper {
         return Value(this->function(arg1, arg2)).with_origin(origin);
     }
 };
-// deduction guide
+/** deduction guide */
 template <class... Ts> BinaryNumericFunctionHelper(Ts...) -> BinaryNumericFunctionHelper<Ts...>;
 
 // helper functions
