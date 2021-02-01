@@ -82,12 +82,14 @@ $(function() {
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a72bfa2de903d7d8cfae4c9bb0d5b6f28"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1InLoopExpression.html#a72bfa2de903d7d8cfae4c9bb0d5b6f28">InLoopExpression</a> (<a class="el" href="classts_1_1Node.html">ts::Node</a>)</td></tr>
 <tr class="separator:a72bfa2de903d7d8cfae4c9bb0d5b6f28"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a10613e3edbc14c39084c6f1fb74e6da9"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1InLoopExpression.html#a10613e3edbc14c39084c6f1fb74e6da9">loop_vars</a> () -&gt; std::vector&lt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Identifier.html">Identifier</a> &gt;</td></tr>
-<tr class="separator:a10613e3edbc14c39084c6f1fb74e6da9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae28ff7a33ade2eb6bbfb487f160242a0"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1InLoopExpression.html#ae28ff7a33ade2eb6bbfb487f160242a0">loop_exps</a> () -&gt; std::vector&lt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a> &gt;</td></tr>
-<tr class="separator:ae28ff7a33ade2eb6bbfb487f160242a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a64daa38d73e14b684199a556dfbcf2a7"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1InLoopExpression.html#a64daa38d73e14b684199a556dfbcf2a7">raw</a> () -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td></tr>
-<tr class="separator:a64daa38d73e14b684199a556dfbcf2a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a715a8cbf41e6693da9e8be2122ca92f2"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1InLoopExpression.html#a715a8cbf41e6693da9e8be2122ca92f2">loop_vars</a> () const -&gt; std::vector&lt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Identifier.html">Identifier</a> &gt;</td></tr>
+<tr class="separator:a715a8cbf41e6693da9e8be2122ca92f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6210517c894c214b3ac3499cbcd773f1"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1InLoopExpression.html#a6210517c894c214b3ac3499cbcd773f1">loop_exps</a> () const -&gt; std::vector&lt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a> &gt;</td></tr>
+<tr class="separator:a6210517c894c214b3ac3499cbcd773f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2cdf9ca8670a4fce30fe86046a48b00"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1InLoopExpression.html#ab2cdf9ca8670a4fce30fe86046a48b00">range</a> () const -&gt; <a class="el" href="structminilua_1_1Range.html">minilua::Range</a></td></tr>
+<tr class="separator:ab2cdf9ca8670a4fce30fe86046a48b00"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe9c9025ea929878520dbb9fa0ead77c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1InLoopExpression.html#abe9c9025ea929878520dbb9fa0ead77c">raw</a> () const -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td></tr>
+<tr class="separator:abe9c9025ea929878520dbb9fa0ead77c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>class for in_loop_expression nodes </p>
@@ -97,6 +99,9 @@ Public Member Functions</h2></td></tr>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">minilua::details::ast::InLoopExpression::InLoopExpression </td>
@@ -106,13 +111,18 @@ Public Member Functions</h2></td></tr>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="ae28ff7a33ade2eb6bbfb487f160242a0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae28ff7a33ade2eb6bbfb487f160242a0">&#9670;&nbsp;</a></span>loop_exps()</h2>
+<a id="a6210517c894c214b3ac3499cbcd773f1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6210517c894c214b3ac3499cbcd773f1">&#9670;&nbsp;</a></span>loop_exps()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -121,7 +131,7 @@ Public Member Functions</h2></td></tr>
           <td class="memname">auto minilua::details::ast::InLoopExpression::loop_exps </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> -&gt; std::vector&lt;<a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a>&gt;</td>
+          <td> const -&gt; std::vector&lt;<a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a>&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -129,8 +139,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a10613e3edbc14c39084c6f1fb74e6da9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a10613e3edbc14c39084c6f1fb74e6da9">&#9670;&nbsp;</a></span>loop_vars()</h2>
+<a id="a715a8cbf41e6693da9e8be2122ca92f2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a715a8cbf41e6693da9e8be2122ca92f2">&#9670;&nbsp;</a></span>loop_vars()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -139,7 +149,7 @@ Public Member Functions</h2></td></tr>
           <td class="memname">auto minilua::details::ast::InLoopExpression::loop_vars </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> -&gt; std::vector&lt;<a class="el" href="classminilua_1_1details_1_1ast_1_1Identifier.html">Identifier</a>&gt;</td>
+          <td> const -&gt; std::vector&lt;<a class="el" href="classminilua_1_1details_1_1ast_1_1Identifier.html">Identifier</a>&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -147,8 +157,25 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a64daa38d73e14b684199a556dfbcf2a7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a64daa38d73e14b684199a556dfbcf2a7">&#9670;&nbsp;</a></span>raw()</h2>
+<a id="ab2cdf9ca8670a4fce30fe86046a48b00"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab2cdf9ca8670a4fce30fe86046a48b00">&#9670;&nbsp;</a></span>range()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::details::ast::InLoopExpression::range </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; <a class="el" href="structminilua_1_1Range.html">minilua::Range</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abe9c9025ea929878520dbb9fa0ead77c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abe9c9025ea929878520dbb9fa0ead77c">&#9670;&nbsp;</a></span>raw()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -157,7 +184,7 @@ Public Member Functions</h2></td></tr>
           <td class="memname">auto minilua::details::ast::InLoopExpression::raw </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td>
+          <td> const -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td>
         </tr>
       </table>
 </div><div class="memdoc">

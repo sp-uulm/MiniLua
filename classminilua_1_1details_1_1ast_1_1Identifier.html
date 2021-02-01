@@ -82,10 +82,12 @@ $(function() {
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aae85936f3713a8cd53937cd8a983bcdc"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Identifier.html#aae85936f3713a8cd53937cd8a983bcdc">Identifier</a> (<a class="el" href="classts_1_1Node.html">ts::Node</a>)</td></tr>
 <tr class="separator:aae85936f3713a8cd53937cd8a983bcdc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa5cc0070f267186668542c911e36a121"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Identifier.html#aa5cc0070f267186668542c911e36a121">str</a> () -&gt; std::string</td></tr>
-<tr class="separator:aa5cc0070f267186668542c911e36a121"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a35a7efe4cf1add1c44f6f1f2441aac24"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Identifier.html#a35a7efe4cf1add1c44f6f1f2441aac24">raw</a> () -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td></tr>
-<tr class="separator:a35a7efe4cf1add1c44f6f1f2441aac24"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab0da89dbecd036301b300102b89f4911"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Identifier.html#ab0da89dbecd036301b300102b89f4911">string</a> () const -&gt; std::string</td></tr>
+<tr class="separator:ab0da89dbecd036301b300102b89f4911"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acce4d97a67a9cf373ba2ff2a35d47949"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Identifier.html#acce4d97a67a9cf373ba2ff2a35d47949">range</a> () const -&gt; <a class="el" href="structminilua_1_1Range.html">minilua::Range</a></td></tr>
+<tr class="separator:acce4d97a67a9cf373ba2ff2a35d47949"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c0aab28573861894eebe272c8e3f66e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Identifier.html#a9c0aab28573861894eebe272c8e3f66e">raw</a> () const -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td></tr>
+<tr class="separator:a9c0aab28573861894eebe272c8e3f66e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>class for identifier_nodes </p>
@@ -95,6 +97,9 @@ Public Member Functions</h2></td></tr>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">minilua::details::ast::Identifier::Identifier </td>
@@ -104,13 +109,35 @@ Public Member Functions</h2></td></tr>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a35a7efe4cf1add1c44f6f1f2441aac24"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a35a7efe4cf1add1c44f6f1f2441aac24">&#9670;&nbsp;</a></span>raw()</h2>
+<a id="acce4d97a67a9cf373ba2ff2a35d47949"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acce4d97a67a9cf373ba2ff2a35d47949">&#9670;&nbsp;</a></span>range()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::details::ast::Identifier::range </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; <a class="el" href="structminilua_1_1Range.html">minilua::Range</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9c0aab28573861894eebe272c8e3f66e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c0aab28573861894eebe272c8e3f66e">&#9670;&nbsp;</a></span>raw()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -119,24 +146,24 @@ Public Member Functions</h2></td></tr>
           <td class="memname">auto minilua::details::ast::Identifier::raw </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td>
+          <td> const -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="aa5cc0070f267186668542c911e36a121"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa5cc0070f267186668542c911e36a121">&#9670;&nbsp;</a></span>str()</h2>
+<a id="ab0da89dbecd036301b300102b89f4911"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab0da89dbecd036301b300102b89f4911">&#9670;&nbsp;</a></span>string()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">auto minilua::details::ast::Identifier::str </td>
+          <td class="memname">auto minilua::details::ast::Identifier::string </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> -&gt; std::string</td>
+          <td> const -&gt; std::string</td>
         </tr>
       </table>
 </div><div class="memdoc">

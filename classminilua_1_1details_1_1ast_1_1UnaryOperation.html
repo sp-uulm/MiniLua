@@ -82,12 +82,14 @@ $(function() {
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ab52a08745173cd75935b2fc7187aa605"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1UnaryOperation.html#ab52a08745173cd75935b2fc7187aa605">UnaryOperation</a> (<a class="el" href="classts_1_1Node.html">ts::Node</a> node)</td></tr>
 <tr class="separator:ab52a08745173cd75935b2fc7187aa605"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a041eb3475915bb4131f11dd5d5c69bae"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1UnaryOperation.html#a041eb3475915bb4131f11dd5d5c69bae">op</a> () -&gt; <a class="el" href="namespaceminilua_1_1details_1_1ast.html#a8956c9298cb9dc158e90025552209258">UnOpEnum</a></td></tr>
-<tr class="separator:a041eb3475915bb4131f11dd5d5c69bae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9fc29657a2f4ff08dde919138426b2c4"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1UnaryOperation.html#a9fc29657a2f4ff08dde919138426b2c4">exp</a> () -&gt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a></td></tr>
-<tr class="separator:a9fc29657a2f4ff08dde919138426b2c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6e03e88a865e28312429d00655fcfe25"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1UnaryOperation.html#a6e03e88a865e28312429d00655fcfe25">raw</a> () -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td></tr>
-<tr class="separator:a6e03e88a865e28312429d00655fcfe25"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acbca5084ece83368787a6526d8119e18"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1UnaryOperation.html#acbca5084ece83368787a6526d8119e18">unary_operator</a> () const -&gt; <a class="el" href="namespaceminilua_1_1details_1_1ast.html#a8956c9298cb9dc158e90025552209258">UnOpEnum</a></td></tr>
+<tr class="separator:acbca5084ece83368787a6526d8119e18"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5272c6ddf0c7df02c19030a7d3821b7"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1UnaryOperation.html#af5272c6ddf0c7df02c19030a7d3821b7">expression</a> () const -&gt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a></td></tr>
+<tr class="separator:af5272c6ddf0c7df02c19030a7d3821b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aafbce463c678a40e0979596b7c56101c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1UnaryOperation.html#aafbce463c678a40e0979596b7c56101c">range</a> () const -&gt; <a class="el" href="structminilua_1_1Range.html">minilua::Range</a></td></tr>
+<tr class="separator:aafbce463c678a40e0979596b7c56101c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:affecf47b56ebdedd5d44dcd2ed228bdd"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1UnaryOperation.html#affecf47b56ebdedd5d44dcd2ed228bdd">raw</a> () const -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td></tr>
+<tr class="separator:affecf47b56ebdedd5d44dcd2ed228bdd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>class for unary_operation nodes </p>
@@ -97,6 +99,9 @@ Public Member Functions</h2></td></tr>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">minilua::details::ast::UnaryOperation::UnaryOperation </td>
@@ -106,22 +111,27 @@ Public Member Functions</h2></td></tr>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a9fc29657a2f4ff08dde919138426b2c4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9fc29657a2f4ff08dde919138426b2c4">&#9670;&nbsp;</a></span>exp()</h2>
+<a id="af5272c6ddf0c7df02c19030a7d3821b7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af5272c6ddf0c7df02c19030a7d3821b7">&#9670;&nbsp;</a></span>expression()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">auto minilua::details::ast::UnaryOperation::exp </td>
+          <td class="memname">auto minilua::details::ast::UnaryOperation::expression </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> -&gt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a></td>
+          <td> const -&gt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -129,26 +139,25 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a041eb3475915bb4131f11dd5d5c69bae"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a041eb3475915bb4131f11dd5d5c69bae">&#9670;&nbsp;</a></span>op()</h2>
+<a id="aafbce463c678a40e0979596b7c56101c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aafbce463c678a40e0979596b7c56101c">&#9670;&nbsp;</a></span>range()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">auto minilua::details::ast::UnaryOperation::op </td>
+          <td class="memname">auto minilua::details::ast::UnaryOperation::range </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> -&gt; <a class="el" href="namespaceminilua_1_1details_1_1ast.html#a8956c9298cb9dc158e90025552209258">UnOpEnum</a></td>
+          <td> const -&gt; <a class="el" href="structminilua_1_1Range.html">minilua::Range</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="section return"><dt>Returns</dt><dd>the operator of the operation </dd></dl>
 
 </div>
 </div>
-<a id="a6e03e88a865e28312429d00655fcfe25"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6e03e88a865e28312429d00655fcfe25">&#9670;&nbsp;</a></span>raw()</h2>
+<a id="affecf47b56ebdedd5d44dcd2ed228bdd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#affecf47b56ebdedd5d44dcd2ed228bdd">&#9670;&nbsp;</a></span>raw()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -157,10 +166,28 @@ Public Member Functions</h2></td></tr>
           <td class="memname">auto minilua::details::ast::UnaryOperation::raw </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td>
+          <td> const -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="acbca5084ece83368787a6526d8119e18"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acbca5084ece83368787a6526d8119e18">&#9670;&nbsp;</a></span>unary_operator()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::details::ast::UnaryOperation::unary_operator </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; <a class="el" href="namespaceminilua_1_1details_1_1ast.html#a8956c9298cb9dc158e90025552209258">UnOpEnum</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>the operator of the operation </dd></dl>
 
 </div>
 </div>

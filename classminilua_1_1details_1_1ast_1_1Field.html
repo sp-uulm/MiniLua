@@ -82,10 +82,12 @@ $(function() {
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a3094904707a986fbcb1ef3696075b62d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Field.html#a3094904707a986fbcb1ef3696075b62d">Field</a> (<a class="el" href="classts_1_1Node.html">ts::Node</a>)</td></tr>
 <tr class="separator:a3094904707a986fbcb1ef3696075b62d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae813de2e01149cd34d832fef1fc8edb0"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Field.html#ae813de2e01149cd34d832fef1fc8edb0">content</a> () -&gt; std::variant&lt; <a class="el" href="ast_8hpp.html#aa64a85a622eb4663b9af8c5aa471c65e">INDEX_FIELD</a>, <a class="el" href="ast_8hpp.html#a39abc42965253342df7cec1e113addb8">ID_FIELD</a>, <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a> &gt;</td></tr>
-<tr class="separator:ae813de2e01149cd34d832fef1fc8edb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa6e2258176e933a66926fa5b45cd0a58"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Field.html#aa6e2258176e933a66926fa5b45cd0a58">raw</a> () -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td></tr>
-<tr class="separator:aa6e2258176e933a66926fa5b45cd0a58"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aad77f6d508942197dc88a1380750c7d6"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Field.html#aad77f6d508942197dc88a1380750c7d6">content</a> () const -&gt; std::variant&lt; <a class="el" href="namespaceminilua_1_1details_1_1ast.html#afdf9647551f273252dc4f1dc844168f2">IndexField</a>, <a class="el" href="namespaceminilua_1_1details_1_1ast.html#acaeae980367e022a241342246e1c291a">IdentifierField</a>, <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a> &gt;</td></tr>
+<tr class="separator:aad77f6d508942197dc88a1380750c7d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbbdb29ab330c78ad58fa6605b048ff8"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Field.html#adbbdb29ab330c78ad58fa6605b048ff8">range</a> () const -&gt; <a class="el" href="structminilua_1_1Range.html">minilua::Range</a></td></tr>
+<tr class="separator:adbbdb29ab330c78ad58fa6605b048ff8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a114a4280506edb38f770f178dabd3af5"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Field.html#a114a4280506edb38f770f178dabd3af5">raw</a> () const -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td></tr>
+<tr class="separator:a114a4280506edb38f770f178dabd3af5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>class for field_nodes </p>
@@ -95,6 +97,9 @@ Public Member Functions</h2></td></tr>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">minilua::details::ast::Field::Field </td>
@@ -104,13 +109,18 @@ Public Member Functions</h2></td></tr>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="ae813de2e01149cd34d832fef1fc8edb0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae813de2e01149cd34d832fef1fc8edb0">&#9670;&nbsp;</a></span>content()</h2>
+<a id="aad77f6d508942197dc88a1380750c7d6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aad77f6d508942197dc88a1380750c7d6">&#9670;&nbsp;</a></span>content()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -119,16 +129,33 @@ Public Member Functions</h2></td></tr>
           <td class="memname">auto minilua::details::ast::Field::content </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> -&gt; std::variant&lt;<a class="el" href="ast_8hpp.html#aa64a85a622eb4663b9af8c5aa471c65e">INDEX_FIELD</a>, <a class="el" href="ast_8hpp.html#a39abc42965253342df7cec1e113addb8">ID_FIELD</a>, <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a>&gt;</td>
+          <td> const -&gt; std::variant&lt;<a class="el" href="namespaceminilua_1_1details_1_1ast.html#afdf9647551f273252dc4f1dc844168f2">IndexField</a> , <a class="el" href="namespaceminilua_1_1details_1_1ast.html#acaeae980367e022a241342246e1c291a">IdentifierField</a> , <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a>&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>this method splits a field into the identifier of the field and the content of the field or just returns the expression an INDEX_FIELD looks like this in lua: "[INDEX_FIELD.first()] = INDEX_FIELD.second()" an ID_FIELD looks like this in lua: "ID_FIELD.first() = ID_FIELD.second" the <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a> is </p><dl class="section return"><dt>Returns</dt><dd>a variant containing the right format for the field </dd></dl>
+<p>this method splits a field into the identifier of the field and the content of the field or just returns the expression an IndexField looks like this in lua: "[IndexField.first()] = IndexField.second()" an IdentifierField looks like this in lua: "IdentifierField.first() = IdentifierField.second" the <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a> is </p><dl class="section return"><dt>Returns</dt><dd>a variant containing the right format for the field </dd></dl>
 
 </div>
 </div>
-<a id="aa6e2258176e933a66926fa5b45cd0a58"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa6e2258176e933a66926fa5b45cd0a58">&#9670;&nbsp;</a></span>raw()</h2>
+<a id="adbbdb29ab330c78ad58fa6605b048ff8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adbbdb29ab330c78ad58fa6605b048ff8">&#9670;&nbsp;</a></span>range()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::details::ast::Field::range </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; <a class="el" href="structminilua_1_1Range.html">minilua::Range</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a114a4280506edb38f770f178dabd3af5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a114a4280506edb38f770f178dabd3af5">&#9670;&nbsp;</a></span>raw()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -137,7 +164,7 @@ Public Member Functions</h2></td></tr>
           <td class="memname">auto minilua::details::ast::Field::raw </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td>
+          <td> const -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td>
         </tr>
       </table>
 </div><div class="memdoc">

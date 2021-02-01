@@ -82,12 +82,14 @@ $(function() {
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a51795b7bc1264dfcba920dc168dbbd86"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1ForStatement.html#a51795b7bc1264dfcba920dc168dbbd86">ForStatement</a> (<a class="el" href="classts_1_1Node.html">ts::Node</a> node)</td></tr>
 <tr class="separator:a51795b7bc1264dfcba920dc168dbbd86"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab2d0ef8a359acdd831dcb576aa9d6182"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1ForStatement.html#ab2d0ef8a359acdd831dcb576aa9d6182">loop_exp</a> () -&gt; <a class="el" href="classminilua_1_1details_1_1ast_1_1LoopExpression.html">LoopExpression</a></td></tr>
-<tr class="separator:ab2d0ef8a359acdd831dcb576aa9d6182"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afeb3a2d75ab0cba6f86163b63dbf2313"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1ForStatement.html#afeb3a2d75ab0cba6f86163b63dbf2313">body</a> () -&gt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Body.html">Body</a></td></tr>
-<tr class="separator:afeb3a2d75ab0cba6f86163b63dbf2313"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af9d0faca7653cc500fbe8056bca63062"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1ForStatement.html#af9d0faca7653cc500fbe8056bca63062">raw</a> () -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td></tr>
-<tr class="separator:af9d0faca7653cc500fbe8056bca63062"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2f79fdd6b6c68cbd9ae8e940002b9311"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1ForStatement.html#a2f79fdd6b6c68cbd9ae8e940002b9311">loop_expression</a> () const -&gt; <a class="el" href="classminilua_1_1details_1_1ast_1_1LoopExpression.html">LoopExpression</a></td></tr>
+<tr class="separator:a2f79fdd6b6c68cbd9ae8e940002b9311"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a136de24d605b888dc6138b1605bd5d06"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1ForStatement.html#a136de24d605b888dc6138b1605bd5d06">body</a> () const -&gt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Body.html">Body</a></td></tr>
+<tr class="separator:a136de24d605b888dc6138b1605bd5d06"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ace8ecdba9c88fd6138754790e9324ad2"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1ForStatement.html#ace8ecdba9c88fd6138754790e9324ad2">range</a> () const -&gt; <a class="el" href="structminilua_1_1Range.html">minilua::Range</a></td></tr>
+<tr class="separator:ace8ecdba9c88fd6138754790e9324ad2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3dd55e8b686898a7d227e8747501ca1"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1ForStatement.html#af3dd55e8b686898a7d227e8747501ca1">raw</a> () const -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td></tr>
+<tr class="separator:af3dd55e8b686898a7d227e8747501ca1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>class for for_statement nodes </p>
@@ -97,6 +99,9 @@ Public Member Functions</h2></td></tr>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">minilua::details::ast::ForStatement::ForStatement </td>
@@ -106,13 +111,18 @@ Public Member Functions</h2></td></tr>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="afeb3a2d75ab0cba6f86163b63dbf2313"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afeb3a2d75ab0cba6f86163b63dbf2313">&#9670;&nbsp;</a></span>body()</h2>
+<a id="a136de24d605b888dc6138b1605bd5d06"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a136de24d605b888dc6138b1605bd5d06">&#9670;&nbsp;</a></span>body()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -121,7 +131,7 @@ Public Member Functions</h2></td></tr>
           <td class="memname">auto minilua::details::ast::ForStatement::body </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> -&gt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Body.html">Body</a></td>
+          <td> const -&gt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Body.html">Body</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -129,17 +139,17 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ab2d0ef8a359acdd831dcb576aa9d6182"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab2d0ef8a359acdd831dcb576aa9d6182">&#9670;&nbsp;</a></span>loop_exp()</h2>
+<a id="a2f79fdd6b6c68cbd9ae8e940002b9311"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2f79fdd6b6c68cbd9ae8e940002b9311">&#9670;&nbsp;</a></span>loop_expression()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">auto minilua::details::ast::ForStatement::loop_exp </td>
+          <td class="memname">auto minilua::details::ast::ForStatement::loop_expression </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> -&gt; <a class="el" href="classminilua_1_1details_1_1ast_1_1LoopExpression.html">LoopExpression</a></td>
+          <td> const -&gt; <a class="el" href="classminilua_1_1details_1_1ast_1_1LoopExpression.html">LoopExpression</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -147,8 +157,25 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="af9d0faca7653cc500fbe8056bca63062"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af9d0faca7653cc500fbe8056bca63062">&#9670;&nbsp;</a></span>raw()</h2>
+<a id="ace8ecdba9c88fd6138754790e9324ad2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ace8ecdba9c88fd6138754790e9324ad2">&#9670;&nbsp;</a></span>range()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::details::ast::ForStatement::range </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; <a class="el" href="structminilua_1_1Range.html">minilua::Range</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af3dd55e8b686898a7d227e8747501ca1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3dd55e8b686898a7d227e8747501ca1">&#9670;&nbsp;</a></span>raw()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -157,7 +184,7 @@ Public Member Functions</h2></td></tr>
           <td class="memname">auto minilua::details::ast::ForStatement::raw </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td>
+          <td> const -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td>
         </tr>
       </table>
 </div><div class="memdoc">

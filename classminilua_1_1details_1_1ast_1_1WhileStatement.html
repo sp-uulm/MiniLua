@@ -82,12 +82,14 @@ $(function() {
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a7a9a798a19eb300af951290935bc6c8c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1WhileStatement.html#a7a9a798a19eb300af951290935bc6c8c">WhileStatement</a> (<a class="el" href="classts_1_1Node.html">ts::Node</a> node)</td></tr>
 <tr class="separator:a7a9a798a19eb300af951290935bc6c8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3680722f7f7917bc945a58159f72bdc0"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1WhileStatement.html#a3680722f7f7917bc945a58159f72bdc0">exit_cond</a> () -&gt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a></td></tr>
-<tr class="separator:a3680722f7f7917bc945a58159f72bdc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a710415a923387ae963c36a71c74c7667"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1WhileStatement.html#a710415a923387ae963c36a71c74c7667">body</a> () -&gt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Body.html">Body</a></td></tr>
-<tr class="separator:a710415a923387ae963c36a71c74c7667"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6c9f4f34c559cb70183268f84f81402f"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1WhileStatement.html#a6c9f4f34c559cb70183268f84f81402f">raw</a> () -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td></tr>
-<tr class="separator:a6c9f4f34c559cb70183268f84f81402f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a89c66dd40afcea11c23098d5c9949425"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1WhileStatement.html#a89c66dd40afcea11c23098d5c9949425">repeat_conditon</a> () const -&gt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a></td></tr>
+<tr class="separator:a89c66dd40afcea11c23098d5c9949425"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02af4dfb980dc8f2d1755fe342ca5aa4"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1WhileStatement.html#a02af4dfb980dc8f2d1755fe342ca5aa4">body</a> () const -&gt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Body.html">Body</a></td></tr>
+<tr class="separator:a02af4dfb980dc8f2d1755fe342ca5aa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4eabecf1f873ddb0b6081b8702c3e648"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1WhileStatement.html#a4eabecf1f873ddb0b6081b8702c3e648">range</a> () const -&gt; <a class="el" href="structminilua_1_1Range.html">minilua::Range</a></td></tr>
+<tr class="separator:a4eabecf1f873ddb0b6081b8702c3e648"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a53e1431e8906416d0b66b06bd8132992"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1WhileStatement.html#a53e1431e8906416d0b66b06bd8132992">raw</a> () const -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td></tr>
+<tr class="separator:a53e1431e8906416d0b66b06bd8132992"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>class for while_statement nodes </p>
@@ -97,6 +99,9 @@ Public Member Functions</h2></td></tr>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">minilua::details::ast::WhileStatement::WhileStatement </td>
@@ -106,13 +111,18 @@ Public Member Functions</h2></td></tr>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a710415a923387ae963c36a71c74c7667"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a710415a923387ae963c36a71c74c7667">&#9670;&nbsp;</a></span>body()</h2>
+<a id="a02af4dfb980dc8f2d1755fe342ca5aa4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a02af4dfb980dc8f2d1755fe342ca5aa4">&#9670;&nbsp;</a></span>body()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -121,7 +131,7 @@ Public Member Functions</h2></td></tr>
           <td class="memname">auto minilua::details::ast::WhileStatement::body </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> -&gt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Body.html">Body</a></td>
+          <td> const -&gt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Body.html">Body</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -129,26 +139,25 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a3680722f7f7917bc945a58159f72bdc0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3680722f7f7917bc945a58159f72bdc0">&#9670;&nbsp;</a></span>exit_cond()</h2>
+<a id="a4eabecf1f873ddb0b6081b8702c3e648"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4eabecf1f873ddb0b6081b8702c3e648">&#9670;&nbsp;</a></span>range()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">auto minilua::details::ast::WhileStatement::exit_cond </td>
+          <td class="memname">auto minilua::details::ast::WhileStatement::range </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> -&gt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a></td>
+          <td> const -&gt; <a class="el" href="structminilua_1_1Range.html">minilua::Range</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>This method gets the contitional expression of the loop. In while loops this is always checked before executing the body statements </p><dl class="section return"><dt>Returns</dt><dd>an expression containing the conditional expression of the loop </dd></dl>
 
 </div>
 </div>
-<a id="a6c9f4f34c559cb70183268f84f81402f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6c9f4f34c559cb70183268f84f81402f">&#9670;&nbsp;</a></span>raw()</h2>
+<a id="a53e1431e8906416d0b66b06bd8132992"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a53e1431e8906416d0b66b06bd8132992">&#9670;&nbsp;</a></span>raw()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -157,10 +166,28 @@ Public Member Functions</h2></td></tr>
           <td class="memname">auto minilua::details::ast::WhileStatement::raw </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td>
+          <td> const -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a89c66dd40afcea11c23098d5c9949425"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a89c66dd40afcea11c23098d5c9949425">&#9670;&nbsp;</a></span>repeat_conditon()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::details::ast::WhileStatement::repeat_conditon </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>an expression containing the conditional expression of the loop </dd></dl>
 
 </div>
 </div>

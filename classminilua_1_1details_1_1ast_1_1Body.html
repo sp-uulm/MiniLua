@@ -84,8 +84,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a0d1ed307a8f10430998ab1cb15d7e9fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4a3034879b719b1c1dfbce0f0f6980a0"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Body.html#a4a3034879b719b1c1dfbce0f0f6980a0">statements</a> () -&gt; std::vector&lt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Statement.html">Statement</a> &gt;</td></tr>
 <tr class="separator:a4a3034879b719b1c1dfbce0f0f6980a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6a8518c453ae13f8855e74dceb93d8dd"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Body.html#a6a8518c453ae13f8855e74dceb93d8dd">ret</a> () -&gt; std::optional&lt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Return.html">Return</a> &gt;</td></tr>
-<tr class="separator:a6a8518c453ae13f8855e74dceb93d8dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c371dfd3da252d47b84ac7b498c7f60"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Body.html#a3c371dfd3da252d47b84ac7b498c7f60">return_statement</a> () -&gt; std::optional&lt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Return.html">Return</a> &gt;</td></tr>
+<tr class="separator:a3c371dfd3da252d47b84ac7b498c7f60"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The <a class="el" href="classminilua_1_1details_1_1ast_1_1Body.html">Body</a> class groups a variable amount of statements together the last statement of a <a class="el" href="classminilua_1_1details_1_1ast_1_1Body.html">Body</a> might be a return_statement </p>
@@ -95,6 +95,9 @@ Public Member Functions</h2></td></tr>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">minilua::details::ast::Body::Body </td>
@@ -104,19 +107,24 @@ Public Member Functions</h2></td></tr>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a6a8518c453ae13f8855e74dceb93d8dd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6a8518c453ae13f8855e74dceb93d8dd">&#9670;&nbsp;</a></span>ret()</h2>
+<a id="a3c371dfd3da252d47b84ac7b498c7f60"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3c371dfd3da252d47b84ac7b498c7f60">&#9670;&nbsp;</a></span>return_statement()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">auto minilua::details::ast::Body::ret </td>
+          <td class="memname">auto minilua::details::ast::Body::return_statement </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> -&gt; std::optional&lt;<a class="el" href="classminilua_1_1details_1_1ast_1_1Return.html">Return</a>&gt;</td>

@@ -82,10 +82,12 @@ $(function() {
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a76d4c2e82d72c13ae5374aadac3a06f0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1VariableDeclarator.html#a76d4c2e82d72c13ae5374aadac3a06f0">VariableDeclarator</a> (<a class="el" href="classts_1_1Node.html">ts::Node</a> node)</td></tr>
 <tr class="separator:a76d4c2e82d72c13ae5374aadac3a06f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab3697d58f98019857d26017c6809e066"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1VariableDeclarator.html#ab3697d58f98019857d26017c6809e066">var</a> () -&gt; std::variant&lt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Identifier.html">Identifier</a>, <a class="el" href="classminilua_1_1details_1_1ast_1_1FieldExpression.html">FieldExpression</a>, <a class="el" href="classminilua_1_1details_1_1ast_1_1TableIndex.html">TableIndex</a> &gt;</td></tr>
-<tr class="separator:ab3697d58f98019857d26017c6809e066"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a096ab459c2de826fe51731b264aac174"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1VariableDeclarator.html#a096ab459c2de826fe51731b264aac174">raw</a> () -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td></tr>
-<tr class="separator:a096ab459c2de826fe51731b264aac174"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7be655d8ae53efc4a62199ebc32e865b"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1VariableDeclarator.html#a7be655d8ae53efc4a62199ebc32e865b">options</a> () const -&gt; std::variant&lt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Identifier.html">Identifier</a>, <a class="el" href="classminilua_1_1details_1_1ast_1_1FieldExpression.html">FieldExpression</a>, <a class="el" href="classminilua_1_1details_1_1ast_1_1TableIndex.html">TableIndex</a> &gt;</td></tr>
+<tr class="separator:a7be655d8ae53efc4a62199ebc32e865b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2acd374809d82f362f092974c677dedb"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1VariableDeclarator.html#a2acd374809d82f362f092974c677dedb">range</a> () const -&gt; <a class="el" href="structminilua_1_1Range.html">minilua::Range</a></td></tr>
+<tr class="separator:a2acd374809d82f362f092974c677dedb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa256f5f1fc3f9555a936894e5a70cf21"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1VariableDeclarator.html#aa256f5f1fc3f9555a936894e5a70cf21">raw</a> () const -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td></tr>
+<tr class="separator:aa256f5f1fc3f9555a936894e5a70cf21"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>class for variable_declarator nodes </p>
@@ -95,6 +97,9 @@ Public Member Functions</h2></td></tr>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">minilua::details::ast::VariableDeclarator::VariableDeclarator </td>
@@ -104,13 +109,53 @@ Public Member Functions</h2></td></tr>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a096ab459c2de826fe51731b264aac174"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a096ab459c2de826fe51731b264aac174">&#9670;&nbsp;</a></span>raw()</h2>
+<a id="a7be655d8ae53efc4a62199ebc32e865b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7be655d8ae53efc4a62199ebc32e865b">&#9670;&nbsp;</a></span>options()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::details::ast::VariableDeclarator::options </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; std::variant&lt;<a class="el" href="classminilua_1_1details_1_1ast_1_1Identifier.html">Identifier</a>, <a class="el" href="classminilua_1_1details_1_1ast_1_1FieldExpression.html">FieldExpression</a>, <a class="el" href="classminilua_1_1details_1_1ast_1_1TableIndex.html">TableIndex</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>a variant containing the class this variable declarator gets resolved to </dd></dl>
+
+</div>
+</div>
+<a id="a2acd374809d82f362f092974c677dedb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2acd374809d82f362f092974c677dedb">&#9670;&nbsp;</a></span>range()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::details::ast::VariableDeclarator::range </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; <a class="el" href="structminilua_1_1Range.html">minilua::Range</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa256f5f1fc3f9555a936894e5a70cf21"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa256f5f1fc3f9555a936894e5a70cf21">&#9670;&nbsp;</a></span>raw()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -119,28 +164,10 @@ Public Member Functions</h2></td></tr>
           <td class="memname">auto minilua::details::ast::VariableDeclarator::raw </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td>
+          <td> const -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
-
-</div>
-</div>
-<a id="ab3697d58f98019857d26017c6809e066"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab3697d58f98019857d26017c6809e066">&#9670;&nbsp;</a></span>var()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto minilua::details::ast::VariableDeclarator::var </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> -&gt; std::variant&lt;<a class="el" href="classminilua_1_1details_1_1ast_1_1Identifier.html">Identifier</a>, <a class="el" href="classminilua_1_1details_1_1ast_1_1FieldExpression.html">FieldExpression</a>, <a class="el" href="classminilua_1_1details_1_1ast_1_1TableIndex.html">TableIndex</a>&gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<dl class="section return"><dt>Returns</dt><dd>a variant containing the class this variable declarator gets resolved to </dd></dl>
 
 </div>
 </div>

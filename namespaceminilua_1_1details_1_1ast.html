@@ -70,6 +70,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#enum-members">Enumerations</a>  </div>
   <div class="headertitle">
 <div class="title">minilua::details::ast Namespace Reference</div>  </div>
@@ -108,8 +109,6 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1FunctionStatement.html">FunctionStatement</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1GlobalVariable.html">GlobalVariable</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1GoTo.html">GoTo</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Identifier.html">Identifier</a></td></tr>
@@ -120,11 +119,9 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Label.html">Label</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1LocalFunctionStatement.html">LocalFunctionStatement</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Literal.html">Literal</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1LoopExpression.html">LoopExpression</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Next.html">Next</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Parameters.html">Parameters</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -155,8 +152,25 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1WhileStatement.html">WhileStatement</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:afdf9647551f273252dc4f1dc844168f2"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1details_1_1ast.html#afdf9647551f273252dc4f1dc844168f2">IndexField</a> = std::pair&lt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a>, <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a> &gt;</td></tr>
+<tr class="separator:afdf9647551f273252dc4f1dc844168f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acaeae980367e022a241342246e1c291a"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1details_1_1ast.html#acaeae980367e022a241342246e1c291a">IdentifierField</a> = std::pair&lt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Identifier.html">Identifier</a>, <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a> &gt;</td></tr>
+<tr class="separator:acaeae980367e022a241342246e1c291a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
+<tr class="memitem:ac1f8ab71dc6e1b079c34c18a32cd05f4"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1details_1_1ast.html#ac1f8ab71dc6e1b079c34c18a32cd05f4">LiteralType</a> { <br />
+&#160;&#160;<a class="el" href="namespaceminilua_1_1details_1_1ast.html#ac1f8ab71dc6e1b079c34c18a32cd05f4ac0d83f0b82a6b30de8811e69e6d95c61">LiteralType::TRUE</a>, 
+<a class="el" href="namespaceminilua_1_1details_1_1ast.html#ac1f8ab71dc6e1b079c34c18a32cd05f4a946003f97ccc52d5d3b54ac0ec31bbfc">LiteralType::FALSE</a>, 
+<a class="el" href="namespaceminilua_1_1details_1_1ast.html#ac1f8ab71dc6e1b079c34c18a32cd05f4abc0b1e8b63f3f00318eee5aeabc14255">LiteralType::NIL</a>, 
+<a class="el" href="namespaceminilua_1_1details_1_1ast.html#ac1f8ab71dc6e1b079c34c18a32cd05f4a34f55eca38e0605a84f169ff61a2a396">LiteralType::NUMBER</a>, 
+<br />
+&#160;&#160;<a class="el" href="namespaceminilua_1_1details_1_1ast.html#ac1f8ab71dc6e1b079c34c18a32cd05f4a63b588d5559f64f89a416e656880b949">LiteralType::STRING</a>
+<br />
+ }</td></tr>
+<tr class="separator:ac1f8ab71dc6e1b079c34c18a32cd05f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3c6cffcd7e4488a497f69ee5ea8abea0"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1details_1_1ast.html#a3c6cffcd7e4488a497f69ee5ea8abea0">BinOpEnum</a> { <br />
 &#160;&#160;<a class="el" href="namespaceminilua_1_1details_1_1ast.html#a3c6cffcd7e4488a497f69ee5ea8abea0a9eeb52badb613229884838847294b90d">BinOpEnum::ADD</a>, 
 <a class="el" href="namespaceminilua_1_1details_1_1ast.html#a3c6cffcd7e4488a497f69ee5ea8abea0a241dd841abade20fcb27b8a9f494e1eb">BinOpEnum::SUB</a>, 
@@ -198,11 +212,36 @@ Enumerations</h2></td></tr>
 <a class="el" href="namespaceminilua_1_1details_1_1ast.html#ae16ec54badeb3117a7873dd643504fb9a2b1a9b2e013ef67c7583bf479a44b0f4">NO_SPREAD</a>
  }</td></tr>
 <tr class="separator:ae16ec54badeb3117a7873dd643504fb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0c40b3775080f8281c1e9563bee1c763"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1details_1_1ast.html#a0c40b3775080f8281c1e9563bee1c763">GV</a> { <a class="el" href="namespaceminilua_1_1details_1_1ast.html#a0c40b3775080f8281c1e9563bee1c763acb32129e06454cf9124a1cb2c65b5d0b">_G</a>, 
-<a class="el" href="namespaceminilua_1_1details_1_1ast.html#a0c40b3775080f8281c1e9563bee1c763a23db4fad43a31a93c0db88d5702168d3">_VERSION</a>
- }</td></tr>
-<tr class="separator:a0c40b3775080f8281c1e9563bee1c763"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Typedef Documentation</h2>
+<a id="acaeae980367e022a241342246e1c291a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acaeae980367e022a241342246e1c291a">&#9670;&nbsp;</a></span>IdentifierField</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespaceminilua_1_1details_1_1ast.html#acaeae980367e022a241342246e1c291a">minilua::details::ast::IdentifierField</a> = typedef std::pair&lt;<a class="el" href="classminilua_1_1details_1_1ast_1_1Identifier.html">Identifier</a>, <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afdf9647551f273252dc4f1dc844168f2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afdf9647551f273252dc4f1dc844168f2">&#9670;&nbsp;</a></span>IndexField</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespaceminilua_1_1details_1_1ast.html#afdf9647551f273252dc4f1dc844168f2">minilua::details::ast::IndexField</a> = typedef std::pair&lt;<a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a>, <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <h2 class="groupheader">Enumeration Type Documentation</h2>
 <a id="a3c6cffcd7e4488a497f69ee5ea8abea0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3c6cffcd7e4488a497f69ee5ea8abea0">&#9670;&nbsp;</a></span>BinOpEnum</h2>
@@ -250,20 +289,31 @@ Enumerations</h2></td></tr>
 
 </div>
 </div>
-<a id="a0c40b3775080f8281c1e9563bee1c763"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0c40b3775080f8281c1e9563bee1c763">&#9670;&nbsp;</a></span>GV</h2>
+<a id="ac1f8ab71dc6e1b079c34c18a32cd05f4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac1f8ab71dc6e1b079c34c18a32cd05f4">&#9670;&nbsp;</a></span>LiteralType</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">enum <a class="el" href="namespaceminilua_1_1details_1_1ast.html#a0c40b3775080f8281c1e9563bee1c763">minilua::details::ast::GV</a></td>
+          <td class="memname">enum <a class="el" href="namespaceminilua_1_1details_1_1ast.html#ac1f8ab71dc6e1b079c34c18a32cd05f4">minilua::details::ast::LiteralType</a></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a0c40b3775080f8281c1e9563bee1c763acb32129e06454cf9124a1cb2c65b5d0b"></a>_G&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a0c40b3775080f8281c1e9563bee1c763a23db4fad43a31a93c0db88d5702168d3"></a>_VERSION&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ac1f8ab71dc6e1b079c34c18a32cd05f4ac0d83f0b82a6b30de8811e69e6d95c61"></a>TRUE&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="ac1f8ab71dc6e1b079c34c18a32cd05f4a946003f97ccc52d5d3b54ac0ec31bbfc"></a>FALSE&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="ac1f8ab71dc6e1b079c34c18a32cd05f4abc0b1e8b63f3f00318eee5aeabc14255"></a>NIL&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="ac1f8ab71dc6e1b079c34c18a32cd05f4a34f55eca38e0605a84f169ff61a2a396"></a>NUMBER&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="ac1f8ab71dc6e1b079c34c18a32cd05f4a63b588d5559f64f89a416e656880b949"></a>STRING&#160;</td><td class="fielddoc"></td></tr>
 </table>
 
 </div>

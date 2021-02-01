@@ -82,10 +82,12 @@ $(function() {
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a960a8b90d84c963fca196edb8e002257"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Return.html#a960a8b90d84c963fca196edb8e002257">Return</a> (<a class="el" href="classts_1_1Node.html">ts::Node</a> node)</td></tr>
 <tr class="separator:a960a8b90d84c963fca196edb8e002257"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a502a578db42bcfa8993af8b594043339"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Return.html#a502a578db42bcfa8993af8b594043339">explist</a> () -&gt; std::vector&lt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a> &gt;</td></tr>
-<tr class="separator:a502a578db42bcfa8993af8b594043339"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a470acb49d5ccc052e66f638d3433ef31"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Return.html#a470acb49d5ccc052e66f638d3433ef31">raw</a> () -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td></tr>
-<tr class="separator:a470acb49d5ccc052e66f638d3433ef31"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2f4c4b73985c5a8821d347a0ee3f7bbe"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Return.html#a2f4c4b73985c5a8821d347a0ee3f7bbe">exp_list</a> () const -&gt; std::vector&lt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a> &gt;</td></tr>
+<tr class="separator:a2f4c4b73985c5a8821d347a0ee3f7bbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0989a7b5ca4b42c9f340fdffcd167427"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Return.html#a0989a7b5ca4b42c9f340fdffcd167427">range</a> () const -&gt; <a class="el" href="structminilua_1_1Range.html">minilua::Range</a></td></tr>
+<tr class="separator:a0989a7b5ca4b42c9f340fdffcd167427"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d7b4f6e8d3c17d739765610f5f1d9ff"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1ast_1_1Return.html#a8d7b4f6e8d3c17d739765610f5f1d9ff">raw</a> () const -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td></tr>
+<tr class="separator:a8d7b4f6e8d3c17d739765610f5f1d9ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>a class for return_statement nodes </p>
@@ -95,6 +97,9 @@ Public Member Functions</h2></td></tr>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">minilua::details::ast::Return::Return </td>
@@ -104,22 +109,27 @@ Public Member Functions</h2></td></tr>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a502a578db42bcfa8993af8b594043339"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a502a578db42bcfa8993af8b594043339">&#9670;&nbsp;</a></span>explist()</h2>
+<a id="a2f4c4b73985c5a8821d347a0ee3f7bbe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2f4c4b73985c5a8821d347a0ee3f7bbe">&#9670;&nbsp;</a></span>exp_list()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">auto minilua::details::ast::Return::explist </td>
+          <td class="memname">auto minilua::details::ast::Return::exp_list </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> -&gt; std::vector&lt;<a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a>&gt;</td>
+          <td> const -&gt; std::vector&lt;<a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">Expression</a>&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -127,8 +137,25 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a470acb49d5ccc052e66f638d3433ef31"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a470acb49d5ccc052e66f638d3433ef31">&#9670;&nbsp;</a></span>raw()</h2>
+<a id="a0989a7b5ca4b42c9f340fdffcd167427"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0989a7b5ca4b42c9f340fdffcd167427">&#9670;&nbsp;</a></span>range()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::details::ast::Return::range </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; <a class="el" href="structminilua_1_1Range.html">minilua::Range</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8d7b4f6e8d3c17d739765610f5f1d9ff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8d7b4f6e8d3c17d739765610f5f1d9ff">&#9670;&nbsp;</a></span>raw()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -137,7 +164,7 @@ Public Member Functions</h2></td></tr>
           <td class="memname">auto minilua::details::ast::Return::raw </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td>
+          <td> const -&gt; <a class="el" href="classts_1_1Node.html">ts::Node</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
