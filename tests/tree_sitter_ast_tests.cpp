@@ -368,7 +368,7 @@ TEST_CASE("for_in_statements", "[tree-sitter]") {
                          "  print(k, v)\n"
                          "end\n"
                          "for a,b,c,d,e in foo(var) do\n"
-                         "  return 1\n"
+                         "  return foo();\n"
                          "end";
 
     ts::Tree tree = parser.parse_string(source);
@@ -387,8 +387,17 @@ TEST_CASE("for_in_statements", "[tree-sitter]") {
     CHECK(fors.size() == 2);
     CHECK(fors[0].loop_expression().loop_vars().size() == 2);
     CHECK(fors[0].loop_expression().loop_exps().size() == 3);
+    CHECK(fors[0].body().statements().size()==1);
     CHECK(fors[1].loop_expression().loop_vars().size() == 5);
     CHECK(fors[1].loop_expression().loop_exps().size() == 1);
+    CHECK(fors[1].body().return_statement().has_value());
+    auto ret = fors[1].body().return_statement().value();
+    CHECK(ret.exp_list().size()==1);
+    auto expr = ret.exp_list().begin()->options();
+    CHECK(std::holds_alternative<Prefix>(expr));
+    auto pref = std::get_if<Prefix>(&expr);
+    auto pref_opt = pref->options();
+    CHECK(std::holds_alternative<FunctionCall>(pref_opt));
 }
 TEST_CASE("function_statements", "[tree-sitter]") {
     ts::Parser parser;

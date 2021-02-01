@@ -1,4 +1,3 @@
-
 #ifndef MINILUA_AST_HPP
 #define MINILUA_AST_HPP
 
@@ -652,20 +651,6 @@ public:
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
 };
-enum GV { _G, _VERSION };
-class GlobalVariable {
-    ts::Node g_var;
-
-public:
-    explicit GlobalVariable(ts::Node);
-    /**
-     *
-     * @return the Type of this Global Variable
-     */
-    auto type() const -> GV;
-    auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
-};
 /**
  * class for field_nodes
  */
@@ -719,7 +704,7 @@ public:
      * @return a variant containing the class this Prefix gets resolved to
      */
     auto options() const
-        -> std::variant<Self, GlobalVariable, VariableDeclarator, FunctionCall, Expression>;
+        -> std::variant<Self, VariableDeclarator, FunctionCall, Expression>;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
 };

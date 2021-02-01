@@ -326,7 +326,6 @@ const TypeId NODE_ARGUMENTS = LUA_LANGUAGE.node_type_id("ARGUMENTS", true);
 const TypeId NODE_FUNCTION_NAME = LUA_LANGUAGE.node_type_id("function_name", true);
 const TypeId NODE_FUNCTION_NAME_FIELD = LUA_LANGUAGE.node_type_id("function_name_field", true);
 const TypeId NODE_PARAMETERS = LUA_LANGUAGE.node_type_id("parameters", true);
-const TypeId NODE_GLOBAL_VARIABLE = LUA_LANGUAGE.node_type_id("global_variable", true);
 const TypeId NODE_FUNCTION_DEFINITION = LUA_LANGUAGE.node_type_id("function_definition", true);
 const TypeId NODE_TABLE = LUA_LANGUAGE.node_type_id("table", true);
 const TypeId NODE_FIELD = LUA_LANGUAGE.node_type_id("field", true);

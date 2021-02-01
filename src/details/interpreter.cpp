@@ -216,11 +216,6 @@ auto Interpreter::visit_statement(ast::Statement statement, Env& env) -> EvalRes
                 // TODO desugar this to variable and assignment
                 return this->visit_function_statement(node, env);
             },
-            /*[this, &env](ast::LocalFunctionStatement node) -> EvalResult {
-                // TODO this now has to be implemented inside the FunctionStatement block
-                // return this->visit_function_statement(node, env);
-                throw UNIMPLEMENTED("local function definition");
-            },*/
             [this, &env](ast::FunctionCall node) -> EvalResult {
                 return this->visit_function_call(node, env);
             },
@@ -491,7 +486,6 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
         overloaded{
             [this, &env](ast::Spread) -> EvalResult { return this->visit_vararg_expression(env); },
             [this, &env](ast::Prefix prefix) { return this->visit_prefix(prefix, env); },
-            //[](ast::Next) -> EvalResult { throw UNIMPLEMENTED("next"); }, TODO remove this and implement next as an identifier
             [this, &env](ast::FunctionDefinition function_definition) {
                 return this->visit_function_expression(function_definition, env);
             },
@@ -896,7 +890,6 @@ auto Interpreter::visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult {
     EvalResult result = std::visit(
         overloaded{
             [](ast::Self) -> EvalResult { throw UNIMPLEMENTED("self"); },
-            [](ast::GlobalVariable var) -> EvalResult { throw UNIMPLEMENTED("global variables"); },
             [this, &env](ast::VariableDeclarator variable_decl) {
                 return std::visit(
                     overloaded{
