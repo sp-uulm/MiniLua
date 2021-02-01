@@ -183,7 +183,7 @@ auto Interpreter::visit_root(ast::Program program, Env& env) -> EvalResult {
         result.combine(sub_result);
     }
 
-    if (body.ret()) {
+    if (body.return_statement()) {
         // result.combine(this->visit_return_statement(body.ret().value(), env));
         // TODO properly return the vallist
     }
@@ -222,11 +222,6 @@ auto Interpreter::visit_statement(ast::Statement statement, Env& env) -> EvalRes
             [this, &env](ast::FunctionStatement node) {
                 // TODO desugar this to variable and assignment
                 return this->visit_function_statement(node, env);
-            },
-            [this, &env](ast::LocalFunctionStatement node) -> EvalResult {
-                // TODO desugar this to variable and assignment
-                // return this->visit_function_statement(node, env);
-                throw UNIMPLEMENTED("local function definition");
             },
             [this, &env](ast::FunctionCall node) -> EvalResult {
                 return this->visit_function_call(node, env);
@@ -274,9 +269,9 @@ auto Interpreter::visit_block_with_local_env(ast::Body block, Env& block_env) ->
         }
     }
 
-    auto return_stmt = block.ret();
+    auto return_stmt = block.return_statement();
     if (return_stmt) {
-        auto sub_result = this->visit_return_statement(return_stmt->raw(), block_env);
+        auto sub_result = this->visit_return_statement(return_stmt.value(), block_env);
         result.combine(sub_result);
     }
 
@@ -290,8 +285,8 @@ auto Interpreter::visit_if_statement(ast::IfStatement if_stmt, Env& env) -> Eval
 
     {
         // if condition condition
-        auto condition = if_stmt.cond();
-        auto condition_result = this->visit_expression(condition.raw(), env);
+        auto condition = if_stmt.condition();
+        auto condition_result = this->visit_expression(condition, env);
         result.combine(condition_result);
 
         // "then" block
@@ -307,8 +302,8 @@ auto Interpreter::visit_if_statement(ast::IfStatement if_stmt, Env& env) -> Eval
     // "else if" blocks
     for (auto elseif_stmt : if_stmt.elseifs()) {
         // else if condition
-        auto condition = elseif_stmt.cond();
-        auto condition_result = this->visit_expression(condition.raw(), env);
+        auto condition = elseif_stmt.condition();
+        auto condition_result = this->visit_expression(condition, env);
         result.combine(condition_result);
 
         if (condition_result.values.get(0)) {
@@ -321,7 +316,7 @@ auto Interpreter::visit_if_statement(ast::IfStatement if_stmt, Env& env) -> Eval
     }
 
     // "else" block
-    auto else_stmt = if_stmt.else_();
+    auto else_stmt = if_stmt.else_statement();
     if (else_stmt) {
         auto body_result = this->visit_block(else_stmt->body(), env);
         result.combine(body_result);
@@ -336,10 +331,10 @@ auto Interpreter::visit_while_statement(ast::WhileStatement while_stmt, Env& env
 
     EvalResult result;
 
-    auto condition = while_stmt.exit_cond();
+    auto condition = while_stmt.repeat_conditon();
 
     while (true) {
-        auto condition_result = this->visit_expression(condition.raw(), env);
+        auto condition_result = this->visit_expression(condition, env);
         result.combine(condition_result);
 
         if (!condition_result.values.get(0)) {
@@ -372,7 +367,7 @@ auto Interpreter::visit_repeat_until_statement(ast::RepeatStatement repeat_stmt,
     EvalResult result;
 
     auto body = repeat_stmt.body();
-    auto condition = repeat_stmt.until_cond();
+    auto condition = repeat_stmt.repeat_condition();
 
     while (true) {
         Env block_env = this->enter_block(env);
@@ -392,7 +387,7 @@ auto Interpreter::visit_repeat_until_statement(ast::RepeatStatement repeat_stmt,
 
         // the condition is part of the same block and can access local variables
         // declared in the repeat block
-        auto condition_result = this->visit_expression(condition.raw(), block_env);
+        auto condition_result = this->visit_expression(condition, block_env);
         result.combine(condition_result);
 
         if (condition_result.values.get(0)) {
@@ -442,7 +437,7 @@ auto Interpreter::visit_expression_list(std::vector<ast::Expression> expressions
 auto Interpreter::visit_return_statement(ast::Return return_stmt, Env& env) -> EvalResult {
     this->trace_enter_node(return_stmt.raw());
 
-    auto result = this->visit_expression_list(return_stmt.explist(), env);
+    auto result = this->visit_expression_list(return_stmt.exp_list(), env);
     result.do_return = true;
 
     this->trace_exit_node(return_stmt.raw());
@@ -459,7 +454,7 @@ auto Interpreter::visit_variable_declaration(ast::VariableDeclaration decl, Env&
     auto targets = decl.declarators();
 
     for (int i = 0; i < decl.declarators().size(); ++i) {
-        auto target = targets[i].var();
+        auto target = targets[i].options();
         const auto& value = vallist.get(i);
 
         if (decl.local()) {
@@ -496,7 +491,7 @@ auto Interpreter::visit_variable_declaration(ast::VariableDeclaration decl, Env&
 auto Interpreter::visit_identifier(ast::Identifier ident, Env& env) -> std::string {
     this->trace_enter_node(ident.raw());
     this->trace_exit_node(ident.raw());
-    return ident.str();
+    return ident.string();
 }
 
 auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult {
@@ -508,7 +503,6 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
         overloaded{
             [this, &env](ast::Spread) -> EvalResult { return this->visit_vararg_expression(env); },
             [this, &env](ast::Prefix prefix) { return this->visit_prefix(prefix, env); },
-            [](ast::Next) -> EvalResult { throw UNIMPLEMENTED("next"); },
             [this, &env](ast::FunctionDefinition function_definition) {
                 return this->visit_function_expression(function_definition, env);
             },
@@ -519,11 +513,29 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
             [this, &env](ast::UnaryOperation unary_op) {
                 return this->visit_unary_operation(unary_op, env);
             },
-            [&node](Value&& value) {
+            [&node](ast::Literal literal) {
                 EvalResult result;
-                auto origin = LiteralOrigin{.location = convert_range(node.range())};
-                result.values = Vallist(value.with_origin(origin));
-                return result;
+                Value value;
+                switch(literal.type()){
+                    case ast::LiteralType::TRUE:
+                        value = Value(Bool(true));
+                        break;
+                    case ast::LiteralType::FALSE:
+                        value = Value(Bool(false));
+                        break;
+                    case ast::LiteralType::NIL:
+                        value = Value(Nil());
+                        break;
+                    case ast::LiteralType::NUMBER:
+                        value = parse_number_literal(literal.content());
+                        break;
+                    case ast::LiteralType::STRING:
+                        value = parse_string_literal(literal.content());
+                        break;
+                }
+              auto origin = LiteralOrigin{.location = literal.range()};
+              result.values = Vallist(value.with_origin(origin));
+              return result;
             },
             [this, &env](ast::Identifier ident) {
                 auto variable_name = this->visit_identifier(ident, env);
@@ -832,7 +844,7 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
         result.values = Vallist(value);
     };
 
-    switch (bin_op.op()) {
+    switch (bin_op.binary_operator()) {
     case ast::BinOpEnum::ADD:
         impl_operator(&Value::add);
         break;
@@ -905,11 +917,11 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
 auto Interpreter::visit_unary_operation(ast::UnaryOperation unary_op, Env& env) -> EvalResult {
     this->trace_enter_node(unary_op.raw());
 
-    EvalResult result = this->visit_expression(unary_op.exp(), env);
+    EvalResult result = this->visit_expression(unary_op.expression(), env);
 
     auto range = convert_range(unary_op.raw().range());
 
-    switch (unary_op.op()) {
+    switch (unary_op.unary_operator()) {
     case ast::UnOpEnum::NOT:
         result.values = Vallist(result.values.get(0).invert(range));
         break;
@@ -934,7 +946,6 @@ auto Interpreter::visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult {
     EvalResult result = std::visit(
         overloaded{
             [](ast::Self) -> EvalResult { throw UNIMPLEMENTED("self"); },
-            [](ast::GlobalVariable var) -> EvalResult { throw UNIMPLEMENTED("global variables"); },
             [this, &env](ast::VariableDeclarator variable_decl) {
                 return std::visit(
                     overloaded{
@@ -951,7 +962,7 @@ auto Interpreter::visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult {
                         [this, &env](ast::TableIndex table_index) -> EvalResult {
                             return this->visit_table_index(table_index, env);
                         }},
-                    variable_decl.var());
+                    variable_decl.options());
             },
             [this, &env](ast::FunctionCall call) { return this->visit_function_call(call, env); },
             [this, &env](ast::Expression expr) { return this->visit_expression(expr, env); }},
