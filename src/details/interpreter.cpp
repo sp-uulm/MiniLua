@@ -533,7 +533,7 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
                         value = parse_string_literal(literal.content());
                         break;
                 }
-              auto origin = LiteralOrigin{.location = convert_range(node.range())};
+              auto origin = LiteralOrigin{.location = literal.range()};
               result.values = Vallist(value.with_origin(origin));
               return result;
             },

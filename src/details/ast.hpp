@@ -22,10 +22,12 @@ enum class LiteralType{TRUE,FALSE,NIL,NUMBER,STRING};
 class Literal {
     std::string literal_content;
     LiteralType literal_type;
+    ts::Range literal_range;
 public:
-    Literal(LiteralType,std::string);
+    Literal(LiteralType,std::string,ts::Range);
     auto content() const -> std::string;
     auto type() const -> LiteralType;
+    auto range() const -> minilua::Range;
 };
 /**
  * The Body class groups a variable amount of statements together

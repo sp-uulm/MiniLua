@@ -823,15 +823,15 @@ auto Expression::options() const-> std::variant<
     } else if (this->exp.type_id() == ts::NODE_UNARY_OPERATION) {
         return UnaryOperation(this->exp);
     } else if (this->exp.type_id() == ts::NODE_STRING) {
-        return Literal(LiteralType::STRING,this->exp.text());
+        return Literal(LiteralType::STRING,this->exp.text(),this->exp.range());
     } else if (this->exp.type_id() == ts::NODE_NUMBER) {
-        return Literal(LiteralType::NUMBER,this->exp.text());
+        return Literal(LiteralType::NUMBER,this->exp.text(),this->exp.range());
     } else if (this->exp.type_id() == ts::NODE_NIL) {
-        return Literal(LiteralType::NIL,this->exp.text());
+        return Literal(LiteralType::NIL,this->exp.text(),this->exp.range());
     } else if (this->exp.type_id() == ts::NODE_TRUE) {
-        return Literal(LiteralType::TRUE,this->exp.text());
+        return Literal(LiteralType::TRUE,this->exp.text(),this->exp.range());
     } else if (this->exp.type_id() == ts::NODE_FALSE) {
-        return Literal(LiteralType::FALSE,this->exp.text());
+        return Literal(LiteralType::FALSE,this->exp.text(),this->exp.range());
     } else if (this->exp.type_id() == ts::NODE_IDENTIFIER) {
         return Identifier(this->exp);
     } else if (
@@ -904,7 +904,9 @@ auto Statement::options() const -> std::variant<
 auto Statement::range() const -> minilua::Range { return convert_range(this->statement.range()); }
 auto Statement::raw() const -> ts::Node { return this->statement; }
 
-Literal::Literal(LiteralType type, std::string string) : literal_content(string), literal_type(type){};
-auto Literal::type() const -> LiteralType {return literal_type;}
-auto Literal::content() const -> std::string {return literal_content;}
+Literal::Literal(LiteralType type, std::string string, ts::Range range) : literal_content(string), literal_type(type),
+                                                                          literal_range(range){};
+auto Literal::type() const -> LiteralType { return this->literal_type; }
+auto Literal::content() const -> std::string { return this->literal_content; }
+auto Literal::range() const -> minilua::Range { return convert_range(this->literal_range); }
 } // namespace minilua::details::ast
