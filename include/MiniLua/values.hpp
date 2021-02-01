@@ -53,6 +53,7 @@ class Vallist {
 
 public:
     Vallist();
+    explicit Vallist(Value);
     Vallist(std::vector<Value>);
     Vallist(std::initializer_list<Value>);
     // concatenate vallists

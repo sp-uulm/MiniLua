@@ -31,9 +31,9 @@ public:
         what)
 
 // struct EvalResult
-EvalResult::EvalResult() : value(), do_break(false), do_return(std::nullopt), source_change() {}
+EvalResult::EvalResult() : values(), do_break(false), do_return(false), source_change() {}
 EvalResult::EvalResult(const CallResult& call_result)
-    : value(std::get<0>(call_result.values().tuple<1>())), do_break(false), do_return(std::nullopt),
+    : values(call_result.values()), do_break(false), do_return(false),
       source_change(call_result.source_change()) {}
 
 static auto combine_source_changes(
@@ -49,7 +49,7 @@ static auto combine_source_changes(
 }
 
 void EvalResult::combine(const EvalResult& other) {
-    this->value = other.value;
+    this->values = other.values;
     this->do_break = other.do_break;
     this->do_return = other.do_return;
     this->source_change = combine_source_changes(this->source_change, other.source_change);
@@ -57,21 +57,16 @@ void EvalResult::combine(const EvalResult& other) {
 
 EvalResult::operator minilua::EvalResult() const {
     minilua::EvalResult result;
-    result.value = this->value;
+    result.value = this->values.get(0);
     result.source_change = this->source_change;
     return result;
 }
 
 auto operator<<(std::ostream& o, const EvalResult& self) -> std::ostream& {
     o << "EvalResult{ "
-      << ".value = " << self.value << ", .do_break = " << self.do_break << ", .do_return = ";
-    if (self.do_return) {
-        o << *self.do_return;
-    } else {
-        o << "nullopt";
-    }
+      << ".value = " << self.values << ", .do_break = " << self.do_break
+      << ", .do_return = " << self.do_return << ", .source_change = ";
 
-    o << ", .source_change = ";
     if (self.source_change.has_value()) {
         o << *self.source_change;
     } else {
@@ -118,7 +113,6 @@ void Interpreter::trace_exit_node(
         this->tracer() << "\n";
     }
 }
-
 void Interpreter::trace_function_call(
     ast::Prefix prefix, const std::vector<Value>& arguments) const {
     auto function_name = std::string(prefix.raw().text());
@@ -131,14 +125,33 @@ void Interpreter::trace_function_call(
     }
 }
 void Interpreter::trace_function_call_result(ast::Prefix prefix, const CallResult& result) const {
-    auto function_name = std::string(prefix.raw().text());
     if (this->config.trace_calls) {
+        auto function_name = std::string(prefix.raw().text());
         this->tracer() << "Function call to: " << function_name << " resulted in "
                        << result.values();
         if (result.source_change().has_value()) {
             this->tracer() << " with source changes " << result.source_change().value();
         }
         this->tracer() << "\n";
+    }
+}
+void Interpreter::trace_exprlists(
+    std::vector<ast::Expression>& exprlist, const Vallist& result) const {
+    if (this->config.trace_exprlists) {
+        this->tracer() << "Exprlist: (";
+        const auto* sep = "";
+        for (auto& expr : exprlist) {
+            this->tracer() << sep << expr.raw().text();
+            sep = ", ";
+        }
+        this->tracer() << ") resulted in (";
+
+        sep = "";
+        for (const auto& value : result) {
+            this->tracer() << sep << value;
+            sep = ", ";
+        }
+        this->tracer() << ")\n";
     }
 }
 
@@ -150,17 +163,11 @@ auto Interpreter::enter_block(Env& env) -> Env {
 }
 
 // helper functions
-static const std::set<std::string> IGNORE_NODES{";", "comment"};
-
 static auto convert_range(ts::Range range) -> Range {
     return Range{
         .start = {range.start.point.row, range.start.point.column, range.start.byte},
         .end = {range.end.point.row, range.end.point.column, range.end.byte},
     };
-}
-
-static auto make_environment(Env& env) -> Environment {
-    return Environment(Environment::Impl{env});
 }
 
 // interpreter implementation
@@ -226,7 +233,7 @@ auto Interpreter::visit_statement(ast::Statement statement, Env& env) -> EvalRes
     this->trace_exit_node(statement.raw());
 
     if (!result.do_return) {
-        result.value = Nil();
+        result.values = Vallist();
     }
 
     return result;
@@ -283,7 +290,7 @@ auto Interpreter::visit_if_statement(ast::IfStatement if_stmt, Env& env) -> Eval
         result.combine(condition_result);
 
         // "then" block
-        if (condition_result.value) {
+        if (condition_result.values.get(0)) {
             auto body_result = this->visit_block(if_stmt.body(), env);
             result.combine(body_result);
 
@@ -299,7 +306,7 @@ auto Interpreter::visit_if_statement(ast::IfStatement if_stmt, Env& env) -> Eval
         auto condition_result = this->visit_expression(condition, env);
         result.combine(condition_result);
 
-        if (condition_result.value) {
+        if (condition_result.values.get(0)) {
             auto body_result = this->visit_block(elseif_stmt.body(), env);
             result.combine(body_result);
 
@@ -330,7 +337,7 @@ auto Interpreter::visit_while_statement(ast::WhileStatement while_stmt, Env& env
         auto condition_result = this->visit_expression(condition, env);
         result.combine(condition_result);
 
-        if (!condition_result.value) {
+        if (!condition_result.values.get(0)) {
             this->trace_exit_node(while_stmt.raw());
             return result;
         }
@@ -383,7 +390,7 @@ auto Interpreter::visit_repeat_until_statement(ast::RepeatStatement repeat_stmt,
         auto condition_result = this->visit_expression(condition, block_env);
         result.combine(condition_result);
 
-        if (condition_result.value) {
+        if (condition_result.values.get(0)) {
             return result;
         }
     }
@@ -397,19 +404,41 @@ auto Interpreter::visit_break_statement(Env& env) -> EvalResult {
     result.do_break = true;
     return result;
 }
-auto Interpreter::visit_return_statement(ast::Return return_stmt, Env& env) -> EvalResult {
-    this->trace_enter_node(return_stmt.raw());
 
+auto Interpreter::visit_expression_list(std::vector<ast::Expression> expressions, Env& env)
+    -> EvalResult {
     EvalResult result;
     std::vector<Value> return_values;
 
-    for (auto expr : return_stmt.exp_list()) {
-        auto sub_result = this->visit_expression(expr, env);
+    if (!expressions.empty()) {
+        for (int i = 0; i < expressions.size() - 1; ++i) {
+            const auto expr = expressions[i];
+            const auto sub_result = this->visit_expression(expr, env);
+            result.combine(sub_result);
+            return_values.push_back(sub_result.values.get(0));
+        }
+
+        // if the last element has a vallist (i.e. because it was a function call) the vallist is
+        // appended
+        auto expr = expressions[expressions.size() - 1];
+        const auto sub_result = this->visit_expression(expr, env);
         result.combine(sub_result);
-        return_values.push_back(sub_result.value);
+        return_values.insert(
+            return_values.end(), sub_result.values.begin(), sub_result.values.end());
     }
 
-    result.do_return = Vallist(return_values);
+    result.values = return_values;
+
+    this->trace_exprlists(expressions, result.values);
+
+    return result;
+}
+
+auto Interpreter::visit_return_statement(ast::Return return_stmt, Env& env) -> EvalResult {
+    this->trace_enter_node(return_stmt.raw());
+
+    auto result = this->visit_expression_list(return_stmt.exp_list(), env);
+    result.do_return = true;
 
     this->trace_exit_node(return_stmt.raw());
     return result;
@@ -419,21 +448,9 @@ auto Interpreter::visit_variable_declaration(ast::VariableDeclaration decl, Env&
     -> EvalResult {
     this->trace_enter_node(decl.raw());
 
-    EvalResult result;
+    EvalResult result = this->visit_expression_list(decl.declarations(), env);
+    const auto vallist = result.values;
 
-    auto exprs = decl.declarations();
-
-    std::vector<Value> expr_results;
-    expr_results.reserve(exprs.size());
-    std::transform(
-        exprs.begin(), exprs.end(), std::back_inserter(expr_results),
-        [this, &result, &env](ast::Expression expr) {
-            auto sub_result = this->visit_expression(expr, env);
-            result.combine(sub_result);
-            return sub_result.value;
-        });
-
-    const auto vallist = Vallist(expr_results);
     auto targets = decl.declarators();
 
     for (int i = 0; i < decl.declarators().size(); ++i) {
@@ -516,14 +533,14 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
                         value = parse_string_literal(literal.content());
                         break;
                 }
-                result.value =
-                    value.with_origin(LiteralOrigin{.location = convert_range(node.range())});
-                return result;
+              auto origin = LiteralOrigin{.location = convert_range(node.range())};
+              result.values = Vallist(value.with_origin(origin));
+              return result;
             },
             [this, &env](ast::Identifier ident) {
                 auto variable_name = this->visit_identifier(ident, env);
                 EvalResult result;
-                result.value = env.get_var(variable_name);
+                result.values = Vallist(env.get_var(variable_name));
                 return result;
             },
         },
@@ -541,8 +558,7 @@ auto Interpreter::visit_vararg_expression(Env& env) -> EvalResult {
         throw InterpreterException("cannot use '...' outside a vararg function");
     }
 
-    // TODO return the whole vallist
-    result.value = varargs->get(0);
+    result.values = varargs.value();
 
     return result;
 }
@@ -598,11 +614,14 @@ auto Interpreter::visit_function_expression(ast::FunctionDefinition function_def
 
             auto result = this->visit_block_with_local_env(body, env);
 
-            auto return_value = result.do_return.value_or(Vallist());
+            auto return_value = Vallist();
+            if (result.do_return) {
+                return_value = result.values;
+            }
             return CallResult(return_value, result.source_change);
         });
 
-    result.value = func;
+    result.values = Vallist(func);
 
     this->trace_exit_node(function_definition.raw());
     return result;
@@ -660,7 +679,10 @@ auto Interpreter::visit_function_statement(ast::FunctionStatement function_state
 
             auto result = this->visit_block_with_local_env(body, env);
 
-            auto return_value = result.do_return.value_or(Vallist());
+            auto return_value = Vallist();
+            if (result.do_return) {
+                return_value = result.values;
+            }
             return CallResult(return_value, result.source_change);
         });
 
@@ -686,14 +708,14 @@ auto Interpreter::visit_table_index(ast::TableIndex table_index, Env& env) -> Ev
     auto prefix_result = this->visit_prefix(table_index.table(), env);
     result.combine(prefix_result);
 
-    auto table = prefix_result.value;
+    auto table = prefix_result.values.get(0);
 
     auto index_result = this->visit_expression(table_index.index(), env);
     result.combine(index_result);
 
-    auto index = index_result.value;
+    auto index = index_result.values.get(0);
 
-    result.value = table[index];
+    result.values = Vallist(table[index]);
 
     this->trace_exit_node(table_index.raw());
     return result;
@@ -710,7 +732,7 @@ auto Interpreter::visit_field_expression(ast::FieldExpression field_expression, 
 
     std::string key = this->visit_identifier(field_expression.property_id(), env);
 
-    result.value = table_result.value[key];
+    result.values = Vallist(table_result.values.get(0)[key]);
 
     this->trace_exit_node(field_expression.raw());
     return result;
@@ -723,50 +745,84 @@ auto Interpreter::visit_table_constructor(ast::Table table_constructor, Env& env
 
     Table table;
 
-    // TODO move the consecutive_key logic to table because it is not completely correct
-    int consecutive_key = 1;
-
     const auto fields = table_constructor.fields();
-    for (auto field : fields) {
-        auto [key, value] = std::visit(
+    if (!fields.empty()) {
+        // TODO move the consecutive_key logic to table because it is not completely correct
+        int consecutive_key = 1;
+
+        for (int i = 0; i < fields.size() - 1; ++i) {
+            auto field = fields[i];
+            auto [key, value] = std::visit(
+                overloaded{
+                    [this, &env, &result](std::pair<ast::Expression, ast::Expression> field)
+                        -> std::pair<Value, Value> {
+                        auto key_result = this->visit_expression(field.first, env);
+                        result.combine(key_result);
+
+                        auto value_result = this->visit_expression(field.second, env);
+                        result.combine(value_result);
+
+                        return std::make_pair(key_result.values.get(0), value_result.values.get(0));
+                    },
+                    [this, &env, &result](std::pair<ast::Identifier, ast::Expression> field)
+                        -> std::pair<Value, Value> {
+                        auto key = this->visit_identifier(field.first, env);
+
+                        auto value_result = this->visit_expression(field.second, env);
+                        result.combine(value_result);
+
+                        return std::make_pair(key, value_result.values.get(0));
+                    },
+                    [this, &env, &result,
+                     &consecutive_key](ast::Expression item) -> std::pair<Value, Value> {
+                        auto item_result = this->visit_expression(item, env);
+                        result.combine(item_result);
+                        auto key = consecutive_key;
+                        consecutive_key++;
+                        return std::make_pair(key, item_result.values.get(0));
+                    },
+                },
+                field.content());
+
+            table.set(key, value);
+        }
+
+        // if last entry is an expression and returns a vallist the vallist is appended
+        auto field = fields[fields.size() - 1];
+        std::visit(
             overloaded{
-                [this, &env, &result](
-                    std::pair<ast::Expression, ast::Expression> field) -> std::pair<Value, Value> {
+                [this, &env, &result, &table](std::pair<ast::Expression, ast::Expression> field) {
                     auto key_result = this->visit_expression(field.first, env);
                     result.combine(key_result);
 
                     auto value_result = this->visit_expression(field.second, env);
                     result.combine(value_result);
 
-                    return std::make_pair(key_result.value, value_result.value);
+                    table.set(key_result.values.get(0), value_result.values.get(0));
                 },
-                [this, &env, &result](
-                    std::pair<ast::Identifier, ast::Expression> field) -> std::pair<Value, Value> {
+                [this, &env, &result, &table](std::pair<ast::Identifier, ast::Expression> field) {
                     auto key = this->visit_identifier(field.first, env);
 
                     auto value_result = this->visit_expression(field.second, env);
                     result.combine(value_result);
 
-                    return std::make_pair(key, value_result.value);
+                    table.set(key, value_result.values.get(0));
                 },
-                [this, &env, &result,
-                 &consecutive_key](ast::Expression item) -> std::pair<Value, Value> {
+                [this, &env, &result, &consecutive_key, &table](ast::Expression item) {
                     auto item_result = this->visit_expression(item, env);
                     result.combine(item_result);
-                    auto key = consecutive_key;
-                    consecutive_key++;
-                    return std::make_pair(key, item_result.value);
+
+                    for (auto value : item_result.values) {
+                        auto key = consecutive_key;
+                        consecutive_key++;
+                        table.set(key, value);
+                    }
                 },
             },
             field.content());
-
-        table.set(key, value);
     }
 
-    // TODO if last entry is an expression and returns a vallist all elements should be
-    // inserted consecutively
-
-    result.value = table;
+    result.values = Vallist(table);
 
     this->trace_exit_node(table_constructor.raw());
     return result;
@@ -783,9 +839,9 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
     auto rhs_result = this->visit_expression(bin_op.right(), env);
 
     auto impl_operator = [&result, &lhs_result, &rhs_result, &origin](auto f) {
-        auto value = std::invoke(f, lhs_result.value, rhs_result.value, origin);
+        Value value = std::invoke(f, lhs_result.values.get(0), rhs_result.values.get(0), origin);
         result.combine(rhs_result);
-        result.value = value;
+        result.values = Vallist(value);
     };
 
     switch (bin_op.binary_operator()) {
@@ -867,13 +923,13 @@ auto Interpreter::visit_unary_operation(ast::UnaryOperation unary_op, Env& env) 
 
     switch (unary_op.unary_operator()) {
     case ast::UnOpEnum::NOT:
-        result.value = result.value.invert(range);
+        result.values = Vallist(result.values.get(0).invert(range));
         break;
     case ast::UnOpEnum::NEG:
-        result.value = result.value.negate(range);
+        result.values = Vallist(result.values.get(0).negate(range));
         break;
     case ast::UnOpEnum::LEN:
-        result.value = result.value.len(range);
+        result.values = Vallist(result.values.get(0).len(range));
         break;
     case ast::UnOpEnum::BWNOT:
         throw UNIMPLEMENTED("bitwise not");
@@ -895,7 +951,8 @@ auto Interpreter::visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult {
                     overloaded{
                         [this, &env](ast::Identifier ident) {
                             EvalResult result;
-                            result.value = env.get_var(this->visit_identifier(ident, env));
+                            result.values =
+                                Vallist(env.get_var(this->visit_identifier(ident, env)));
                             return result;
                         },
                         [this, &env](ast::FieldExpression field) {
@@ -907,9 +964,7 @@ auto Interpreter::visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult {
                         }},
                     variable_decl.options());
             },
-            [this, &env](ast::FunctionCall call) {
-                return EvalResult(this->visit_function_call(call, env));
-            },
+            [this, &env](ast::FunctionCall call) { return this->visit_function_call(call, env); },
             [this, &env](ast::Expression expr) { return this->visit_expression(expr, env); }},
         prefix.options());
 
@@ -929,22 +984,16 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
         throw UNIMPLEMENTED("method calls");
     }
 
-    auto argument_exprs = call.args();
-    std::vector<Value> arguments;
+    EvalResult exprlist_result = this->visit_expression_list(call.args(), env);
+    auto arguments = exprlist_result.values;
 
-    for (auto arg_expr : argument_exprs) {
-        auto expr_result = this->visit_expression(arg_expr, env);
-        result.combine(expr_result);
-        arguments.push_back(expr_result.value);
-    }
-
-    this->trace_function_call(call.id(), arguments);
+    this->trace_function_call(call.id(), std::vector<Value>(arguments.begin(), arguments.end()));
 
     // call function
     // this will produce an error if the obj is not callable
-    auto obj = function_obj_result.value;
-    Environment environment = make_environment(env);
-    auto ctx = CallContext(&environment).make_new(Vallist(arguments));
+    auto obj = function_obj_result.values.get(0);
+    auto environment = Environment(env);
+    auto ctx = CallContext(&environment).make_new(arguments);
 
     try {
         CallResult call_result = obj.call(ctx);

@@ -49,6 +49,8 @@ class Env {
 public:
     Env();
 
+    explicit operator Environment() const;
+
     /**
      * Returns the table for the global environment.
      */
