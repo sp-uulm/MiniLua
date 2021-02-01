@@ -160,6 +160,8 @@ struct Number {
     [[nodiscard]] auto to_literal() const -> std::string;
 
     explicit operator bool() const;
+
+    [[nodiscard]] auto is_int() const -> bool;
 };
 constexpr auto operator==(Number lhs, Number rhs) noexcept -> bool {
     return lhs.value == rhs.value;
@@ -776,6 +778,7 @@ public:
      */
     [[nodiscard]] auto
     to_number(Value base = Nil(), std::optional<Range> location = std::nullopt) const -> Value;
+    [[nodiscard]] auto to_string(std::optional<Range> location = std::nullopt) const -> Value;
 
     /*
      * Source location tracking versions of the c++ operators.

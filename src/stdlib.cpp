@@ -47,27 +47,8 @@ split_string("123.456", '.') = (123, 456)
 
 auto to_string(const CallContext& ctx) -> Value {
     auto arg = ctx.arguments().get(0);
-    return std::visit(
-        overloaded{
-            [](Bool b) -> Value { return b.value ? "true" : "false"; },
-            [](Number n) -> Value { return n.to_literal(); },
-            [](const String& s) -> Value { return s.value; },
-            [](Table t) -> Value { // TODO: maybe improve the way to get the address.
-                // at the moment it could be that every time you call it the
-                // address has changed because of the change in the stack
-                ostringstream get_address;
-                get_address << &t;
-                return get_address.str();
-            },
-            [](Function f) -> Value {
-                ostringstream get_address;
-                get_address << &f;
-                return get_address.str();
-            },
-            [](Nil /*nil*/) -> Value { return "nil"; }
-            // TODO: add to_string for metatables
-        },
-        arg.raw());
+
+    return arg.to_string(ctx.call_location());
 }
 
 auto to_number(const CallContext& ctx) -> Value {
