@@ -50,3 +50,14 @@ TEST_CASE("Internal Env get/set variables") {
     REQUIRE(env.get_local("var2") == 17);
     CHECK(env.get_var("var2") == 17);
 }
+
+TEST_CASE("to_string_with_base") {
+    CHECK(minilua::to_string_with_base(15, 10) == "15");
+    CHECK(minilua::to_string_with_base(15, 16) == "F");
+    CHECK(minilua::to_string_with_base(15, 8) == "17");
+    CHECK(minilua::to_string_with_base(72, 3) == "2200");
+    CHECK(minilua::to_string_with_base(72, 2) == "1001000");
+    CHECK(minilua::to_string_with_base(72, 7) == "132");
+    CHECK(minilua::to_string_with_base(1237817389, 35) == "NJUD64");
+    CHECK(minilua::to_string_with_base(-88, 12) == "-74");
+}
