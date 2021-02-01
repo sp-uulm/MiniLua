@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "MiniLua/values.hpp"
+#include "details/gc.hpp"
 
 namespace minilua {
 

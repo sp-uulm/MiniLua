@@ -223,8 +223,13 @@ auto operator<<(std::ostream&, const String&) -> std::ostream&;
 class CallContext;
 
 class Table {
+public:
     struct Impl;
-    std::shared_ptr<Impl> impl;
+
+private:
+    // This pointer is created by the internal memory allocator and does not need to be manually
+    // freed.
+    Impl* impl;
 
 public:
     // iterator definitions

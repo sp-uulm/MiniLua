@@ -1,4 +1,5 @@
 #include "table.hpp"
+#include "details/gc.hpp"
 
 #include <set>
 
@@ -63,9 +64,13 @@ auto Table::const_iterator::operator->() const -> Table::const_iterator::pointer
     return this->impl->iter.operator->();
 }
 
-Table::Table() : impl(std::make_shared<Impl>()){};
-Table::Table(std::unordered_map<Value, Value> value)
-    : impl(std::make_shared<Impl>(Impl{.value = std::move(value)})) {}
+Table::Table() : impl(details::GLOBAL_ALLOCATOR.allocate_table()){};
+Table::Table(std::unordered_map<Value, Value> values)
+    : impl(details::GLOBAL_ALLOCATOR.allocate_table()) {
+    for (const auto& [key, value] : values) {
+        this->impl->value.insert_or_assign(key, value);
+    }
+}
 Table::Table(std::initializer_list<std::pair<const Value, Value>> values) : Table() {
     for (const auto& [key, value] : values) {
         this->impl->value.insert_or_assign(key, value);
@@ -74,14 +79,16 @@ Table::Table(std::initializer_list<std::pair<const Value, Value>> values) : Tabl
 
 Table::Table(const Table& other) = default;
 Table::Table(Table&& other) noexcept {
-    std::swap(this->impl, other.impl);
-    other.impl = std::make_shared<Table::Impl>();
+    swap(*this, other);
+    // leave other in valid state
+    other.impl = details::GLOBAL_ALLOCATOR.allocate_table();
 };
 Table::~Table() noexcept = default;
 auto Table::operator=(const Table& other) -> Table& = default;
 auto Table::operator=(Table&& other) noexcept -> Table& {
-    std::swap(this->impl, other.impl);
-    other.impl = std::make_shared<Table::Impl>();
+    swap(*this, other);
+    // leave other in valid state
+    other.impl = details::GLOBAL_ALLOCATOR.allocate_table();
     return *this;
 };
 void swap(Table& self, Table& other) { std::swap(self.impl, other.impl); }
@@ -124,12 +131,12 @@ auto Table::end() -> Table::iterator { return Table::iterator(); }
     // don't want a helper function in the public interface
     std::set<Table::Impl*> visited;
     auto table_to_literal = [&visited](const Table& table, const auto& rec) -> std::string {
-        visited.insert(table.impl.get());
+        visited.insert(table.impl);
         auto visit_nested = [&rec, &visited](const Value& value) -> std::string {
             return std::visit(
                 overloaded{
                     [&visited, &rec](const Table& nested) -> std::string {
-                        if (visited.find(nested.impl.get()) != visited.end()) {
+                        if (visited.find(nested.impl) != visited.end()) {
                             throw std::runtime_error(
                                 "self recursive table can't be converted to literal");
                         }
