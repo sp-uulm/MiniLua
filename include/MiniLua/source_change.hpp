@@ -81,7 +81,7 @@ auto operator!=(const SourceChange& lhs, const SourceChange& rhs) noexcept -> bo
 auto operator<<(std::ostream&, const SourceChange&) -> std::ostream&;
 
 /**
- * Multiple source changes that has to all be applied together.
+ * Multiple source changes that all need to be applied together.
  */
 struct SourceChangeCombination : public CommonSCInfo {
     std::vector<SourceChangeTree> changes;
@@ -118,7 +118,12 @@ auto operator!=(const SourceChangeAlternative& lhs, const SourceChangeAlternativ
 auto operator<<(std::ostream&, const SourceChangeAlternative&) -> std::ostream&;
 
 /**
- * Wrapper for a source change tree.
+ * Wrapper for the source change tree.
+ *
+ * Walk the tree with `SourceChangeTree::visit`, `SourceChangeTree::visit_first_alternative`,
+ * `SourceChangeTree::visit_all`.
+ *
+ * To simply get the first complete source change use `SourceChangeTree::collect_first_alternative`.
  */
 class SourceChangeTree {
 public:
@@ -247,7 +252,6 @@ public:
     // dereference to the underlying variant type
     auto operator*() -> Type&;
     auto operator*() const -> const Type&;
-
     auto operator->() -> Type*;
 };
 
