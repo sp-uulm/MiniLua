@@ -71,6 +71,8 @@ $(function() {
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-static-attribs">Static Public Attributes</a> &#124;
+<a href="#pri-types">Private Types</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="#friends">Friends</a> &#124;
 <a href="classminilua_1_1Function-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -86,7 +88,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a8c8d7d88dd3eec553857b2694229f586"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classminilua_1_1Function.html#a8c8d7d88dd3eec553857b2694229f586">Function</a> (Fn fn)</td></tr>
 <tr class="separator:a8c8d7d88dd3eec553857b2694229f586"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5cf971f9cb0d9d9967dc99472c4c1648"><td class="memTemplParams" colspan="2">template&lt;typename Fn , typename  = std::enable_if_t&lt;std::is_invocable_v&lt;Fn, CallContext&gt;&gt;&gt; </td></tr>
-<tr class="memitem:a5cf971f9cb0d9d9967dc99472c4c1648"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classminilua_1_1Function.html#a5cf971f9cb0d9d9967dc99472c4c1648">Function</a> (Fn fn, std::string name)</td></tr>
+<tr class="memitem:a5cf971f9cb0d9d9967dc99472c4c1648"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classminilua_1_1Function.html#a5cf971f9cb0d9d9967dc99472c4c1648">Function</a> (Fn fn, std::string <a class="el" href="classminilua_1_1Function.html#a6cf1b8ab09d3aa25c76cd2d9a900a427">name</a>)</td></tr>
 <tr class="separator:a5cf971f9cb0d9d9967dc99472c4c1648"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aece806161fe29bb2bd3459f3514be073"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Function.html#aece806161fe29bb2bd3459f3514be073">to_literal</a> () const -&gt; std::string</td></tr>
 <tr class="separator:aece806161fe29bb2bd3459f3514be073"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -100,6 +102,18 @@ Static Public Attributes</h2></td></tr>
 <tr class="memitem:a2faff551314632c17d33e4f709bfe7d0"><td class="memItemLeft" align="right" valign="top">constexpr static const std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Function.html#a2faff551314632c17d33e4f709bfe7d0">TYPE</a> = &quot;function&quot;</td></tr>
 <tr class="separator:a2faff551314632c17d33e4f709bfe7d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-types"></a>
+Private Types</h2></td></tr>
+<tr class="memitem:a145b2e7fc7dbfe5ccd0b69421d80f768"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Function.html#a145b2e7fc7dbfe5ccd0b69421d80f768">FnType</a> = <a class="el" href="classminilua_1_1CallResult.html">CallResult</a>(<a class="el" href="classminilua_1_1CallContext.html">CallContext</a>)</td></tr>
+<tr class="separator:a145b2e7fc7dbfe5ccd0b69421d80f768"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:a1530d52d6a3de9c34c5f553be7439e90"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; std::function&lt; <a class="el" href="classminilua_1_1Function.html#a145b2e7fc7dbfe5ccd0b69421d80f768">FnType</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Function.html#a1530d52d6a3de9c34c5f553be7439e90">func</a></td></tr>
+<tr class="separator:a1530d52d6a3de9c34c5f553be7439e90"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6cf1b8ab09d3aa25c76cd2d9a900a427"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Function.html#a6cf1b8ab09d3aa25c76cd2d9a900a427">name</a></td></tr>
+<tr class="separator:a6cf1b8ab09d3aa25c76cd2d9a900a427"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
 Friends</h2></td></tr>
 <tr class="memitem:abcc5907251537fd31092b774349901f8"><td class="memItemLeft" align="right" valign="top">struct&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Function.html#abcc5907251537fd31092b774349901f8">std::hash&lt; Function &gt;</a></td></tr>
@@ -108,12 +122,35 @@ Friends</h2></td></tr>
 <tr class="separator:a2300627d64f8cdd579eef2f1a0f3daf9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A function (in lua or implemented natively).</p>
+<div class="textblock"><p>A function (in lua or implemented natively in C++).</p>
 <p>Notes for implementing native functions:</p>
 <p>You get a <code><a class="el" href="classminilua_1_1CallContext.html">CallContext</a></code> as only argument. You can retrieve the actual arguments and the global environment from the context.</p>
-<p>When using lua <code><a class="el" href="classminilua_1_1Value.html">Value</a></code>s you can use the normal c++ operators. Note that <code>^</code> performs the pow operation like in lua (and not xor like usually in c++). These operators will track the origin and can be later forces to a different value.</p>
-<p>Care must be taken when there are control flow constructs in your native function (e.g. <code>if</code>, <code>while</code>, ...). Because this might break the source change mechanism if you use operators on Values. If you use control flow constructs you have to remove the origin from the returned <a class="el" href="classminilua_1_1Value.html">Value</a> with <code><a class="el" href="classminilua_1_1Value.html#a0082c2a5427a7eddbe56f345078cbbe9">Value::remove_origin</a></code>. </p>
-</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<p>When using lua <code><a class="el" href="classminilua_1_1Value.html">Value</a></code>s you can use the normal C++ operators. Note that <code>^</code> performs the pow operation like in lua (and not xor like usually in C++). These operators will track the origin and can be later forced to a different value.</p>
+<p>Care must be taken when there are control flow constructs in your native function (e.g. <code>if</code>, <code>while</code>, ...). Because this might break the source change mechanism if you use operators on <code><a class="el" href="classminilua_1_1Value.html">Value</a></code>s. If you use control flow constructs you should remove the origin from the returned <a class="el" href="classminilua_1_1Value.html">Value</a> with <code><a class="el" href="classminilua_1_1Value.html#a0082c2a5427a7eddbe56f345078cbbe9">Value::remove_origin</a></code>. </p>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
+<a id="a145b2e7fc7dbfe5ccd0b69421d80f768"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a145b2e7fc7dbfe5ccd0b69421d80f768">&#9670;&nbsp;</a></span>FnType</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="classminilua_1_1Function.html#a145b2e7fc7dbfe5ccd0b69421d80f768">minilua::Function::FnType</a> =  <a class="el" href="classminilua_1_1CallResult.html">CallResult</a>(<a class="el" href="classminilua_1_1CallContext.html">CallContext</a>)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a8c8d7d88dd3eec553857b2694229f586"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8c8d7d88dd3eec553857b2694229f586">&#9670;&nbsp;</a></span>Function() <span class="overload">[1/2]</span></h2>
 
@@ -301,6 +338,50 @@ template&lt;typename Fn , typename  = std::enable_if_t&lt;std::is_invocable_v&lt
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
+<a id="a1530d52d6a3de9c34c5f553be7439e90"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1530d52d6a3de9c34c5f553be7439e90">&#9670;&nbsp;</a></span>func</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt;std::function&lt;<a class="el" href="classminilua_1_1Function.html#a145b2e7fc7dbfe5ccd0b69421d80f768">FnType</a>&gt; &gt; minilua::Function::func</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6cf1b8ab09d3aa25c76cd2d9a900a427"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6cf1b8ab09d3aa25c76cd2d9a900a427">&#9670;&nbsp;</a></span>name</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string minilua::Function::name</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a2faff551314632c17d33e4f709bfe7d0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2faff551314632c17d33e4f709bfe7d0">&#9670;&nbsp;</a></span>TYPE</h2>
 

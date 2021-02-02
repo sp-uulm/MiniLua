@@ -78,6 +78,11 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:ac00bab741695aef8dc6a078cc41989a6"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1math.html#ac00bab741695aef8dc6a078cc41989a6">math_helper</a> (const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;ctx, const std::function&lt; double(double)&gt; &amp;function, const std::string &amp;functionname, const std::string &amp;arg_index=&quot;1&quot;) -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td></tr>
+<tr class="separator:ac00bab741695aef8dc6a078cc41989a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2d9e847d2351177c6e951e1cfecdcf9d"><td class="memTemplParams" colspan="2">template&lt;class T &gt; </td></tr>
+<tr class="memitem:a2d9e847d2351177c6e951e1cfecdcf9d"><td class="memTemplItemLeft" align="right" valign="top">static auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1math.html#a2d9e847d2351177c6e951e1cfecdcf9d">math_helper</a> (const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;ctx, const std::function&lt; T(double, double)&gt; &amp;function, const std::string &amp;functionname) -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td></tr>
+<tr class="separator:a2d9e847d2351177c6e951e1cfecdcf9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab86344a2462a715947f84bb044e41706"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1math.html#ab86344a2462a715947f84bb044e41706">abs</a> (const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;ctx) -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td></tr>
 <tr class="separator:ab86344a2462a715947f84bb044e41706"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad60678ec93a79151e9d8e52056c80c66"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1math.html#ad60678ec93a79151e9d8e52056c80c66">acos</a> (const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;ctx) -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td></tr>
@@ -352,6 +357,98 @@ Variables</h2></td></tr>
           <td> -&gt;  <a class="el" href="classminilua_1_1Value.html">Value</a></td>
         </tr>
       </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac00bab741695aef8dc6a078cc41989a6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac00bab741695aef8dc6a078cc41989a6">&#9670;&nbsp;</a></span>math_helper() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static auto minilua::math::math_helper </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;&#160;</td>
+          <td class="paramname"><em>ctx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::function&lt; double(double)&gt; &amp;&#160;</td>
+          <td class="paramname"><em>function</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>functionname</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>arg_index</em> = <code>&quot;1&quot;</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a> </td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2d9e847d2351177c6e951e1cfecdcf9d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2d9e847d2351177c6e951e1cfecdcf9d">&#9670;&nbsp;</a></span>math_helper() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class T &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static auto minilua::math::math_helper </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;&#160;</td>
+          <td class="paramname"><em>ctx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::function&lt; T(double, double)&gt; &amp;&#160;</td>
+          <td class="paramname"><em>function</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>functionname</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a> </td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>

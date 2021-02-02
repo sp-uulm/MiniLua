@@ -71,6 +71,7 @@ $(function() {
   <div class="summary">
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classminilua_1_1Origin-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">minilua::Origin Class Reference</div>  </div>
@@ -116,9 +117,17 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:addb7bc7faa0f19e3469912d6a9d14aa2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adeed0def492e4091ea37aa450327148d"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Origin.html#adeed0def492e4091ea37aa450327148d">force</a> (const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;) const -&gt; std::optional&lt; <a class="el" href="classminilua_1_1SourceChangeTree.html">SourceChangeTree</a> &gt;</td></tr>
 <tr class="separator:adeed0def492e4091ea37aa450327148d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:aa7ed440f8b305cd25f786ea3d6130bba"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classminilua_1_1Origin.html#af088a2e83bc4ea0ff002ac6b32d1cc24">Type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Origin.html#aa7ed440f8b305cd25f786ea3d6130bba">origin</a></td></tr>
+<tr class="separator:aa7ed440f8b305cd25f786ea3d6130bba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The origin of a value. </p>
+<div class="textblock"><p>The origin of a value.</p>
+<p>Defaults to <code><a class="el" href="structminilua_1_1NoOrigin.html">NoOrigin</a></code>.</p>
+<p>Using <code><a class="el" href="structminilua_1_1BinaryOrigin.html">BinaryOrigin</a></code> and <code><a class="el" href="structminilua_1_1UnaryOrigin.html">UnaryOrigin</a></code> this build a tree to track the changes made to a <a class="el" href="classminilua_1_1Value.html">Value</a> while running a lua program.</p>
+<p>You can manually walk the tree using the variant returned by <code>raw</code>. </p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="af088a2e83bc4ea0ff002ac6b32d1cc24"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af088a2e83bc4ea0ff002ac6b32d1cc24">&#9670;&nbsp;</a></span>Type</h2>
@@ -410,6 +419,29 @@ Public Member Functions</h2></td></tr>
           <td> const -&gt; const <a class="el" href="classminilua_1_1Origin.html#af088a2e83bc4ea0ff002ac6b32d1cc24">Type</a>&amp;</td>
         </tr>
       </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="aa7ed440f8b305cd25f786ea3d6130bba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa7ed440f8b305cd25f786ea3d6130bba">&#9670;&nbsp;</a></span>origin</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classminilua_1_1Origin.html#af088a2e83bc4ea0ff002ac6b32d1cc24">Type</a> minilua::Origin::origin</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>

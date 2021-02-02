@@ -72,6 +72,7 @@ $(function() {
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="#friends">Friends</a> &#124;
 <a href="classminilua_1_1Value-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -177,6 +178,9 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a64b4e4b0ab33a2d42b529bc3f1450f95"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afa72e237109686dc66444083447adeb2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Value.html#afa72e237109686dc66444083447adeb2">operator bool</a> () const</td></tr>
 <tr class="separator:afa72e237109686dc66444083447adeb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Operator variants that allow adding the locationof the operator in lua code.</div></td></tr>
+<tr><td colspan="2"><div class="groupText"><p>Mostly for use in the interpreter. </p>
+</div></td></tr>
 <tr class="memitem:a00cb855c5fcb340d69165b04c3349169"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Value.html#a00cb855c5fcb340d69165b04c3349169">negate</a> (std::optional&lt; <a class="el" href="structminilua_1_1Range.html">Range</a> &gt; location=std::nullopt) const -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td></tr>
 <tr class="separator:a00cb855c5fcb340d69165b04c3349169"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae351d622a415e69ce4ff13f487178818"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Value.html#ae351d622a415e69ce4ff13f487178818">add</a> (const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;rhs, std::optional&lt; <a class="el" href="structminilua_1_1Range.html">Range</a> &gt; location=std::nullopt) const -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td></tr>
@@ -218,6 +222,11 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aa72dd1d3edd4a156b817ac5e78c7db70"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Value.html#aa72dd1d3edd4a156b817ac5e78c7db70">concat</a> (const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;rhs, std::optional&lt; <a class="el" href="structminilua_1_1Range.html">Range</a> &gt; location=std::nullopt) const -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td></tr>
 <tr class="separator:aa72dd1d3edd4a156b817ac5e78c7db70"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:a8e6e2a3302c69d349b50fb13287840ad"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classminilua_1_1owning__ptr.html">owning_ptr</a>&lt; <a class="el" href="structminilua_1_1Value_1_1Impl.html">Impl</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Value.html#a8e6e2a3302c69d349b50fb13287840ad">impl</a></td></tr>
+<tr class="separator:a8e6e2a3302c69d349b50fb13287840ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
 Friends</h2></td></tr>
 <tr class="memitem:ae1913f26f8d20338f23aad520aec10ab"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Value.html#ae1913f26f8d20338f23aad520aec10ab">swap</a> (<a class="el" href="classminilua_1_1Value.html">Value</a> &amp;self, <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;other)</td></tr>
@@ -249,7 +258,12 @@ Friends</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Represents a value in lua.</p>
-<p>You can use most normal c++ operators on these value (+, -, *, /, []). If the operation can't be performed on the actual value type an exception will be thrown. </p>
+<p>You can use most normal C++ operators on these value (<code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>[]</code>, ...). If the operation can't be performed on the actual value type an exception will be thrown. Logical operators are implemented like they work in lua (i.e. <code>"hi" &amp;&amp; true == "hi"</code>).</p>
+<p>There are also variants of all the operators that track the origin of the values.</p>
+<p>You can get the underlying value either via <code>std::visit(lambdas, value.raw())</code> or using <code><a class="el" href="namespacestd.html#a0cb819cafc5f5e9d2fcfaeac1f675711">std::get</a>&lt;T&gt;(value)</code> where <code>T</code> is any of the underlying types.</p>
+<p>Most values can not be changed (i.e. if you add two numbers you create a new value).</p>
+<p><code><a class="el" href="classminilua_1_1Function.html">Function</a></code> and <code><a class="el" href="classminilua_1_1Table.html">Table</a></code> are different in that they act like reference (or act like they are behind a <code>std::shared_ptr</code>). I.e. two variables can refer to the same table and function. In the case of function this is irrelevant because (from the outside) they are immutable. However tables can be mutated from multiple variables.</p>
+<p>NOTE: The current implementation of <a class="el" href="classminilua_1_1Table.html">Table</a> can lead to a memory leak if you create cycles with them. I.e. a field in the table refers (directly or indirectly) to the table that owns it. </p>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a0f957d64de1619ed762890a5f50b01dc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0f957d64de1619ed762890a5f50b01dc">&#9670;&nbsp;</a></span>Type</h2>
@@ -532,7 +546,8 @@ template&lt;typename Fn , typename  = std::enable_if_t&lt;std::is_invocable_v&lt
   </tr>
 </table>
 </div><div class="memdoc">
-<p>NOTE: Functions with a parameter of <a class="el" href="classminilua_1_1CallContext.html">CallContext</a>&amp; does not work. </p>
+<p>Overloaded constructor usable with references to lambdas and functions.</p>
+<p>NOTE: Functions with a parameter of <code><a class="el" href="classminilua_1_1CallContext.html">CallContext</a>&amp;</code> does not work. Only <code><a class="el" href="classminilua_1_1CallContext.html">CallContext</a></code> and <code>const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a>&amp;</code>. </p>
 
 </div>
 </div>
@@ -881,8 +896,8 @@ template&lt;typename... Args&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Forces this value to become 'new_value'. Does not actually change the value. This will only return a <a class="el" href="structminilua_1_1SourceChange.html">SourceChange</a> that (when applied) would result in the this value being changed.</p>
-<p>The return value should be returned in NativeFunctions otherwise this does not have an effect.</p>
+<p>Tries to force this value to become <code>new_value</code>. Does not actually change the value. This will only return a <code><a class="el" href="structminilua_1_1SourceChange.html">SourceChange</a></code> that (when applied) would result in the this value being changed to <code>new_value</code>.</p>
+<p>The return value should be returned in <code><a class="el" href="classminilua_1_1Function.html">Function</a></code>s otherwise this does not have any effect.</p>
 <p>This throws an exception if the types of the values didn't match. </p>
 
 </div>
@@ -975,7 +990,7 @@ template&lt;typename... Args&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>unary not operator </p>
+<p>unary <code>not</code> operator </p>
 
 </div>
 </div>
@@ -1095,6 +1110,7 @@ template&lt;typename... Args&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Checks if the value is a string a valid identifier. </p>
 
 </div>
 </div>
@@ -1113,7 +1129,7 @@ template&lt;typename... Args&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>unary # operator </p>
+<p>unary <code>#</code> operator </p>
 
 </div>
 </div>
@@ -1300,7 +1316,7 @@ template&lt;typename... Args&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>unary - operator </p>
+<p>unary <code>-</code> operator </p>
 
 </div>
 </div>
@@ -1326,6 +1342,8 @@ template&lt;typename... Args&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Convertes the value to a bool according to the lua rules.</p>
+<p><code><a class="el" href="structminilua_1_1Nil.html">Nil</a></code> and <code>false</code> is converted to <code>false</code>. Everything else is converted to true. </p>
 
 </div>
 </div>
@@ -1556,8 +1574,8 @@ template&lt;typename... Args&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns the value as a literal string that can be directly inserted in lua code.</p>
-<p>Throws a 'std::runtime_error' if the value is a function. </p>
+<p>Returns the <a class="el" href="classminilua_1_1Value.html">Value</a> as a literal string that can be directly inserted in lua code.</p>
+<p>Throws a <code>std::runtime_error</code> if the value is a <code><a class="el" href="classminilua_1_1Function.html">Function</a></code>. </p>
 
 </div>
 </div>
@@ -2067,6 +2085,29 @@ template&lt;typename... Args&gt; </div>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a8e6e2a3302c69d349b50fb13287840ad"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8e6e2a3302c69d349b50fb13287840ad">&#9670;&nbsp;</a></span>impl</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classminilua_1_1owning__ptr.html">owning_ptr</a>&lt;<a class="el" href="structminilua_1_1Value_1_1Impl.html">Impl</a>&gt; minilua::Value::impl</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">

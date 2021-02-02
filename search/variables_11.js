@@ -1,10 +1,12 @@
 var searchData=
 [
-  ['v_1502',['v',['../structlua_1_1rt_1_1sourceunop.html#a4975119bb348cbd741bb161a9aa9d462',1,'lua::rt::sourceunop']]],
-  ['val_1503',['val',['../structminilua_1_1UnaryOrigin.html#abf262bf841373a565a5af5fe949fea94',1,'minilua::UnaryOrigin::val()'],['../structminilua_1_1Value_1_1Impl.html#a42c894a7dfd00fb3a1d63bfc9d9d54da',1,'minilua::Value::Impl::val()']]],
-  ['value_1504',['value',['../structminilua_1_1Bool.html#acc88068b329930506bd71f8d13adfd7b',1,'minilua::Bool::value()'],['../structminilua_1_1Number.html#a3076ef68b749b3bb2b6f81e0ef248d2f',1,'minilua::Number::value()'],['../structminilua_1_1String.html#a96cd91e0c4a63389d81e7e1b28c846c4',1,'minilua::String::value()'],['../structminilua_1_1EvalResult.html#adcd3eade229f5c9000c4b4cddb2065a7',1,'minilua::EvalResult::value()'],['../structminilua_1_1Table_1_1Impl.html#a05772790b402a23436a1b8c3a8ff56d0',1,'minilua::Table::Impl::value()']]],
-  ['values_1505',['values',['../structminilua_1_1details_1_1EvalResult.html#a35b250e969a40efbb59d9616c4ec90e6',1,'minilua::details::EvalResult::values()'],['../structminilua_1_1Vallist_1_1Impl.html#a69b3a4a69ffc062129cc043f4ae7f19d',1,'minilua::Vallist::Impl::values()']]],
-  ['var_1506',['var',['../struct__LuaForStmt.html#ad95bf827bcdeb82538b61f3a905b22ca',1,'_LuaForStmt']]],
-  ['varlist_1507',['varlist',['../struct__LuaAssignment.html#a60acd30af5c5878a71b6d34ae42c2ef7',1,'_LuaAssignment']]],
-  ['visitable_1508',['VISITABLE',['../struct__LuaAST.html#a648fff2d3c8fe423eccbfc894155af45',1,'_LuaAST::VISITABLE()'],['../struct__LuaExp.html#a621eb5850fef433a6a8bb3df023a2be6',1,'_LuaExp::VISITABLE()']]]
+  ['source_1717',['source',['../structlua_1_1rt_1_1val.html#aa47b02eadad5802bff9e6961f3249a25',1,'lua::rt::val']]],
+  ['source_5f_1718',['source_',['../classts_1_1Tree.html#a0d70fbd8302a059397587ed8a6a529a3',1,'ts::Tree']]],
+  ['source_5fchange_1719',['source_change',['../structminilua_1_1details_1_1EvalResult.html#ac71221ff2450ee9635cb645c1f6bb296',1,'minilua::details::EvalResult::source_change()'],['../structminilua_1_1EvalResult.html#a17ea99d4032cbaf409f242751b66600f',1,'minilua::EvalResult::source_change()']]],
+  ['source_5fchanges_1720',['source_changes',['../structPerformanceStatistics.html#a40b65e225dc6bd1c363425a38d0ee194',1,'PerformanceStatistics']]],
+  ['source_5fcode_1721',['source_code',['../structminilua_1_1Interpreter_1_1Impl.html#a65ae21eece3301303dab4531f03b9bb3',1,'minilua::Interpreter::Impl']]],
+  ['start_1722',['start',['../struct__LuaForStmt.html#ad03f91de092cbe89416c5ba14c039337',1,'_LuaForStmt::start()'],['../structts_1_1Range.html#a90a7fd740f440afcaef97a20cf8071e8',1,'ts::Range::start()'],['../structminilua_1_1Range.html#a644712afde3b9e9bab5f8adc11ddd0cd',1,'minilua::Range::start()']]],
+  ['statement_1723',['statement',['../classminilua_1_1details_1_1ast_1_1Statement.html#a8b548a1f91039d461bac774f9daf1762',1,'minilua::details::ast::Statement']]],
+  ['statements_1724',['statements',['../struct__LuaChunk.html#aa7c41c9d1dbd5a674712a75c937f5132',1,'_LuaChunk']]],
+  ['step_1725',['step',['../struct__LuaForStmt.html#a3a77ba91e82730939a75eefeeefb6d17',1,'_LuaForStmt']]]
 ];

@@ -80,10 +80,33 @@ Inheritance diagram for minilua::overloaded&lt; Ts &gt;:</div>
  <div class="center">
   <img src="structminilua_1_1overloaded.png" alt=""/>
  </div></div>
-<hr/>The documentation for this struct was generated from the following file:<ul>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><h3>template&lt;class... Ts&gt;<br />
+struct minilua::overloaded&lt; Ts &gt;</h3>
+
+<p>Overloading trick for function that take lambdas where the parameter types can be different.</p>
+<p>This is easier than writing</p>
+<div class="fragment"><div class="line"><span class="keywordflow">if</span> constexpr (std::is_same_v&lt;decltype(param), T&gt;) { ... }</div>
+</div><!-- fragment --><p>inside the lambda.</p>
+<h1><a class="anchor" id="autotoc_md0"></a>
+Usage:</h1>
+<div class="fragment"><div class="line">std::visit(</div>
+<div class="line">    <a class="code" href="namespaceminilua.html#a285cb4837cc36ea7e1c61863a4d2fe99">overloaded</a>{</div>
+<div class="line">       [](<span class="keywordtype">int</span> i) {</div>
+<div class="line">           std::cout &lt;&lt; <span class="stringliteral">&quot;This is an int &quot;</span> &lt;&lt; i &lt;&lt; <span class="stringliteral">&quot;\n&quot;</span>;</div>
+<div class="line">       },</div>
+<div class="line">       [](std::string s) {</div>
+<div class="line">           std::cout &lt;&lt; <span class="stringliteral">&quot;This is a string &quot;</span> &lt;&lt; s &lt;&lt; <span class="stringliteral">&quot;\n&quot;</span>;</div>
+<div class="line">       },</div>
+<div class="line">    },</div>
+<div class="line">    some_variant</div>
+<div class="line">);</div>
+</div><!-- fragment --><p>Source: <a href="https://dev.to/tmr232/that-overloaded-trick-overloading-lambdas-in-c17">https://dev.to/tmr232/that-overloaded-trick-overloading-lambdas-in-c17</a> </p>
+</div><hr/>The documentation for this struct was generated from the following file:<ul>
 <li>/home/runner/work/MiniLua/MiniLua/include/MiniLua/<a class="el" href="utils_8hpp_source.html">utils.hpp</a></li>
 </ul>
 </div><!-- contents -->
+<div class="ttc" id="anamespaceminilua_html_a285cb4837cc36ea7e1c61863a4d2fe99"><div class="ttname"><a href="namespaceminilua.html#a285cb4837cc36ea7e1c61863a4d2fe99">minilua::overloaded</a></div><div class="ttdeci">overloaded(Ts...) -&gt; overloaded&lt; Ts... &gt;</div></div>
 <!-- start footer part -->
 		<script src="custom.js"></script>
 	</body>

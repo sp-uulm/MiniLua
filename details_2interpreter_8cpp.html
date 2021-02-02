@@ -109,13 +109,83 @@ Namespaces</h2></td></tr>
 Macros</h2></td></tr>
 <tr class="memitem:a3eb6e226f9844fd1d67025b481011e32"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="details_2interpreter_8cpp.html#a3eb6e226f9844fd1d67025b481011e32">UNIMPLEMENTED</a>(what)</td></tr>
 <tr class="separator:a3eb6e226f9844fd1d67025b481011e32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afdc98d57dfd302ea2a9a04c256429deb"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="details_2interpreter_8cpp.html#afdc98d57dfd302ea2a9a04c256429deb">IMPL</a>(op,  method)</td></tr>
+<tr class="separator:afdc98d57dfd302ea2a9a04c256429deb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afdc98d57dfd302ea2a9a04c256429deb"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="details_2interpreter_8cpp.html#afdc98d57dfd302ea2a9a04c256429deb">IMPL</a>(op,  method)</td></tr>
+<tr class="separator:afdc98d57dfd302ea2a9a04c256429deb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a51d6cc91121f609a1b353d5addb0801c"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1details.html#a51d6cc91121f609a1b353d5addb0801c">minilua::details::combine_source_changes</a> (const std::optional&lt; SourceChangeTree &gt; &amp;lhs, const std::optional&lt; SourceChangeTree &gt; &amp;rhs) -&gt; std::optional&lt; SourceChangeTree &gt;</td></tr>
+<tr class="separator:a51d6cc91121f609a1b353d5addb0801c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a92e0595b2a611525620ca17c901301fc"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1details.html#a92e0595b2a611525620ca17c901301fc">minilua::details::operator&lt;&lt;</a> (std::ostream &amp;o, const EvalResult &amp;self) -&gt; std::ostream &amp;</td></tr>
 <tr class="separator:a92e0595b2a611525620ca17c901301fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a16992464ffe303e0d0a69277c6b18406"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1details.html#a16992464ffe303e0d0a69277c6b18406">minilua::details::convert_range</a> (<a class="el" href="structts_1_1Range.html">ts::Range</a> range) -&gt; Range</td></tr>
+<tr class="separator:a16992464ffe303e0d0a69277c6b18406"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="afdc98d57dfd302ea2a9a04c256429deb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afdc98d57dfd302ea2a9a04c256429deb">&#9670;&nbsp;</a></span>IMPL <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define IMPL</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">op, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">method&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">    <span class="keywordflow">case</span> ast::BinOpEnum::op:                                                                       \</div>
+<div class="line">        impl_operator(&amp;Value::method);                                                             \</div>
+<div class="line">        break;</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="afdc98d57dfd302ea2a9a04c256429deb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afdc98d57dfd302ea2a9a04c256429deb">&#9670;&nbsp;</a></span>IMPL <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define IMPL</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">op, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">method&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">    <span class="keywordflow">case</span> ast::UnOpEnum::op:                                                                        \</div>
+<div class="line">        result.values = Vallist(result.values.get(0).method(range));                               \</div>
+<div class="line">        break;</div>
+</div><!-- fragment -->
+</div>
+</div>
 <a id="a3eb6e226f9844fd1d67025b481011e32"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3eb6e226f9844fd1d67025b481011e32">&#9670;&nbsp;</a></span>UNIMPLEMENTED</h2>
 

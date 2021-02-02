@@ -70,6 +70,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classminilua_1_1Env-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">minilua::Env Class Reference</div>  </div>
@@ -124,6 +125,21 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aa1e16c2bb9851d0bbb0df652ff6705a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a30a2b4d2d793216eb4fd4893ecebd8da"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Env.html#a30a2b4d2d793216eb4fd4893ecebd8da">get_stderr</a> () -&gt; std::ostream *</td></tr>
 <tr class="separator:a30a2b4d2d793216eb4fd4893ecebd8da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:a24e7ecc3b300d7738912c968dcc40bdc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classminilua_1_1Table.html">Table</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Env.html#a24e7ecc3b300d7738912c968dcc40bdc">_global</a></td></tr>
+<tr class="separator:a24e7ecc3b300d7738912c968dcc40bdc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa6c8213e6ff5b639ca7dabf057bad5af"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceminilua.html#aa51307df3542b106bfefa804481fee39">LocalEnv</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Env.html#aa6c8213e6ff5b639ca7dabf057bad5af">_local</a></td></tr>
+<tr class="separator:aa6c8213e6ff5b639ca7dabf057bad5af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b3b431dc5ad8cd6b313044b1bfc77d1"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="classminilua_1_1Vallist.html">Vallist</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Env.html#a2b3b431dc5ad8cd6b313044b1bfc77d1">varargs</a></td></tr>
+<tr class="separator:a2b3b431dc5ad8cd6b313044b1bfc77d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af497398161e90f6a612819e8ed2f78e4"><td class="memItemLeft" align="right" valign="top">std::istream *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Env.html#af497398161e90f6a612819e8ed2f78e4">in</a></td></tr>
+<tr class="separator:af497398161e90f6a612819e8ed2f78e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7e1b83e1bec111889abf87a327227bd"><td class="memItemLeft" align="right" valign="top">std::ostream *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Env.html#af7e1b83e1bec111889abf87a327227bd">out</a></td></tr>
+<tr class="separator:af7e1b83e1bec111889abf87a327227bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a41fbbe7f6104d8a1197977ec7ec19caa"><td class="memItemLeft" align="right" valign="top">std::ostream *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Env.html#a41fbbe7f6104d8a1197977ec7ec19caa">err</a></td></tr>
+<tr class="separator:a41fbbe7f6104d8a1197977ec7ec19caa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p><a class="el" href="classminilua_1_1Environment.html">Environment</a> for use in the interpreter. </p>
@@ -566,6 +582,139 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Setter and getter for the varargs of the immediately enclosing varargs function. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a24e7ecc3b300d7738912c968dcc40bdc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a24e7ecc3b300d7738912c968dcc40bdc">&#9670;&nbsp;</a></span>_global</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classminilua_1_1Table.html">Table</a> minilua::Env::_global</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa6c8213e6ff5b639ca7dabf057bad5af"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa6c8213e6ff5b639ca7dabf057bad5af">&#9670;&nbsp;</a></span>_local</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceminilua.html#aa51307df3542b106bfefa804481fee39">LocalEnv</a> minilua::Env::_local</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a41fbbe7f6104d8a1197977ec7ec19caa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a41fbbe7f6104d8a1197977ec7ec19caa">&#9670;&nbsp;</a></span>err</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::ostream* minilua::Env::err</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af497398161e90f6a612819e8ed2f78e4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af497398161e90f6a612819e8ed2f78e4">&#9670;&nbsp;</a></span>in</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::istream* minilua::Env::in</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af7e1b83e1bec111889abf87a327227bd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7e1b83e1bec111889abf87a327227bd">&#9670;&nbsp;</a></span>out</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::ostream* minilua::Env::out</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2b3b431dc5ad8cd6b313044b1bfc77d1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2b3b431dc5ad8cd6b313044b1bfc77d1">&#9670;&nbsp;</a></span>varargs</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt;<a class="el" href="classminilua_1_1Vallist.html">Vallist</a>&gt; minilua::Env::varargs</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
 
 </div>
 </div>

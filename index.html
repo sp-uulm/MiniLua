@@ -5,7 +5,7 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=9"/>
 		<meta name="generator" content="Doxygen 1.8.17"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1"/>
-		<title>MiniLua: Main Page</title>
+		<title>MiniLua: MiniLua</title>
 		<link href="tabs.css" rel="stylesheet" type="text/css"/>
 		<script type="text/javascript" src="jquery.js"></script>
 		<script type="text/javascript" src="dynsections.js"></script>
@@ -63,12 +63,45 @@ $(function() {
 </iframe>
 </div>
 
-<div class="header">
+<div class="PageDoc"><div class="header">
   <div class="headertitle">
-<div class="title">MiniLua Documentation</div>  </div>
+<div class="title">MiniLua </div>  </div>
 </div><!--header-->
 <div class="contents">
+<div class="textblock"><p>MiniLua is a lua interpreter with source value tracking.</p>
+<h1><a class="anchor" id="autotoc_md3"></a>
+Usage Example</h1>
+<div class="fragment"><div class="line"><a class="code" href="classminilua_1_1Interpreter.html">minilua::Interpreter</a> interpreter;</div>
+<div class="line">interpreter.<a class="code" href="classminilua_1_1Interpreter.html#a21d22cbf0a310f0d2ab078be091ef0dc">environment</a>().add_default_stdlib();</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// parse the program</span></div>
+<div class="line"><span class="keywordflow">if</span> (!interpreter.<a class="code" href="classminilua_1_1Interpreter.html#aabb20a73723822998fa93527b12b3ee1">parse</a>(<span class="stringliteral">&quot;x_coord = 10; forceValue(x_coord, 25)&quot;</span>)) {</div>
+<div class="line">    <span class="comment">// parser failed</span></div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// run the program</span></div>
+<div class="line"><a class="code" href="structminilua_1_1EvalResult.html">minilua::EvalResult</a> result = interpreter.<a class="code" href="classminilua_1_1Interpreter.html#a47d8b89428d14ff81089a03b5521af22">evaluate</a>();</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// (optionally) apply a source change</span></div>
+<div class="line"><span class="keywordflow">if</span> (result.<a class="code" href="structminilua_1_1EvalResult.html#a17ea99d4032cbaf409f242751b66600f">source_change</a>) {</div>
+<div class="line">    interpreter.<a class="code" href="classminilua_1_1Interpreter.html#a9a2d0d27ed5e8130f84265055a453aa9">apply_source_changes</a>(</div>
+<div class="line">        result.<a class="code" href="structminilua_1_1EvalResult.html#a17ea99d4032cbaf409f242751b66600f">source_change</a>.value().collect_first_alternative());</div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// source code is now:</span></div>
+<div class="line"><span class="comment">//</span></div>
+<div class="line"><span class="comment">// xcoord = 10; forceValue(c_coord, 25)</span></div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// re-run</span></div>
+</div><!-- fragment --> </div></div><!-- PageDoc -->
 </div><!-- contents -->
+<div class="ttc" id="aclassminilua_1_1Interpreter_html_a9a2d0d27ed5e8130f84265055a453aa9"><div class="ttname"><a href="classminilua_1_1Interpreter.html#a9a2d0d27ed5e8130f84265055a453aa9">minilua::Interpreter::apply_source_changes</a></div><div class="ttdeci">void apply_source_changes(std::vector&lt; SourceChange &gt;)</div><div class="ttdef"><b>Definition:</b> interpreter.cpp:110</div></div>
+<div class="ttc" id="aclassminilua_1_1Interpreter_html_aabb20a73723822998fa93527b12b3ee1"><div class="ttname"><a href="classminilua_1_1Interpreter.html#aabb20a73723822998fa93527b12b3ee1">minilua::Interpreter::parse</a></div><div class="ttdeci">auto parse(std::string source_code) -&gt; ParseResult</div><div class="ttdef"><b>Definition:</b> interpreter.cpp:91</div></div>
+<div class="ttc" id="astructminilua_1_1EvalResult_html"><div class="ttname"><a href="structminilua_1_1EvalResult.html">minilua::EvalResult</a></div><div class="ttdef"><b>Definition:</b> interpreter.hpp:32</div></div>
+<div class="ttc" id="astructminilua_1_1EvalResult_html_a17ea99d4032cbaf409f242751b66600f"><div class="ttname"><a href="structminilua_1_1EvalResult.html#a17ea99d4032cbaf409f242751b66600f">minilua::EvalResult::source_change</a></div><div class="ttdeci">std::optional&lt; SourceChangeTree &gt; source_change</div><div class="ttdef"><b>Definition:</b> interpreter.hpp:34</div></div>
+<div class="ttc" id="aclassminilua_1_1Interpreter_html"><div class="ttname"><a href="classminilua_1_1Interpreter.html">minilua::Interpreter</a></div><div class="ttdef"><b>Definition:</b> interpreter.hpp:96</div></div>
+<div class="ttc" id="aclassminilua_1_1Interpreter_html_a47d8b89428d14ff81089a03b5521af22"><div class="ttname"><a href="classminilua_1_1Interpreter.html#a47d8b89428d14ff81089a03b5521af22">minilua::Interpreter::evaluate</a></div><div class="ttdeci">auto evaluate() -&gt; EvalResult</div><div class="ttdef"><b>Definition:</b> interpreter.cpp:114</div></div>
+<div class="ttc" id="aclassminilua_1_1Interpreter_html_a21d22cbf0a310f0d2ab078be091ef0dc"><div class="ttname"><a href="classminilua_1_1Interpreter.html#a21d22cbf0a310f0d2ab078be091ef0dc">minilua::Interpreter::environment</a></div><div class="ttdeci">auto environment() const -&gt; Environment &amp;</div><div class="ttdef"><b>Definition:</b> interpreter.cpp:64</div></div>
 <!-- start footer part -->
 		<script src="custom.js"></script>
 	</body>

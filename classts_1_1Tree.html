@@ -70,6 +70,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="#friends">Friends</a> &#124;
 <a href="classts_1_1Tree-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -81,7 +82,7 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a1557f339b180e4cfb0043773a74da566"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classts_1_1Tree.html#a1557f339b180e4cfb0043773a74da566">Tree</a> (TSTree *tree, std::string <a class="el" href="classts_1_1Tree.html#ab084e2d28f2dc6ce608b74d2ba4b5046">source</a>, const <a class="el" href="classts_1_1Parser.html">Parser</a> &amp;<a class="el" href="classts_1_1Tree.html#a7d5159568dad849b7a806396d911c8bb">parser</a>)</td></tr>
+<tr class="memitem:a1557f339b180e4cfb0043773a74da566"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classts_1_1Tree.html#a1557f339b180e4cfb0043773a74da566">Tree</a> (TSTree *<a class="el" href="classts_1_1Tree.html#a95c7b1f8cb97a84cb798ae6058cabd93">tree</a>, std::string <a class="el" href="classts_1_1Tree.html#ab084e2d28f2dc6ce608b74d2ba4b5046">source</a>, const <a class="el" href="classts_1_1Parser.html">Parser</a> &amp;<a class="el" href="classts_1_1Tree.html#a7d5159568dad849b7a806396d911c8bb">parser</a>)</td></tr>
 <tr class="separator:a1557f339b180e4cfb0043773a74da566"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7c7658ef82b14501f73e8095efd7e949"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classts_1_1Tree.html#a7c7658ef82b14501f73e8095efd7e949">Tree</a> (const <a class="el" href="classts_1_1Tree.html">Tree</a> &amp;)</td></tr>
 <tr class="separator:a7c7658ef82b14501f73e8095efd7e949"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -107,6 +108,15 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a60a99e6840a9d72c1fd993ecd49e9ed7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a19056835e8da45a62783a12e2d9a70a1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classts_1_1Tree.html#a19056835e8da45a62783a12e2d9a70a1">print_dot_graph</a> (std::string_view file) const</td></tr>
 <tr class="separator:a19056835e8da45a62783a12e2d9a70a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:a95c7b1f8cb97a84cb798ae6058cabd93"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; TSTree, void(*)(TSTree *)&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classts_1_1Tree.html#a95c7b1f8cb97a84cb798ae6058cabd93">tree</a></td></tr>
+<tr class="separator:a95c7b1f8cb97a84cb798ae6058cabd93"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0d70fbd8302a059397587ed8a6a529a3"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classts_1_1Tree.html#a0d70fbd8302a059397587ed8a6a529a3">source_</a></td></tr>
+<tr class="separator:a0d70fbd8302a059397587ed8a6a529a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9f4329cb88d485216b5e57917a237ade"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classts_1_1Parser.html">Parser</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classts_1_1Tree.html#a9f4329cb88d485216b5e57917a237ade">parser_</a></td></tr>
+<tr class="separator:a9f4329cb88d485216b5e57917a237ade"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
 Friends</h2></td></tr>
@@ -439,6 +449,73 @@ Friends</h2></td></tr>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a9f4329cb88d485216b5e57917a237ade"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9f4329cb88d485216b5e57917a237ade">&#9670;&nbsp;</a></span>parser_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="classts_1_1Parser.html">Parser</a>* ts::Tree::parser_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0d70fbd8302a059397587ed8a6a529a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0d70fbd8302a059397587ed8a6a529a3">&#9670;&nbsp;</a></span>source_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string ts::Tree::source_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a95c7b1f8cb97a84cb798ae6058cabd93"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a95c7b1f8cb97a84cb798ae6058cabd93">&#9670;&nbsp;</a></span>tree</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unique_ptr&lt;TSTree, void (*)(TSTree*)&gt; ts::Tree::tree</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">

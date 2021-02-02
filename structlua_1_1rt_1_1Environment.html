@@ -70,6 +70,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="structlua_1_1rt_1_1Environment-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">lua::rt::Environment Struct Reference</div>  </div>
@@ -86,7 +87,7 @@ Inheritance diagram for lua::rt::Environment:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ab5a86ccbf744aef82ab220d9dbc238fa"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlua_1_1rt_1_1Environment.html#ab5a86ccbf744aef82ab220d9dbc238fa">Environment</a> (const shared_ptr&lt; <a class="el" href="structlua_1_1rt_1_1Environment.html">Environment</a> &gt; &amp;parent)</td></tr>
+<tr class="memitem:ab5a86ccbf744aef82ab220d9dbc238fa"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlua_1_1rt_1_1Environment.html#ab5a86ccbf744aef82ab220d9dbc238fa">Environment</a> (const shared_ptr&lt; <a class="el" href="structlua_1_1rt_1_1Environment.html">Environment</a> &gt; &amp;<a class="el" href="structlua_1_1rt_1_1Environment.html#a75b96fbee88dfff65c808934d984ff1a">parent</a>)</td></tr>
 <tr class="separator:ab5a86ccbf744aef82ab220d9dbc238fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af6ee126239fb8855332c7ec2f9e203ea"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlua_1_1rt_1_1Environment.html#af6ee126239fb8855332c7ec2f9e203ea">clear</a> ()</td></tr>
 <tr class="separator:af6ee126239fb8855332c7ec2f9e203ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -96,6 +97,15 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a63a8b24d5d029371374430bb7fd25af5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae8b382491f62ffd3ea652b84fccd1e36"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlua_1_1rt_1_1Environment.html#ae8b382491f62ffd3ea652b84fccd1e36">populate_stdlib</a> ()</td></tr>
 <tr class="separator:ae8b382491f62ffd3ea652b84fccd1e36"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:ae021b78375447ef78e59754290f55967"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structlua_1_1rt_1_1table.html">table</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlua_1_1rt_1_1Environment.html#ae021b78375447ef78e59754290f55967">t</a></td></tr>
+<tr class="separator:ae021b78375447ef78e59754290f55967"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a75b96fbee88dfff65c808934d984ff1a"><td class="memItemLeft" align="right" valign="top">shared_ptr&lt; <a class="el" href="structlua_1_1rt_1_1Environment.html">Environment</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlua_1_1rt_1_1Environment.html#a75b96fbee88dfff65c808934d984ff1a">parent</a></td></tr>
+<tr class="separator:a75b96fbee88dfff65c808934d984ff1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2cf8a3d952efb154d69b700495f3a7a0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structlua_1_1rt_1_1table.html">table</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlua_1_1rt_1_1Environment.html#a2cf8a3d952efb154d69b700495f3a7a0">global</a> = nullptr</td></tr>
+<tr class="separator:a2cf8a3d952efb154d69b700495f3a7a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ab5a86ccbf744aef82ab220d9dbc238fa"></a>
@@ -215,6 +225,73 @@ Public Member Functions</h2></td></tr>
           <td></td>
         </tr>
       </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a2cf8a3d952efb154d69b700495f3a7a0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2cf8a3d952efb154d69b700495f3a7a0">&#9670;&nbsp;</a></span>global</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structlua_1_1rt_1_1table.html">table</a>* lua::rt::Environment::global = nullptr</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a75b96fbee88dfff65c808934d984ff1a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a75b96fbee88dfff65c808934d984ff1a">&#9670;&nbsp;</a></span>parent</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">shared_ptr&lt;<a class="el" href="structlua_1_1rt_1_1Environment.html">Environment</a>&gt; lua::rt::Environment::parent</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae021b78375447ef78e59754290f55967"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae021b78375447ef78e59754290f55967">&#9670;&nbsp;</a></span>t</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structlua_1_1rt_1_1table.html">table</a> lua::rt::Environment::t</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>

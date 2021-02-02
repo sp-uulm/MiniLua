@@ -83,6 +83,8 @@ $(function() {
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ad1c042d92920dc36073274d8253a0703"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1EvalResult.html#ad1c042d92920dc36073274d8253a0703">EvalResult</a> ()</td></tr>
 <tr class="separator:ad1c042d92920dc36073274d8253a0703"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab778aa271a79558cc0e4bb6e3c7b0d10"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1EvalResult.html#ab778aa271a79558cc0e4bb6e3c7b0d10">EvalResult</a> (<a class="el" href="classminilua_1_1Vallist.html">Vallist</a> <a class="el" href="structminilua_1_1details_1_1EvalResult.html#a35b250e969a40efbb59d9616c4ec90e6">values</a>)</td></tr>
+<tr class="separator:ab778aa271a79558cc0e4bb6e3c7b0d10"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8b56be3d8947953d9bab7767f26a094d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1EvalResult.html#a8b56be3d8947953d9bab7767f26a094d">EvalResult</a> (const <a class="el" href="classminilua_1_1CallResult.html">CallResult</a> &amp;)</td></tr>
 <tr class="separator:a8b56be3d8947953d9bab7767f26a094d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab2fe9cfb3e60c33661050e3720c79383"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1EvalResult.html#ab2fe9cfb3e60c33661050e3720c79383">combine</a> (const <a class="el" href="structminilua_1_1details_1_1EvalResult.html">EvalResult</a> &amp;other)</td></tr>
@@ -101,9 +103,13 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:ac71221ff2450ee9635cb645c1f6bb296"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="classminilua_1_1SourceChangeTree.html">SourceChangeTree</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1EvalResult.html#ac71221ff2450ee9635cb645c1f6bb296">source_change</a></td></tr>
 <tr class="separator:ac71221ff2450ee9635cb645c1f6bb296"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Internal results of the interpreter.</p>
+<p>Will be converted to the public <a class="el" href="structminilua_1_1EvalResult.html">minilua::EvalResult</a> when the interpreter finishes.</p>
+<p>NOTE: The fields are public because we only used them internally. </p>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ad1c042d92920dc36073274d8253a0703"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad1c042d92920dc36073274d8253a0703">&#9670;&nbsp;</a></span>EvalResult() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ad1c042d92920dc36073274d8253a0703">&#9670;&nbsp;</a></span>EvalResult() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -119,8 +125,34 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="ab778aa271a79558cc0e4bb6e3c7b0d10"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab778aa271a79558cc0e4bb6e3c7b0d10">&#9670;&nbsp;</a></span>EvalResult() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">minilua::details::EvalResult::EvalResult </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classminilua_1_1Vallist.html">Vallist</a>&#160;</td>
+          <td class="paramname"><em>values</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a8b56be3d8947953d9bab7767f26a094d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8b56be3d8947953d9bab7767f26a094d">&#9670;&nbsp;</a></span>EvalResult() <span class="overload">[2/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b56be3d8947953d9bab7767f26a094d">&#9670;&nbsp;</a></span>EvalResult() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -161,8 +193,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Combines another '<a class="el" href="structminilua_1_1details_1_1EvalResult.html">EvalResult</a>' into this one.</p>
-<p>This will combine the source changes and override the other fields. </p>
+<p>Combines two <a class="el" href="structminilua_1_1details_1_1EvalResult.html">EvalResults</a> (<code>this</code> and <code>other</code>) into <code>this</code>.</p>
+<p>This will combine the source changes and override all other fields. </p>
 
 </div>
 </div>
@@ -195,6 +227,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Flags to indicate if the interpreter should break/return.</p>
+<p>This is set when encountering a <code>or</code>return` and unset when the break or return is <em>applied</em> (i.e. in a loop or when returning from a function). </p>
 
 </div>
 </div>
@@ -223,6 +257,9 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Tracks optional source changes that are generated during execution.</p>
+<p>This will contain all changes generated from any <em>executed</em> element the interpreter encounters.</p>
+<p>Use <a class="el" href="structminilua_1_1details_1_1EvalResult.html#ab2fe9cfb3e60c33661050e3720c79383">EvalResult::combine</a> to easily merge multiple <a class="el" href="structminilua_1_1details_1_1EvalResult.html">EvalResults</a> and their source changes. </p>
 
 </div>
 </div>
@@ -237,6 +274,9 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Holds the <em>return</em> values of an expession.</p>
+<p>This is a <a class="el" href="classminilua_1_1Vallist.html">Vallist</a> and not just a <a class="el" href="classminilua_1_1Value.html">Value</a> because some expressions can return multiple values. For places where we only expect a single value we will only take the first value of the <a class="el" href="classminilua_1_1Vallist.html">Vallist</a> (or nil if the list is empty).</p>
+<p>NOTE: This might hold values that should not be accessible. Take care where in the interpreter you read/forward the values. </p>
 
 </div>
 </div>

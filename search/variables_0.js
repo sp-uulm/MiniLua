@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['after_1367',['after',['../structts_1_1AppliedEdit.html#a639b501f16512f1ee84b310899dc8ae4',1,'ts::AppliedEdit']]],
-  ['alternatives_1368',['alternatives',['../structlua_1_1rt_1_1SourceChangeOr.html#a004e3c61e257d0c1b41e83100561b397',1,'lua::rt::SourceChangeOr']]],
-  ['applied_5fedits_1369',['applied_edits',['../structts_1_1EditResult.html#ad87027589f06ba0874622e84debdaae3',1,'ts::EditResult']]],
-  ['args_1370',['args',['../struct__LuaFunctioncall.html#a761a53e64a31a2cc34fe128d94a04fba',1,'_LuaFunctioncall::args()'],['../structminilua_1_1CallContext_1_1Impl.html#a2aa0eef0a080bdf00899d06224bb4770',1,'minilua::CallContext::Impl::args()']]]
+  ['_5fconfig_1555',['_config',['../classminilua_1_1Interpreter.html#af608fd482867a14c5d3fd9f409152481',1,'minilua::Interpreter']]],
+  ['_5fglobal_1556',['_global',['../classminilua_1_1Env.html#a24e7ecc3b300d7738912c968dcc40bdc',1,'minilua::Env']]],
+  ['_5flocal_1557',['_local',['../classminilua_1_1Env.html#aa6c8213e6ff5b639ca7dabf057bad5af',1,'minilua::Env']]],
+  ['_5fsource_5fchange_1558',['_source_change',['../classminilua_1_1CallResult.html#aabc71a4216bfb019b7e7b2e28ba1d69b',1,'minilua::CallResult']]]
 ];

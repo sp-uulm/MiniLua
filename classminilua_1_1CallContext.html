@@ -71,6 +71,7 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="#friends">Friends</a> &#124;
 <a href="classminilua_1_1CallContext-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -117,6 +118,11 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a81a08eb866044355d4cd11306bf75cc5"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1CallContext.html#a81a08eb866044355d4cd11306bf75cc5">binary_numeric_args_helper</a> () const -&gt; std::tuple&lt; double, double, <a class="el" href="structminilua_1_1BinaryOrigin.html">BinaryOrigin</a> &gt;</td></tr>
 <tr class="separator:a81a08eb866044355d4cd11306bf75cc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:af2105e446119c92a575224f41e64fc95"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classminilua_1_1owning__ptr.html">owning_ptr</a>&lt; <a class="el" href="structminilua_1_1CallContext_1_1Impl.html">Impl</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1CallContext.html#af2105e446119c92a575224f41e64fc95">impl</a></td></tr>
+<tr class="separator:af2105e446119c92a575224f41e64fc95"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
 Friends</h2></td></tr>
 <tr class="memitem:a3d10084d85325a4fb5fba63d573034d5"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1CallContext.html#a3d10084d85325a4fb5fba63d573034d5">operator&lt;&lt;</a> (std::ostream &amp;, const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;) -&gt; std::ostream &amp;</td></tr>
@@ -125,7 +131,7 @@ Friends</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Contains information for use in the implementation of native functions.</p>
 <p>Contains the arguments and the environment.</p>
-<p>The '<a class="el" href="classminilua_1_1CallContext.html">CallContext</a>' and the '<a class="el" href="classminilua_1_1Environment.html">Environment</a>' should not be copied and stored somewhere that outlives the function call. Because the environment may be freed after the call to the function ends. You can however safely store any Values or a copy of the arguments. </p>
+<p>The <code><a class="el" href="classminilua_1_1CallContext.html">CallContext</a></code> and the <code><a class="el" href="classminilua_1_1Environment.html">Environment</a></code> should not be copied and stored somewhere that outlives the function call. Because the environment may be freed after the call to the function ends. You can however safely store any <code><a class="el" href="classminilua_1_1Value.html">Value</a></code>s or a copy of the arguments. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a780e56056d700663f495909afe2e3aa2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a780e56056d700663f495909afe2e3aa2">&#9670;&nbsp;</a></span>CallContext() <span class="overload">[1/3]</span></h2>
@@ -255,6 +261,12 @@ Friends</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Convenience method for writing functions with two numeric arguments that should track the origin (e.g. sqrt).</p>
+<p>Usage:</p>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> [arg1, arg2, origin] = ctx.binary_numeric_arg_helper();</div>
+<div class="line">origin.reverse = <a class="code" href="namespaceminilua.html#a2ce17b0d50309e0d4a3a43e71dd592c2">binary_num_reverse</a>(...);</div>
+<div class="line"><span class="comment">// ...</span></div>
+</div><!-- fragment --><p>See also: <code><a class="el" href="classminilua_1_1CallContext.html#a66fb63b2b62a7e4f7fac85caeb6beed1">CallContext::unary_numeric_arg_helper</a></code>. </p>
 
 </div>
 </div>
@@ -290,7 +302,9 @@ Friends</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns a reference to the global environment. You can't access local variables with this. </p>
+<p>Returns a reference to the environment.</p>
+<p>For <code><a class="el" href="classminilua_1_1Function.html">Function</a></code>s created in C++ you can only access the global environment.</p>
+<p>For functions created in lua you can access the global environment and local variables that were in scope when creating the function. </p>
 
 </div>
 </div>
@@ -309,8 +323,8 @@ Friends</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns the value of a global variable accessible from the function.</p>
-<p>Returns <a class="el" href="structminilua_1_1Nil.html">Nil</a> if the variable is not accessible or does not exist. </p>
+<p>Returns the value of a variable accessible from the function.</p>
+<p>Returns <code><a class="el" href="structminilua_1_1Nil.html">Nil</a></code> if the variable is not accessible or does not exist. </p>
 
 </div>
 </div>
@@ -447,15 +461,13 @@ template&lt;typename... Args&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Convenience methods for writing functions one or two numeric arguments that should track the origin (e.g. sqrt or pow).</p>
+<p>Convenience method for writing functions with one numeric argument that should track the origin (e.g. pow).</p>
 <p>Usage:</p>
 <div class="fragment"><div class="line"><span class="keyword">auto</span> [arg, origin] = ctx.unary_numeric_arg_helper();</div>
 <div class="line">origin.reverse = <a class="code" href="namespaceminilua.html#a3533c865eb291bcf3dff829fb0607af8">unary_num_reverse</a>(...);</div>
 <div class="line"><span class="comment">// ...</span></div>
-</div><!-- fragment --><div class="fragment"><div class="line"><span class="keyword">auto</span> [arg1, arg2, origin] = ctx.binary_numeric_arg_helper();</div>
-<div class="line">origin.reverse = <a class="code" href="namespaceminilua.html#a2ce17b0d50309e0d4a3a43e71dd592c2">binary_num_reverse</a>(...);</div>
-<div class="line"><span class="comment">// ...</span></div>
-</div><!-- fragment --> 
+</div><!-- fragment --><p>See also: <code><a class="el" href="classminilua_1_1CallContext.html#a81a08eb866044355d4cd11306bf75cc5">CallContext::binary_numeric_args_helper</a></code>. </p>
+
 </div>
 </div>
 <h2 class="groupheader">Friends And Related Function Documentation</h2>
@@ -495,13 +507,36 @@ template&lt;typename... Args&gt; </div>
 
 </div>
 </div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="af2105e446119c92a575224f41e64fc95"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af2105e446119c92a575224f41e64fc95">&#9670;&nbsp;</a></span>impl</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classminilua_1_1owning__ptr.html">owning_ptr</a>&lt;<a class="el" href="structminilua_1_1CallContext_1_1Impl.html">Impl</a>&gt; minilua::CallContext::impl</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>/home/runner/work/MiniLua/MiniLua/include/MiniLua/<a class="el" href="values_8hpp_source.html">values.hpp</a></li>
 <li><a class="el" href="values_8cpp.html">values.cpp</a></li>
 </ul>
 </div><!-- contents -->
-<div class="ttc" id="anamespaceminilua_html_a2ce17b0d50309e0d4a3a43e71dd592c2"><div class="ttname"><a href="namespaceminilua.html#a2ce17b0d50309e0d4a3a43e71dd592c2">minilua::binary_num_reverse</a></div><div class="ttdeci">auto binary_num_reverse(FnLeft fn_left, FnRight fn_right, std::string origin=&quot;&quot;) -&gt; decltype(auto)</div><div class="ttdef"><b>Definition:</b> values.hpp:873</div></div>
-<div class="ttc" id="anamespaceminilua_html_a3533c865eb291bcf3dff829fb0607af8"><div class="ttname"><a href="namespaceminilua.html#a3533c865eb291bcf3dff829fb0607af8">minilua::unary_num_reverse</a></div><div class="ttdeci">auto unary_num_reverse(Fn fn) -&gt; decltype(auto)</div><div class="ttdef"><b>Definition:</b> values.hpp:862</div></div>
+<div class="ttc" id="anamespaceminilua_html_a2ce17b0d50309e0d4a3a43e71dd592c2"><div class="ttname"><a href="namespaceminilua.html#a2ce17b0d50309e0d4a3a43e71dd592c2">minilua::binary_num_reverse</a></div><div class="ttdeci">auto binary_num_reverse(FnLeft fn_left, FnRight fn_right, std::string origin=&quot;&quot;) -&gt; decltype(auto)</div><div class="ttdef"><b>Definition:</b> values.hpp:986</div></div>
+<div class="ttc" id="anamespaceminilua_html_a3533c865eb291bcf3dff829fb0607af8"><div class="ttname"><a href="namespaceminilua.html#a3533c865eb291bcf3dff829fb0607af8">minilua::unary_num_reverse</a></div><div class="ttdeci">auto unary_num_reverse(Fn fn) -&gt; decltype(auto)</div><div class="ttdef"><b>Definition:</b> values.hpp:965</div></div>
 <!-- start footer part -->
 		<script src="custom.js"></script>
 	</body>

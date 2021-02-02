@@ -86,6 +86,8 @@ Namespaces</h2></td></tr>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1EvalResult.html">EvalResult</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1FunctionImpl.html">FunctionImpl</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1Interpreter.html">Interpreter</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1details_1_1UnimplementedException.html">UnimplementedException</a></td></tr>
@@ -93,10 +95,77 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a51d6cc91121f609a1b353d5addb0801c"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1details.html#a51d6cc91121f609a1b353d5addb0801c">combine_source_changes</a> (const std::optional&lt; <a class="el" href="classminilua_1_1SourceChangeTree.html">SourceChangeTree</a> &gt; &amp;lhs, const std::optional&lt; <a class="el" href="classminilua_1_1SourceChangeTree.html">SourceChangeTree</a> &gt; &amp;rhs) -&gt; std::optional&lt; <a class="el" href="classminilua_1_1SourceChangeTree.html">SourceChangeTree</a> &gt;</td></tr>
+<tr class="separator:a51d6cc91121f609a1b353d5addb0801c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a92e0595b2a611525620ca17c901301fc"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1details.html#a92e0595b2a611525620ca17c901301fc">operator&lt;&lt;</a> (std::ostream &amp;o, const <a class="el" href="structminilua_1_1details_1_1EvalResult.html">EvalResult</a> &amp;self) -&gt; std::ostream &amp;</td></tr>
 <tr class="separator:a92e0595b2a611525620ca17c901301fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a16992464ffe303e0d0a69277c6b18406"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1details.html#a16992464ffe303e0d0a69277c6b18406">convert_range</a> (<a class="el" href="structts_1_1Range.html">ts::Range</a> range) -&gt; <a class="el" href="structminilua_1_1Range.html">Range</a></td></tr>
+<tr class="separator:a16992464ffe303e0d0a69277c6b18406"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a51d6cc91121f609a1b353d5addb0801c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a51d6cc91121f609a1b353d5addb0801c">&#9670;&nbsp;</a></span>combine_source_changes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static auto minilua::details::combine_source_changes </td>
+          <td>(</td>
+          <td class="paramtype">const std::optional&lt; <a class="el" href="classminilua_1_1SourceChangeTree.html">SourceChangeTree</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>lhs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::optional&lt; <a class="el" href="classminilua_1_1SourceChangeTree.html">SourceChangeTree</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>rhs</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; std::optional&lt;<a class="el" href="classminilua_1_1SourceChangeTree.html">SourceChangeTree</a>&gt; </td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Helper function to combine two optional source changes. </p>
+
+</div>
+</div>
+<a id="a16992464ffe303e0d0a69277c6b18406"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a16992464ffe303e0d0a69277c6b18406">&#9670;&nbsp;</a></span>convert_range()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static auto minilua::details::convert_range </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structts_1_1Range.html">ts::Range</a>&#160;</td>
+          <td class="paramname"><em>range</em></td><td>)</td>
+          <td> -&gt; <a class="el" href="structminilua_1_1Range.html">Range</a> </td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a92e0595b2a611525620ca17c901301fc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a92e0595b2a611525620ca17c901301fc">&#9670;&nbsp;</a></span>operator&lt;&lt;()</h2>
 

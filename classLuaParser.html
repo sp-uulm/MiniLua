@@ -68,6 +68,9 @@ $(function() {
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
+<a href="#pri-types">Private Types</a> &#124;
+<a href="#pri-methods">Private Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classLuaParser-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">LuaParser Class Reference</div>  </div>
@@ -97,8 +100,85 @@ Public Member Functions</h2></td></tr>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a83e79e78346737c5eb210f158ed075e2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classLuaParser.html#a8c6cb2b50a375592fa2e64b1c6529463">token_list_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#a83e79e78346737c5eb210f158ed075e2">tokens</a></td></tr>
 <tr class="separator:a83e79e78346737c5eb210f158ed075e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-types"></a>
+Private Types</h2></td></tr>
+<tr class="memitem:afa774d9b6f9ee4298567c28d0d9cd9a6"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#afa774d9b6f9ee4298567c28d0d9cd9a6">token_type</a> = bs::lex::lexertl::token&lt; string::const_iterator, boost::mpl::vector0&lt;&gt;, boost::mpl::false_ &gt;</td></tr>
+<tr class="separator:afa774d9b6f9ee4298567c28d0d9cd9a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a25bba10ecb9884e91fb6673ba31f5746"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#a25bba10ecb9884e91fb6673ba31f5746">lexer_type</a> = bs::lex::lexertl::lexer&lt; <a class="el" href="classLuaParser.html#afa774d9b6f9ee4298567c28d0d9cd9a6">token_type</a> &gt;</td></tr>
+<tr class="separator:a25bba10ecb9884e91fb6673ba31f5746"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
+Private Member Functions</h2></td></tr>
+<tr class="memitem:aefd15a016392fb4de319561382fb57b6"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#aefd15a016392fb4de319561382fb57b6">tokenize</a> (string::const_iterator begin, string::const_iterator end) -&gt; <a class="el" href="classLuaParser.html#a8c6cb2b50a375592fa2e64b1c6529463">token_list_t</a></td></tr>
+<tr class="separator:aefd15a016392fb4de319561382fb57b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e3380bfc3d6a56780e245b10ae81159"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#a4e3380bfc3d6a56780e245b10ae81159">parse_chunk</a> (<a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;begin, <a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;end) const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt; <a class="el" href="val_8hpp.html#ab6b3176bdca33f68afa43ffb01c092b6">LuaChunk</a> &gt;</td></tr>
+<tr class="separator:a4e3380bfc3d6a56780e245b10ae81159"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a45a5be1c1fde044e2ab4cba056fe6f28"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#a45a5be1c1fde044e2ab4cba056fe6f28">parse_block</a> (<a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;begin, <a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;end) const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt; <a class="el" href="val_8hpp.html#ab6b3176bdca33f68afa43ffb01c092b6">LuaChunk</a> &gt;</td></tr>
+<tr class="separator:a45a5be1c1fde044e2ab4cba056fe6f28"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a888369e209a424b4657972df4a0f225d"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#a888369e209a424b4657972df4a0f225d">parse_stat</a> (<a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;begin, <a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;end) const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt; <a class="el" href="val_8hpp.html#a5ba0373d594db3862249d4e9081bb7c9">LuaStmt</a> &gt;</td></tr>
+<tr class="separator:a888369e209a424b4657972df4a0f225d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aff9b5e9edd0c173f390819ec42cd4bcf"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#aff9b5e9edd0c173f390819ec42cd4bcf">parse_laststat</a> (<a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;begin, <a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;end) const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt; <a class="el" href="val_8hpp.html#a5ba0373d594db3862249d4e9081bb7c9">LuaStmt</a> &gt;</td></tr>
+<tr class="separator:aff9b5e9edd0c173f390819ec42cd4bcf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a39c3b8d15f2108e7f4177ad6530ce271"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#a39c3b8d15f2108e7f4177ad6530ce271">parse_funcname</a> (<a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;begin, <a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;end) const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt; <a class="el" href="val_8hpp.html#a24b8fd26af1db93d5d8f8f7278d67b7b">LuaVar</a> &gt;</td></tr>
+<tr class="separator:a39c3b8d15f2108e7f4177ad6530ce271"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a833d919da4b081aeb4c0361fe407a1ea"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#a833d919da4b081aeb4c0361fe407a1ea">parse_varlist</a> (<a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;begin, <a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;end) const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt; <a class="el" href="val_8hpp.html#a045a3590f9b7e60693950e53323d6bb4">LuaExplist</a> &gt;</td></tr>
+<tr class="separator:a833d919da4b081aeb4c0361fe407a1ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7654c5fd79f5d80f36ae29dae52a9f81"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#a7654c5fd79f5d80f36ae29dae52a9f81">parse_var</a> (<a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;begin, <a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;end) const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt; <a class="el" href="val_8hpp.html#a24b8fd26af1db93d5d8f8f7278d67b7b">LuaVar</a> &gt;</td></tr>
+<tr class="separator:a7654c5fd79f5d80f36ae29dae52a9f81"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd022beb599b4bc92d891a7961c84907"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#afd022beb599b4bc92d891a7961c84907">parse_namelist</a> (<a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;begin, <a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;end) const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt; <a class="el" href="val_8hpp.html#a045a3590f9b7e60693950e53323d6bb4">LuaExplist</a> &gt;</td></tr>
+<tr class="separator:afd022beb599b4bc92d891a7961c84907"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46cb6a1f06d65bbbddafbdc42c9f8144"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#a46cb6a1f06d65bbbddafbdc42c9f8144">parse_explist</a> (<a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;begin, <a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;end) const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt; <a class="el" href="val_8hpp.html#a045a3590f9b7e60693950e53323d6bb4">LuaExplist</a> &gt;</td></tr>
+<tr class="separator:a46cb6a1f06d65bbbddafbdc42c9f8144"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae3be0c2a42f559fdacff41b36f1de890"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#ae3be0c2a42f559fdacff41b36f1de890">parse_exp</a> (<a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;begin, <a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;end) const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt; <a class="el" href="val_8hpp.html#a852f7f3a308dc703d5744f1788807595">LuaExp</a> &gt;</td></tr>
+<tr class="separator:ae3be0c2a42f559fdacff41b36f1de890"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa6b251fdd1addb6a6fbeb0c756b83bd3"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#aa6b251fdd1addb6a6fbeb0c756b83bd3">parse_prefixexp</a> (<a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;begin, <a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;end) const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt; <a class="el" href="val_8hpp.html#a852f7f3a308dc703d5744f1788807595">LuaExp</a> &gt;</td></tr>
+<tr class="separator:aa6b251fdd1addb6a6fbeb0c756b83bd3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbfb93419a012c4240d9215018cf7099"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#adbfb93419a012c4240d9215018cf7099">parse_functioncall</a> (<a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;begin, <a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;end, const <a class="el" href="val_8hpp.html#a852f7f3a308dc703d5744f1788807595">LuaExp</a> &amp;prefixexp) const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt; <a class="el" href="val_8hpp.html#afeaa5f5e6f356a72da4a60990396d60b">LuaFunctioncall</a> &gt;</td></tr>
+<tr class="separator:adbfb93419a012c4240d9215018cf7099"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a5a7f01d8ddba0d60d4771f4f4de936"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#a1a5a7f01d8ddba0d60d4771f4f4de936">parse_args</a> (<a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;begin, <a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;end) const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt; <a class="el" href="val_8hpp.html#a045a3590f9b7e60693950e53323d6bb4">LuaExplist</a> &gt;</td></tr>
+<tr class="separator:a1a5a7f01d8ddba0d60d4771f4f4de936"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af83a6bc1ef3f3d4ee38765b8a559fe7d"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#af83a6bc1ef3f3d4ee38765b8a559fe7d">parse_function</a> (<a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;begin, <a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;end) const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt; <a class="el" href="val_8hpp.html#acc91ab2e85495436ec3e33d9cbace469">LuaFunction</a> &gt;</td></tr>
+<tr class="separator:af83a6bc1ef3f3d4ee38765b8a559fe7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad68da0a069c888b9b7e70284fa0a024c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#ad68da0a069c888b9b7e70284fa0a024c">parse_funcbody</a> (<a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;begin, <a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;end) const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt; <a class="el" href="val_8hpp.html#acc91ab2e85495436ec3e33d9cbace469">LuaFunction</a> &gt;</td></tr>
+<tr class="separator:ad68da0a069c888b9b7e70284fa0a024c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c59ccfb5b93e1f767e4323b8d9d44d9"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#a7c59ccfb5b93e1f767e4323b8d9d44d9">parse_parlist</a> (<a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;begin, <a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;end) const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt; <a class="el" href="val_8hpp.html#a045a3590f9b7e60693950e53323d6bb4">LuaExplist</a> &gt;</td></tr>
+<tr class="separator:a7c59ccfb5b93e1f767e4323b8d9d44d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd2fc1897ae6f074ed28a3aef9f5188e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#afd2fc1897ae6f074ed28a3aef9f5188e">parse_tableconstructor</a> (<a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;begin, <a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;end) const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt; <a class="el" href="val_8hpp.html#a60375768fb10e8f96443178630a30d05">LuaTableconstructor</a> &gt;</td></tr>
+<tr class="separator:afd2fc1897ae6f074ed28a3aef9f5188e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca52ad6a66c13a26ef3708c9ced429ce"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#aca52ad6a66c13a26ef3708c9ced429ce">parse_field</a> (<a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;begin, <a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;end) const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt; <a class="el" href="val_8hpp.html#a1e85c9786c60a2b503d9f37d197fc452">LuaField</a> &gt;</td></tr>
+<tr class="separator:aca52ad6a66c13a26ef3708c9ced429ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afa18cb41dce0e9d1da1df47b5442e491"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#afa18cb41dce0e9d1da1df47b5442e491">lua_token_to_string</a> (<a class="el" href="structLuaToken.html#aa60b13d88c317e381fc5033c047cf432">LuaToken::Type</a> type) const -&gt; std::string</td></tr>
+<tr class="separator:afa18cb41dce0e9d1da1df47b5442e491"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:af9b8b8015765aeff98358a2a92139c4f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structlua__tokens.html">lua_tokens</a>&lt; <a class="el" href="classLuaParser.html#a25bba10ecb9884e91fb6673ba31f5746">lexer_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classLuaParser.html#af9b8b8015765aeff98358a2a92139c4f">lua_lexer</a></td></tr>
+<tr class="separator:af9b8b8015765aeff98358a2a92139c4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Typedef Documentation</h2>
+<a id="a25bba10ecb9884e91fb6673ba31f5746"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a25bba10ecb9884e91fb6673ba31f5746">&#9670;&nbsp;</a></span>lexer_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="classLuaParser.html#a25bba10ecb9884e91fb6673ba31f5746">LuaParser::lexer_type</a> =  bs::lex::lexertl::lexer&lt;<a class="el" href="classLuaParser.html#afa774d9b6f9ee4298567c28d0d9cd9a6">token_type</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ad872e1d7cc3fb0c679a91618a77ad03b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad872e1d7cc3fb0c679a91618a77ad03b">&#9670;&nbsp;</a></span>parse_result_t</h2>
 
@@ -143,6 +223,28 @@ template&lt;typename T  = LuaAST&gt; </div>
 
 </div>
 </div>
+<a id="afa774d9b6f9ee4298567c28d0d9cd9a6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afa774d9b6f9ee4298567c28d0d9cd9a6">&#9670;&nbsp;</a></span>token_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="classLuaParser.html#afa774d9b6f9ee4298567c28d0d9cd9a6">LuaParser::token_type</a> =  bs::lex::lexertl::token&lt;string::const_iterator, boost::mpl::vector0&lt;&gt;, boost::mpl::false_&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a33785ce55a2aeb56d4a3935a6fa444ec"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a33785ce55a2aeb56d4a3935a6fa444ec">&#9670;&nbsp;</a></span>LuaParser()</h2>
@@ -162,6 +264,32 @@ template&lt;typename T  = LuaAST&gt; </div>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="afa18cb41dce0e9d1da1df47b5442e491"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afa18cb41dce0e9d1da1df47b5442e491">&#9670;&nbsp;</a></span>lua_token_to_string()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto LuaParser::lua_token_to_string </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structLuaToken.html#aa60b13d88c317e381fc5033c047cf432">LuaToken::Type</a>&#160;</td>
+          <td class="paramname"><em>type</em></td><td>)</td>
+          <td> const -&gt; std::string</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a68e3b5c92551a82e4abb5d81774d0da2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a68e3b5c92551a82e4abb5d81774d0da2">&#9670;&nbsp;</a></span>parse()</h2>
 
@@ -190,7 +318,719 @@ template&lt;typename T  = LuaAST&gt; </div>
 
 </div>
 </div>
+<a id="a1a5a7f01d8ddba0d60d4771f4f4de936"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1a5a7f01d8ddba0d60d4771f4f4de936">&#9670;&nbsp;</a></span>parse_args()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto LuaParser::parse_args </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>end</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt;<a class="el" href="val_8hpp.html#a045a3590f9b7e60693950e53323d6bb4">LuaExplist</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a45a5be1c1fde044e2ab4cba056fe6f28"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a45a5be1c1fde044e2ab4cba056fe6f28">&#9670;&nbsp;</a></span>parse_block()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto LuaParser::parse_block </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>end</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt;<a class="el" href="val_8hpp.html#ab6b3176bdca33f68afa43ffb01c092b6">LuaChunk</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4e3380bfc3d6a56780e245b10ae81159"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e3380bfc3d6a56780e245b10ae81159">&#9670;&nbsp;</a></span>parse_chunk()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto LuaParser::parse_chunk </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>end</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt;<a class="el" href="val_8hpp.html#ab6b3176bdca33f68afa43ffb01c092b6">LuaChunk</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae3be0c2a42f559fdacff41b36f1de890"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae3be0c2a42f559fdacff41b36f1de890">&#9670;&nbsp;</a></span>parse_exp()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto LuaParser::parse_exp </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>end</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt;<a class="el" href="val_8hpp.html#a852f7f3a308dc703d5744f1788807595">LuaExp</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a46cb6a1f06d65bbbddafbdc42c9f8144"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a46cb6a1f06d65bbbddafbdc42c9f8144">&#9670;&nbsp;</a></span>parse_explist()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto LuaParser::parse_explist </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>end</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt;<a class="el" href="val_8hpp.html#a045a3590f9b7e60693950e53323d6bb4">LuaExplist</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aca52ad6a66c13a26ef3708c9ced429ce"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aca52ad6a66c13a26ef3708c9ced429ce">&#9670;&nbsp;</a></span>parse_field()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto LuaParser::parse_field </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>end</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt;<a class="el" href="val_8hpp.html#a1e85c9786c60a2b503d9f37d197fc452">LuaField</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad68da0a069c888b9b7e70284fa0a024c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad68da0a069c888b9b7e70284fa0a024c">&#9670;&nbsp;</a></span>parse_funcbody()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto LuaParser::parse_funcbody </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>end</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt;<a class="el" href="val_8hpp.html#acc91ab2e85495436ec3e33d9cbace469">LuaFunction</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a39c3b8d15f2108e7f4177ad6530ce271"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a39c3b8d15f2108e7f4177ad6530ce271">&#9670;&nbsp;</a></span>parse_funcname()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto LuaParser::parse_funcname </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>end</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt;<a class="el" href="val_8hpp.html#a24b8fd26af1db93d5d8f8f7278d67b7b">LuaVar</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af83a6bc1ef3f3d4ee38765b8a559fe7d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af83a6bc1ef3f3d4ee38765b8a559fe7d">&#9670;&nbsp;</a></span>parse_function()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto LuaParser::parse_function </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>end</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt;<a class="el" href="val_8hpp.html#acc91ab2e85495436ec3e33d9cbace469">LuaFunction</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="adbfb93419a012c4240d9215018cf7099"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adbfb93419a012c4240d9215018cf7099">&#9670;&nbsp;</a></span>parse_functioncall()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto LuaParser::parse_functioncall </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>end</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="val_8hpp.html#a852f7f3a308dc703d5744f1788807595">LuaExp</a> &amp;&#160;</td>
+          <td class="paramname"><em>prefixexp</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt;<a class="el" href="val_8hpp.html#afeaa5f5e6f356a72da4a60990396d60b">LuaFunctioncall</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aff9b5e9edd0c173f390819ec42cd4bcf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aff9b5e9edd0c173f390819ec42cd4bcf">&#9670;&nbsp;</a></span>parse_laststat()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto LuaParser::parse_laststat </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>end</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt;<a class="el" href="val_8hpp.html#a5ba0373d594db3862249d4e9081bb7c9">LuaStmt</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afd022beb599b4bc92d891a7961c84907"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd022beb599b4bc92d891a7961c84907">&#9670;&nbsp;</a></span>parse_namelist()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto LuaParser::parse_namelist </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>end</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt;<a class="el" href="val_8hpp.html#a045a3590f9b7e60693950e53323d6bb4">LuaExplist</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7c59ccfb5b93e1f767e4323b8d9d44d9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7c59ccfb5b93e1f767e4323b8d9d44d9">&#9670;&nbsp;</a></span>parse_parlist()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto LuaParser::parse_parlist </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>end</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt;<a class="el" href="val_8hpp.html#a045a3590f9b7e60693950e53323d6bb4">LuaExplist</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa6b251fdd1addb6a6fbeb0c756b83bd3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa6b251fdd1addb6a6fbeb0c756b83bd3">&#9670;&nbsp;</a></span>parse_prefixexp()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto LuaParser::parse_prefixexp </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>end</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt;<a class="el" href="val_8hpp.html#a852f7f3a308dc703d5744f1788807595">LuaExp</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a888369e209a424b4657972df4a0f225d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a888369e209a424b4657972df4a0f225d">&#9670;&nbsp;</a></span>parse_stat()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto LuaParser::parse_stat </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>end</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt;<a class="el" href="val_8hpp.html#a5ba0373d594db3862249d4e9081bb7c9">LuaStmt</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afd2fc1897ae6f074ed28a3aef9f5188e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd2fc1897ae6f074ed28a3aef9f5188e">&#9670;&nbsp;</a></span>parse_tableconstructor()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto LuaParser::parse_tableconstructor </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>end</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt;<a class="el" href="val_8hpp.html#a60375768fb10e8f96443178630a30d05">LuaTableconstructor</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7654c5fd79f5d80f36ae29dae52a9f81"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7654c5fd79f5d80f36ae29dae52a9f81">&#9670;&nbsp;</a></span>parse_var()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto LuaParser::parse_var </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>end</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt;<a class="el" href="val_8hpp.html#a24b8fd26af1db93d5d8f8f7278d67b7b">LuaVar</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a833d919da4b081aeb4c0361fe407a1ea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a833d919da4b081aeb4c0361fe407a1ea">&#9670;&nbsp;</a></span>parse_varlist()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto LuaParser::parse_varlist </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classLuaParser.html#a525a5384def9d333fff63b0fdad72828">token_it_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>end</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const -&gt; <a class="el" href="classLuaParser.html#ad872e1d7cc3fb0c679a91618a77ad03b">parse_result_t</a>&lt;<a class="el" href="val_8hpp.html#a045a3590f9b7e60693950e53323d6bb4">LuaExplist</a>&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aefd15a016392fb4de319561382fb57b6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aefd15a016392fb4de319561382fb57b6">&#9670;&nbsp;</a></span>tokenize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto LuaParser::tokenize </td>
+          <td>(</td>
+          <td class="paramtype">string::const_iterator&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">string::const_iterator&#160;</td>
+          <td class="paramname"><em>end</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; <a class="el" href="classLuaParser.html#a8c6cb2b50a375592fa2e64b1c6529463">token_list_t</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <h2 class="groupheader">Member Data Documentation</h2>
+<a id="af9b8b8015765aeff98358a2a92139c4f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af9b8b8015765aeff98358a2a92139c4f">&#9670;&nbsp;</a></span>lua_lexer</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structlua__tokens.html">lua_tokens</a>&lt;<a class="el" href="classLuaParser.html#a25bba10ecb9884e91fb6673ba31f5746">lexer_type</a>&gt; LuaParser::lua_lexer</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a83e79e78346737c5eb210f158ed075e2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a83e79e78346737c5eb210f158ed075e2">&#9670;&nbsp;</a></span>tokens</h2>
 

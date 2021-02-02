@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['fieldid_1518',['FieldId',['../namespacets.html#aa02910787d16f9525964f39c70094a31',1,'ts']]]
+  ['fieldid_1768',['FieldId',['../namespacets.html#aa02910787d16f9525964f39c70094a31',1,'ts']]],
+  ['fntype_1769',['FnType',['../classminilua_1_1Function.html#a145b2e7fc7dbfe5ccd0b69421d80f768',1,'minilua::Function']]]
 ];

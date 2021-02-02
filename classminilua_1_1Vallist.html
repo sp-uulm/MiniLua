@@ -71,6 +71,7 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="#friends">Friends</a> &#124;
 <a href="classminilua_1_1Vallist-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -122,6 +123,11 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a01e02c644f5724df2afea691b5015203"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classminilua_1_1Vallist.html#a01e02c644f5724df2afea691b5015203">tuple</a> () const</td></tr>
 <tr class="separator:a01e02c644f5724df2afea691b5015203"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:a10b41fe4738528694a4cbe1dbcfe5f69"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classminilua_1_1owning__ptr.html">owning_ptr</a>&lt; <a class="el" href="structminilua_1_1Vallist_1_1Impl.html">Impl</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Vallist.html#a10b41fe4738528694a4cbe1dbcfe5f69">impl</a></td></tr>
+<tr class="separator:a10b41fe4738528694a4cbe1dbcfe5f69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
 Friends</h2></td></tr>
 <tr class="memitem:a9e2986b7115f150802bb7b005481f881"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Vallist.html#a9e2986b7115f150802bb7b005481f881">operator==</a> (const <a class="el" href="classminilua_1_1Vallist.html">Vallist</a> &amp;, const <a class="el" href="classminilua_1_1Vallist.html">Vallist</a> &amp;) -&gt; bool</td></tr>
@@ -131,11 +137,12 @@ Friends</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A vallist can contain an arbitrary amount of '<a class="el" href="classminilua_1_1Value.html">Value</a>'s.</p>
-<p>You can use a <a class="el" href="classminilua_1_1Vallist.html">Vallist</a> in destructuring assignments. You have to specify the number of values you want. If the number is lower than the amount of values it will simply return the first values. If the number is higher than the amount of values it will return references to a <a class="el" href="structminilua_1_1Nil.html">Nil</a> value for the remaining values. Note: This will actually return 'std::reference_wrapper's because it's not possible to put references inside a tuple. That means that you have to call 'get' on the values.</p>
+<p>You can use a <a class="el" href="classminilua_1_1Vallist.html">Vallist</a> in destructuring assignments. You have to specify the number of values you want. If the number is lower than the amount of values it will simply return the first values. If the number is higher than the amount of values it will return references to a <code><a class="el" href="structminilua_1_1Nil.html">Nil</a></code> value for the remaining values.</p>
+<p>NOTE: This will actually return 'std::reference_wrapper's because it's not possible to put references inside a tuple. That means that you have to call <code>get</code> on the values to use them:</p>
 <div class="fragment"><div class="line"><span class="keyword">auto</span>&amp; [one, two, three] = vallist.tuple&lt;3&gt;();</div>
 <div class="line">out.get();</div>
 <div class="line">two.get();</div>
-</div><!-- fragment --><p>You can iterate over a <a class="el" href="classminilua_1_1Vallist.html">Vallist</a> and you can get one element by index using 'get'. </p>
+</div><!-- fragment --><p>You can iterate over a <a class="el" href="classminilua_1_1Vallist.html">Vallist</a> and you can get one element by index using <code><a class="el" href="classminilua_1_1Vallist.html#a7a58f48e52eb94bd55c10b0258930a23">Vallist::get</a></code>. Iteration only works for the exact number of elements (like for <code>std::vector</code>), so you need to be carful not to dereference a pointer into an empty <a class="el" href="classminilua_1_1Vallist.html">Vallist</a>). <code>get</code> will return <code><a class="el" href="structminilua_1_1Nil.html">Nil</a></code> values if the element you request is not in the <a class="el" href="classminilua_1_1Vallist.html">Vallist</a>. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ad8b11f2310329af13f8efeae1ef8784f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad8b11f2310329af13f8efeae1ef8784f">&#9670;&nbsp;</a></span>Vallist() <span class="overload">[1/7]</span></h2>
@@ -473,7 +480,7 @@ template&lt;std::size_t N&gt; </div>
 <p>If the given number is bigger than the number of values the remaining items in the tuple will be filled with <a class="el" href="structminilua_1_1Nil.html">Nil</a>.</p>
 <p>Use this for structured binding declarations:</p>
 <div class="fragment"><div class="line"><span class="keyword">const</span> <span class="keyword">auto</span>&amp; [val1, val2, val3] = vallist.tuple&lt;3&gt;();</div>
-</div><!-- fragment --><p>NOTE: The values will be 'std::reference_wrapper's becuase it's not possible to put references in a tuple. You have to call 'get' on the values before using it. </p>
+</div><!-- fragment --><p>NOTE: The values will be <code>std::reference_wrapper</code>s becuase it's not possible to put references in a tuple. You have to call <code>get</code> on the values before using them. </p>
 
 </div>
 </div>
@@ -572,6 +579,29 @@ template&lt;std::size_t... Is&gt; </div>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a10b41fe4738528694a4cbe1dbcfe5f69"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a10b41fe4738528694a4cbe1dbcfe5f69">&#9670;&nbsp;</a></span>impl</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classminilua_1_1owning__ptr.html">owning_ptr</a>&lt;<a class="el" href="structminilua_1_1Vallist_1_1Impl.html">Impl</a>&gt; minilua::Vallist::impl</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">

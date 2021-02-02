@@ -1,9 +1,9 @@
 var searchData=
 [
-  ['captures_1376',['captures',['../structts_1_1Match.html#a23ca335b98baa9bf9589c97a6d214a18',1,'ts::Match']]],
-  ['changed_5franges_1377',['changed_ranges',['../structts_1_1EditResult.html#a654a3559f6b28ed3148f267dcdcc311a',1,'ts::EditResult']]],
-  ['changes_1378',['changes',['../structlua_1_1rt_1_1ApplySCVisitor.html#a863cdb38741807ff6d40061de23167a9',1,'lua::rt::ApplySCVisitor::changes()'],['../structlua_1_1rt_1_1SourceChangeAnd.html#a3ec360a3f11095f9c99d6329fd6e960e',1,'lua::rt::SourceChangeAnd::changes()'],['../structminilua_1_1SourceChangeCombination.html#a8936da125d2518829e88caa558927126',1,'minilua::SourceChangeCombination::changes()'],['../structminilua_1_1SourceChangeAlternative.html#a3e87e8864666b121730f271962df4c55',1,'minilua::SourceChangeAlternative::changes()']]],
-  ['column_1379',['column',['../structts_1_1Point.html#a1e14c1b8898238b828bfb001cf41a7ab',1,'ts::Point::column()'],['../structminilua_1_1Location.html#af2ec254a59802b25072ba10c643c00c9',1,'minilua::Location::column()']]],
-  ['config_1380',['config',['../structminilua_1_1details_1_1Interpreter.html#a09ac672fe6b2079d94869dbc2395abaf',1,'minilua::details::Interpreter']]],
-  ['create_5fenv_1381',['create_env',['../structPerformanceStatistics.html#a53cb9a8b88ba0878a75ccbb8f7a19e19',1,'PerformanceStatistics']]]
+  ['before_1563',['before',['../structts_1_1AppliedEdit.html#a6d2d5b45652db9d134f4a4dc4b26374a',1,'ts::AppliedEdit']]],
+  ['bin_5fop_1564',['bin_op',['../classminilua_1_1details_1_1ast_1_1BinaryOperation.html#af8b616f2d6ef2edd2b08e3fb796476dd',1,'minilua::details::ast::BinaryOperation']]],
+  ['body_1565',['body',['../struct__LuaForStmt.html#abe9a9b49d987b5b5d8a71f43759fdb9d',1,'_LuaForStmt::body()'],['../struct__LuaLoopStmt.html#aaf694b4b075e63aef6b90e1b3b1b51a6',1,'_LuaLoopStmt::body()'],['../struct__LuaFunction.html#ab6bf8bc8d1045f96b77939e482093c1c',1,'_LuaFunction::body()'],['../structminilua_1_1details_1_1FunctionImpl.html#a44d5918913c42f9fe967f1550c11aa3c',1,'minilua::details::FunctionImpl::body()']]],
+  ['bool_1566',['bool',['../struct__LuaAssignment.html#aa43d62cf927ea64a51e5536bc636aa2e',1,'_LuaAssignment']]],
+  ['branches_1567',['branches',['../struct__LuaIfStmt.html#a79d1294641f9d0c6c218a21708aa1fac',1,'_LuaIfStmt']]],
+  ['byte_1568',['byte',['../structts_1_1Location.html#a577a343e36041273c0a14fc87c5b929e',1,'ts::Location::byte()'],['../structminilua_1_1Location.html#a9310c3c3bd104385e399dd2177b93804',1,'minilua::Location::byte()']]]
 ];

@@ -70,6 +70,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="#friends">Friends</a> &#124;
 <a href="classminilua_1_1owning__ptr-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -83,7 +84,7 @@ $(function() {
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aaf4f2196c5db84ed5da0ac79876f7a1e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1owning__ptr.html#aaf4f2196c5db84ed5da0ac79876f7a1e">owning_ptr</a> ()</td></tr>
 <tr class="separator:aaf4f2196c5db84ed5da0ac79876f7a1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abe713b2a39ed659af28885ac61d60770"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1owning__ptr.html#abe713b2a39ed659af28885ac61d60770">owning_ptr</a> (T *value)</td></tr>
+<tr class="memitem:abe713b2a39ed659af28885ac61d60770"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1owning__ptr.html#abe713b2a39ed659af28885ac61d60770">owning_ptr</a> (T *<a class="el" href="classminilua_1_1owning__ptr.html#a433f40b6e0984277cad587088a5d3655">value</a>)</td></tr>
 <tr class="separator:abe713b2a39ed659af28885ac61d60770"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6f641c7347ea365f00bd9706d3b106a2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1owning__ptr.html#a6f641c7347ea365f00bd9706d3b106a2">owning_ptr</a> (const <a class="el" href="classminilua_1_1owning__ptr.html">owning_ptr</a>&lt; T &gt; &amp;other)</td></tr>
 <tr class="separator:a6f641c7347ea365f00bd9706d3b106a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -100,6 +101,11 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a0bf21f21ef44fa1f04b024f73958c387"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1owning__ptr.html#a0bf21f21ef44fa1f04b024f73958c387">operator-&gt;</a> () const noexcept -&gt; typename std::unique_ptr&lt; T &gt;::pointer</td></tr>
 <tr class="separator:a0bf21f21ef44fa1f04b024f73958c387"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:a433f40b6e0984277cad587088a5d3655"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; T &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1owning__ptr.html#a433f40b6e0984277cad587088a5d3655">value</a></td></tr>
+<tr class="separator:a433f40b6e0984277cad587088a5d3655"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
 Friends</h2></td></tr>
 <tr class="memitem:a12937c19684d61e2a10257f71531d3ce"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1owning__ptr.html#a12937c19684d61e2a10257f71531d3ce">swap</a> (<a class="el" href="classminilua_1_1owning__ptr.html">owning_ptr</a>&lt; T &gt; &amp;lhs, <a class="el" href="classminilua_1_1owning__ptr.html">owning_ptr</a>&lt; T &gt; &amp;rhs)</td></tr>
@@ -115,12 +121,12 @@ Friends</h2></td></tr>
 <div class="textblock"><h3>template&lt;typename T&gt;<br />
 class minilua::owning_ptr&lt; T &gt;</h3>
 
-<p>This is basically an implementation of Rusts Box. It behaves exactly like T but lives on the heap.</p>
-<p>In other words this is a <code>std::unique_ptr</code> that also support copying but can't contain a nullptr.</p>
+<p>This is basically an implementation of <a href="https://doc.rust-lang.org/std/boxed/struct.Box.html">Rusts Box</a>. It behaves exactly like <code>T</code> but lives on the heap.</p>
+<p>In other words this is a <code>std::unique_ptr</code> that also support copying but can't contain a <code>nullptr</code>.</p>
 <p>If this type is copied it will make a new heap allocation and copy the value.</p>
 <p>The default constructor of this class will call the default constructor of <code>T</code> instead of using a nullptr (like <code>std::unique_ptr</code> does).</p>
 <p>In case any of the copy/move/swap functions throw an exception you should expect the <a class="el" href="classminilua_1_1owning__ptr.html">owning_ptr</a> to be in an invalid state and to possibly contain a nullptr.</p>
-<p><a class="el" href="classminilua_1_1owning__ptr.html">owning_ptr</a> is only default constructible, move/copy constructible/assignable and equality comparable if the type T is. These special member functions are always defined but can only be used if the type T also has them. </p>
+<p><a class="el" href="classminilua_1_1owning__ptr.html">owning_ptr</a> is only default constructible, move/copy constructible/assignable and equality comparable if the type <code>T</code> is. These special member functions are always defined but can only be used if the type <code>T</code> also has them. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aaf4f2196c5db84ed5da0ac79876f7a1e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aaf4f2196c5db84ed5da0ac79876f7a1e">&#9670;&nbsp;</a></span>owning_ptr() <span class="overload">[1/4]</span></h2>
@@ -176,7 +182,7 @@ template&lt;typename T &gt; </div>
 </div><div class="memdoc">
 <p>Creates an <a class="el" href="classminilua_1_1owning__ptr.html">owning_ptr</a> from the given pointer.</p>
 <p>This will take ownership of the heap location at the pointer. You should not manually free the pointer after calling this constructor.</p>
-<p>Will throw 'std::invalid_argument' exception if the value is 'nullptr'. </p>
+<p>Will throw <code>std::invalid_argument</code> exception if the value is <code>nullptr</code>. </p>
 
 </div>
 </div>
@@ -522,6 +528,31 @@ template&lt;typename T &gt; </div>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a433f40b6e0984277cad587088a5d3655"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a433f40b6e0984277cad587088a5d3655">&#9670;&nbsp;</a></span>value</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unique_ptr&lt;T&gt; <a class="el" href="classminilua_1_1owning__ptr.html">minilua::owning_ptr</a>&lt; T &gt;::value</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">

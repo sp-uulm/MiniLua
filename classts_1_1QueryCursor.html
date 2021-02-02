@@ -70,6 +70,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classts_1_1QueryCursor-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">ts::QueryCursor Class Reference</div>  </div>
@@ -106,6 +107,13 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a6c9031a16d536a42ed12545e37de5dc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa1b8da1ccaaa3977da6ac77350c75884"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structts_1_1Match.html">Match</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classts_1_1QueryCursor.html#aa1b8da1ccaaa3977da6ac77350c75884">matches</a> ()</td></tr>
 <tr class="separator:aa1b8da1ccaaa3977da6ac77350c75884"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:ab3120d0fabec7a66bdaf483618baca46"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; TSQueryCursor, void(*)(TSQueryCursor *)&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classts_1_1QueryCursor.html#ab3120d0fabec7a66bdaf483618baca46">cursor</a></td></tr>
+<tr class="separator:ab3120d0fabec7a66bdaf483618baca46"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1129f9e21c3f79d5659e66cccbeefa6d"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classts_1_1Tree.html">Tree</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classts_1_1QueryCursor.html#a1129f9e21c3f79d5659e66cccbeefa6d">tree</a></td></tr>
+<tr class="separator:a1129f9e21c3f79d5659e66cccbeefa6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Stores the state needed to execute a query and iteratively search for matches.</p>
@@ -417,6 +425,51 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Use with care. Only intended vor internal use in the wrapper types.</p>
 <p>WARNING: Never free or otherwise delete this pointer. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="ab3120d0fabec7a66bdaf483618baca46"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab3120d0fabec7a66bdaf483618baca46">&#9670;&nbsp;</a></span>cursor</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unique_ptr&lt;TSQueryCursor, void (*)(TSQueryCursor*)&gt; ts::QueryCursor::cursor</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1129f9e21c3f79d5659e66cccbeefa6d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1129f9e21c3f79d5659e66cccbeefa6d">&#9670;&nbsp;</a></span>tree</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="classts_1_1Tree.html">Tree</a>* ts::QueryCursor::tree</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
 
 </div>
 </div>

@@ -291,7 +291,7 @@ Functions</h2></td></tr>
 <tr class="memitem:a2ce17b0d50309e0d4a3a43e71dd592c2"><td class="memTemplParams" colspan="2">template&lt;typename FnLeft , typename FnRight &gt; </td></tr>
 <tr class="memitem:a2ce17b0d50309e0d4a3a43e71dd592c2"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a2ce17b0d50309e0d4a3a43e71dd592c2">binary_num_reverse</a> (FnLeft fn_left, FnRight fn_right, std::string origin=&quot;&quot;) -&gt; decltype(auto)</td></tr>
 <tr class="separator:a2ce17b0d50309e0d4a3a43e71dd592c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa1b9c319bfa892d38ceefe99bc787c16"><td class="memTemplParams" colspan="2">template&lt;class... Ts&gt; </td></tr>
+<tr class="memitem:aa1b9c319bfa892d38ceefe99bc787c16"><td class="memTemplParams" colspan="2">template&lt;typename... Ts&gt; </td></tr>
 <tr class="memitem:aa1b9c319bfa892d38ceefe99bc787c16"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#aa1b9c319bfa892d38ceefe99bc787c16">UnaryNumericFunctionHelper</a> (Ts...) -&gt; <a class="el" href="structminilua_1_1UnaryNumericFunctionHelper.html">UnaryNumericFunctionHelper</a>&lt; Ts... &gt;</td></tr>
 <tr class="separator:aa1b9c319bfa892d38ceefe99bc787c16"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad09e990aefd7d3c311874bfed57c8f2e"><td class="memTemplParams" colspan="2">template&lt;class... Ts&gt; </td></tr>
@@ -349,6 +349,9 @@ Functions</h2></td></tr>
 <tr class="separator:a926d9172ae652542e6b25d77eb18984c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af765d66cbde1ecd09398cbcd49525380"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#af765d66cbde1ecd09398cbcd49525380">swap</a> (<a class="el" href="classminilua_1_1Environment.html">Environment</a> &amp;a, <a class="el" href="classminilua_1_1Environment.html">Environment</a> &amp;b)</td></tr>
 <tr class="separator:af765d66cbde1ecd09398cbcd49525380"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a87f6a86da7654571b949d6d099b1299f"><td class="memTemplParams" colspan="2">template&lt;typename I &gt; </td></tr>
+<tr class="memitem:a87f6a86da7654571b949d6d099b1299f"><td class="memTemplItemLeft" align="right" valign="top">static auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a87f6a86da7654571b949d6d099b1299f">transform_values</a> (I begin, I end) -&gt; std::vector&lt; std::pair&lt; <a class="el" href="classminilua_1_1Value.html">Value</a>, <a class="el" href="classminilua_1_1Value.html">Value</a> &gt;&gt;</td></tr>
+<tr class="separator:a87f6a86da7654571b949d6d099b1299f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4d7d5f4b46380f887949d3ff012a28da"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a4d7d5f4b46380f887949d3ff012a28da">operator==</a> (const <a class="el" href="classminilua_1_1Environment.html">Environment</a> &amp;a, const <a class="el" href="classminilua_1_1Environment.html">Environment</a> &amp;b) noexcept -&gt; bool</td></tr>
 <tr class="separator:a4d7d5f4b46380f887949d3ff012a28da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a97d08760bf55ff978fb7fbc875689d4b"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a97d08760bf55ff978fb7fbc875689d4b">operator!=</a> (const <a class="el" href="classminilua_1_1Environment.html">Environment</a> &amp;a, const <a class="el" href="classminilua_1_1Environment.html">Environment</a> &amp;b) noexcept -&gt; bool</td></tr>
@@ -357,6 +360,13 @@ Functions</h2></td></tr>
 <tr class="separator:a427ea9604f31b9e998f62d8ea2df3d0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7ef9f679745daa858da50d0a5444cc7a"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a7ef9f679745daa858da50d0a5444cc7a">operator&lt;&lt;</a> (std::ostream &amp;, const <a class="el" href="classminilua_1_1Env.html">Env</a> &amp;) -&gt; std::ostream &amp;</td></tr>
 <tr class="separator:a7ef9f679745daa858da50d0a5444cc7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0eefc1d50ee92f13cb575614b584592a"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a0eefc1d50ee92f13cb575614b584592a">visit_siblings</a> (<a class="el" href="classts_1_1Cursor.html">ts::Cursor</a> &amp;cursor, const std::function&lt; void(<a class="el" href="classts_1_1Node.html">ts::Node</a>)&gt; &amp;fn) -&gt; bool</td></tr>
+<tr class="separator:a0eefc1d50ee92f13cb575614b584592a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a70a5a788a511cd8ffd749f9f65d0c781"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a70a5a788a511cd8ffd749f9f65d0c781">visit_children</a> (<a class="el" href="classts_1_1Cursor.html">ts::Cursor</a> &amp;cursor, const std::function&lt; void(<a class="el" href="classts_1_1Node.html">ts::Node</a>)&gt; &amp;fn) -&gt; bool</td></tr>
+<tr class="separator:a70a5a788a511cd8ffd749f9f65d0c781"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7e8ac39e26def689af4173c8bc15189"><td class="memTemplParams" colspan="2">template&lt;typename Fn &gt; </td></tr>
+<tr class="memitem:af7e8ac39e26def689af4173c8bc15189"><td class="memTemplItemLeft" align="right" valign="top">static void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#af7e8ac39e26def689af4173c8bc15189">visit_tree</a> (const <a class="el" href="classts_1_1Tree.html">ts::Tree</a> &amp;tree, Fn fn)</td></tr>
+<tr class="separator:af7e8ac39e26def689af4173c8bc15189"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8e792c4cbda0190a0af716f409d2dd72"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a8e792c4cbda0190a0af716f409d2dd72">to_string</a> (const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;ctx) -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td></tr>
 <tr class="separator:a8e792c4cbda0190a0af716f409d2dd72"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a204872a1728049e8b6765bc9e638a737"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a204872a1728049e8b6765bc9e638a737">to_number</a> (const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;ctx) -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td></tr>
@@ -371,6 +381,10 @@ Functions</h2></td></tr>
 <tr class="separator:aecddd7e2bb983b093d7d69a0572ee8c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad8119e4245ca8b8addbba759613c9bfa"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#ad8119e4245ca8b8addbba759613c9bfa">print</a> (const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;ctx)</td></tr>
 <tr class="separator:ad8119e4245ca8b8addbba759613c9bfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5b8117b06bce383f88a4caca59e52ca6"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a5b8117b06bce383f88a4caca59e52ca6">check_and_get_trim</a> (const std::string &amp;s) -&gt; size_t</td></tr>
+<tr class="separator:a5b8117b06bce383f88a4caca59e52ca6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec5a18c13c1099dcdb937840efe084ee"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#aec5a18c13c1099dcdb937840efe084ee">escape_string</a> (const std::string &amp;s, size_t trim) -&gt; std::string</td></tr>
+<tr class="separator:aec5a18c13c1099dcdb937840efe084ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0653e10e7849c416ee221eeccbd9186c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a0653e10e7849c416ee221eeccbd9186c">escape_char</a> (char c) -&gt; std::string</td></tr>
 <tr class="separator:a0653e10e7849c416ee221eeccbd9186c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a617f213ef2edf627891fdc976b8879a8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a617f213ef2edf627891fdc976b8879a8">swap</a> (<a class="el" href="structminilua_1_1String.html">String</a> &amp;self, <a class="el" href="structminilua_1_1String.html">String</a> &amp;other)</td></tr>
@@ -389,6 +403,9 @@ Functions</h2></td></tr>
 <tr class="separator:aea6c20476ecc77e3f61b00ece4d73dda"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6130ea4a10f5c1c57468c0a0ae1f5e67"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a6130ea4a10f5c1c57468c0a0ae1f5e67">swap</a> (<a class="el" href="classminilua_1_1Value.html">Value</a> &amp;self, <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;other)</td></tr>
 <tr class="separator:a6130ea4a10f5c1c57468c0a0ae1f5e67"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afda1db0ff22ee501b6d296b1098a5241"><td class="memTemplParams" colspan="2">template&lt;typename Fn , typename FnRev &gt; </td></tr>
+<tr class="memitem:afda1db0ff22ee501b6d296b1098a5241"><td class="memTemplItemLeft" align="right" valign="top">static auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#afda1db0ff22ee501b6d296b1098a5241">num_op_helper</a> (const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;lhs, const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;rhs, Fn op, std::string err_info, FnRev reverse, std::optional&lt; <a class="el" href="structminilua_1_1Range.html">Range</a> &gt; location) -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td></tr>
+<tr class="separator:afda1db0ff22ee501b6d296b1098a5241"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac90ff39fc49af3972fdc4075c0956563"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#ac90ff39fc49af3972fdc4075c0956563">operator-</a> (const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;value) -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td></tr>
 <tr class="separator:ac90ff39fc49af3972fdc4075c0956563"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0fe227e8116900fc958974d3700ff60e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a0fe227e8116900fc958974d3700ff60e">operator+</a> (const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;lhs, const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;rhs) -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td></tr>
@@ -423,13 +440,16 @@ Variables</h2></td></tr>
 <tr class="memitem:afa6a738a3391891d976983e28a2a75ba"><td class="memTemplParams" colspan="2">template&lt;typename _Tp &gt; </td></tr>
 <tr class="memitem:afa6a738a3391891d976983e28a2a75ba"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#afa6a738a3391891d976983e28a2a75ba">is_printable_v</a> = <a class="el" href="structminilua_1_1is__printable.html">is_printable</a>&lt;_Tp&gt;::value</td></tr>
 <tr class="separator:afa6a738a3391891d976983e28a2a75ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a60f706e37ad17f8c2265a8487d460a20"><td class="memItemLeft" align="right" valign="top">static const <a class="el" href="classminilua_1_1Value.html">Value</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a60f706e37ad17f8c2265a8487d460a20">GLOBAL_NIL_CONST</a> = <a class="el" href="structminilua_1_1Nil.html">Nil</a>()</td></tr>
+<tr class="separator:a60f706e37ad17f8c2265a8487d460a20"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>This header defines the public api of the MiniLua library.</p>
-<p>We use the PImpl technique to hide implementation details (see below).</p>
-<p>TODO some more documentation on where to start and design decisions</p>
+<p>For more documentation see the main page.</p>
 <hr  />
-<p>PImpl technique:</p>
+<p>We use the PImpl technique to hide implementation details (see below).</p>
+<h2><a class="anchor" id="autotoc_md5"></a>
+PImpl Technique</h2>
 <p>Also see: <a href="https://en.cppreference.com/w/cpp/language/pimpl">https://en.cppreference.com/w/cpp/language/pimpl</a></p>
 <p>With the PImpl technique we hide all behaviour using a private nested forward declaration of a struct or class. This has two important uses:</p>
 <ol type="1">
@@ -465,7 +485,7 @@ Variables</h2></td></tr>
 <div class="line">}</div>
 </div><!-- fragment --><p>If the nested <code>struct Impl</code> is not default constructible you have to provide the implementation of the copy-/move-constructors and -operators manually and can't use <code>= default</code>.</p>
 <p><code><a class="el" href="classminilua_1_1owning__ptr.html">owning_ptr</a>&lt;T&gt;</code> was chosen for the pointer type because it behaves like a normal <code>T</code> (but lives on the heap). It's move, copy and lifetime semantics are identical to the one of <code>T</code>.</p>
-<p>It is also possible to choose another pointer type like <code>std::unique_ptr</code> or <code>std::shared_ptr</code>. You should probably avoid using raw pointer <code>T*</code> because lifetime management is harder with raw pointers. </p>
+<p>It is also possible to choose another pointer type like <code>std::unique_ptr</code> or <code>std::shared_ptr</code>. You should probably avoid using raw pointer <code>T*</code> because lifetime management is hard with raw pointers. </p>
 </div><h2 class="groupheader">Typedef Documentation</h2>
 <a id="aa51307df3542b106bfefa804481fee39"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa51307df3542b106bfefa804481fee39">&#9670;&nbsp;</a></span>LocalEnv</h2>
@@ -556,6 +576,10 @@ template&lt;typename FnLeft , typename FnRight &gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Helper to create the reverse function for <code><a class="el" href="structminilua_1_1BinaryOrigin.html">BinaryOrigin</a></code> or <code><a class="el" href="structminilua_1_1BinaryNumericFunctionHelper.html">BinaryNumericFunctionHelper</a></code>.</p>
+<p>You only need to supply a function that accepts two <code>double</code>s (the new value and old lhs/rhs value) and returns <code>double</code> (the new value for the lhs/rhs parameter).</p>
+<p>NOTE: Don't use this if the reverse can fail.</p>
+<p>See also: <a class="el" href="namespaceminilua.html#a3533c865eb291bcf3dff829fb0607af8">unary_num_reverse</a>. </p>
 
 </div>
 </div>
@@ -576,6 +600,35 @@ template&lt;class... Ts&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>deduction guide </p>
+
+</div>
+</div>
+<a id="a5b8117b06bce383f88a4caca59e52ca6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b8117b06bce383f88a4caca59e52ca6">&#9670;&nbsp;</a></span>check_and_get_trim()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static auto minilua::check_and_get_trim </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>s</em></td><td>)</td>
+          <td> -&gt; size_t </td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Helper function to check if the string literal "delimiters" are correct and get their length.</p>
+<p>Delimiters are either <code>"</code> or &lsquo;&rsquo;<code>on both sides of the string or</code>[=[<code>on the start and</code>]=]<code>on the end. But the number of</code>=<code>has to match (can also be no</code>=`). </p>
 
 </div>
 </div>
@@ -793,6 +846,42 @@ template&lt;class... Ts&gt; </div>
 
 </div>
 </div>
+<a id="aec5a18c13c1099dcdb937840efe084ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec5a18c13c1099dcdb937840efe084ee">&#9670;&nbsp;</a></span>escape_string()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static auto minilua::escape_string </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>s</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>trim</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; std::string </td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a2ab2504267030f658f182e1e2094bd6e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2ab2504267030f658f182e1e2094bd6e">&#9670;&nbsp;</a></span>make_owning()</h2>
 
@@ -810,6 +899,7 @@ template&lt;typename T , typename... Args&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Helper function to create <a class="el" href="classminilua_1_1owning__ptr.html">owning_ptr</a>. Similar to make_unique, etc. </p>
 
 </div>
 </div>
@@ -827,6 +917,68 @@ template&lt;typename T , typename... Args&gt; </div>
           <td> -&gt; <a class="el" href="classminilua_1_1Vallist.html">Vallist</a></td>
         </tr>
       </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afda1db0ff22ee501b6d296b1098a5241"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afda1db0ff22ee501b6d296b1098a5241">&#9670;&nbsp;</a></span>num_op_helper()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Fn , typename FnRev &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static auto minilua::num_op_helper </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;&#160;</td>
+          <td class="paramname"><em>lhs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;&#160;</td>
+          <td class="paramname"><em>rhs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Fn&#160;</td>
+          <td class="paramname"><em>op</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>err_info</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">FnRev&#160;</td>
+          <td class="paramname"><em>reverse</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::optional&lt; <a class="el" href="structminilua_1_1Range.html">Range</a> &gt;&#160;</td>
+          <td class="paramname"><em>location</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a> </td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>
@@ -3887,6 +4039,7 @@ template&lt;class... Ts&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Parse and escape a string into a lua value string. </p>
 
 </div>
 </div>
@@ -3923,6 +4076,8 @@ template&lt;class... Ts&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>If <code>index</code> is a number, returns all arguments after the <code>index</code>-th argument (including <code>index</code>-th argument).</p>
+<p>If index is a negative number, the index counting starts at the end (so <code>-1</code> is the index of the last argument). If index is the string <code>"#"</code>, select returns the total amount of extra arguments it received. If index is positive and bigger than the size select just returns an empty <a class="el" href="classminilua_1_1Vallist.html">Vallist</a>. If index in an invalid index (0 or negative bigger than size) an index out of range error is thrown if index is an invalid value, an error is thrown that an invalid index was entered. </p>
 
 </div>
 </div>
@@ -4104,6 +4259,44 @@ template&lt;class... Ts&gt; </div>
 
 </div>
 </div>
+<a id="a87f6a86da7654571b949d6d099b1299f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a87f6a86da7654571b949d6d099b1299f">&#9670;&nbsp;</a></span>transform_values()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename I &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static auto minilua::transform_values </td>
+          <td>(</td>
+          <td class="paramtype">I&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">I&#160;</td>
+          <td class="paramname"><em>end</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; std::vector&lt;std::pair&lt;<a class="el" href="classminilua_1_1Value.html">Value</a>, <a class="el" href="classminilua_1_1Value.html">Value</a>&gt;&gt; </td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="aa4448616a0cd6e318a2a7006632d6d09"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa4448616a0cd6e318a2a7006632d6d09">&#9670;&nbsp;</a></span>type()</h2>
 
@@ -4139,7 +4332,10 @@ template&lt;typename Fn &gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Helper functions for writing functions that should be forcable. </p>
+<p>Helper to create the reverse function for <code><a class="el" href="structminilua_1_1UnaryOrigin.html">UnaryOrigin</a></code> or <code><a class="el" href="structminilua_1_1UnaryNumericFunctionHelper.html">UnaryNumericFunctionHelper</a></code>.</p>
+<p>You only need to supply a function that accepts two <code>double</code>s (the new and old values) and returns <code>double</code> (the new value for the parameter).</p>
+<p>NOTE: Don't use this if the reverse can fail.</p>
+<p>See also: <a class="el" href="namespaceminilua.html#a2ce17b0d50309e0d4a3a43e71dd592c2">binary_num_reverse</a>. </p>
 
 </div>
 </div>
@@ -4149,7 +4345,7 @@ template&lt;typename Fn &gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class... Ts&gt; </div>
+template&lt;typename... Ts&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="structminilua_1_1UnaryNumericFunctionHelper.html">minilua::UnaryNumericFunctionHelper</a> </td>
@@ -4160,10 +4356,143 @@ template&lt;class... Ts&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>deduction guide </p>
+
+</div>
+</div>
+<a id="a70a5a788a511cd8ffd749f9f65d0c781"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a70a5a788a511cd8ffd749f9f65d0c781">&#9670;&nbsp;</a></span>visit_children()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static auto minilua::visit_children </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classts_1_1Cursor.html">ts::Cursor</a> &amp;&#160;</td>
+          <td class="paramname"><em>cursor</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::function&lt; void(<a class="el" href="classts_1_1Node.html">ts::Node</a>)&gt; &amp;&#160;</td>
+          <td class="paramname"><em>fn</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; bool </td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0eefc1d50ee92f13cb575614b584592a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0eefc1d50ee92f13cb575614b584592a">&#9670;&nbsp;</a></span>visit_siblings()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static auto minilua::visit_siblings </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classts_1_1Cursor.html">ts::Cursor</a> &amp;&#160;</td>
+          <td class="paramname"><em>cursor</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::function&lt; void(<a class="el" href="classts_1_1Node.html">ts::Node</a>)&gt; &amp;&#160;</td>
+          <td class="paramname"><em>fn</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; bool</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af7e8ac39e26def689af4173c8bc15189"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7e8ac39e26def689af4173c8bc15189">&#9670;&nbsp;</a></span>visit_tree()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Fn &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void minilua::visit_tree </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classts_1_1Tree.html">ts::Tree</a> &amp;&#160;</td>
+          <td class="paramname"><em>tree</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Fn&#160;</td>
+          <td class="paramname"><em>fn</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
 
 </div>
 </div>
 <h2 class="groupheader">Variable Documentation</h2>
+<a id="a60f706e37ad17f8c2265a8487d460a20"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a60f706e37ad17f8c2265a8487d460a20">&#9670;&nbsp;</a></span>GLOBAL_NIL_CONST</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="classminilua_1_1Value.html">Value</a> minilua::GLOBAL_NIL_CONST = <a class="el" href="structminilua_1_1Nil.html">Nil</a>()</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="afa6a738a3391891d976983e28a2a75ba"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afa6a738a3391891d976983e28a2a75ba">&#9670;&nbsp;</a></span>is_printable_v</h2>
 

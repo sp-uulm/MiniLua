@@ -93,7 +93,30 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:add056a1e1a8aa5831e14d1942130d593"><td class="memItemLeft" align="right" valign="top">ReverseRight&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1BinaryNumericFunctionHelper.html#add056a1e1a8aa5831e14d1942130d593">reverse_right</a></td></tr>
 <tr class="separator:add056a1e1a8aa5831e14d1942130d593"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><h3>template&lt;typename Fn, typename ReverseLeft, typename ReverseRight&gt;<br />
+struct minilua::BinaryNumericFunctionHelper&lt; Fn, ReverseLeft, ReverseRight &gt;</h3>
+
+<p>Helper for creating a reversible numeric binary function.</p>
+<p>NOTE: Don't use this if the reverse can fail.</p>
+<p>With this helper you don't have to manually match the <code><a class="el" href="classminilua_1_1Value.html">Value</a></code>s you just have to provide functions that take <code>double</code> values and return <code>double</code> values for:</p>
+<ol type="1">
+<li>the normal function you want to write</li>
+<li>the reverse function for propagating the changed result to the left parameter</li>
+<li>the reverse function for propagating the changed result to the right parameter</li>
+</ol>
+<p>Usage (using the deduction guide):</p>
+<div class="fragment"><div class="line"><span class="keyword">function</span> pow_impl(<span class="keyword">const</span> CallContext&amp; ctx) -&gt; Value {</div>
+<div class="line">    <span class="keywordflow">return</span> <a class="code" href="structminilua_1_1BinaryNumericFunctionHelper.html">minilua::BinaryNumericFunctionHelper</a>{</div>
+<div class="line">        [](<span class="keywordtype">double</span> lhs, <span class="keywordtype">double</span> rhs) { <span class="keywordflow">return</span> std::pow(lhs, rhs); },</div>
+<div class="line">        [](<span class="keywordtype">double</span> new_value, <span class="keywordtype">double</span> old_rhs) { <span class="keywordflow">return</span> std::pow(new_value, 1 / old_rhs); },</div>
+<div class="line">        [](<span class="keywordtype">double</span> new_value, <span class="keywordtype">double</span> old_lhs) { <span class="keywordflow">return</span> <a class="code" href="namespaceminilua_1_1math.html#a32c7cce8a341daae75b7e13a62f5ba57">std::log</a>(new_value) / <a class="code" href="namespaceminilua_1_1math.html#a32c7cce8a341daae75b7e13a62f5ba57">std::log</a>(old_lhs); }</div>
+<div class="line">     }(ctx);</div>
+<div class="line">}</div>
+</div><!-- fragment --><p>Note the call at the end.</p>
+<p>It's also possible to directly use the <code><a class="el" href="structminilua_1_1BinaryNumericFunctionHelper.html">BinaryNumericFunctionHelper</a></code> as the argument to <code><a class="el" href="classminilua_1_1Function.html">Function</a></code> because it is callable with a <code><a class="el" href="classminilua_1_1CallContext.html">CallContext</a></code> argument.</p>
+<p>See also: <code><a class="el" href="structminilua_1_1UnaryNumericFunctionHelper.html">UnaryNumericFunctionHelper</a></code>. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="acde264b0e7c1414a975ccdf6db3061b3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acde264b0e7c1414a975ccdf6db3061b3">&#9670;&nbsp;</a></span>operator()()</h2>
 
@@ -175,6 +198,8 @@ template&lt;typename Fn , typename ReverseLeft , typename ReverseRight &gt; </di
 <li>/home/runner/work/MiniLua/MiniLua/include/MiniLua/<a class="el" href="values_8hpp_source.html">values.hpp</a></li>
 </ul>
 </div><!-- contents -->
+<div class="ttc" id="astructminilua_1_1BinaryNumericFunctionHelper_html"><div class="ttname"><a href="structminilua_1_1BinaryNumericFunctionHelper.html">minilua::BinaryNumericFunctionHelper</a></div><div class="ttdef"><b>Definition:</b> values.hpp:1084</div></div>
+<div class="ttc" id="anamespaceminilua_1_1math_html_a32c7cce8a341daae75b7e13a62f5ba57"><div class="ttname"><a href="namespaceminilua_1_1math.html#a32c7cce8a341daae75b7e13a62f5ba57">minilua::math::log</a></div><div class="ttdeci">auto log(const CallContext &amp;ctx) -&gt; Value</div><div class="ttdef"><b>Definition:</b> math.cpp:242</div></div>
 <!-- start footer part -->
 		<script src="custom.js"></script>
 	</body>
