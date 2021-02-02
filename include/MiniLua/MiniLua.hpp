@@ -10,13 +10,13 @@
 /**
  * This header defines the public api of the MiniLua library.
  *
+ * For more documentation see the [main page](@ref mainpage).
+ *
+ * ----
+ *
  * We use the PImpl technique to hide implementation details (see below).
  *
- * TODO some more documentation on where to start and design decisions
- *
- * ---
- *
- * PImpl technique:
+ * ## PImpl Technique
  *
  * Also see: https://en.cppreference.com/w/cpp/language/pimpl
  *
@@ -74,7 +74,7 @@
  *
  * It is also possible to choose another pointer type like `std::unique_ptr` or
  * `std::shared_ptr`. You should probably avoid using raw pointer `T*` because
- * lifetime management is harder with raw pointers.
+ * lifetime management is hard with raw pointers.
  */
 namespace minilua {} // namespace minilua
 
