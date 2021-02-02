@@ -1,10 +1,10 @@
 #include <catch2/catch.hpp>
 
-#include "details/gc.hpp"
+#include <MiniLua/allocator.hpp>
 
 namespace minilua::details {
 
-TEST_CASE("gc") {
+TEST_CASE("memory allocator") {
     MemoryAllocator alloc;
 
     auto* table1 = alloc.allocate_table();

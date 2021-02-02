@@ -1,5 +1,5 @@
 #include "table.hpp"
-#include "details/gc.hpp"
+#include <MiniLua/allocator.hpp>
 
 #include <set>
 
@@ -64,34 +64,40 @@ auto Table::const_iterator::operator->() const -> Table::const_iterator::pointer
     return this->impl->iter.operator->();
 }
 
-Table::Table() : impl(details::GLOBAL_ALLOCATOR.allocate_table()){};
-Table::Table(std::unordered_map<Value, Value> values)
-    : impl(details::GLOBAL_ALLOCATOR.allocate_table()) {
+Table::Table() : Table(&GLOBAL_ALLOCATOR) {}
+Table::Table(MemoryAllocator* allocator)
+    : allocator(allocator), impl(allocator->allocate_table()) {}
+Table::Table(std::unordered_map<Value, Value> values, MemoryAllocator* allocator)
+    : Table(allocator) {
     for (const auto& [key, value] : values) {
         this->impl->value.insert_or_assign(key, value);
     }
 }
-Table::Table(std::initializer_list<std::pair<const Value, Value>> values) : Table() {
+Table::Table(
+    std::initializer_list<std::pair<const Value, Value>> values, MemoryAllocator* allocator)
+    : Table(allocator) {
     for (const auto& [key, value] : values) {
         this->impl->value.insert_or_assign(key, value);
     }
 }
 
 Table::Table(const Table& other) = default;
-Table::Table(Table&& other) noexcept {
+Table::Table(Table&& other) noexcept : Table() {
+    // NOTE: it is very important to make sure `this` is a valid object before
+    // calling `swap`. Otherwise accessing other after calling this constructor
+    // will be undefined behaviour (and likely segfaults).
     swap(*this, other);
-    // leave other in valid state
-    other.impl = details::GLOBAL_ALLOCATOR.allocate_table();
 };
 Table::~Table() noexcept = default;
 auto Table::operator=(const Table& other) -> Table& = default;
 auto Table::operator=(Table&& other) noexcept -> Table& {
     swap(*this, other);
-    // leave other in valid state
-    other.impl = details::GLOBAL_ALLOCATOR.allocate_table();
     return *this;
 };
-void swap(Table& self, Table& other) { std::swap(self.impl, other.impl); }
+void swap(Table& self, Table& other) {
+    std::swap(self.allocator, other.allocator);
+    std::swap(self.impl, other.impl);
+}
 
 auto Table::get(const Value& key) -> Value {
     auto value = impl->value.find(key);
@@ -129,7 +135,7 @@ auto Table::end() -> Table::iterator { return Table::iterator(); }
 [[nodiscard]] auto Table::to_literal() const -> std::string {
     // NOTE: recursive table check needs to be in a lambda because Table::Impl is private and we
     // don't want a helper function in the public interface
-    std::set<Table::Impl*> visited;
+    std::set<TableImpl*> visited;
     auto table_to_literal = [&visited](const Table& table, const auto& rec) -> std::string {
         visited.insert(table.impl);
         auto visit_nested = [&rec, &visited](const Value& value) -> std::string {

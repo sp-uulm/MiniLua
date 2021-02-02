@@ -3,8 +3,7 @@
 
 #include <unordered_map>
 
-#include "MiniLua/values.hpp"
-#include "details/gc.hpp"
+#include <MiniLua/values.hpp>
 
 namespace minilua {
 

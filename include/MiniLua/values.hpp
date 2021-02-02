@@ -10,6 +10,7 @@
 #include <variant>
 #include <vector>
 
+#include "MiniLua/allocator.hpp"
 #include "environment.hpp"
 #include "source_change.hpp"
 #include "utils.hpp"
@@ -222,14 +223,13 @@ auto operator<<(std::ostream&, const String&) -> std::ostream&;
 // Forward declaration
 class CallContext;
 
+struct TableImpl;
 class Table {
-public:
-    struct Impl;
-
 private:
-    // This pointer is created by the internal memory allocator and does not need to be manually
-    // freed.
-    Impl* impl;
+    // The impl pointer is allocated through this allocator and will also
+    // be freed through it.
+    MemoryAllocator* allocator;
+    TableImpl* impl;
 
 public:
     // iterator definitions
@@ -302,9 +302,14 @@ public:
 
     constexpr static const std::string_view TYPE = "table";
 
+    // NOTE: default constructor has to be separate from the one only taking the
+    // allocator and we can't use default arguments there.
     Table();
-    Table(std::unordered_map<Value, Value>);
-    Table(std::initializer_list<std::pair<const Value, Value>> values);
+    Table(MemoryAllocator* allocator);
+    Table(std::unordered_map<Value, Value>, MemoryAllocator* allocator = &GLOBAL_ALLOCATOR);
+    Table(
+        std::initializer_list<std::pair<const Value, Value>> values,
+        MemoryAllocator* allocator = &GLOBAL_ALLOCATOR);
 
     Table(const Table& other);
     Table(Table&& other) noexcept;

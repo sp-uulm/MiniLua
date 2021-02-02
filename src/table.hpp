@@ -7,7 +7,7 @@
 
 namespace minilua {
 
-struct Table::Impl {
+struct TableImpl {
     std::unordered_map<Value, Value> value;
 };
 

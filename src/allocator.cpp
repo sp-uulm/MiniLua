@@ -1,6 +1,21 @@
-#include "gc.hpp"
+#include "table.hpp"
+#include <MiniLua/allocator.hpp>
+#include <MiniLua/values.hpp>
 
-namespace minilua::details {
+namespace minilua {
+
+// class MemoryAllocator
+auto MemoryAllocator::allocate_table() -> TableImpl* {
+    auto* ptr = new TableImpl();
+    table_memory.push_back(ptr);
+    return ptr;
+}
+
+void MemoryAllocator::free_all() {
+    for (TableImpl* ptr : table_memory) {
+        delete ptr;
+    }
+}
 
 MemoryAllocator GLOBAL_ALLOCATOR;
 
@@ -17,4 +32,4 @@ public:
 
 static GlobalMemoryAllocatorCleanup _; // NOLINT
 
-} // namespace minilua::details
+} // namespace minilua
