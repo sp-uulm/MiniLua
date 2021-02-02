@@ -739,7 +739,7 @@ auto Interpreter::visit_table_constructor(ast::Table table_constructor, Env& env
 
     EvalResult result;
 
-    Table table;
+    Table table(env.allocator());
 
     const auto fields = table_constructor.fields();
     if (!fields.empty()) {
