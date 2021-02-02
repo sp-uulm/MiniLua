@@ -1,10 +1,17 @@
 #include "internal_env.hpp"
+#include <MiniLua/allocator.hpp>
 
 #include <utility>
 
 namespace minilua {
 
-Env::Env() : in(&std::cin), out(&std::cout), err(&std::cerr) {}
+// struct Environment::Impl
+Environment::Impl::Impl(Env env) : inner(std::move(env)) {}
+Environment::Impl::Impl(MemoryAllocator* allocator) : inner(Env(allocator)) {}
+
+Env::Env() : Env(&GLOBAL_ALLOCATOR) {}
+Env::Env(MemoryAllocator* allocator)
+    : allocator(allocator), in(&std::cin), out(&std::cout), err(&std::cerr) {}
 Env::operator Environment() const { return Environment(Environment::Impl{*this}); }
 
 auto Env::global() -> Table& { return this->_global; }

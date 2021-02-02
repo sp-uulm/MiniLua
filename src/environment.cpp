@@ -9,7 +9,8 @@
 
 namespace minilua {
 
-Environment::Environment() : impl(make_owning<Impl>()) {}
+Environment::Environment() : Environment(&GLOBAL_ALLOCATOR) {}
+Environment::Environment(MemoryAllocator* allocator) : impl(make_owning<Impl>(allocator)) {}
 Environment::Environment(Impl impl) : impl(make_owning<Impl>(std::move(impl))) {}
 
 Environment::Environment(const Environment&) = default;
