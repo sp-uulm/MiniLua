@@ -73,6 +73,8 @@ auto Environment::get_stderr() -> std::ostream* { return impl->inner.get_stderr(
 
 auto Environment::size() const -> size_t { return impl->inner.global().size(); }
 
+auto Environment::allocator() const -> MemoryAllocator* { return this->impl->inner.allocator(); }
+
 auto Environment::get_raw_impl() -> Impl& { return *this->impl; }
 
 auto operator==(const Environment& a, const Environment& b) noexcept -> bool {

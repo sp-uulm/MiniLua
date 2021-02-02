@@ -11,7 +11,7 @@ Environment::Impl::Impl(MemoryAllocator* allocator) : inner(Env(allocator)) {}
 
 Env::Env() : Env(&GLOBAL_ALLOCATOR) {}
 Env::Env(MemoryAllocator* allocator)
-    : allocator(allocator), in(&std::cin), out(&std::cout), err(&std::cerr) {}
+    : _allocator(allocator), in(&std::cin), out(&std::cout), err(&std::cerr) {}
 Env::operator Environment() const { return Environment(Environment::Impl{*this}); }
 
 auto Env::global() -> Table& { return this->_global; }
@@ -82,6 +82,8 @@ void Env::set_stderr(std::ostream* err) {
 auto Env::get_stdin() -> std::istream* { return this->in; }
 auto Env::get_stdout() -> std::ostream* { return this->out; }
 auto Env::get_stderr() -> std::ostream* { return this->err; }
+
+auto Env::allocator() const -> MemoryAllocator* { return this->_allocator; }
 
 auto operator<<(std::ostream& os, const Env& self) -> std::ostream& {
     os << "Env{ .global = " << self.global() << ", .local = {";

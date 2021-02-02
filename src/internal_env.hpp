@@ -37,7 +37,7 @@ using LocalEnv = std::unordered_map<std::string, std::shared_ptr<Value>>;
  * Environment for use in the interpreter.
  */
 class Env {
-    MemoryAllocator* allocator;
+    MemoryAllocator* _allocator;
     Table _global;
     LocalEnv _local;
     std::optional<Vallist> varargs;
@@ -134,6 +134,8 @@ public:
     auto get_stdin() -> std::istream*;
     auto get_stdout() -> std::ostream*;
     auto get_stderr() -> std::ostream*;
+
+    [[nodiscard]] auto allocator() const -> MemoryAllocator*;
 };
 
 auto operator<<(std::ostream&, const Env&) -> std::ostream&;

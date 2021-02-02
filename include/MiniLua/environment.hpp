@@ -94,6 +94,11 @@ public:
      */
     [[nodiscard]] auto size() const -> size_t;
 
+    /**
+     * Returns the allocator.
+     */
+    [[nodiscard]] auto allocator() const -> MemoryAllocator*;
+
     // only for internal use
     auto get_raw_impl() -> Impl&;
 

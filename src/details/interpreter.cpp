@@ -516,26 +516,26 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
             [&node](ast::Literal literal) {
                 EvalResult result;
                 Value value;
-                switch(literal.type()){
-                    case ast::LiteralType::TRUE:
-                        value = Value(Bool(true));
-                        break;
-                    case ast::LiteralType::FALSE:
-                        value = Value(Bool(false));
-                        break;
-                    case ast::LiteralType::NIL:
-                        value = Value(Nil());
-                        break;
-                    case ast::LiteralType::NUMBER:
-                        value = parse_number_literal(literal.content());
-                        break;
-                    case ast::LiteralType::STRING:
-                        value = parse_string_literal(literal.content());
-                        break;
+                switch (literal.type()) {
+                case ast::LiteralType::TRUE:
+                    value = Value(Bool(true));
+                    break;
+                case ast::LiteralType::FALSE:
+                    value = Value(Bool(false));
+                    break;
+                case ast::LiteralType::NIL:
+                    value = Value(Nil());
+                    break;
+                case ast::LiteralType::NUMBER:
+                    value = parse_number_literal(literal.content());
+                    break;
+                case ast::LiteralType::STRING:
+                    value = parse_string_literal(literal.content());
+                    break;
                 }
-              auto origin = LiteralOrigin{.location = literal.range()};
-              result.values = Vallist(value.with_origin(origin));
-              return result;
+                auto origin = LiteralOrigin{.location = literal.range()};
+                result.values = Vallist(value.with_origin(origin));
+                return result;
             },
             [this, &env](ast::Identifier ident) {
                 auto variable_name = this->visit_identifier(ident, env);
@@ -671,10 +671,6 @@ auto Interpreter::visit_function_statement(ast::FunctionStatement function_state
                 env.set_varargs(varargs);
             } else {
                 env.set_varargs(std::nullopt);
-            }
-
-            if (env.get_varargs()) {
-                std::cerr << "varargs: " << *env.get_varargs() << "\n";
             }
 
             auto result = this->visit_block_with_local_env(body, env);
