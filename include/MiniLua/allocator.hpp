@@ -33,14 +33,39 @@ class MemoryAllocator {
     std::vector<TableImpl*> table_memory;
 
 public:
+    /**
+     * This will allocate an new table implementation object.
+     *
+     * This is used internally in `Table`.
+     */
     auto allocate_table() -> TableImpl*;
 
     /**
-     * This is highly unsafe! Any gc_ptr will become invalid.
+     * This will free all objects created through this allocator.
+     *
+     * This is highly unsafe! You have to be absolutely certain that none of the
+     * values allocated by this will be used again.
+     *
+     * **Any object/pointer allocated before calling this will become invalid.**
      */
     void free_all();
+
+    /**
+     * Return the number of allocated objects.
+     */
+    auto num_objects() -> std::size_t;
 };
 
+/**
+ * A global memory allocator.
+ *
+ * This is meant only for use for values outside of the interpreter and outside
+ * of `Function`s.
+ *
+ * This will get freed when the program terminates. You can also manually free
+ * it but you need to be **absolutely certain** that none of the values
+ * allocated with it are not in use anymore.
+ */
 extern MemoryAllocator GLOBAL_ALLOCATOR;
 
 } // namespace minilua

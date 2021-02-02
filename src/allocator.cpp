@@ -15,7 +15,10 @@ void MemoryAllocator::free_all() {
     for (TableImpl* ptr : table_memory) {
         delete ptr;
     }
+    table_memory.clear();
 }
+
+auto MemoryAllocator::num_objects() -> std::size_t { return this->table_memory.size(); }
 
 MemoryAllocator GLOBAL_ALLOCATOR;
 
