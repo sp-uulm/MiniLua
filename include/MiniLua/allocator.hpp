@@ -8,7 +8,7 @@
 
 namespace minilua {
 
-class TableImpl;
+struct TableImpl;
 
 // template <typename T> class gc_ptr {
 //     T* ptr;
