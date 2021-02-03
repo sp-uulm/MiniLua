@@ -156,6 +156,13 @@ template <typename T, typename... Args> auto make_owning(Args... args) -> owning
 template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
+/**
+ * Convert int to string in the given base.
+ *
+ * Uses character 0-9 and A-Z. So base has to be between 2 and 36.
+ */
+auto to_string_with_base(int number, int base) -> std::string;
+
 } // namespace minilua
 
 #endif
