@@ -178,9 +178,11 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a64b4e4b0ab33a2d42b529bc3f1450f95"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afa72e237109686dc66444083447adeb2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Value.html#afa72e237109686dc66444083447adeb2">operator bool</a> () const</td></tr>
 <tr class="separator:afa72e237109686dc66444083447adeb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr><td colspan="2"><div class="groupHeader">Operator variants that allow adding the locationof the operator in lua code.</div></td></tr>
-<tr><td colspan="2"><div class="groupText"><p>Mostly for use in the interpreter. </p>
-</div></td></tr>
+<tr class="memitem:a45c1e760f0b8956a0fe60d3849f62a1c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Value.html#a45c1e760f0b8956a0fe60d3849f62a1c">to_number</a> (<a class="el" href="classminilua_1_1Value.html">Value</a> base=<a class="el" href="structminilua_1_1Nil.html">Nil</a>(), std::optional&lt; <a class="el" href="structminilua_1_1Range.html">Range</a> &gt; location=std::nullopt) const -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td></tr>
+<tr class="separator:a45c1e760f0b8956a0fe60d3849f62a1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a96f3ada62a67f79798173cf8f67e84de"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Value.html#a96f3ada62a67f79798173cf8f67e84de">to_string</a> (std::optional&lt; <a class="el" href="structminilua_1_1Range.html">Range</a> &gt; location=std::nullopt) const -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td></tr>
+<tr class="separator:a96f3ada62a67f79798173cf8f67e84de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader"></div></td></tr>
 <tr class="memitem:a00cb855c5fcb340d69165b04c3349169"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Value.html#a00cb855c5fcb340d69165b04c3349169">negate</a> (std::optional&lt; <a class="el" href="structminilua_1_1Range.html">Range</a> &gt; location=std::nullopt) const -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td></tr>
 <tr class="separator:a00cb855c5fcb340d69165b04c3349169"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae351d622a415e69ce4ff13f487178818"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Value.html#ae351d622a415e69ce4ff13f487178818">add</a> (const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;rhs, std::optional&lt; <a class="el" href="structminilua_1_1Range.html">Range</a> &gt; location=std::nullopt) const -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td></tr>
@@ -1576,6 +1578,55 @@ template&lt;typename... Args&gt; </div>
 </div><div class="memdoc">
 <p>Returns the <a class="el" href="classminilua_1_1Value.html">Value</a> as a literal string that can be directly inserted in lua code.</p>
 <p>Throws a <code>std::runtime_error</code> if the value is a <code><a class="el" href="classminilua_1_1Function.html">Function</a></code>. </p>
+
+</div>
+</div>
+<a id="a45c1e760f0b8956a0fe60d3849f62a1c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a45c1e760f0b8956a0fe60d3849f62a1c">&#9670;&nbsp;</a></span>to_number()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::Value::to_number </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classminilua_1_1Value.html">Value</a>&#160;</td>
+          <td class="paramname"><em>base</em> = <code><a class="el" href="structminilua_1_1Nil.html">Nil</a>()</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::optional&lt; <a class="el" href="structminilua_1_1Range.html">Range</a> &gt;&#160;</td>
+          <td class="paramname"><em>location</em> = <code>std::nullopt</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Converts the value to a <code><a class="el" href="structminilua_1_1Number.html">Number</a></code>.</p>
+<p>If the value is already a number we return it. If it is a string we try to parse it. In all other cases and if parsing fails we return <code><a class="el" href="structminilua_1_1Nil.html">Nil</a></code>.</p>
+<p>If you provide a <code>base</code> the value has to be a string representing an integer in that base. Otherwise <code><a class="el" href="structminilua_1_1Nil.html">Nil</a></code> is returned. </p>
+
+</div>
+</div>
+<a id="a96f3ada62a67f79798173cf8f67e84de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a96f3ada62a67f79798173cf8f67e84de">&#9670;&nbsp;</a></span>to_string()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::Value::to_string </td>
+          <td>(</td>
+          <td class="paramtype">std::optional&lt; <a class="el" href="structminilua_1_1Range.html">Range</a> &gt;&#160;</td>
+          <td class="paramname"><em>location</em> = <code>std::nullopt</code></td><td>)</td>
+          <td> const -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>

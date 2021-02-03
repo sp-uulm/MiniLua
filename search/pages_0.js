@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['minilua_1922',['MiniLua',['../index.html',1,'']]]
+  ['minilua_1940',['MiniLua',['../index.html',1,'']]]
 ];
