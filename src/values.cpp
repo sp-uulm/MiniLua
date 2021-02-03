@@ -39,7 +39,7 @@ Bool::operator bool() const { return this->value; }
 [[nodiscard]] auto Number::to_literal() const -> std::string {
     // NOTE: use stringstream so we get better formatting than with std::to_string
     std::ostringstream result;
-    if (this->value == std::floor(this->value)) {
+    if (this->is_int()) {
         result << static_cast<long>(this->value);
     } else {
         // TODO maybe we can use a better float representation algorithm than the default c++
@@ -53,6 +53,8 @@ auto operator<<(std::ostream& os, Number self) -> std::ostream& {
     return os << "Number(" << self.value << ")";
 }
 Number::operator bool() const { return true; }
+auto Number::is_int() const -> bool { return this->value == std::floor(this->value); }
+
 auto operator-(Number self) -> Number { return -self.value; }
 auto operator^(Number lhs, Number rhs) -> Number { return std::pow(lhs.value, rhs.value); }
 auto operator%(Number lhs, Number rhs) -> Number { return Number(std::fmod(lhs.value, rhs.value)); }
@@ -429,7 +431,7 @@ auto CallContext::arguments() const -> const Vallist& { return impl->args; }
 [[nodiscard]] auto CallContext::unary_numeric_arg_helper() const
     -> std::tuple<double, UnaryOrigin> {
     auto arg = this->arguments().get(0);
-    auto num = std::get<minilua::Number>(arg).value;
+    auto num = std::get<Number>(arg.to_number(Nil(), this->call_location())).value;
 
     auto origin = minilua::UnaryOrigin{
         .val = minilua::make_owning<minilua::Value>(arg),
@@ -443,8 +445,9 @@ auto CallContext::arguments() const -> const Vallist& { return impl->args; }
     -> std::tuple<double, double, BinaryOrigin> {
     auto arg1 = this->arguments().get(0);
     auto arg2 = this->arguments().get(1);
-    auto num1 = std::get<minilua::Number>(arg1).value;
-    auto num2 = std::get<minilua::Number>(arg2).value;
+
+    auto num1 = std::get<Number>(arg1.to_number(Nil(), this->call_location())).value;
+    auto num2 = std::get<Number>(arg2.to_number(Nil(), this->call_location())).value;
 
     auto origin = minilua::BinaryOrigin{
         .lhs = minilua::make_owning<minilua::Value>(arg1),
@@ -541,11 +544,6 @@ auto Origin::raw() -> Type& { return this->origin; }
 }
 
 [[nodiscard]] auto Origin::force(const Value& new_value) const -> std::optional<SourceChangeTree> {
-    // TODO maybe also for non numeric/bool types?
-    if (!new_value.is_number() && !new_value.is_bool()) {
-        return std::nullopt;
-    }
-
     return std::visit(
         overloaded{
             [&new_value](const BinaryOrigin& origin) -> std::optional<SourceChangeTree> {
@@ -790,6 +788,117 @@ auto Value::operator[](const Value& index) const -> const Value& {
 
 Value::operator bool() const {
     return std::visit([](const auto& value) { return bool(value); }, this->impl->val);
+}
+
+// create a static variable for the regex so it is only compiled once
+static std::string pattern_decimal = R"((\s*-?\d+\.?\d*))";
+static std::string pattern_hex = R"((\s*-?0[xX][\dA-Fa-f]+\.?[\dA-Fa-f]*))";
+static std::string pattern_scientific_notation = R"((\s*-?\d+\.?\d*[eE]-?\d+))";
+static std::regex to_number_general_pattern(
+    pattern_decimal + "|" + pattern_hex + "|" + pattern_scientific_notation,
+    std::regex::ECMAScript | std::regex::optimize);
+static std::regex to_number_int_pattern(R"(\s*-?[a-zA-Z0-9]+)");
+
+auto Value::to_number(const Value base, std::optional<Range> location) const -> Value {
+    return std::visit(
+        overloaded{
+            [this, &location](const String& number, const Nil& /*nil*/) -> Value {
+                // if the string matches the expected format we parse it otherwise return nil
+                if (std::regex_match(number.value, to_number_general_pattern)) {
+                    auto origin = UnaryOrigin{
+                        .val = make_owning<Value>(*this),
+                        .location = location,
+                        .reverse = [](const Value& new_value,
+                                      const Value& old_value) -> std::optional<SourceChangeTree> {
+                            if (new_value.is_number()) {
+                                // TODO maybe produce the same format as the old value
+                                return old_value.force(new_value.to_string());
+                            } else {
+                                return std::nullopt;
+                            }
+                        },
+                    };
+                    return Value(std::stod(number.value)).with_origin(Origin(origin));
+                } else {
+                    return Nil();
+                }
+            },
+            [this, base_value = base,
+             &location](const String& number, const Number& base) -> Value {
+                // NOTE: we only parse ints when we get a base
+                // the base has to be between 2 adn 35 (because numbers with other bases
+                // are not representable strings)
+                if (!base.is_int()) {
+                    throw std::runtime_error("base has no integer representation");
+                }
+                if (base < 2 || base > 36) { // NOLINT
+                    throw std::runtime_error(
+                        "base is to high or to low. base must be >= 2 and <= 36");
+                }
+
+                // number must be interpreted as an integer numeral in that base
+                if (std::regex_match(number.value, to_number_int_pattern)) {
+                    try {
+                        auto origin = BinaryOrigin{
+                            .lhs = make_owning<Value>(*this),
+                            .rhs = make_owning<Value>(base_value),
+                            .location = location,
+                            .reverse =
+                                [](const Value& new_value, const Value& old_lhs,
+                                   const Value& old_base) -> std::optional<SourceChangeTree> {
+                                if (new_value.is_number()) {
+                                    // old_base is a number because otherwise to_number throws an
+                                    // error
+                                    Number base = std::get<Number>(old_base);
+                                    Number new_number = std::get<Number>(new_value);
+                                    if (new_number.is_int()) {
+                                        return old_lhs.force(
+                                            to_string_with_base(new_number.value, base.value));
+                                    } else {
+                                        return std::nullopt;
+                                    }
+                                } else {
+                                    return std::nullopt;
+                                }
+                            }};
+                        return Value(std::stoi(number.value, nullptr, base.value))
+                            .with_origin(origin);
+                    } catch (const std::invalid_argument& /*unused*/) {
+                        // invalid base returns nil
+                        return Nil();
+                    }
+                } else {
+                    return Nil();
+                }
+            },
+            [](const Number& number, const Nil& /*unused*/) -> Value { return number; },
+            [](const auto& /*a*/, const auto& /*b*/) -> Value { return Nil(); }},
+        this->raw(), base.raw());
+}
+
+auto Value::to_string(std::optional<Range> location) const -> Value {
+    // TODO origin
+    return std::visit(
+        overloaded{
+            [](Bool b) -> Value { return b.value ? "true" : "false"; },
+            [](Number n) -> Value { return n.to_literal(); },
+            [](const String& s) -> Value { return s.value; },
+            [](Table t) -> Value { // TODO: maybe improve the way to get the address.
+                // at the moment it could be that every time you call it the
+                // address has changed because of the change in the stack
+                ostringstream get_address;
+                get_address << &t;
+                return get_address.str();
+            },
+            [](Function f) -> Value {
+                ostringstream get_address;
+                get_address << &f;
+                return get_address.str();
+            },
+            [](Nil /*nil*/) -> Value { return "nil"; }
+            // TODO: add to_string for metatables
+        },
+        this->raw());
 }
 
 template <typename Fn, typename FnRev>
@@ -1156,16 +1265,17 @@ Value::greater_than_or_equal(const Value& rhs, std::optional<Range> location) co
                    },
                    [](const String& lhs, const Number& rhs) -> Value {
                        Environment env;
-                       return lhs.value + to_string(CallContext(&env).make_new({rhs.value}));
+                       // TODO use the original value to correctly track the origin
+                       return lhs.value + Value(rhs).to_string().remove_origin();
                    },
                    [](const Number& lhs, const String& rhs) -> Value {
                        Environment env;
-                       return to_string(CallContext(&env).make_new({lhs.value})) + rhs.value;
+                       return Value(lhs).to_string().remove_origin() + rhs.value;
                    },
                    [](const Number& lhs, const Number& rhs) -> Value {
                        Environment env;
-                       return to_string(CallContext(&env).make_new({lhs.value})) +
-                              to_string(CallContext(&env).make_new({rhs.value}));
+                       return Value(lhs).to_string().remove_origin() +
+                              Value(rhs).to_string().remove_origin();
                    },
                    [](const auto& lhs, const auto& rhs) -> Value {
                        throw std::runtime_error(
@@ -1233,6 +1343,7 @@ struct Vallist::Impl {
     std::vector<Value> values;
 };
 Vallist::Vallist() = default;
+Vallist::Vallist(Value value) : Vallist({std::move(value)}) {}
 Vallist::Vallist(std::vector<Value> values)
     : impl(make_owning<Vallist::Impl>(Vallist::Impl{std::move(values)})) {}
 Vallist::Vallist(std::initializer_list<Value> values)

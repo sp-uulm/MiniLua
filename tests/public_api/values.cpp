@@ -909,3 +909,39 @@ TEST_CASE("comparison operators for Strings") {
         }
     }
 }
+
+TEST_CASE("reversable Value::to_number") {
+    SECTION("without base") {
+        minilua::Value value =
+            minilua::Value("17").with_origin(minilua::LiteralOrigin{minilua::Range{
+                .start = {0, 0, 0},
+                .end = {0, 4, 4},
+            }});
+        minilua::Value number = value.to_number();
+        REQUIRE(number == 17);
+
+        auto result = number.force(minilua::Value(22));
+
+        REQUIRE(result.has_value());
+        REQUIRE(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range{{0, 0, 0}, {0, 4, 4}}, "\"22\""));
+    }
+    SECTION("with base") {
+        minilua::Value value =
+            minilua::Value("17").with_origin(minilua::LiteralOrigin{minilua::Range{
+                .start = {0, 0, 0},
+                .end = {0, 4, 4},
+            }});
+        minilua::Value base = minilua::Value(8);
+        minilua::Value number = value.to_number(base);
+        REQUIRE(number == 15);
+
+        auto result = number.force(minilua::Value(22));
+
+        REQUIRE(result.has_value());
+        REQUIRE(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range{{0, 0, 0}, {0, 4, 4}}, "\"26\""));
+    }
+}

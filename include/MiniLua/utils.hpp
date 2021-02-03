@@ -9,7 +9,7 @@
 namespace minilua {
 
 /**
- * Can be used in std::enable_if to check for printable types.
+ * Can be used in `std::enable_if` to check for printable types.
  *
  * Source: https://nafe.es/posts/2020-02-29-is-printable/
  */
@@ -24,11 +24,12 @@ struct is_printable<
 template <typename _Tp> inline constexpr bool is_printable_v = is_printable<_Tp>::value;
 
 /**
- * This is basically an implementation of Rusts Box. It behaves exactly like T
- * but lives on the heap.
+ * This is basically an implementation of [Rusts
+ * Box](https://doc.rust-lang.org/std/boxed/struct.Box.html). It behaves exactly like `T` but lives
+ * on the heap.
  *
  * In other words this is a `std::unique_ptr` that also support copying but can't
- * contain a nullptr.
+ * contain a `nullptr`.
  *
  * If this type is copied it will make a new heap allocation and copy the value.
  *
@@ -40,8 +41,8 @@ template <typename _Tp> inline constexpr bool is_printable_v = is_printable<_Tp>
  * nullptr.
  *
  * owning_ptr is only default constructible, move/copy constructible/assignable
- * and equality comparable if the type T is. These special member functions are
- * always defined but can only be used if the type T also has them.
+ * and equality comparable if the type `T` is. These special member functions are
+ * always defined but can only be used if the type `T` also has them.
  */
 template <typename T> class owning_ptr {
     std::unique_ptr<T> value;
@@ -59,7 +60,7 @@ public:
      * This will take ownership of the heap location at the pointer. You should
      * not manually free the pointer after calling this constructor.
      *
-     * Will throw 'std::invalid_argument' exception if the value is 'nullptr'.
+     * Will throw `std::invalid_argument` exception if the value is `nullptr`.
      */
     explicit owning_ptr(T* value) : value(value) {
         if (value == nullptr) {
@@ -115,17 +116,52 @@ public:
     }
 };
 
-// Helper function to create owning_ptr. Similar to make_unique, etc.
+/**
+ * Helper function to create owning_ptr. Similar to make_unique, etc.
+ */
 template <typename T, typename... Args> auto make_owning(Args... args) -> owning_ptr<T> {
     return owning_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
-// Overloading trick for lambdas
-// This is easier than
-//   if constexpr (std::is_same_v<decltype(param), T>) { ... }
-// Source: https://dev.to/tmr232/that-overloaded-trick-overloading-lambdas-in-c17
+/**
+ * Overloading trick for function that take lambdas where the parameter types
+ * can be different.
+ *
+ * This is easier than writing
+ *
+ * ```
+ * if constexpr (std::is_same_v<decltype(param), T>) { ... }
+ * ```
+ *
+ * inside the lambda.
+ *
+ * # Usage:
+ *
+ * ```
+ * std::visit(
+ *     overloaded{
+ *        [](int i) {
+ *            std::cout << "This is an int " << i << "\n";
+ *        },
+ *        [](std::string s) {
+ *            std::cout << "This is a string " << s << "\n";
+ *        },
+ *     },
+ *     some_variant
+ * );
+ * ```
+ *
+ * Source: https://dev.to/tmr232/that-overloaded-trick-overloading-lambdas-in-c17
+ */
 template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
+/**
+ * Convert int to string in the given base.
+ *
+ * Uses character 0-9 and A-Z. So base has to be between 2 and 36.
+ */
+auto to_string_with_base(int number, int base) -> std::string;
 
 } // namespace minilua
 
