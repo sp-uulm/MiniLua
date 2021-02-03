@@ -790,11 +790,13 @@ Value::operator bool() const {
     return std::visit([](const auto& value) { return bool(value); }, this->impl->val);
 }
 
-static std::string pattern1 = R"((\s*-?\d+\.?\d*))";
-static std::string pattern2 = R"((\s*-?0[xX][\dA-Fa-f]+\.?[\dA-Fa-f]*))";
-static std::string pattern3 = R"((\s*-?\d+\.?\d*[eE]-?\d+))";
+// create a static variable for the regex so it is only compiled once
+static std::string pattern_decimal = R"((\s*-?\d+\.?\d*))";
+static std::string pattern_hex = R"((\s*-?0[xX][\dA-Fa-f]+\.?[\dA-Fa-f]*))";
+static std::string pattern_scientific_notation = R"((\s*-?\d+\.?\d*[eE]-?\d+))";
 static std::regex to_number_general_pattern(
-    pattern1 + "|" + pattern2 + "|" + pattern3, std::regex::ECMAScript | std::regex::optimize);
+    pattern_decimal + "|" + pattern_hex + "|" + pattern_scientific_notation,
+    std::regex::ECMAScript | std::regex::optimize);
 static std::regex to_number_int_pattern(R"(\s*-?[a-zA-Z0-9]+)");
 
 auto Value::to_number(const Value base, std::optional<Range> location) const -> Value {
