@@ -81,6 +81,12 @@ Table::Table(
     }
 }
 
+Table::Table(const Table& other, MemoryAllocator* allocator) : Table(allocator) {
+    for (const auto& [key, value] : other) {
+        this->set(Value(key, allocator), Value(value, allocator));
+    }
+}
+
 Table::Table(const Table& other) = default;
 Table::Table(Table&& other) noexcept : Table() {
     // NOTE: it is very important to make sure `this` is a valid object before

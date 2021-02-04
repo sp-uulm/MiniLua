@@ -326,6 +326,14 @@ public:
         std::initializer_list<std::pair<const Value, Value>> values,
         MemoryAllocator* allocator = &GLOBAL_ALLOCATOR);
 
+    /**
+     * Copy table to different allocator.
+     *
+     * This will make a deep copy meaning all nested tables will also be copied
+     * to the allocator.
+     */
+    Table(const Table& other, MemoryAllocator* allocator);
+
     Table(const Table& other);
     Table(Table&& other) noexcept;
     ~Table() noexcept;
@@ -785,6 +793,15 @@ public:
      */
     template <typename Fn, typename = std::enable_if_t<std::is_invocable_v<Fn, CallContext>>>
     Value(Fn val) : Value(Function(std::forward<Fn>(val))) {}
+
+    /**
+     * Copies the value to another allocator.
+     *
+     * This only has an effect for `Table`s. Other values are simply copied.
+     * Table will be deep copied to the given allocators. That means all nested
+     * tables will also be copied.
+     */
+    Value(const Value&, MemoryAllocator* allocator);
 
     Value(const Value&);
     // can't use noexcept = default in older compilers (pre c++20 compilers)

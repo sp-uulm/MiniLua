@@ -437,6 +437,16 @@ Value::Value(const char* val) : Value(String(val)) {}
 Value::Value(Table val) : impl(make_owning<Impl>(Impl{.val = val})) {}
 Value::Value(Function val) : impl(make_owning<Impl>(Impl{.val = val})) {}
 
+Value::Value(const Value& val, MemoryAllocator* allocator)
+    : impl(make_owning<Impl>(Impl{
+          .val = std::visit(
+              overloaded{
+                  [allocator](const Table& value) -> Value::Type {
+                      return Table(value, allocator);
+                  },
+                  [](const auto& value) -> Value::Type { return value; }},
+              val.raw())})) {}
+
 Value::Value(const Value& other) = default;
 // NOLINTNEXTLINE
 Value::Value(Value&& other) = default;

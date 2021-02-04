@@ -72,4 +72,34 @@ TEST_CASE("using MemoryAllocator with Environment") {
     REQUIRE(alloc.num_objects() == 0);
 }
 
+TEST_CASE("copy between allocators") {
+    MemoryAllocator alloc1;
+    MemoryAllocator alloc2;
+
+    {
+        Value value = Table(&alloc1);
+        value[25] = Table({{2, 17}, {17, Table(&alloc1)}}, &alloc1); // NOLINT
+
+        REQUIRE(alloc1.num_objects() == 3);
+
+        Value value_copy = Value(value, &alloc2);
+
+        REQUIRE(alloc2.num_objects() == 3);
+        alloc1.free_all();
+        // don't use `value` after this
+
+        REQUIRE(alloc1.num_objects() == 0);
+        REQUIRE(alloc2.num_objects() == 3);
+
+        CHECK(value_copy.is_table());
+        CHECK(value_copy[25].is_table());
+        CHECK(value_copy[25][2] == 17);
+        CHECK(value_copy[25][17].is_table());
+    }
+
+    // at this point all objects from above should be out of scope and not accessed anymore
+    alloc2.free_all();
+    REQUIRE(alloc2.num_objects() == 0);
+}
+
 } // namespace minilua
