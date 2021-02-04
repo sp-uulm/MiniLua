@@ -425,6 +425,11 @@ public:
     }
 
     /**
+     * Helper method to create a table in the allocator of the environment.
+     */
+    [[nodiscard]] auto make_table() const -> Table;
+
+    /**
      * Returns the location of the call.
      */
     [[nodiscard]] auto call_location() const -> std::optional<Range>;

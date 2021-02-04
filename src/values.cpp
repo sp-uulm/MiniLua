@@ -196,6 +196,10 @@ CallContext::~CallContext() = default;
     return new_cc;
 }
 
+[[nodiscard]] auto CallContext::make_table() const -> Table {
+    return this->environment().make_table();
+}
+
 auto CallContext::call_location() const -> std::optional<Range> { return impl->location; }
 auto CallContext::environment() const -> Environment& { return *impl->env; }
 auto CallContext::get(const std::string& name) const -> Value { return impl->env->get(name); }

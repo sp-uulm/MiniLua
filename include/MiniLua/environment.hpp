@@ -45,6 +45,11 @@ public:
     friend void swap(Environment&, Environment&);
 
     /**
+     * Helper function to create a table in the same allocator as the environment.
+     */
+    [[nodiscard]] auto make_table() const -> Table;
+
+    /**
      * Populates the environment with the (implemented) lua standard library.
      */
     void add_default_stdlib();

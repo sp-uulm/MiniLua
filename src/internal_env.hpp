@@ -55,6 +55,11 @@ public:
     explicit operator Environment() const;
 
     /**
+     * Helper method to create a table in the same allocator as the environment.
+     */
+    auto make_table() const -> Table;
+
+    /**
      * Returns the table for the global environment.
      */
     auto global() -> Table&;

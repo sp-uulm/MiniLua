@@ -22,6 +22,8 @@ auto Environment::operator=(const Environment&) -> Environment& = default;
 auto Environment::operator=(Environment&&) -> Environment& = default;
 void swap(Environment& a, Environment& b) { swap(a.impl, b.impl); }
 
+auto Environment::make_table() const -> Table { return this->impl->inner.make_table(); }
+
 void Environment::add(const std::string& name, Value value) {
     impl->inner.global().set(name, std::move(value));
 }
@@ -43,7 +45,7 @@ static auto transform_values(I begin, I end) -> std::vector<std::pair<Value, Val
 }
 
 auto Environment::add_table(const std::string& name) -> Table {
-    auto table = Table(this->impl->inner.allocator());
+    auto table = this->make_table();
     this->add(name, table);
     return table;
 }

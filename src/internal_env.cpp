@@ -14,6 +14,8 @@ Env::Env(MemoryAllocator* allocator)
     : _allocator(allocator), in(&std::cin), out(&std::cout), err(&std::cerr) {}
 Env::operator Environment() const { return Environment(Environment::Impl{*this}); }
 
+auto Env::make_table() const -> Table { return Table(this->allocator()); }
+
 auto Env::global() -> Table& { return this->_global; }
 auto Env::global() const -> const Table& { return this->_global; }
 
