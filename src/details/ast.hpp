@@ -18,13 +18,14 @@ class FieldExpression;
 using IndexField = std::pair<Expression, Expression>;
 using IdentifierField = std::pair<Identifier, Expression>;
 
-enum class LiteralType{TRUE,FALSE,NIL,NUMBER,STRING};
+enum class LiteralType { TRUE, FALSE, NIL, NUMBER, STRING };
 class Literal {
     std::string literal_content;
     LiteralType literal_type;
     ts::Range literal_range;
+
 public:
-    Literal(LiteralType,std::string,ts::Range);
+    Literal(LiteralType, std::string, ts::Range);
     auto content() const -> std::string;
     auto type() const -> LiteralType;
     auto range() const -> minilua::Range;
@@ -347,7 +348,8 @@ public:
     explicit IfStatement(ts::Node node);
     /**
      *
-     * @return a body containing the statements of the if block excluding else_if and else statements
+     * @return a body containing the statements of the if block excluding else_if and else
+     * statements
      */
     auto body() const -> Body;
     /**
@@ -446,7 +448,7 @@ public:
      *
      * @return a vector with the expressions that get assigned to to the declared variables
      */
-    auto declarations() const-> std::vector<Expression>;
+    auto declarations() const -> std::vector<Expression>;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
 };
@@ -609,6 +611,7 @@ public:
 class FunctionStatement {
     ts::Node func_stat;
     bool is_local;
+
 public:
     explicit FunctionStatement(ts::Node);
     /**
@@ -669,7 +672,7 @@ public:
      * the Expression is
      * @return a variant containing the right format for the field
      */
-    auto content() const -> std::variant<IndexField , IdentifierField , Expression>;
+    auto content() const -> std::variant<IndexField, IdentifierField, Expression>;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
 };
@@ -705,8 +708,7 @@ public:
      *
      * @return a variant containing the class this Prefix gets resolved to
      */
-    auto options() const
-        -> std::variant<Self, VariableDeclarator, FunctionCall, Expression>;
+    auto options() const -> std::variant<Self, VariableDeclarator, FunctionCall, Expression>;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
 };
@@ -723,8 +725,8 @@ public:
      * @return a variant containing the class this expression gets resolved to
      */
     auto options() const -> std::variant<
-        Spread, Prefix, FunctionDefinition, Table, BinaryOperation, UnaryOperation,
-        Literal, Identifier>;
+        Spread, Prefix, FunctionDefinition, Table, BinaryOperation, UnaryOperation, Literal,
+        Identifier>;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
 };
@@ -739,9 +741,9 @@ public:
      * @return a variant containing the class this statement gets resolved to
      */
     auto options() const -> std::variant<
-        VariableDeclaration, DoStatement, IfStatement, WhileStatement,
-        RepeatStatement, ForStatement, ForInStatement, GoTo, Break, Label, FunctionStatement,
-        FunctionCall, Expression>;
+        VariableDeclaration, DoStatement, IfStatement, WhileStatement, RepeatStatement,
+        ForStatement, ForInStatement, GoTo, Break, Label, FunctionStatement, FunctionCall,
+        Expression>;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
 };
