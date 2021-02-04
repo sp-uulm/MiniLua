@@ -56,6 +56,11 @@ public:
     void add(std::string&& name, Value value);
 
     /**
+     * Add a table variable with the given name and return the table.
+     */
+    auto add_table(const std::string& name) -> Table;
+
+    /**
      * Add multiple variables to the environment.
      */
     void add_all(std::unordered_map<std::string, Value> values);
@@ -94,11 +99,6 @@ public:
      * Returns the number of variables.
      */
     [[nodiscard]] auto size() const -> size_t;
-
-    /**
-     * Returns the allocator.
-     */
-    [[nodiscard]] auto allocator() const -> MemoryAllocator*;
 
     // only for internal use
     auto get_raw_impl() -> Impl&;

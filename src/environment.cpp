@@ -42,6 +42,12 @@ static auto transform_values(I begin, I end) -> std::vector<std::pair<Value, Val
     return to_insert;
 }
 
+auto Environment::add_table(const std::string& name) -> Table {
+    auto table = Table(this->impl->inner.allocator());
+    this->add(name, table);
+    return table;
+}
+
 void Environment::add_all(std::unordered_map<std::string, Value> values) {
     for (auto [key, value] : std::move(values)) {
         // NOTE: can't move key because that would change the structure of the map
@@ -72,8 +78,6 @@ auto Environment::get_stdout() -> std::ostream* { return impl->inner.get_stdout(
 auto Environment::get_stderr() -> std::ostream* { return impl->inner.get_stderr(); }
 
 auto Environment::size() const -> size_t { return impl->inner.global().size(); }
-
-auto Environment::allocator() const -> MemoryAllocator* { return this->impl->inner.allocator(); }
 
 auto Environment::get_raw_impl() -> Impl& { return *this->impl; }
 
