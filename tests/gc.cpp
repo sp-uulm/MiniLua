@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
 
 #include <MiniLua/allocator.hpp>
+#include <MiniLua/environment.hpp>
 #include <MiniLua/values.hpp>
 
 namespace minilua {

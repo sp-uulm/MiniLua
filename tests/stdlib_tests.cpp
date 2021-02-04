@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
 #include <string>
 
+#include "MiniLua/environment.hpp"
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/values.hpp"
 

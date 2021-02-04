@@ -7,6 +7,7 @@
 #include <utility>
 #include <variant>
 
+#include "MiniLua/environment.hpp"
 #include "MiniLua/math.hpp"
 #include "MiniLua/source_change.hpp"
 #include "MiniLua/stdlib.hpp"

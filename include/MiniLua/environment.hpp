@@ -8,6 +8,7 @@
 
 #include "allocator.hpp"
 #include "utils.hpp"
+#include "values.hpp"
 
 namespace minilua {
 

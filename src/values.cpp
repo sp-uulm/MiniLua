@@ -1,4 +1,5 @@
 #include "MiniLua/values.hpp"
+#include "MiniLua/environment.hpp"
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/utils.hpp"
 

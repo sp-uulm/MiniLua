@@ -11,7 +11,6 @@
 #include <vector>
 
 #include "MiniLua/allocator.hpp"
-#include "environment.hpp"
 #include "source_change.hpp"
 #include "utils.hpp"
 
@@ -22,6 +21,8 @@
     }
 
 namespace minilua {
+
+class Environment;
 
 // helper template used later to repeat a type in fold expression
 template <size_t, class T> using T_ = T;
