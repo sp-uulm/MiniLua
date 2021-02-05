@@ -33,6 +33,8 @@ class MemoryAllocator {
     std::vector<TableImpl*> table_memory;
 
 public:
+    ~MemoryAllocator();
+
     /**
      * This will allocate an new table implementation object.
      *
