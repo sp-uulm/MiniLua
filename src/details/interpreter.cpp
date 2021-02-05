@@ -629,48 +629,13 @@ auto Interpreter::visit_function_expression(ast::FunctionDefinition function_def
 
     auto body = function_definition.body();
 
-    auto lambda = [body = std::move(body), parameters = std::move(actual_parameters), vararg,
-                   this](const CallContext& ctx) -> CallResult {
-        // TODO this does not correctly capture the environment
-        // but we can't fix it until we have an memory allocator
-
-        // setup parameters as local variables
-        Env env = Env(ctx.environment().get_raw_impl().inner);
-        for (int i = 0; i < parameters.size(); ++i) {
-            env.set_local(parameters[i], ctx.arguments().get(i));
-        }
-
-        if (vararg && parameters.size() < ctx.arguments().size()) {
-            std::vector<Value> varargs;
-            varargs.reserve(ctx.arguments().size() - parameters.size());
-            std::copy(
-                ctx.arguments().begin() + parameters.size(), ctx.arguments().end(),
-                std::back_inserter(varargs));
-            env.set_varargs(varargs);
-        } else {
-            env.set_varargs(std::nullopt);
-        }
-
-        if (env.get_varargs()) {
-            std::cerr << "varargs: " << *env.get_varargs() << "\n";
-        }
-
-        auto result = this->visit_block_with_local_env(body, env);
-
-        auto return_value = Vallist();
-        if (result.do_return) {
-            return_value = result.values;
-        }
-        return CallResult(return_value, result.source_change);
-    };
-    Value func = Function(lambda);
-    // Value func = Function(FunctionImpl{
-    //     .body = std::move(body),
-    //     .env = Env(env),
-    //     .parameters = std::move(actual_parameters),
-    //     .vararg = vararg,
-    //     .interpreter = *this,
-    // });
+    Value func = Function(FunctionImpl{
+        .body = std::move(body),
+        .env = Env(env),
+        .parameters = std::move(actual_parameters),
+        .vararg = vararg,
+        .interpreter = *this,
+    });
 
     result.values = Vallist(func);
 
@@ -697,48 +662,13 @@ auto Interpreter::visit_function_statement(ast::FunctionStatement function_state
 
     auto body = function_statement.body();
 
-    auto lambda = [body = std::move(body), parameters = std::move(actual_parameters), vararg,
-                   this](const CallContext& ctx) -> CallResult {
-        // TODO this does not correctly capture the environment
-        // but we can't fix it until we have an memory allocator
-
-        // setup parameters as local variables
-        Env env = Env(ctx.environment().get_raw_impl().inner);
-        for (int i = 0; i < parameters.size(); ++i) {
-            env.set_local(parameters[i], ctx.arguments().get(i));
-        }
-
-        if (vararg && parameters.size() < ctx.arguments().size()) {
-            std::vector<Value> varargs;
-            varargs.reserve(ctx.arguments().size() - parameters.size());
-            std::copy(
-                ctx.arguments().begin() + parameters.size(), ctx.arguments().end(),
-                std::back_inserter(varargs));
-            env.set_varargs(varargs);
-        } else {
-            env.set_varargs(std::nullopt);
-        }
-
-        if (env.get_varargs()) {
-            std::cerr << "varargs: " << *env.get_varargs() << "\n";
-        }
-
-        auto result = this->visit_block_with_local_env(body, env);
-
-        auto return_value = Vallist();
-        if (result.do_return) {
-            return_value = result.values;
-        }
-        return CallResult(return_value, result.source_change);
-    };
-    Value func = Function(lambda);
-    // Value func = Function(FunctionImpl{
-    //     .body = std::move(body),
-    //     .env = Env(env),
-    //     .parameters = std::move(actual_parameters),
-    //     .vararg = vararg,
-    //     .interpreter = *this,
-    // });
+    Value func = Function(FunctionImpl{
+        .body = std::move(body),
+        .env = Env(env),
+        .parameters = std::move(actual_parameters),
+        .vararg = vararg,
+        .interpreter = *this,
+    });
 
     auto function_name = function_statement.name();
     auto identifiers = function_name.identifier();

@@ -108,7 +108,7 @@ TEST_CASE("unit_tests lua files") {
         "statements/repeat_until.lua",
         "statements/functions.lua",
         "local_variables.lua",
-        // "counter.lua",
+        "counter.lua",
     };
     // NOTE: exptects to be run from build directory
     for (const auto& file : test_files) {
