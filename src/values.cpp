@@ -881,9 +881,7 @@ static inline auto num_op_helper(
     return std::visit(
                overloaded{
                    [](const String& value) -> Value { return (int)value.value.size(); },
-                   [](const Table& value) -> Value {
-                       return (int)std::distance(value.begin(), value.end());
-                   },
+                   [](const Table& value) -> Value { return value.border(); },
                    [](const auto& value) -> Value {
                        throw std::runtime_error(
                            "attempt to get length for value of type " + std::string(value.TYPE));

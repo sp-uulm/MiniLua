@@ -1,9 +1,33 @@
 #include "table.hpp"
 #include <MiniLua/allocator.hpp>
 
+#include <algorithm>
 #include <set>
+#include <utility>
 
 namespace minilua {
+
+// struct TableImpl
+void TableImpl::set(const Value& key, Value value) { this->value[key] = std::move(value); }
+
+auto TableImpl::calc_border() const -> int {
+    auto has_value = [this](int key) -> bool {
+        auto value = this->value.find(key);
+        return value != this->value.end() && value->second != Nil();
+    };
+
+    if (!has_value(1)) {
+        return 0;
+    }
+
+    // TODO this can be done in O(log N)
+    int border = 2;
+    while (has_value(border)) {
+        ++border;
+    }
+
+    return border - 1;
+}
 
 // struct Table
 Table::iterator::iterator() = default;
@@ -83,7 +107,7 @@ Table::Table(
 
 Table::Table(const Table& other, MemoryAllocator* allocator) : Table(allocator) {
     for (const auto& [key, value] : other) {
-        this->set(Value(key, allocator), Value(value, allocator));
+        this->impl->value.insert_or_assign(Value(key, allocator), Value(value, allocator));
     }
 }
 
@@ -105,6 +129,8 @@ void swap(Table& self, Table& other) {
     std::swap(self.impl, other.impl);
 }
 
+auto Table::border() const -> int { return this->impl->calc_border(); }
+
 auto Table::get(const Value& key) -> Value {
     auto value = impl->value.find(key);
     if (value == impl->value.end()) {
@@ -114,8 +140,8 @@ auto Table::get(const Value& key) -> Value {
     }
 }
 auto Table::has(const Value& key) -> bool { return impl->value.find(key) != impl->value.end(); }
-void Table::set(const Value& key, Value value) { impl->value[key] = std::move(value); }
-void Table::set(Value&& key, Value value) { impl->value[key] = std::move(value); }
+void Table::set(const Value& key, Value value) { impl->set(key, std::move(value)); }
+void Table::set(Value&& key, Value value) { impl->set(key, std::move(value)); }
 [[nodiscard]] auto Table::size() const -> size_t { return impl->value.size(); }
 
 auto Table::begin() -> Table::iterator {
