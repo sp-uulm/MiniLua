@@ -120,6 +120,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1Location.html">Location</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1MemoryAllocator.html">MemoryAllocator</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1Nil.html">Nil</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1NoOrigin.html">NoOrigin</a></td></tr>
@@ -148,6 +150,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html">Table</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1TableImpl.html">TableImpl</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1UnaryNumericFunctionHelper.html">UnaryNumericFunctionHelper</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1UnaryOrigin.html">UnaryOrigin</a></td></tr>
@@ -167,14 +171,6 @@ Typedefs</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a2ab2504267030f658f182e1e2094bd6e"><td class="memTemplParams" colspan="2">template&lt;typename T , typename... Args&gt; </td></tr>
-<tr class="memitem:a2ab2504267030f658f182e1e2094bd6e"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a2ab2504267030f658f182e1e2094bd6e">make_owning</a> (Args... args) -&gt; <a class="el" href="classminilua_1_1owning__ptr.html">owning_ptr</a>&lt; T &gt;</td></tr>
-<tr class="separator:a2ab2504267030f658f182e1e2094bd6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a285cb4837cc36ea7e1c61863a4d2fe99"><td class="memTemplParams" colspan="2">template&lt;class... Ts&gt; </td></tr>
-<tr class="memitem:a285cb4837cc36ea7e1c61863a4d2fe99"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a285cb4837cc36ea7e1c61863a4d2fe99">overloaded</a> (Ts...) -&gt; <a class="el" href="structminilua_1_1overloaded.html">overloaded</a>&lt; Ts... &gt;</td></tr>
-<tr class="separator:a285cb4837cc36ea7e1c61863a4d2fe99"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeab530484bebfd50f37a30244510c92f"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#aeab530484bebfd50f37a30244510c92f">to_string_with_base</a> (int number, int base) -&gt; std::string</td></tr>
-<tr class="separator:aeab530484bebfd50f37a30244510c92f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a730c4cd789ad5db17c2e18f3617151c9"><td class="memItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a730c4cd789ad5db17c2e18f3617151c9">operator==</a> (<a class="el" href="structminilua_1_1Nil.html">Nil</a>, <a class="el" href="structminilua_1_1Nil.html">Nil</a>) noexcept -&gt; bool</td></tr>
 <tr class="separator:a730c4cd789ad5db17c2e18f3617151c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad211d239f3eadb5ffaa82667c4b6493f"><td class="memItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#ad211d239f3eadb5ffaa82667c4b6493f">operator!=</a> (<a class="el" href="structminilua_1_1Nil.html">Nil</a>, <a class="el" href="structminilua_1_1Nil.html">Nil</a>) noexcept -&gt; bool</td></tr>
@@ -303,6 +299,14 @@ Functions</h2></td></tr>
 <tr class="separator:a5e1dc77f0e32989325788d53f6720388"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1489923e84fc2569f0880879f5f51981"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a1489923e84fc2569f0880879f5f51981">parse_string_literal</a> (const std::string &amp;str) -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td></tr>
 <tr class="separator:a1489923e84fc2569f0880879f5f51981"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2ab2504267030f658f182e1e2094bd6e"><td class="memTemplParams" colspan="2">template&lt;typename T , typename... Args&gt; </td></tr>
+<tr class="memitem:a2ab2504267030f658f182e1e2094bd6e"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a2ab2504267030f658f182e1e2094bd6e">make_owning</a> (Args... args) -&gt; <a class="el" href="classminilua_1_1owning__ptr.html">owning_ptr</a>&lt; T &gt;</td></tr>
+<tr class="separator:a2ab2504267030f658f182e1e2094bd6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a285cb4837cc36ea7e1c61863a4d2fe99"><td class="memTemplParams" colspan="2">template&lt;class... Ts&gt; </td></tr>
+<tr class="memitem:a285cb4837cc36ea7e1c61863a4d2fe99"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a285cb4837cc36ea7e1c61863a4d2fe99">overloaded</a> (Ts...) -&gt; <a class="el" href="structminilua_1_1overloaded.html">overloaded</a>&lt; Ts... &gt;</td></tr>
+<tr class="separator:a285cb4837cc36ea7e1c61863a4d2fe99"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeab530484bebfd50f37a30244510c92f"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#aeab530484bebfd50f37a30244510c92f">to_string_with_base</a> (int number, int base) -&gt; std::string</td></tr>
+<tr class="separator:aeab530484bebfd50f37a30244510c92f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1c987bec6d83be55f2b3e5e147d660f7"><td class="memItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a1c987bec6d83be55f2b3e5e147d660f7">operator==</a> (<a class="el" href="structminilua_1_1Location.html">Location</a> lhs, <a class="el" href="structminilua_1_1Location.html">Location</a> rhs) noexcept -&gt; bool</td></tr>
 <tr class="separator:a1c987bec6d83be55f2b3e5e147d660f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a63843f51bd6aa7be937aa0d5342dd3e2"><td class="memItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a63843f51bd6aa7be937aa0d5342dd3e2">operator!=</a> (<a class="el" href="structminilua_1_1Location.html">Location</a> lhs, <a class="el" href="structminilua_1_1Location.html">Location</a> rhs) noexcept -&gt; bool</td></tr>
@@ -387,10 +391,6 @@ Functions</h2></td></tr>
 <tr class="separator:a5b8117b06bce383f88a4caca59e52ca6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec5a18c13c1099dcdb937840efe084ee"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#aec5a18c13c1099dcdb937840efe084ee">escape_string</a> (const std::string &amp;s, size_t trim) -&gt; std::string</td></tr>
 <tr class="separator:aec5a18c13c1099dcdb937840efe084ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0653e10e7849c416ee221eeccbd9186c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a0653e10e7849c416ee221eeccbd9186c">escape_char</a> (char c) -&gt; std::string</td></tr>
-<tr class="separator:a0653e10e7849c416ee221eeccbd9186c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a617f213ef2edf627891fdc976b8879a8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a617f213ef2edf627891fdc976b8879a8">swap</a> (<a class="el" href="structminilua_1_1String.html">String</a> &amp;self, <a class="el" href="structminilua_1_1String.html">String</a> &amp;other)</td></tr>
-<tr class="separator:a617f213ef2edf627891fdc976b8879a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0587642d2ba37f5457b2598f9b4aaef0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a0587642d2ba37f5457b2598f9b4aaef0">swap</a> (<a class="el" href="classminilua_1_1Table.html">Table</a> &amp;self, <a class="el" href="classminilua_1_1Table.html">Table</a> &amp;other)</td></tr>
 <tr class="separator:a0587642d2ba37f5457b2598f9b4aaef0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac41982907729c0417aa04b6a97e751da"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#ac41982907729c0417aa04b6a97e751da">operator==</a> (const <a class="el" href="classminilua_1_1Table.html">Table</a> &amp;a, const <a class="el" href="classminilua_1_1Table.html">Table</a> &amp;b) noexcept -&gt; bool</td></tr>
@@ -399,6 +399,10 @@ Functions</h2></td></tr>
 <tr class="separator:a0155228ff1dd2fb2d9c72247a9a6d3b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a52abb9bcb95d175a4ee715c4b2b846ca"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a52abb9bcb95d175a4ee715c4b2b846ca">operator&lt;&lt;</a> (std::ostream &amp;os, const <a class="el" href="classminilua_1_1Table.html">Table</a> &amp;self) -&gt; std::ostream &amp;</td></tr>
 <tr class="separator:a52abb9bcb95d175a4ee715c4b2b846ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0653e10e7849c416ee221eeccbd9186c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a0653e10e7849c416ee221eeccbd9186c">escape_char</a> (char c) -&gt; std::string</td></tr>
+<tr class="separator:a0653e10e7849c416ee221eeccbd9186c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a617f213ef2edf627891fdc976b8879a8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a617f213ef2edf627891fdc976b8879a8">swap</a> (<a class="el" href="structminilua_1_1String.html">String</a> &amp;self, <a class="el" href="structminilua_1_1String.html">String</a> &amp;other)</td></tr>
+<tr class="separator:a617f213ef2edf627891fdc976b8879a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6f9c23fed50cdec6cbeff3bc10050fd9"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a6f9c23fed50cdec6cbeff3bc10050fd9">operator&lt;&lt;</a> (std::ostream &amp;os, const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;self) -&gt; std::ostream &amp;</td></tr>
 <tr class="separator:a6f9c23fed50cdec6cbeff3bc10050fd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aea6c20476ecc77e3f61b00ece4d73dda"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#aea6c20476ecc77e3f61b00ece4d73dda">swap</a> (<a class="el" href="classminilua_1_1Function.html">Function</a> &amp;self, <a class="el" href="classminilua_1_1Function.html">Function</a> &amp;other)</td></tr>
@@ -443,6 +447,8 @@ Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
+<tr class="memitem:a9bf8decb588fbf59f2ede53846babcfd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classminilua_1_1MemoryAllocator.html">MemoryAllocator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a9bf8decb588fbf59f2ede53846babcfd">GLOBAL_ALLOCATOR</a></td></tr>
+<tr class="separator:a9bf8decb588fbf59f2ede53846babcfd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afa6a738a3391891d976983e28a2a75ba"><td class="memTemplParams" colspan="2">template&lt;typename _Tp &gt; </td></tr>
 <tr class="memitem:afa6a738a3391891d976983e28a2a75ba"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#afa6a738a3391891d976983e28a2a75ba">is_printable_v</a> = <a class="el" href="structminilua_1_1is__printable.html">is_printable</a>&lt;_Tp&gt;::value</td></tr>
 <tr class="separator:afa6a738a3391891d976983e28a2a75ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -4607,6 +4613,23 @@ template&lt;typename Fn &gt; </div>
 
 </div>
 </div>
+<a id="a9bf8decb588fbf59f2ede53846babcfd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9bf8decb588fbf59f2ede53846babcfd">&#9670;&nbsp;</a></span>GLOBAL_ALLOCATOR</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classminilua_1_1MemoryAllocator.html">MemoryAllocator</a> minilua::GLOBAL_ALLOCATOR</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>A global memory allocator.</p>
+<p>This is meant only for use for values outside of the interpreter and outside of <code><a class="el" href="classminilua_1_1Function.html">Function</a></code>s.</p>
+<p>This will get freed when the program terminates. You can also manually free it but you need to be <b>absolutely certain</b> that none of the values allocated with it are not in use anymore. </p>
+
+</div>
+</div>
 <a id="a60f706e37ad17f8c2265a8487d460a20"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a60f706e37ad17f8c2265a8487d460a20">&#9670;&nbsp;</a></span>GLOBAL_NIL_CONST</h2>
 
@@ -4720,7 +4743,7 @@ template&lt;typename _Tp &gt; </div>
 </div>
 </div>
 </div><!-- contents -->
-<div class="ttc" id="anamespaceminilua_html_af765d66cbde1ecd09398cbcd49525380"><div class="ttname"><a href="namespaceminilua.html#af765d66cbde1ecd09398cbcd49525380">minilua::swap</a></div><div class="ttdeci">void swap(Environment &amp;a, Environment &amp;b)</div><div class="ttdef"><b>Definition:</b> environment.cpp:22</div></div>
+<div class="ttc" id="anamespaceminilua_html_af765d66cbde1ecd09398cbcd49525380"><div class="ttname"><a href="namespaceminilua.html#af765d66cbde1ecd09398cbcd49525380">minilua::swap</a></div><div class="ttdeci">void swap(Environment &amp;a, Environment &amp;b)</div><div class="ttdef"><b>Definition:</b> environment.cpp:23</div></div>
 <!-- start footer part -->
 		<script src="custom.js"></script>
 	</body>

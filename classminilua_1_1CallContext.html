@@ -105,6 +105,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a0467e04c54ba89888313abf53fd1cea5"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
 <tr class="memitem:a0467e04c54ba89888313abf53fd1cea5"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classminilua_1_1CallContext.html#a0467e04c54ba89888313abf53fd1cea5">make_new</a> (Args... args, std::optional&lt; <a class="el" href="structminilua_1_1Range.html">Range</a> &gt; location=std::nullopt) const -&gt; <a class="el" href="classminilua_1_1CallContext.html">CallContext</a></td></tr>
 <tr class="separator:a0467e04c54ba89888313abf53fd1cea5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acad4ec99ecb15f4bf96b7fc4d8a33fbd"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1CallContext.html#acad4ec99ecb15f4bf96b7fc4d8a33fbd">make_table</a> () const -&gt; <a class="el" href="classminilua_1_1Table.html">Table</a></td></tr>
+<tr class="separator:acad4ec99ecb15f4bf96b7fc4d8a33fbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aee2e19ab5f3c347575a2c32d8613e21c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1CallContext.html#aee2e19ab5f3c347575a2c32d8613e21c">call_location</a> () const -&gt; std::optional&lt; <a class="el" href="structminilua_1_1Range.html">Range</a> &gt;</td></tr>
 <tr class="separator:aee2e19ab5f3c347575a2c32d8613e21c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa294dae148654b06c23c24c6cce317c8"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1CallContext.html#aa294dae148654b06c23c24c6cce317c8">environment</a> () const -&gt; <a class="el" href="classminilua_1_1Environment.html">Environment</a> &amp;</td></tr>
@@ -395,6 +397,24 @@ template&lt;typename... Args&gt; </div>
 
 </div>
 </div>
+<a id="acad4ec99ecb15f4bf96b7fc4d8a33fbd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acad4ec99ecb15f4bf96b7fc4d8a33fbd">&#9670;&nbsp;</a></span>make_table()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::CallContext::make_table </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; <a class="el" href="classminilua_1_1Table.html">Table</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Helper method to create a table in the allocator of the environment. </p>
+
+</div>
+</div>
 <a id="a974ff57abf037cbd3fb23a955f3ab9c2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a974ff57abf037cbd3fb23a955f3ab9c2">&#9670;&nbsp;</a></span>operator=() <span class="overload">[1/2]</span></h2>
 
@@ -535,8 +555,8 @@ template&lt;typename... Args&gt; </div>
 <li><a class="el" href="values_8cpp.html">values.cpp</a></li>
 </ul>
 </div><!-- contents -->
-<div class="ttc" id="anamespaceminilua_html_a2ce17b0d50309e0d4a3a43e71dd592c2"><div class="ttname"><a href="namespaceminilua.html#a2ce17b0d50309e0d4a3a43e71dd592c2">minilua::binary_num_reverse</a></div><div class="ttdeci">auto binary_num_reverse(FnLeft fn_left, FnRight fn_right, std::string origin=&quot;&quot;) -&gt; decltype(auto)</div><div class="ttdef"><b>Definition:</b> values.hpp:1001</div></div>
-<div class="ttc" id="anamespaceminilua_html_a3533c865eb291bcf3dff829fb0607af8"><div class="ttname"><a href="namespaceminilua.html#a3533c865eb291bcf3dff829fb0607af8">minilua::unary_num_reverse</a></div><div class="ttdeci">auto unary_num_reverse(Fn fn) -&gt; decltype(auto)</div><div class="ttdef"><b>Definition:</b> values.hpp:980</div></div>
+<div class="ttc" id="anamespaceminilua_html_a2ce17b0d50309e0d4a3a43e71dd592c2"><div class="ttname"><a href="namespaceminilua.html#a2ce17b0d50309e0d4a3a43e71dd592c2">minilua::binary_num_reverse</a></div><div class="ttdeci">auto binary_num_reverse(FnLeft fn_left, FnRight fn_right, std::string origin=&quot;&quot;) -&gt; decltype(auto)</div><div class="ttdef"><b>Definition:</b> values.hpp:1035</div></div>
+<div class="ttc" id="anamespaceminilua_html_a3533c865eb291bcf3dff829fb0607af8"><div class="ttname"><a href="namespaceminilua.html#a3533c865eb291bcf3dff829fb0607af8">minilua::unary_num_reverse</a></div><div class="ttdeci">auto unary_num_reverse(Fn fn) -&gt; decltype(auto)</div><div class="ttdef"><b>Definition:</b> values.hpp:1014</div></div>
 <!-- start footer part -->
 		<script src="custom.js"></script>
 	</body>
