@@ -2,10 +2,15 @@
 #include "MiniLua/values.hpp"
 #include <cassert>
 #include <iostream>
+#include <stdexcept>
+#include <string>
 #include <tree_sitter/tree_sitter.hpp>
 #include <utility>
 
 namespace minilua::details::ast {
+
+using namespace std::string_literals;
+
 // helper function
 static auto convert_range(ts::Range range) -> Range {
     return Range{
@@ -44,7 +49,7 @@ Identifier::Identifier(ts::Node node) : id(node) {
     if (node.type_id() != ts::NODE_IDENTIFIER && node.type_id() != ts::NODE_METHOD &&
         node.type_id() != ts::NODE_PROPERTY_IDENTIFIER &&
         node.type_id() != ts::NODE_FUNCTION_NAME_FIELD) {
-        throw std::runtime_error("not an identifier node" + to_string(node.type_id()));
+        throw std::runtime_error("not an identifier node" + std::to_string(node.type_id()));
     }
 }
 auto Identifier::string() const -> std::string { return this->id.text(); }
@@ -746,7 +751,7 @@ auto FunctionStatement::raw() const -> ts::Node { return this->func_stat; }
 // FunctionCall
 FunctionCall::FunctionCall(ts::Node node) : func_call(node) {
     if (node.type_id() != ts::NODE_FUNCTION_CALL) {
-        throw runtime_error("not a function_call node");
+        throw std::runtime_error("not a function_call node");
     }
     assert(node.named_child_count() == 2 || node.named_child_count() == 3);
 }
@@ -778,7 +783,7 @@ auto FunctionCall::raw() const -> ts::Node { return this->func_call; }
 // Table
 Table::Table(ts::Node node) : table(node) {
     if (node.type_id() != ts::NODE_TABLE) {
-        throw runtime_error("not a table node");
+        throw std::runtime_error("not a table node");
     }
 }
 auto Table::fields() const -> std::vector<Field> {
@@ -799,7 +804,7 @@ auto Table::raw() const -> ts::Node { return this->table; }
 // Field
 Field::Field(ts::Node node) : field(node) {
     if (node.type_id() != ts::NODE_FIELD) {
-        throw runtime_error("not a field node");
+        throw std::runtime_error("not a field node");
     }
     assert(node.named_child_count() == 1 || node.named_child_count() == 2);
 }

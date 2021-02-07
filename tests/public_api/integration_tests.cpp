@@ -56,14 +56,10 @@ TEST_CASE("Interpreter integration test") {
                       {std::string("key1"), 25.0}, // NOLINT
                       {std::string("key2"), std::string("value")},
                   })},
-         {"forceValue", [](minilua::CallContext ctx) -> minilua::CallResult {
-              // auto [arg1, arg2] = ctx.arguments();
+         {"forceValue", [](const minilua::CallContext& ctx) -> minilua::CallResult {
               auto arg1 = ctx.arguments().get(0);
               auto arg2 = ctx.arguments().get(1);
-              std::cerr << "arg1: " << arg1 << " ---- " << arg1.origin() << "\n";
-              std::cerr << "arg2: " << arg2 << " ---- " << arg2.origin() << "\n";
               auto change = arg1.force(arg2, "forceValue");
-              std::cerr << "change: " << *change << "\n";
               return minilua::CallResult(change);
           }}});
 
