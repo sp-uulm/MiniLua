@@ -40,3 +40,19 @@ assert(#t8 == 0)
 assert(t8[24] == 14)
 assert(t8[12.4] == 22)
 
+t9 = {22}
+assert(#t9 == 1)
+
+t10 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
+assert(#t10 == 12)
+
+t11 = {1, 2, 3, 4, key = true, key2 = false}
+assert(#t11 == 4)
+
+t12 = {1, key = 2, [3] = 3}
+assert(#t12 == 1)
+
+t13 = {[1] = 1, [2] = 2, [4] = 4}
+-- both are correct according to the definition in the lua spec:
+--   (border == 0 or t[border] ~= nil) and t[border + 1] == nil
+assert(#t13 == 2 or #t13 == 4)

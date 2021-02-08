@@ -20,13 +20,32 @@ auto TableImpl::calc_border() const -> int {
         return 0;
     }
 
-    // TODO this can be done in O(log N)
-    int border = 2;
-    while (has_value(border)) {
-        ++border;
+    // Binary search (slightly modified)
+    // to find the integer key where the predicate for the border is true
+    //   (border == 0 or t[border] ~= nil) and t[border + 1] == nil
+    //
+    // This does not in all cases return the same border as the official lua
+    // interpreter. But this is premitted.
+    // See: https://www.lua.org/manual/5.3/manual.html#3.4.7
+    int lower = 1;
+    int upper = this->value.size();
+
+    while (lower <= upper) {
+        int border = (upper + lower) / 2;
+
+        bool it_has = has_value(border);
+        bool next_has = has_value(border + 1);
+
+        if (it_has && next_has) {
+            lower = border + 1;
+        } else if (!it_has) {
+            upper = border - 1;
+        } else if (it_has && !next_has) {
+            return border;
+        }
     }
 
-    return border - 1;
+    throw std::runtime_error("implemented of operator # has a bug");
 }
 
 // struct Table
