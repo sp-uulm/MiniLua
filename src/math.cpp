@@ -126,7 +126,7 @@ auto atan(const CallContext& ctx) -> Value {
                 Number n = std::get<Number>(new_value);
                 return old_value1.force(std::tan(n.value));
             } else {
-                double theta = std::get<Number>(new_value).value * 180 / PI;
+                double theta = std::get<Number>(new_value).value;
                 old_value1.force(len * std::sin(theta));
                 return old_value2.force(len * std::cos(theta));
             }
