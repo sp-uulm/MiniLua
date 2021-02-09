@@ -115,18 +115,20 @@ auto asin(const CallContext& ctx) -> Value {
 }
 
 auto atan(const CallContext& ctx) -> Value {
+    double len = -1;
     auto origin = Origin(BinaryOrigin{
         .lhs = make_owning<Value>(ctx.arguments().get(0)),
         .rhs = make_owning<Value>(ctx.arguments().get(1)),
         .location = ctx.call_location(),
-        .reverse = [](const Value& new_value, const Value& old_value1,
-                      const Value& old_value2) -> std::optional<SourceChangeTree> {
+        .reverse = [len](const Value& new_value, const Value& old_value1, const Value& old_value2)
+            -> std::optional<SourceChangeTree> {
             if (old_value2 == Nil()) {
                 Number n = std::get<Number>(new_value);
                 return old_value1.force(std::tan(n.value));
             } else {
-                Number n = std::get<Number>(new_value);
-                return old_value1.force(Nil()); // TODO: add real return
+                double theta = std::get<Number>(new_value).value * 180 / PI;
+                old_value1.force(len * std::sin(theta));
+                return old_value2.force(len * std::cos(theta));
             }
         }});
 
@@ -135,8 +137,11 @@ auto atan(const CallContext& ctx) -> Value {
 
     return std::visit(
                overloaded{
-                   [](Number x, Number y) { return Value(std::atan2(x.value, y.value)); },
-                   [ctx](Number x, String y) {
+                   [&len](Number x, Number y) {
+                       len = std::sqrt(x.value * x.value + y.value * y.value);
+                       return Value(std::atan2(x.value, y.value));
+                   },
+                   [ctx, &len](Number x, String y) {
                        Vallist list = Vallist({Value(std::move(y))});
                        CallContext new_ctx = ctx.make_new(list);
                        auto res = to_number(new_ctx);
@@ -144,6 +149,7 @@ auto atan(const CallContext& ctx) -> Value {
                        if (res != Nil()) {
                            auto num = get<Number>(res);
 
+                           len = std::sqrt(x.value * x.value + num.value * num.value);
                            return Value(std::atan2(x.value, num.value));
                        } else {
                            throw std::runtime_error(
@@ -156,7 +162,7 @@ auto atan(const CallContext& ctx) -> Value {
                            "bad argument #2 to 'atan' (number expected, got " +
                            std::string(y.TYPE) + ")");
                    },
-                   [ctx](String x, Number y) {
+                   [ctx, &len](String x, Number y) {
                        Vallist list = Vallist({Value(std::move(x))});
                        CallContext new_ctx = ctx.make_new(list);
                        auto res = to_number(new_ctx);
@@ -164,13 +170,14 @@ auto atan(const CallContext& ctx) -> Value {
                        if (res != Nil()) {
                            auto num = get<Number>(res);
 
+                           len = std::sqrt(num.value * num.value + y.value * y.value);
                            return Value(std::atan2(num.value, y.value));
                        } else {
                            throw std::runtime_error(
                                "bad argument #1 to 'atan' (number expected, got string)");
                        }
                    },
-                   [ctx](String x, String y) {
+                   [ctx, &len](String x, String y) {
                        Vallist list = Vallist({Value(std::move(x))});
                        CallContext new_ctx = ctx.make_new(list);
                        auto res1 = to_number(new_ctx);
@@ -184,6 +191,7 @@ auto atan(const CallContext& ctx) -> Value {
                                auto x1 = std::get<Number>(res1);
                                auto x2 = std::get<Number>(res2);
 
+                               len = std::sqrt(x1.value * x1.value + x2.value * x2.value);
                                return Value(std::atan2(x1.value, x2.value));
                            } else {
                                throw std::runtime_error(
