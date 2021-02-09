@@ -665,7 +665,7 @@ auto operator!=(const UnaryOrigin&, const UnaryOrigin&) noexcept -> bool;
 auto operator<<(std::ostream&, const UnaryOrigin&) -> std::ostream&;
 
 /**
- * Origin for a Value that was created in a nary operation (a function that receives n arguments)
+ * Origin for a Value that was created in a n-ary operation (a function that receives n arguments)
  * (or some functions with one argument) using val.
  */
 struct NaryOrigin {
