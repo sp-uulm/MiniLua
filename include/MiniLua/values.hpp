@@ -665,6 +665,23 @@ auto operator!=(const UnaryOrigin&, const UnaryOrigin&) noexcept -> bool;
 auto operator<<(std::ostream&, const UnaryOrigin&) -> std::ostream&;
 
 /**
+ * Origin for a Value that was created in a nary operation (a function that receives n arguments)
+ * (or some functions with one argument) using val.
+ */
+struct NaryOrigin {
+    using ReverseFn = std::optional<SourceChangeTree>(const Value&, const Vallist&);
+
+    owning_ptr<Vallist> values;
+    std::optional<Range> location;
+    // new_value, old_values
+    std::function<ReverseFn> reverse;
+};
+
+auto operator==(const NaryOrigin&, const NaryOrigin&) noexcept -> bool;
+auto operator!=(const NaryOrigin&, const NaryOrigin&) noexcept -> bool;
+auto operator<<(std::ostream&, const NaryOrigin&) -> std::ostream&;
+
+/**
  * The origin of a value.
  *
  * Defaults to `NoOrigin`.
@@ -676,7 +693,8 @@ auto operator<<(std::ostream&, const UnaryOrigin&) -> std::ostream&;
  */
 class Origin {
 public:
-    using Type = std::variant<NoOrigin, ExternalOrigin, LiteralOrigin, BinaryOrigin, UnaryOrigin>;
+    using Type = std::variant<
+        NoOrigin, ExternalOrigin, LiteralOrigin, BinaryOrigin, UnaryOrigin, NaryOrigin>;
 
 private:
     Type origin;
@@ -689,6 +707,7 @@ public:
     Origin(LiteralOrigin);
     Origin(BinaryOrigin);
     Origin(UnaryOrigin);
+    Origin(NaryOrigin);
 
     [[nodiscard]] auto raw() const -> const Type&;
     auto raw() -> Type&;

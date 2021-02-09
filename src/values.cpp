@@ -523,6 +523,7 @@ Origin::Origin(ExternalOrigin origin) : origin(origin) {}
 Origin::Origin(LiteralOrigin origin) : origin(origin) {}
 Origin::Origin(BinaryOrigin origin) : origin(origin) {}
 Origin::Origin(UnaryOrigin origin) : origin(origin) {}
+Origin::Origin(NaryOrigin origin) : origin(origin) {}
 
 [[nodiscard]] auto Origin::raw() const -> const Type& { return this->origin; }
 auto Origin::raw() -> Type& { return this->origin; }
@@ -551,6 +552,9 @@ auto Origin::raw() -> Type& { return this->origin; }
             },
             [&new_value](const UnaryOrigin& origin) -> std::optional<SourceChangeTree> {
                 return origin.reverse(new_value, *origin.val);
+            },
+            [&new_value](const NaryOrigin& origin) -> std::optional<SourceChangeTree> {
+                return origin.reverse(new_value, *origin.values);
             },
             [&new_value](const LiteralOrigin& origin) -> std::optional<SourceChangeTree> {
                 return SourceChange(origin.location, new_value.to_literal());
@@ -630,6 +634,27 @@ auto operator!=(const UnaryOrigin& lhs, const UnaryOrigin& rhs) noexcept -> bool
 auto operator<<(std::ostream& os, const UnaryOrigin& self) -> std::ostream& {
     os << "UnaryOrigin{ "
        << ".val = " << self.val << ", "
+       << ".location = ";
+    if (self.location) {
+        os << self.location.value();
+    } else {
+        os << "nullopt";
+    }
+    os << ", .reverse = " << reinterpret_cast<void*>(self.reverse.target<UnaryOrigin::ReverseFn>());
+    os << " }";
+    return os;
+}
+
+// struct NaryOrigin
+auto operator==(const NaryOrigin& lhs, const NaryOrigin& rhs) noexcept -> bool {
+    return lhs.values == rhs.values && lhs.location == rhs.location;
+}
+auto operator!=(const NaryOrigin& lhs, const NaryOrigin& rhs) noexcept -> bool {
+    return !(lhs == rhs);
+}
+auto operator<<(std::ostream& os, const NaryOrigin& self) -> std::ostream& {
+    os << "UnaryOrigin{ "
+       << ".values = " << self.values << ", "
        << ".location = ";
     if (self.location) {
         os << self.location.value();
