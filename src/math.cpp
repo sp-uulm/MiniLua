@@ -457,10 +457,8 @@ auto random(const CallContext& ctx) -> Value {
         .lhs = make_owning<Value>(ctx.arguments().get(0)),
         .rhs = make_owning<Value>(ctx.arguments().get(1)),
         .location = ctx.call_location(),
-        .reverse = [](const Value& /*unused*/, const Value& /*unused*/,
-                      const Value& /*unused*/) -> std::optional<SourceChangeTree> {
-            return std::nullopt; );
-        } // TODO: return it correctly
+        .reverse = [](const Value& /*unused*/, const Value& /*unused*/, const Value& /*unused*/)
+            -> std::optional<SourceChangeTree> { return std::nullopt; } // TODO: return it correctly
     });
     auto x = ctx.arguments().get(0);
     auto y = ctx.arguments().get(1);
