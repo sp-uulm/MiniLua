@@ -554,7 +554,7 @@ auto Origin::raw() -> Type& { return this->origin; }
                 return origin.reverse(new_value, *origin.val);
             },
             [&new_value](const MultipleArgsOrigin& origin) -> std::optional<SourceChangeTree> {
-                return origin.reverse(new_value, *origin.values);
+                return origin.reverse(new_value, origin.values);
             },
             [&new_value](const LiteralOrigin& origin) -> std::optional<SourceChangeTree> {
                 return SourceChange(origin.location, new_value.to_literal());
@@ -645,7 +645,7 @@ auto operator<<(std::ostream& os, const UnaryOrigin& self) -> std::ostream& {
     return os;
 }
 
-// struct NaryOrigin
+// struct MultipleArgsOrigin
 auto operator==(const MultipleArgsOrigin& lhs, const MultipleArgsOrigin& rhs) noexcept -> bool {
     return lhs.values == rhs.values && lhs.location == rhs.location;
 }
