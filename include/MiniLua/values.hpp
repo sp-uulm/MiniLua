@@ -671,7 +671,7 @@ auto operator<<(std::ostream&, const UnaryOrigin&) -> std::ostream&;
 struct MultipleArgsOrigin {
     using ReverseFn = std::optional<SourceChangeTree>(const Value&, const Vallist&);
 
-    owning_ptr<Vallist> values;
+    Vallist values;
     std::optional<Range> location;
     // new_value, old_values
     std::function<ReverseFn> reverse;
