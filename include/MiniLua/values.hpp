@@ -668,7 +668,7 @@ auto operator<<(std::ostream&, const UnaryOrigin&) -> std::ostream&;
  * Origin for a Value that was created in a n-ary operation (a function that receives n arguments)
  * (or some functions with one argument) using val.
  */
-struct NaryOrigin {
+struct MultipleArgsOrigin {
     using ReverseFn = std::optional<SourceChangeTree>(const Value&, const Vallist&);
 
     owning_ptr<Vallist> values;
@@ -677,9 +677,9 @@ struct NaryOrigin {
     std::function<ReverseFn> reverse;
 };
 
-auto operator==(const NaryOrigin&, const NaryOrigin&) noexcept -> bool;
-auto operator!=(const NaryOrigin&, const NaryOrigin&) noexcept -> bool;
-auto operator<<(std::ostream&, const NaryOrigin&) -> std::ostream&;
+auto operator==(const MultipleArgsOrigin&, const MultipleArgsOrigin&) noexcept -> bool;
+auto operator!=(const MultipleArgsOrigin&, const MultipleArgsOrigin&) noexcept -> bool;
+auto operator<<(std::ostream&, const MultipleArgsOrigin&) -> std::ostream&;
 
 /**
  * The origin of a value.
@@ -694,7 +694,7 @@ auto operator<<(std::ostream&, const NaryOrigin&) -> std::ostream&;
 class Origin {
 public:
     using Type = std::variant<
-        NoOrigin, ExternalOrigin, LiteralOrigin, BinaryOrigin, UnaryOrigin, NaryOrigin>;
+        NoOrigin, ExternalOrigin, LiteralOrigin, BinaryOrigin, UnaryOrigin, MultipleArgsOrigin>;
 
 private:
     Type origin;
@@ -707,7 +707,7 @@ public:
     Origin(LiteralOrigin);
     Origin(BinaryOrigin);
     Origin(UnaryOrigin);
-    Origin(NaryOrigin);
+    Origin(MultipleArgsOrigin);
 
     [[nodiscard]] auto raw() const -> const Type&;
     auto raw() -> Type&;

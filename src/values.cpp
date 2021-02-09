@@ -523,7 +523,7 @@ Origin::Origin(ExternalOrigin origin) : origin(origin) {}
 Origin::Origin(LiteralOrigin origin) : origin(origin) {}
 Origin::Origin(BinaryOrigin origin) : origin(origin) {}
 Origin::Origin(UnaryOrigin origin) : origin(origin) {}
-Origin::Origin(NaryOrigin origin) : origin(origin) {}
+Origin::Origin(MultipleArgsOrigin origin) : origin(origin) {}
 
 [[nodiscard]] auto Origin::raw() const -> const Type& { return this->origin; }
 auto Origin::raw() -> Type& { return this->origin; }
@@ -553,7 +553,7 @@ auto Origin::raw() -> Type& { return this->origin; }
             [&new_value](const UnaryOrigin& origin) -> std::optional<SourceChangeTree> {
                 return origin.reverse(new_value, *origin.val);
             },
-            [&new_value](const NaryOrigin& origin) -> std::optional<SourceChangeTree> {
+            [&new_value](const MultipleArgsOrigin& origin) -> std::optional<SourceChangeTree> {
                 return origin.reverse(new_value, *origin.values);
             },
             [&new_value](const LiteralOrigin& origin) -> std::optional<SourceChangeTree> {
@@ -646,14 +646,14 @@ auto operator<<(std::ostream& os, const UnaryOrigin& self) -> std::ostream& {
 }
 
 // struct NaryOrigin
-auto operator==(const NaryOrigin& lhs, const NaryOrigin& rhs) noexcept -> bool {
+auto operator==(const MultipleArgsOrigin& lhs, const MultipleArgsOrigin& rhs) noexcept -> bool {
     return lhs.values == rhs.values && lhs.location == rhs.location;
 }
-auto operator!=(const NaryOrigin& lhs, const NaryOrigin& rhs) noexcept -> bool {
+auto operator!=(const MultipleArgsOrigin& lhs, const MultipleArgsOrigin& rhs) noexcept -> bool {
     return !(lhs == rhs);
 }
-auto operator<<(std::ostream& os, const NaryOrigin& self) -> std::ostream& {
-    os << "UnaryOrigin{ "
+auto operator<<(std::ostream& os, const MultipleArgsOrigin& self) -> std::ostream& {
+    os << "MultipleArgsOrigin{ "
        << ".values = " << self.values << ", "
        << ".location = ";
     if (self.location) {
@@ -661,7 +661,8 @@ auto operator<<(std::ostream& os, const NaryOrigin& self) -> std::ostream& {
     } else {
         os << "nullopt";
     }
-    os << ", .reverse = " << reinterpret_cast<void*>(self.reverse.target<UnaryOrigin::ReverseFn>());
+    os << ", .reverse = "
+       << reinterpret_cast<void*>(self.reverse.target<MultipleArgsOrigin::ReverseFn>());
     os << " }";
     return os;
 }
