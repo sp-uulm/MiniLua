@@ -246,8 +246,8 @@ auto ceil(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
-            Number n = std::get<Number>(new_value);
-            return old_value.force(Nil()); // TODO: add real return value
+            return old_value.force(new_value); // Just guessing that this is the right value because
+                                               // every information about post-comma numbers is lost
         }});
 
     return math_helper(ctx, static_cast<double (*)(double)>(&std::ceil), "ceil");
@@ -299,8 +299,8 @@ auto floor(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
-            Number n = std::get<Number>(new_value);
-            return old_value.force(Nil()); // TODO: add real return value
+            return old_value.force(new_value); // Just guessing that it is the right value because
+                                               // all information of post-komma are lost
         }});
 
     return math_helper(ctx, static_cast<double (*)(double)>(&std::floor), "floor");
@@ -315,6 +315,7 @@ auto fmod(const CallContext& ctx) -> Value {
                       const Value& old_value2) -> std::optional<SourceChangeTree> {
             return old_value1.force(Nil());
         }}); // TODO: return it correctly
+
     // lua throws an error if x and y are 0 so i cant use the helper-function
     Vallist list = Vallist({ctx.arguments().get(0)});
     CallContext new_ctx = ctx.make_new(list);
@@ -354,9 +355,15 @@ auto log(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value, const Value& old_value1,
                       const Value& old_value2) -> std::optional<SourceChangeTree> {
-            return old_value1.force(Nil());
-        } // TODO: return it correctly
-    });
+            if (old_value2 == Nil()) {
+                Number n = std::get<Number>(new_value);
+                return old_value1.force(std::exp(n.value));
+            } else {
+                // log(x)/log(base) is ambiguously. so no clear return could be done
+                // if someone knows a way feel free to change it.
+                return std::nullopt;
+            }
+        }});
 
     auto x = ctx.arguments().get(0);
     auto base = ctx.arguments().get(1);
@@ -384,6 +391,11 @@ auto log(const CallContext& ctx) -> Value {
 }
 
 auto max(const CallContext& ctx) -> Value {
+    Origin origin = Origin(MultipleArgsOrigin{
+        .values = ctx.arguments(),
+        .location = ctx.call_location(),
+        .reverse = [](const Value& /*new_value*/, const Vallist& /*args*/)
+            -> std::optional<SourceChangeTree> { return std::nullopt; }});
     auto args = ctx.arguments();
 
     if (args.size() == 0) {
@@ -396,10 +408,15 @@ auto max(const CallContext& ctx) -> Value {
             max = a;
         }
     }
-    return max;
+    return max.with_origin(origin);
 }
 
 auto min(const CallContext& ctx) -> Value {
+    Origin origin = Origin(MultipleArgsOrigin{
+        .values = ctx.arguments(),
+        .location = ctx.call_location(),
+        .reverse = [](const Value& /*new_value*/, const Vallist& /*args*/)
+            -> std::optional<SourceChangeTree> { return std::nullopt; }});
     auto args = ctx.arguments();
 
     if (args.size() == 0) {
@@ -412,7 +429,7 @@ auto min(const CallContext& ctx) -> Value {
             min = a;
         }
     }
-    return min;
+    return min.with_origin(origin);
 }
 
 auto modf(const CallContext& ctx) -> Vallist {
@@ -493,6 +510,7 @@ auto random(const CallContext& ctx) -> Value {
         .with_origin(origin);
 }
 
+// no origin because no value is changed.
 void randomseed(const CallContext& ctx) {
     auto x = ctx.arguments().get(0);
 
@@ -551,8 +569,15 @@ auto to_integer(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
-            Number n = std::get<Number>(new_value);
-            return old_value.force(Nil()); // TODO: add real return value
+            if (new_value == Nil()) {
+                return std::nullopt; // if result is Nil, converting to an integer was not possible.
+                                     // so it isnt possible to revert anything.
+            } else {
+                return old_value.force(new_value);
+            }
+            // Second solution (i dont know which is the correct one)
+            // please select the right one in the review and delete the wrong one
+            // return old_value.force(new_value);
         }});
 
     auto x = ctx.arguments().get(0);
