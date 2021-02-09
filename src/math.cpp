@@ -1,5 +1,6 @@
 #include <cmath>
 #include <iostream>
+#include <optional>
 #include <random>
 #include <regex>
 #include <stdexcept>
@@ -82,7 +83,7 @@ auto abs(const CallContext& ctx) -> Value {
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
             Number n = std::get<Number>(new_value);
-            return old_value.force(Nil()); // TODO: add real return value
+            return old_value.force(n); // just guess that it was a positive number
         }});
     return math_helper(ctx, static_cast<double (*)(double)>(&std::abs), "abs");
 }
@@ -456,9 +457,9 @@ auto random(const CallContext& ctx) -> Value {
         .lhs = make_owning<Value>(ctx.arguments().get(0)),
         .rhs = make_owning<Value>(ctx.arguments().get(1)),
         .location = ctx.call_location(),
-        .reverse = [](const Value& new_value, const Value& old_value1,
-                      const Value& old_value2) -> std::optional<SourceChangeTree> {
-            return old_value1.force(Nil());
+        .reverse = [](const Value& /*unused*/, const Value& /*unused*/,
+                      const Value& /*unused*/) -> std::optional<SourceChangeTree> {
+            return std::nullopt; );
         } // TODO: return it correctly
     });
     auto x = ctx.arguments().get(0);
@@ -589,10 +590,9 @@ auto type(const CallContext& ctx) -> Value {
     auto origin = Origin(UnaryOrigin{
         .val = make_owning<Value>(ctx.arguments().get(0)),
         .location = ctx.call_location(),
-        .reverse = [](const Value& new_value,
-                      const Value& old_value) -> std::optional<SourceChangeTree> {
-            Number n = std::get<Number>(new_value);
-            return old_value.force(Nil()); // TODO: add real return value
+        .reverse = [](const Value& /*unused*/,
+                      const Value& /*unused*/) -> std::optional<SourceChangeTree> {
+            return std::nullopt; // only with the information of the type it is not reversable
         }});
 
     auto x = ctx.arguments().get(0);
@@ -612,10 +612,11 @@ auto ult(const CallContext& ctx) -> Value {
         .lhs = make_owning<Value>(ctx.arguments().get(0)),
         .rhs = make_owning<Value>(ctx.arguments().get(1)),
         .location = ctx.call_location(),
-        .reverse = [](const Value& new_value, const Value& old_value1,
-                      const Value& old_value2) -> std::optional<SourceChangeTree> {
-            return old_value1.force(Nil());
-        }}); // TODO: return it correctly
+        .reverse = [](const Value& /*unused*/, const Value& /*unused*/,
+                      const Value& /*unused*/) -> std::optional<SourceChangeTree> {
+            return std::nullopt;
+        }}); // Not reverseable because only an bool is avaible and with only the bool, its not
+             // possible to gain correctly the numbers back.
 
     return math_helper<bool>(
                ctx,
