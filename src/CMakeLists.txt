@@ -47,6 +47,7 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_EXTRACT_PRIVATE YES)
     set(DOXYGEN_EXTRACT_STATIC YES)
     set(DOXYGEN_PLANTUML_JAR_PATH /usr/share/java/plantuml/plantuml.jar)
+    set(DOXYGEN_EXAMPLE_PATH ${PROJECT_SOURCE_DIR}/tests/docs)
     set(DOXYGEN_HTML_EXTRA_STYLESHEET
         ${PROJECT_SOURCE_DIR}/extern/doxygen-dark-theme/custom.css
         ${PROJECT_SOURCE_DIR}/extern/doxygen-dark-theme/custom_dark_theme.css)
