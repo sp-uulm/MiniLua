@@ -641,61 +641,45 @@ auto to_integer(const CallContext& ctx) -> Value {
 }
 
 auto type(const CallContext& ctx) -> Value {
-    auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(ctx.arguments().get(0)),
-        .location = ctx.call_location(),
-        .reverse = [](const Value& /*unused*/,
-                      const Value& /*unused*/) -> std::optional<SourceChangeTree> {
-            return std::nullopt; // only with the information of the type it is not reversable
-        }});
-
+    // only with the information of the type it is not reversable
     auto x = ctx.arguments().get(0);
 
     if (x.is_number()) {
         Number num = std::get<Number>(x);
         double fraction = std::modf(num.value, &num.value);
 
-        return Value(fraction == 0.0 ? "integer" : "float").with_origin(origin);
+        return Value(fraction == 0.0 ? "integer" : "float");
     } else {
-        return Value(Nil()).with_origin(origin);
+        return Value(Nil());
     }
 }
 
 auto ult(const CallContext& ctx) -> Value {
-    auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(ctx.arguments().get(0)),
-        .rhs = make_owning<Value>(ctx.arguments().get(1)),
-        .location = ctx.call_location(),
-        .reverse = [](const Value& /*unused*/, const Value& /*unused*/,
-                      const Value& /*unused*/) -> std::optional<SourceChangeTree> {
-            return std::nullopt;
-        }}); // Not reverseable because only an bool is avaible and with only the bool, its not
-             // possible to gain correctly the numbers back.
-
+    // Not reverseable because only an bool is avaible and with only the bool, its not
+    // possible to gain correctly the numbers back. So no origin is needed
     return math_helper<bool>(
-               ctx,
-               [](double m, double n) -> bool {
-                   double num_m;
-                   double fraction = std::modf(m, &num_m);
+        ctx,
+        [](double m, double n) -> bool {
+            double num_m;
+            double fraction = std::modf(m, &num_m);
 
-                   if (fraction == 0.0) {
-                       double num_n;
-                       fraction = std::modf(n, &num_n);
-                       if (fraction == 0.0) {
-                           unsigned long ml = (long)num_m;
-                           unsigned long nl = (long)n;
-                           return ml < nl;
-                       } else {
-                           throw std::runtime_error(
-                               "bad argument #2 to 'ult' (number has no integer representation)");
-                       }
-                   } else {
-                       throw std::runtime_error(
-                           "bad argument #1 to 'ult' (number has no integer representation)");
-                   }
-               },
-               "ult")
-        .with_origin(origin);
+            if (fraction == 0.0) {
+                double num_n;
+                fraction = std::modf(n, &num_n);
+                if (fraction == 0.0) {
+                    unsigned long ml = (long)num_m;
+                    unsigned long nl = (long)n;
+                    return ml < nl;
+                } else {
+                    throw std::runtime_error(
+                        "bad argument #2 to 'ult' (number has no integer representation)");
+                }
+            } else {
+                throw std::runtime_error(
+                    "bad argument #1 to 'ult' (number has no integer representation)");
+            }
+        },
+        "ult");
 }
 
 auto get_random_seed() -> std::default_random_engine { return random_seed; }
