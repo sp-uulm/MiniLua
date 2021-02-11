@@ -17,6 +17,11 @@
 namespace minilua::math {
 
 std::default_random_engine random_seed;
+static const std::string pattern_number(R"(\s*-?\d+)");
+static const std::string pattern_hex(R"(\s*-?0[xX][\dA-Fa-f]+)");
+static const std::string pattern_exp(R"(\s*-?\d+\.?\d*[eE]\d+)");
+static const std::regex
+    pattern_all_number_variants(pattern_number + "|" + pattern_hex + "|" + pattern_exp);
 
 // functions to reduce the duplicate code because almost every math-function does the same thing
 // except the function that is called to determine the new value
@@ -624,13 +629,7 @@ auto to_integer(const CallContext& ctx) -> Value {
                        }
                    },
                    [](const String& s) -> Value {
-                       std::regex pattern_number(R"(\s*-?\d+)");
-                       std::regex pattern_hex(R"(\s*-?0[xX][\dA-Fa-f]+)");
-                       std::regex pattern_exp(R"(\s*-?\d+\.?\d*[eE]\d+)");
-
-                       if (std::regex_match(s.value, pattern_number) ||
-                           std::regex_match(s.value, pattern_hex) ||
-                           std::regex_match(s.value, pattern_exp)) {
+                       if (std::regex_match(s.value, pattern_all_number_variants)) {
                            return Value(std::stoi(s.value, nullptr, 0));
                        } else {
                            return Nil();
