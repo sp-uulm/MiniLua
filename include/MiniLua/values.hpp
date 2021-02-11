@@ -10,7 +10,7 @@
 #include <variant>
 #include <vector>
 
-#include "environment.hpp"
+#include "MiniLua/allocator.hpp"
 #include "source_change.hpp"
 #include "utils.hpp"
 
@@ -21,6 +21,8 @@
     }
 
 namespace minilua {
+
+class Environment;
 
 // helper template used later to repeat a type in fold expression
 template <size_t, class T> using T_ = T;
@@ -229,6 +231,8 @@ auto operator<<(std::ostream&, const String&) -> std::ostream&;
 // Forward declaration
 class CallContext;
 
+struct TableImpl;
+
 /**
  * Table is basically a `std::map`.
  *
@@ -239,8 +243,11 @@ class CallContext;
  * a cycle. I.e. a field of the table references (directly or indirectly) the table itself.
  */
 class Table {
-    struct Impl;
-    std::shared_ptr<Impl> impl;
+private:
+    // The impl pointer is allocated through this allocator and will also
+    // be freed through it.
+    MemoryAllocator* allocator;
+    TableImpl* impl;
 
 public:
     // iterator definitions
@@ -313,9 +320,22 @@ public:
 
     constexpr static const std::string_view TYPE = "table";
 
+    // NOTE: default constructor has to be separate from the one only taking the
+    // allocator and we can't use default arguments there.
     Table();
-    Table(std::unordered_map<Value, Value>);
-    Table(std::initializer_list<std::pair<const Value, Value>> values);
+    Table(MemoryAllocator* allocator);
+    Table(std::unordered_map<Value, Value>, MemoryAllocator* allocator = &GLOBAL_ALLOCATOR);
+    Table(
+        std::initializer_list<std::pair<const Value, Value>> values,
+        MemoryAllocator* allocator = &GLOBAL_ALLOCATOR);
+
+    /**
+     * Copy table to different allocator.
+     *
+     * This will make a deep copy meaning all nested tables will also be copied
+     * to the allocator.
+     */
+    Table(const Table& other, MemoryAllocator* allocator);
 
     Table(const Table& other);
     Table(Table&& other) noexcept;
@@ -405,6 +425,11 @@ public:
         -> CallContext {
         return this->make_new(Vallist{args...}, location);
     }
+
+    /**
+     * Helper method to create a table in the allocator of the environment.
+     */
+    [[nodiscard]] auto make_table() const -> Table;
 
     /**
      * Returns the location of the call.
@@ -795,6 +820,15 @@ public:
      */
     template <typename Fn, typename = std::enable_if_t<std::is_invocable_v<Fn, CallContext>>>
     Value(Fn val) : Value(Function(std::forward<Fn>(val))) {}
+
+    /**
+     * Copies the value to another allocator.
+     *
+     * This only has an effect for `Table`s. Other values are simply copied.
+     * Table will be deep copied to the given allocators. That means all nested
+     * tables will also be copied.
+     */
+    Value(const Value&, MemoryAllocator* allocator);
 
     Value(const Value&);
     // can't use noexcept = default in older compilers (pre c++20 compilers)

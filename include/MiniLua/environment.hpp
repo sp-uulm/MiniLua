@@ -6,7 +6,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include "allocator.hpp"
 #include "utils.hpp"
+#include "values.hpp"
 
 namespace minilua {
 
@@ -29,6 +31,7 @@ private:
 
 public:
     Environment();
+    Environment(MemoryAllocator* allocator);
     explicit Environment(Impl);
     Environment(const Environment&);
     // can't use noexcept = default in older compilers (pre c++20 compilers)
@@ -40,6 +43,11 @@ public:
     // NOLINTNEXTLINE
     auto operator=(Environment&&) -> Environment&;
     friend void swap(Environment&, Environment&);
+
+    /**
+     * Helper function to create a table in the same allocator as the environment.
+     */
+    [[nodiscard]] auto make_table() const -> Table;
 
     /**
      * Populates the environment with the (implemented) lua standard library.
@@ -56,6 +64,11 @@ public:
      */
     void add(const std::string& name, Value value);
     void add(std::string&& name, Value value);
+
+    /**
+     * Add a table variable with the given name and return the table.
+     */
+    auto add_table(const std::string& name) -> Table;
 
     /**
      * Add multiple variables to the environment.

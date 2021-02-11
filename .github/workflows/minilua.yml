@@ -171,10 +171,9 @@ jobs:
     env:
       CC: clang-10
       CXX: clang++-10
-      CLANG_FORMAT: clang-format-10
+      CLANG_FORMAT: clang-format-11
 
-    # TODO eventually turn off
-    continue-on-error: true
+    continue-on-error: false
 
     steps:
       - name: Checkout Code
@@ -184,10 +183,9 @@ jobs:
       - name: Setup VM
         run: |
           ./.github/workflows/install_packages.sh
-          sudo apt-get install clang-format
+          sudo apt-get install clang-format-11
       - name: Setup CMake
         run: ./scripts/setup_build.sh
       - name: Lint
-        # TODO eventually turn on
-        run: ./scripts/check_format.sh -ferror-limit=1 --dry-run || true
+        run: ./scripts/check_format.sh
 

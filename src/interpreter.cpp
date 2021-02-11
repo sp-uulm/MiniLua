@@ -45,16 +45,19 @@ struct Interpreter::Impl {
     ts::Parser parser;
     std::string source_code;
     ts::Tree tree;
+    std::unique_ptr<MemoryAllocator> allocator;
     Environment env;
 
-    Impl(std::string initial_source_code, Environment env)
+    Impl(std::string initial_source_code)
         : source_code(std::move(initial_source_code)), tree(parser.parse_string(this->source_code)),
-          env(std::move(env)) {}
+          allocator(std::make_unique<MemoryAllocator>()), env(allocator.get()) {}
+
+    ~Impl() { allocator->free_all(); }
 };
 
 Interpreter::Interpreter() : Interpreter("") {}
 Interpreter::Interpreter(std::string initial_source_code)
-    : impl(std::make_unique<Interpreter::Impl>(std::move(initial_source_code), Environment())) {}
+    : impl(std::make_unique<Interpreter::Impl>(std::move(initial_source_code))) {}
 Interpreter::~Interpreter() = default;
 
 auto Interpreter::config() -> InterpreterConfig& { return this->_config; }

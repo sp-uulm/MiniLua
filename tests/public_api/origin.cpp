@@ -1,4 +1,5 @@
 #include "MiniLua/source_change.hpp"
+#include <MiniLua/environment.hpp>
 #include <MiniLua/values.hpp>
 #include <catch2/catch.hpp>
 #include <cmath>

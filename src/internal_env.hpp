@@ -3,7 +3,8 @@
 
 #include <unordered_map>
 
-#include "MiniLua/values.hpp"
+#include <MiniLua/environment.hpp>
+#include <MiniLua/values.hpp>
 
 namespace minilua {
 
@@ -37,6 +38,7 @@ using LocalEnv = std::unordered_map<std::string, std::shared_ptr<Value>>;
  * Environment for use in the interpreter.
  */
 class Env {
+    MemoryAllocator* _allocator;
     Table _global;
     LocalEnv _local;
     std::optional<Vallist> varargs;
@@ -48,8 +50,14 @@ class Env {
 
 public:
     Env();
+    Env(MemoryAllocator* allocator);
 
     explicit operator Environment() const;
+
+    /**
+     * Helper method to create a table in the same allocator as the environment.
+     */
+    auto make_table() const -> Table;
 
     /**
      * Returns the table for the global environment.
@@ -132,12 +140,17 @@ public:
     auto get_stdin() -> std::istream*;
     auto get_stdout() -> std::ostream*;
     auto get_stderr() -> std::ostream*;
+
+    [[nodiscard]] auto allocator() const -> MemoryAllocator*;
 };
 
 auto operator<<(std::ostream&, const Env&) -> std::ostream&;
 
 struct Environment::Impl {
     Env inner;
+
+    Impl(Env env);
+    Impl(MemoryAllocator* allocator);
 };
 
 }; // namespace minilua

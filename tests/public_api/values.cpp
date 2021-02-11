@@ -1,3 +1,4 @@
+#include <MiniLua/environment.hpp>
 #include <MiniLua/values.hpp>
 #include <algorithm>
 #include <catch2/catch.hpp>
