@@ -655,8 +655,8 @@ auto type(const CallContext& ctx) -> Value {
 }
 
 auto ult(const CallContext& ctx) -> Value {
-    // Not reverseable because only an bool is avaible and with only the bool, its not
-    // possible to gain correctly the numbers back. So no origin is needed
+    // Not reverseable because only an bool is available and with only the bool, its not
+    // possible to correctly get the numbers back. So no origin is needed
     return math_helper<bool>(
         ctx,
         [](double m, double n) -> bool {
