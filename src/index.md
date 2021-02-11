@@ -50,6 +50,81 @@ if (result.source_change) {
 // re-run
 ```
 
+## Origin Tracking and Source Changes
+
+This Lua interpreter tracks the [Origin](@ref minilua::Origin) of all (or most)
+[Values](@ref minilua::Value). The following Lua code
+
+```lua
+x = 10
+y = 20
+return x^2 + y^2
+```
+
+returns the value `500` and that value has the following origin:
+
+\startuml
+title
+{{wbs
+* BinaryOrigin
+** lhs: BinaryOrigin
+*** lhs: LiteralOrigin
+**** value: 10
+**** line: 1
+*** rhs: LiteralOrigin
+**** value: 2
+**** line: 3
+** rhs: BinaryOrigin
+*** lhs: LiteralOrigin
+**** value: 20
+**** line: 2
+*** rhs: LiteralOrigin
+**** value: 2
+**** line: 3
+}}
+end title
+\enduml
+
+This origin hierarchy allows the interpreter to generate
+[SourceChanges](@ref minilua::SourceChange) if you want to [force](@ref minilua::Value::force)
+a value to a have a different value. I.e.
+
+```lua
+x = 10
+y = 20
+z_squared = x^2 + y^2
+force(z_squared, 400)
+```
+
+This code would generate the following source changes:
+
+\startuml
+title
+{{wbs
+* SourceChangeAlternative
+** SourceChangeAlternative
+*** SourceChange replace "10" on line 1 with "0"
+*** SourceChange replace the first "2" on line 3 with "-9223372036854775808"
+** SourceChangeAlternative
+*** SourceChange replace "20" on line 2 with "17.3205"
+*** SourceChange replace the second "2" on line 3 with "1.90397"
+}}
+end title
+\enduml
+
+Here a [`SourceChangeAlternative`](@ref minilua::SourceChangeAlternative) means
+that exactly one of the *children* should be applied. In this case (because
+multiple `SourceChangeAlternative`s are nested) we could flatten the hierarchy.
+If we apply any of the source changes we will have forced the old value of
+`z_squared` (which was `500`) to the new value `400`.
+
+Note that the second source change (*replace the first "2" on line 3 with
+"-9223372036854775808"*) was generated due to *floating point underflow* and while
+it is correct and would yield the wanted result is probably not what you want to
+apply.
+
+\todo ref to section below
+
 ## Guide for Writing Native Functions
 
 You can write your own C++ functions that are callable from Lua. These functions

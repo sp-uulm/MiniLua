@@ -55,7 +55,7 @@ auto operator!=(const SourceChangeTree& lhs, const SourceChangeTree& rhs) noexce
     return !(lhs == rhs);
 }
 auto operator<<(std::ostream& os, const SourceChangeTree& self) -> std::ostream& {
-    os << "SourceChange{ change = ";
+    os << "SourceChangeTree{ change = ";
     self.visit([&os](const auto& change) { os << change; });
     return os << " }";
 }
@@ -72,7 +72,7 @@ auto operator!=(const SourceChange& lhs, const SourceChange& rhs) noexcept -> bo
     return !(lhs == rhs);
 }
 auto operator<<(std::ostream& os, const SourceChange& self) -> std::ostream& {
-    return os << "SCSingle{ range = " << self.range << ", replacement = \"" << self.replacement
+    return os << "SourceChange{ range = " << self.range << ", replacement = \"" << self.replacement
               << "\", origin = \"" << self.origin << "\", hint = \"" << self.hint << "\" }";
 }
 
@@ -92,7 +92,7 @@ auto operator!=(const SourceChangeCombination& lhs, const SourceChangeCombinatio
     return !(lhs == rhs);
 }
 auto operator<<(std::ostream& os, const SourceChangeCombination& self) -> std::ostream& {
-    os << "SCAnd { ";
+    os << "SourceChangeCombination { ";
     os << "origin = \"" << self.origin << "\", ";
     os << "hint = \"" << self.hint << "\"";
     for (const auto& change : self.changes) {
@@ -122,7 +122,7 @@ auto operator!=(const SourceChangeAlternative& lhs, const SourceChangeAlternativ
     return !(lhs == rhs);
 }
 auto operator<<(std::ostream& os, const SourceChangeAlternative& self) -> std::ostream& {
-    os << "SCOr { ";
+    os << "SourceChangeAlternative { ";
     os << "origin = \"" << self.origin << "\", ";
     os << "hint = \"" << self.hint << "\"";
     for (const auto& change : self.changes) {

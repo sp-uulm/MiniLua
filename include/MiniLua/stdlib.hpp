@@ -7,6 +7,13 @@
 #include "MiniLua/values.hpp"
 
 namespace minilua {
+
+/**
+ * The same as calling `arg1.force(arg2)` where `arg1` and `arg2` are the first
+ * and second argument.
+ */
+auto force(const CallContext& ctx) -> CallResult;
+
 auto to_string(const CallContext& ctx) -> Value;
 
 auto to_number(const CallContext& ctx) -> Value;
@@ -32,6 +39,7 @@ auto next(const CallContext& ctx) -> Vallist;
 auto select(const CallContext& ctx) -> Vallist;
 
 void print(const CallContext& ctx);
+
 } // namespace minilua
 
 #endif

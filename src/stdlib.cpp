@@ -23,6 +23,18 @@ void Environment::add_default_stdlib() {
     this->add("next", next);
     this->add("select", select);
     this->add("print", print);
+    this->add("force", force);
+}
+
+auto force(const CallContext& ctx) -> CallResult {
+    auto old_value = ctx.arguments().get(0);
+    auto new_value = ctx.arguments().get(1);
+
+    if (old_value.is_nil() || new_value.is_nil()) {
+        throw std::runtime_error("requires two arguments (old_value and new_value)");
+    }
+
+    return CallResult(old_value.force(new_value));
 }
 
 /**
