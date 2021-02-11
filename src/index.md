@@ -61,7 +61,7 @@ y = 20
 return x^2 + y^2
 ```
 
-returns the value `500` and that value has the following origin:
+returns the value 500 and that value has the following origin:
 
 \startuml
 title
@@ -87,7 +87,8 @@ end title
 
 This origin hierarchy allows the interpreter to generate
 [SourceChanges](@ref minilua::SourceChange) if you want to [force](@ref minilua::Value::force)
-a value to a have a different value. I.e.
+a value to a have a different value. I.e. here we force the value of the expression
+`x^2 + y^2` (which is 500) to `400`.
 
 ```lua
 x = 10
@@ -116,14 +117,14 @@ Here a [`SourceChangeAlternative`](@ref minilua::SourceChangeAlternative) means
 that exactly one of the *children* should be applied. In this case (because
 multiple `SourceChangeAlternative`s are nested) we could flatten the hierarchy.
 If we apply any of the source changes we will have forced the old value of
-`z_squared` (which was `500`) to the new value `400`.
+`z_squared` (which was 500) to the new value 400.
 
 Note that the second source change (*replace the first "2" on line 3 with
 "-9223372036854775808"*) was generated due to *floating point underflow* and while
 it is correct and would yield the wanted result is probably not what you want to
 apply.
 
-\todo ref to section below
+See also: \ref generating-custom-sourcechanges when writing native functions.
 
 ## Guide for Writing Native Functions
 
@@ -194,9 +195,12 @@ function add_to_global_env(arg)
 end
 ```
 
-If you want to create a table inside of a native function you also have to use
-the CallContext so that the table uses the same allocator as all other tables
-generated in the interpreter.
+### Creating Values in Native Functions
+
+You can create most [Values](@ref minilua::Value) (except Tables) directly
+through the corresponding constructor. If you want to create tables you have to
+call `CallContext::make_table()`. This will ensure that the table uses the same
+allocator as all other values in the interpreter. See \ref allocator.
 
 \snippet writing_functions.cpp Creating a table
 
@@ -221,4 +225,8 @@ end
 ## Working with SourceChanges {#source-changes}
 
 \todo how source changes work and how to use them
+
+## Allocator
+
+\todo allocator
 
