@@ -253,8 +253,8 @@ auto ceil(const CallContext& ctx) -> Value {
             Number n = std::get<Number>(new_value);
             if (std::fmod(n.value, 1.0) == 0.0) {
                 return old_value.force(
-                    new_value); // Just guessing that this is the right value because
-                                // every information about post-comma numbers is lost
+                    new_value); // Just guessing that this is the right value because every
+                                // information about post-comma numbers is lost
             } else {
                 return std::nullopt;
             }
@@ -317,9 +317,9 @@ auto floor(const CallContext& ctx) -> Value {
                       const Value& old_value) -> std::optional<SourceChangeTree> {
             Number n = std::get<Number>(new_value);
             if (std::fmod(n.value, 1.0) == 0.0) {
-                return old_value.force(
-                    new_value); // Just guessing that this is the right value because
-                                // every information about post-comma numbers is lost
+                return old_value.force(new_value);
+                // Just guessing that this is the right value because every information about
+                // post-comma numbers is lost
             } else {
                 return std::nullopt;
             }
@@ -601,8 +601,9 @@ auto to_integer(const CallContext& ctx) -> Value {
                       const Value& old_value) -> std::optional<SourceChangeTree> {
             Number n = std::get<Number>(new_value);
             if (new_value == Nil() || std::fmod(n.value, 1.0) == 0.0) {
-                return std::nullopt; // if result is Nil, converting to an integer was not possible.
-                                     // so it isnt possible to revert anything.
+                return std::nullopt;
+                // if result is Nil, converting to an integer was not possible.
+                // so it isnt possible to revert anything.
             } else {
                 return old_value.force(new_value);
             }
