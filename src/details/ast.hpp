@@ -8,48 +8,27 @@
 namespace minilua::details::ast {
 
 // Some forward declarations
+class Body;
 class Expression;
 class Identifier;
 class Statement;
 class Prefix;
 class Return;
 class FieldExpression;
-
 using IndexField = std::pair<Expression, Expression>;
 using IdentifierField = std::pair<Identifier, Expression>;
 
-enum class LiteralType{TRUE,FALSE,NIL,NUMBER,STRING};
+enum class LiteralType { TRUE, FALSE, NIL, NUMBER, STRING };
 class Literal {
     std::string literal_content;
     LiteralType literal_type;
     ts::Range literal_range;
+
 public:
-    Literal(LiteralType,std::string,ts::Range);
+    Literal(LiteralType, std::string, ts::Range);
     auto content() const -> std::string;
     auto type() const -> LiteralType;
     auto range() const -> minilua::Range;
-};
-/**
- * The Body class groups a variable amount of statements together
- * the last statement of a Body might be a return_statement
- */
-class Body {
-    std::vector<ts::Node> nodes;
-
-public:
-    explicit Body(std::vector<ts::Node>);
-    /**
-     * This method maps the statement Nodes to Statement classes
-     * @return the statements in this body excluding a potential return_statement
-     */
-    auto statements() -> std::vector<Statement>;
-    /**
-     * This checks for a return node
-     * the return_statement is always the last statement of the body
-     * @return a Return class if the body has a return statement
-     *          else an empty optional
-     */
-    auto return_statement() -> std::optional<Return>;
 };
 /**
  * class for program nodes. It only holds a body
@@ -71,17 +50,20 @@ public:
  * class for identifier_nodes
  */
 class Identifier {
-    ts::Node id;
+    using IdTuple = std::tuple<std::string, minilua::Range>;
+    enum TupleIndex { STRING, RANGE };
+    std::variant<ts::Node, IdTuple> content;
 
 public:
     explicit Identifier(ts::Node);
+    explicit Identifier(const std::string&, Range);
     /**
      * get the identifier name as a string
      * @return the identifer as a string
      */
     auto string() const -> std::string;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto raw() const -> std::optional<ts::Node>;
 };
 /**
  * this enum holds all possible BinaryOperators in lua
@@ -113,10 +95,14 @@ enum class BinOpEnum {
  * class for binary_operation nodes
  */
 class BinaryOperation {
-    ts::Node bin_op;
+    using BinOpTuple = std::tuple<
+        std::shared_ptr<Expression>, BinOpEnum, std::shared_ptr<Expression>, minilua::Range>;
+    enum TupleIndex { LEFT, OPERATOR, RIGHT, RANGE };
+    std::variant<ts::Node, BinOpTuple> content;
 
 public:
     explicit BinaryOperation(ts::Node node);
+    explicit BinaryOperation(const Expression&, BinOpEnum, const Expression&, minilua::Range);
     /**
      *
      * @return The left operand
@@ -133,7 +119,7 @@ public:
      */
     auto binary_operator() const -> BinOpEnum;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto raw() const -> std::optional<ts::Node>;
 };
 /**
  * This enum holds all unary Operators of lua
@@ -148,10 +134,13 @@ enum class UnOpEnum {
  * class for unary_operation nodes
  */
 class UnaryOperation {
-    ts::Node un_op;
+    using UnOpTuple = std::tuple<UnOpEnum, std::shared_ptr<Expression>, minilua::Range>;
+    enum TupleIndex { OPERATOR, OPERAND, RANGE };
+    std::variant<ts::Node, UnOpTuple> content;
 
 public:
     explicit UnaryOperation(ts::Node node);
+    explicit UnaryOperation(UnOpEnum, const Expression&, minilua::Range);
     /**
      *
      * @return the operator of the operation
@@ -163,7 +152,7 @@ public:
      */
     auto expression() const -> Expression;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto raw() const -> std::optional<ts::Node>;
 };
 /**
  * class for loop_expression  nodes
@@ -264,10 +253,14 @@ public:
  * class for while_statement nodes
  */
 class WhileStatement {
-    ts::Node while_statement;
+    using WhileTuple =
+        std::tuple<std::shared_ptr<Expression>, std::shared_ptr<Body>, minilua::Range>;
+    enum TupleIndex { CONDITION, BODY, RANGE };
+    std::variant<ts::Node, WhileTuple> content;
 
 public:
     explicit WhileStatement(ts::Node node);
+    explicit WhileStatement(const Expression&, const Body&, minilua::Range);
     /**
      * @return an expression containing the conditional expression of the loop
      */
@@ -278,7 +271,7 @@ public:
      */
     auto body() const -> Body;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto raw() const -> std::optional<ts::Node>;
 };
 /**
  * class for repeat_statement nodes
@@ -341,13 +334,20 @@ public:
  * class for if_statement nodes
  */
 class IfStatement {
-    ts::Node if_statement;
+    using IfTuple = std::tuple<std::shared_ptr<Expression>, std::shared_ptr<Body>, minilua::Range>;
+    enum TupleIndex { CONDITION, BODY, RANGE };
+    std::variant<ts::Node, IfTuple> content;
 
 public:
     explicit IfStatement(ts::Node node);
     /**
+     * constructs an if-statement without elseifs or an else
+     */
+    explicit IfStatement(const Expression&, const Body&, minilua::Range);
+    /**
      *
-     * @return a body containing the statements of the if block excluding else_if and else statements
+     * @return a body containing the statements of the if block excluding else_if and else
+     * statements
      */
     auto body() const -> Body;
     /**
@@ -367,7 +367,7 @@ public:
      */
     auto else_statement() const -> std::optional<Else>;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto raw() const -> std::optional<ts::Node>;
 };
 /**
  * a class for return_statement nodes
@@ -408,49 +408,6 @@ public:
     auto raw() const -> ts::Node;
 };
 /**
- * class for variable_declarator nodes
- */
-class VariableDeclarator {
-    ts::Node dec;
-
-public:
-    explicit VariableDeclarator(ts::Node node);
-    /**
-     *
-     * @return a variant containing the class this variable declarator gets resolved to
-     */
-    auto options() const -> std::variant<Identifier, FieldExpression, TableIndex>;
-    auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
-};
-/**
- * class for variable_declaration and local_variable_declaration nodes
- */
-class VariableDeclaration {
-    ts::Node var_dec;
-    bool local_dec;
-
-public:
-    explicit VariableDeclaration(ts::Node node);
-    /**
-     *
-     * @return true if the declaration is local
-     */
-    auto local() const -> bool;
-    /**
-     *
-     * @return a vector containing all variables declared by the varaible declaration
-     */
-    auto declarators() const -> std::vector<VariableDeclarator>;
-    /**
-     *
-     * @return a vector with the expressions that get assigned to to the declared variables
-     */
-    auto declarations() const-> std::vector<Expression>;
-    auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
-};
-/**
  * class for field_expression nodes
  */
 class FieldExpression {
@@ -471,21 +428,77 @@ public:
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
 };
+using VarDecVariant = std::variant<Identifier, FieldExpression, TableIndex>;
+/**
+ * class for variable_declarator nodes
+ */
+class VariableDeclarator {
+    using VDTuple = std::tuple<VarDecVariant, Range>;
+    enum TupleIndex { VD_VARIANT, RANGE };
+    std::variant<ts::Node, VDTuple> content;
+
+public:
+    explicit VariableDeclarator(ts::Node node);
+    explicit VariableDeclarator(const Identifier&, minilua::Range);
+    /**
+     *
+     * @return a variant containing the class this variable declarator gets resolved to
+     */
+    auto options() const -> VarDecVariant;
+    auto range() const -> minilua::Range;
+    auto raw() const -> std::optional<ts::Node>;
+};
+/**
+ * class for variable_declaration and local_variable_declaration nodes
+ */
+class VariableDeclaration {
+    using VDTuple =
+        std::tuple<std::vector<VariableDeclarator>, std::vector<Expression>, minilua::Range>;
+    enum TupleIndex { DECLARATORS, DECLARATIONS, RANGE };
+    std::variant<ts::Node, VDTuple> content;
+    bool local_dec;
+
+public:
+    explicit VariableDeclaration(ts::Node node);
+    explicit VariableDeclaration(
+        bool, const std::vector<VariableDeclarator>&, const std::vector<Expression>&,
+        minilua::Range);
+    /**
+     *
+     * @return true if the declaration is local
+     */
+    auto local() const -> bool;
+    /**
+     *
+     * @return a vector containing all variables declared by the varaible declaration
+     */
+    auto declarators() const -> std::vector<VariableDeclarator>;
+    /**
+     *
+     * @return a vector with the expressions that get assigned to to the declared variables
+     */
+    auto declarations() const -> std::vector<Expression>;
+    auto range() const -> minilua::Range;
+    auto raw() const -> std::optional<ts::Node>;
+};
 /**
  * class for do_statement nodes
  */
 class DoStatement {
-    ts::Node do_statement;
+    using DoTuple = std::tuple<std::shared_ptr<Body>, minilua::Range>;
+    enum TupleIndex { BODY, RANGE };
+    std::variant<ts::Node, DoTuple> content;
 
 public:
     explicit DoStatement(ts::Node);
+    explicit DoStatement(const Body&, minilua::Range);
     /**
      *
      * @return a body containing all statements of the do block
      */
     auto body() const -> Body;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto raw() const -> std::optional<ts::Node>;
 };
 /**
  * class for go_to_statements
@@ -586,10 +599,13 @@ public:
  * class for function_definition nodes
  */
 class FunctionDefinition {
-    ts::Node func_def;
+    using FuncDefTuple = std::tuple<Parameters, std::shared_ptr<Body>, minilua::Range>;
+    enum TupleIndex { PARAMETERS, BODY, RANGE };
+    std::variant<ts::Node, FuncDefTuple> content;
 
 public:
     explicit FunctionDefinition(ts::Node);
+    explicit FunctionDefinition(Parameters, const Body&, minilua::Range);
     /**
      *
      * @return a body containing all statements of this function
@@ -601,7 +617,7 @@ public:
      */
     auto parameters() const -> Parameters;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto raw() const -> std::optional<ts::Node>;
 };
 /**
  * class for function_statements
@@ -609,6 +625,7 @@ public:
 class FunctionStatement {
     ts::Node func_stat;
     bool is_local;
+
 public:
     explicit FunctionStatement(ts::Node);
     /**
@@ -631,14 +648,21 @@ public:
     auto raw() const -> ts::Node;
 };
 class FunctionCall {
-    ts::Node func_call;
+    using FuncCallTuple = std::tuple<
+        std::shared_ptr<Prefix>, std::optional<Identifier>, std::vector<Expression>,
+        minilua::Range>;
+    enum TupleIndex { PREFIX, METHOD, ARGS, RANGE };
+    std::variant<ts::Node, FuncCallTuple> content;
 
 public:
     explicit FunctionCall(ts::Node);
+    explicit FunctionCall(
+        const Prefix&, const std::optional<Identifier>&, const std::vector<Expression>&,
+        minilua::Range);
     /**
-     *
+const      *
      * @return
-     * If the call is a method call id() the Prefix should refer to to a table
+   &  * If the call is a method call id() the Prefix should refer to to a table
      * else the Prefix states the functionname
      */
     auto id() const -> Prefix;
@@ -651,7 +675,7 @@ public:
     auto method() const -> std::optional<Identifier>;
     auto args() const -> std::vector<Expression>;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto raw() const -> std::optional<ts::Node>;
 };
 /**
  * class for field_nodes
@@ -669,7 +693,7 @@ public:
      * the Expression is
      * @return a variant containing the right format for the field
      */
-    auto content() const -> std::variant<IndexField , IdentifierField , Expression>;
+    auto content() const -> std::variant<IndexField, IdentifierField, Expression>;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
 };
@@ -693,57 +717,98 @@ public:
 class Spread {};
 class Self {};
 class Break {};
+using PrefixVariant = std::variant<Self, VariableDeclarator, FunctionCall, Expression>;
 /**
  * class for prefix nodes
  */
 class Prefix {
-    ts::Node prefix;
+    using modifiedPrefixVariant =
+        std::variant<Self, VariableDeclarator, FunctionCall, std::shared_ptr<Expression>>;
+    using PrefixTuple = std::tuple<modifiedPrefixVariant, minilua::Range>;
+    enum TupleIndex { PFX_VARIANT, RANGE };
+    std::variant<ts::Node, PrefixTuple> content;
 
 public:
     explicit Prefix(ts::Node);
+    explicit Prefix(const VariableDeclarator&, minilua::Range);
     /**
      *
      * @return a variant containing the class this Prefix gets resolved to
      */
-    auto options() const
-        -> std::variant<Self, VariableDeclarator, FunctionCall, Expression>;
+    auto options() const -> PrefixVariant;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto raw() const -> std::optional<ts::Node>;
 };
+using ExpressionVariant = std::variant<
+    Spread, Prefix, FunctionDefinition, Table, BinaryOperation, UnaryOperation, Literal,
+    Identifier>;
 /**
  * class for expression nodes
  */
 class Expression {
-    ts::Node exp;
+    using ExpTup = std::tuple<ExpressionVariant, minilua::Range>;
+    std::variant<ts::Node, std::tuple<ExpressionVariant, minilua::Range>> content;
+    enum TupleIndex { EXP_VARIANT, RANGE };
 
 public:
     explicit Expression(ts::Node);
+    explicit Expression(const BinaryOperation&, minilua::Range);
+    explicit Expression(const UnaryOperation&, minilua::Range);
+    explicit Expression(const FunctionDefinition&, minilua::Range);
     /**
      *
      * @return a variant containing the class this expression gets resolved to
      */
-    auto options() const -> std::variant<
-        Spread, Prefix, FunctionDefinition, Table, BinaryOperation, UnaryOperation,
-        Literal, Identifier>;
+    auto options() const -> ExpressionVariant;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto raw() const -> std::optional<ts::Node>;
 };
-
+using StatementVariant = std::variant<
+    VariableDeclaration, DoStatement, IfStatement, WhileStatement, RepeatStatement, ForStatement,
+    ForInStatement, GoTo, Break, Label, FunctionStatement, FunctionCall, Expression>;
 class Statement {
-    ts::Node statement;
+    using StatementTuple = std::tuple<StatementVariant, minilua::Range>;
+    enum TupleIndex { STAT_VARIANT, RANGE };
+    std::variant<ts::Node, StatementTuple> content;
 
 public:
     explicit Statement(ts::Node);
+    explicit Statement(const VariableDeclaration&, minilua::Range);
+    explicit Statement(const FunctionCall&, minilua::Range);
+    explicit Statement(const WhileStatement&, minilua::Range);
+    explicit Statement(const IfStatement&, minilua::Range);
+    explicit Statement(const DoStatement&, minilua::Range);
     /**
      *
      * @return a variant containing the class this statement gets resolved to
      */
-    auto options() const -> std::variant<
-        VariableDeclaration, DoStatement, IfStatement, WhileStatement,
-        RepeatStatement, ForStatement, ForInStatement, GoTo, Break, Label, FunctionStatement,
-        FunctionCall, Expression>;
+    auto options() const -> StatementVariant;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto raw() const -> std::optional<ts::Node>;
+};
+/**
+ * The Body class groups a variable amount of statements together
+ * the last statement of a Body might be a return_statement
+ */
+class Body {
+    using BodyPair = std::pair<std::vector<Statement>, std::optional<Return>>;
+    std::variant<std::vector<ts::Node>, BodyPair> content;
+
+public:
+    explicit Body(std::vector<ts::Node>);
+    explicit Body(std::vector<Statement>, std::optional<Return>);
+    /**
+     * This method maps the statement Nodes to Statement classes
+     * @return the statements in this body excluding a potential return_statement
+     */
+    auto statements() -> std::vector<Statement>;
+    /**
+     * This checks for a return node
+     * the return_statement is always the last statement of the body
+     * @return a Return class if the body has a return statement
+     *          else an empty optional
+     */
+    auto return_statement() -> std::optional<Return>;
 };
 } // namespace minilua::details::ast
 
