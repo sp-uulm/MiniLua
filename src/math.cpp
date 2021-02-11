@@ -83,7 +83,11 @@ auto abs(const CallContext& ctx) -> Value {
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
             Number n = std::get<Number>(new_value);
-            return old_value.force(n); // just guess that it was a positive number
+            if (n.value >= 0) {
+                return old_value.force(n); // just guess that it was a positive number
+            } else {
+                return std::nullopt;
+            }
         }});
     return math_helper(ctx, static_cast<double (*)(double)>(&std::abs), "abs");
 }
@@ -246,8 +250,14 @@ auto ceil(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
-            return old_value.force(new_value); // Just guessing that this is the right value because
-                                               // every information about post-comma numbers is lost
+            Number n = std::get<Number>(new_value);
+            if (std::fmod(n.value, 1.0) == 0.0) {
+                return old_value.force(
+                    new_value); // Just guessing that this is the right value because
+                                // every information about post-comma numbers is lost
+            } else {
+                return std::nullopt;
+            }
         }});
 
     return math_helper(ctx, static_cast<double (*)(double)>(&std::ceil), "ceil");
@@ -288,7 +298,13 @@ auto exp(const CallContext& ctx) -> Value {
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
             Number n = std::get<Number>(new_value);
-            return old_value.force(std::log(n.value));
+            if (n > 0) {
+                return old_value.force(std::log(n.value));
+            } else if (n < 0) {
+                return old_value.force(1 / std::log(n.value));
+            } else {
+                return std::nullopt;
+            }
         }});
     return math_helper(ctx, static_cast<double (*)(double)>(&std::exp), "exp").with_origin(origin);
 }
@@ -299,8 +315,14 @@ auto floor(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
-            return old_value.force(new_value); // Just guessing that it is the right value because
-                                               // all information of post-komma are lost
+            Number n = std::get<Number>(new_value);
+            if (std::fmod(n.value, 1.0) == 0.0) {
+                return old_value.force(
+                    new_value); // Just guessing that this is the right value because
+                                // every information about post-comma numbers is lost
+            } else {
+                return std::nullopt;
+            }
         }});
 
     return math_helper(ctx, static_cast<double (*)(double)>(&std::floor), "floor");
@@ -359,6 +381,7 @@ auto log(const CallContext& ctx) -> Value {
                 Number n = std::get<Number>(new_value);
                 return old_value1.force(std::exp(n.value));
             } else {
+                // TODO: return both SourceChangeAlternatives
                 // log(x)/log(base) is ambiguously. so no clear return could be done
                 // if someone knows a way feel free to change it.
                 return std::nullopt;
@@ -394,8 +417,10 @@ auto max(const CallContext& ctx) -> Value {
     Origin origin = Origin(MultipleArgsOrigin{
         .values = ctx.arguments(),
         .location = ctx.call_location(),
-        .reverse = [](const Value& /*new_value*/, const Vallist& /*args*/)
-            -> std::optional<SourceChangeTree> { return std::nullopt; }});
+        .reverse = [](const Value& /*new_value*/,
+                      const Vallist& /*args*/) -> std::optional<SourceChangeTree> {
+            return std::nullopt; // TODO: insert correct reverse (by calling max again?)
+        }});
     auto args = ctx.arguments();
 
     if (args.size() == 0) {
@@ -415,8 +440,10 @@ auto min(const CallContext& ctx) -> Value {
     Origin origin = Origin(MultipleArgsOrigin{
         .values = ctx.arguments(),
         .location = ctx.call_location(),
-        .reverse = [](const Value& /*new_value*/, const Vallist& /*args*/)
-            -> std::optional<SourceChangeTree> { return std::nullopt; }});
+        .reverse = [](const Value& /*new_value*/,
+                      const Vallist& /*args*/) -> std::optional<SourceChangeTree> {
+            return std::nullopt; // TODO: insert correct reverse (by calling max again?)
+        }});
     auto args = ctx.arguments();
 
     if (args.size() == 0) {
@@ -442,10 +469,18 @@ auto modf(const CallContext& ctx) -> Vallist {
 
         auto origin1 = Origin(UnaryOrigin{
             .val = make_owning<Value>(Value(iptr)),
-        });
+            .location = ctx.call_location(), // is that the correct location?
+            .reverse = [](const Value& new_value,
+                          const Value& old_value) -> std::optional<SourceChangeTree> {
+                return std::nullopt; // TODO: add real reverse. this is only temporary
+            }});
         auto origin2 = Origin(UnaryOrigin{
             .val = make_owning<Value>(num),
-        });
+            .location = ctx.call_location(), // is that the correct location?
+            .reverse = [](const Value& new_value,
+                          const Value& old_value) -> std::optional<SourceChangeTree> {
+                return std::nullopt; // TODO: add real reverse. this is only temporary
+            }});
         return Vallist({Value(iptr).with_origin(origin1), Value(num).with_origin(origin2)});
     } else {
         auto x = ctx.arguments().get(0);
@@ -470,44 +505,35 @@ auto rad(const CallContext& ctx) -> Value {
 }
 
 auto random(const CallContext& ctx) -> Value {
-    auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(ctx.arguments().get(0)),
-        .rhs = make_owning<Value>(ctx.arguments().get(1)),
-        .location = ctx.call_location(),
-        .reverse = [](const Value& /*unused*/, const Value& /*unused*/, const Value& /*unused*/)
-            -> std::optional<SourceChangeTree> { return std::nullopt; } // TODO: return it correctly
-    });
+    // A random value can't be forced. thats why random has no origin
     auto x = ctx.arguments().get(0);
     auto y = ctx.arguments().get(1);
 
     return std::visit(
-               overloaded{
-                   [](Nil /*unused*/, Nil /*unused*/) {
-                       return Value(std::uniform_real_distribution<double>(0, 1)(random_seed));
-                   },
-                   [ctx](auto /*unused*/, Nil /*unused*/) {
-                       return math_helper(
-                           ctx,
-                           [](long x) {
-                               return std::uniform_int_distribution<int>(1, x)(random_seed);
-                           },
-                           "random");
-                   },
-                   [ctx](auto /*unused*/, auto /*unused*/) -> Value {
-                       return math_helper<int>(
-                           ctx,
-                           [](long x, long y) {
-                               if (x <= y) {
-                                   return std::uniform_int_distribution<int>(x, y)(random_seed);
-                               } else {
-                                   throw std::runtime_error(
-                                       "bad argument #1 to 'random' (interval is empty)");
-                               }
-                           },
-                           "random");
-                   }},
-               x.raw(), y.raw())
-        .with_origin(origin);
+        overloaded{
+            [](Nil /*unused*/, Nil /*unused*/) {
+                return Value(std::uniform_real_distribution<double>(0, 1)(random_seed));
+            },
+            [ctx](auto /*unused*/, Nil /*unused*/) {
+                return math_helper(
+                    ctx,
+                    [](long x) { return std::uniform_int_distribution<int>(1, x)(random_seed); },
+                    "random");
+            },
+            [ctx](auto /*unused*/, auto /*unused*/) -> Value {
+                return math_helper<int>(
+                    ctx,
+                    [](long x, long y) {
+                        if (x <= y) {
+                            return std::uniform_int_distribution<int>(x, y)(random_seed);
+                        } else {
+                            throw std::runtime_error(
+                                "bad argument #1 to 'random' (interval is empty)");
+                        }
+                    },
+                    "random");
+            }},
+        x.raw(), y.raw());
 }
 
 // no origin because no value is changed.
@@ -545,7 +571,11 @@ auto sqrt(const CallContext& ctx) -> Value {
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
             Number n = std::get<Number>(new_value);
-            return old_value.force(n.value * n.value);
+            if (n.value >= 0) {
+                return old_value.force(n.value * n.value);
+            } else {
+                return std::nullopt;
+            }
         }});
     return math_helper(ctx, static_cast<double (*)(double)>(&std::sqrt), "sqrt")
         .with_origin(origin);
@@ -569,7 +599,8 @@ auto to_integer(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
-            if (new_value == Nil()) {
+            Number n = std::get<Number>(new_value);
+            if (new_value == Nil() || std::fmod(n.value, 1.0) == 0.0) {
                 return std::nullopt; // if result is Nil, converting to an integer was not possible.
                                      // so it isnt possible to revert anything.
             } else {
