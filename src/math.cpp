@@ -20,33 +20,34 @@ namespace minilua {
 
 void Environment::create_math_table() {
     std::unordered_map<Value, Value> math_functions;
-    math_functions.insert_or_assign("abs", math::abs);
-    math_functions.insert_or_assign("acos", math::acos);
-    math_functions.insert_or_assign("asin", math::asin);
-    math_functions.insert_or_assign("atan", math::atan);
-    math_functions.insert_or_assign("ceil", math::ceil);
-    math_functions.insert_or_assign("cos", math::cos);
-    math_functions.insert_or_assign("deg", math::deg);
-    math_functions.insert_or_assign("exp", math::exp);
-    math_functions.insert_or_assign("floor", math::floor);
-    math_functions.insert_or_assign("fmod", math::fmod);
-    math_functions.insert_or_assign("log", math::log);
-    math_functions.insert_or_assign("max", math::max);
-    math_functions.insert_or_assign("min", math::min);
-    math_functions.insert_or_assign("modf", math::modf);
-    math_functions.insert_or_assign("rad", math::rad);
-    math_functions.insert_or_assign("random", math::random);
-    math_functions.insert_or_assign("randomseed", math::randomseed);
-    math_functions.insert_or_assign("sin", math::sin);
-    math_functions.insert_or_assign("tan", math::tan);
-    math_functions.insert_or_assign("tointeger", math::to_integer);
-    math_functions.insert_or_assign("type", math::type);
-    math_functions.insert_or_assign("ult", math::ult);
-    math_functions.insert_or_assign("maxinteger", math::MAXINTEGER);
-    math_functions.insert_or_assign("mininteger", math::MININTEGER);
-    math_functions.insert_or_assign("pi", math::PI);
-    math_functions.insert_or_assign("huge", math::HUGE);
-    Table math(math_functions);
+    Table math = this->make_table();
+    math.set("abs", math::abs);
+    math.set("acos", math::acos);
+    math.set("asin", math::asin);
+    math.set("atan", math::atan);
+    math.set("ceil", math::ceil);
+    math.set("cos", math::cos);
+    math.set("deg", math::deg);
+    math.set("exp", math::exp);
+    math.set("floor", math::floor);
+    math.set("fmod", math::fmod);
+    math.set("log", math::log);
+    math.set("max", math::max);
+    math.set("min", math::min);
+    math.set("modf", math::modf);
+    math.set("rad", math::rad);
+    math.set("random", math::random);
+    math.set("randomseed", math::randomseed);
+    math.set("sin", math::sin);
+    math.set("tan", math::tan);
+    math.set("tointeger", math::to_integer);
+    math.set("type", math::type);
+    math.set("ult", math::ult);
+    // TODO: uncomment when long works
+    // math.set("maxinteger", math::MAXINTEGER);
+    // math.set("mininteger", math::MININTEGER);
+    math.set("pi", math::PI);
+    math.set("huge", math::HUGE);
     this->add("math", math);
 }
 
