@@ -377,8 +377,11 @@ auto fmod(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value, const Value& old_value1,
                       const Value& old_value2) -> std::optional<SourceChangeTree> {
-            return old_value1.force(Nil());
+            return std::nullopt;
         }}); // TODO: return it correctly
+    // Evtl. old_value1.force(new_value + old_value2) (because of 'new_value = old_value1 %
+    // old_value2' and the information about the concrete value of old_value1 is lost, so just
+    // guessing is possible)
 
     // lua throws an error if x and y are 0 so i cant use the helper-function
     Vallist list = Vallist({ctx.arguments().get(0)});
