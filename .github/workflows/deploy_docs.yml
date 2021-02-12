@@ -4,12 +4,6 @@ on:
   push:
     branches:
       - master
-  workflow_dispatch:
-    inputs:
-      targetBranch:
-        description: 'Branch to push the documentation to'
-        required: true
-        default: 'docs-test'
 
 jobs:
   deploy:
@@ -34,7 +28,7 @@ jobs:
         uses: s0/git-publish-subdir-action@v2.4.0
         env:
           REPO: self
-          BRANCH: ${{ github.event.inputs.logLevel || "gh-pages" }}
+          BRANCH: gh-pages
           FOLDER: build/docs/html
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
