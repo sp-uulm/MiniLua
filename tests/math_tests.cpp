@@ -9,6 +9,7 @@
 
 #include "MiniLua/environment.hpp"
 #include "MiniLua/math.hpp"
+#include "MiniLua/source_change.hpp"
 #include "MiniLua/values.hpp"
 
 TEST_CASE("math.abs(x)") {
@@ -2434,5 +2435,62 @@ TEST_CASE("math.ult(m, n)") {
             CHECK_THROWS_WITH(
                 minilua::math::ult(ctx), "bad argument #2 to 'ult' (number expected, got string)");
         }
+    }
+}
+
+TEST_CASE("reverse abs") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("force result of abs to a positive number") {
+        int i = 42;
+        minilua::Value value =
+            minilua::Value(i).with_origin(minilua::LiteralOrigin{minilua::Range()});
+        minilua::Vallist list = minilua::Vallist({value});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::abs(ctx);
+        REQUIRE(res == 42);
+
+        auto result = res.force(minilua::Value{25});
+        REQUIRE(result.has_value());
+
+        INFO(result->origin());
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "25"));
+
+        std::string s = "42";
+        value = minilua::Value(i).with_origin(minilua::LiteralOrigin{minilua::Range()});
+        list = minilua::Vallist({value});
+        ctx = ctx.make_new(list);
+        res = minilua::math::abs(ctx);
+        REQUIRE(res == 42);
+
+        result = res.force(minilua::Value{25});
+        REQUIRE(result.has_value());
+
+        INFO(result->origin());
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "25"));
+
+        result = res.force(minilua::Value{"10"});
+        CHECK_FALSE(result.has_value());
+    }
+
+    SECTION("force result of abs to a negative number or invalid value") {
+        int i = 42;
+        minilua::Value value =
+            minilua::Value(i).with_origin(minilua::LiteralOrigin{minilua::Range()});
+        minilua::Vallist list = minilua::Vallist({value});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::abs(ctx);
+        REQUIRE(res == 42);
+
+        auto result = res.force(minilua::Value{-25});
+        CHECK_FALSE(result.has_value());
+
+        result = res.force(minilua::Value{true});
+        CHECK_FALSE(result.has_value());
     }
 }
