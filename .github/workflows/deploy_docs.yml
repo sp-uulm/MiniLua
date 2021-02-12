@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - master
+  workflow_dispatch:
+    inputs:
+      targetBranch:
+        description: 'Branch to push the documentation to'
+        required: true
+        default: 'docs-test'
 
 jobs:
   deploy:
@@ -19,6 +25,7 @@ jobs:
         run: |
           ./.github/workflows/install_packages.sh
           sudo apt-get install doxygen
+          pip3 install jinja2 Pygments
       - name: Setup CMake
         run: ./scripts/setup_build.sh
       - name: Build Documentation
@@ -27,7 +34,7 @@ jobs:
         uses: s0/git-publish-subdir-action@v2.4.0
         env:
           REPO: self
-          BRANCH: gh-pages
+          BRANCH: ${{ github.event.inputs.logLevel || "gh-pages" }}
           FOLDER: build/docs/html
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
