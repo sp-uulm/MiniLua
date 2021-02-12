@@ -36,7 +36,7 @@
  *
  * A class with the PImpl technique usually looks like this:
  *
- * ```
+ * ```cpp
  * // in the header
  * class Something {
  *   struct Impl;

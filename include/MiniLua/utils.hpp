@@ -129,7 +129,7 @@ template <typename T, typename... Args> auto make_owning(Args... args) -> owning
  *
  * This is easier than writing
  *
- * ```
+ * ```cpp
  * if constexpr (std::is_same_v<decltype(param), T>) { ... }
  * ```
  *
@@ -137,7 +137,7 @@ template <typename T, typename... Args> auto make_owning(Args... args) -> owning
  *
  * # Usage:
  *
- * ```
+ * ```cpp
  * std::visit(
  *     overloaded{
  *        [](int i) {

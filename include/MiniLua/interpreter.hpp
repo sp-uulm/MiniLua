@@ -83,7 +83,7 @@ public:
  *
  * # Example
  *
- * ```
+ * ```cpp
  * minilua::Interpreter interpreter{initial_source_code};
  * interpreter.parse(new_source_code);
  * auto res = interpreter.evaluate();

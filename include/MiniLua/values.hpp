@@ -43,7 +43,7 @@ class Value;
  * it's not possible to put references inside a tuple. That means that you have
  * to call `get` on the values to use them:
  *
- * ```
+ * ```cpp
  * auto& [one, two, three] = vallist.tuple<3>();
  * out.get();
  * two.get();
@@ -109,7 +109,7 @@ public:
      *
      * Use this for structured binding declarations:
      *
-     * ```
+     * ```cpp
      * const auto& [val1, val2, val3] = vallist.tuple<3>();
      * ```
      *
@@ -905,8 +905,9 @@ public:
      * @name Source location tracking versions of the c++ operators.
      *
      * Mostly for use in the interpreter.
+     *
+     * @{
      */
-    /** @{ */
 
     /**
      * unary `-` operator
@@ -1069,7 +1070,7 @@ auto binary_num_reverse(FnLeft fn_left, FnRight fn_right, std::string origin = "
  *
  * Usage (using the deduction guide):
  *
- * ```
+ * ```cpp
  * function sqrt_impl(const CallContext& ctx) -> Value {
  *     return minilua::UnaryNumericFunctionHelper{
  *         [](double param) { return std::sqrt(param); },
@@ -1112,7 +1113,7 @@ template <typename... Ts> UnaryNumericFunctionHelper(Ts...) -> UnaryNumericFunct
  *
  * Usage (using the deduction guide):
  *
- * ```
+ * ```cpp
  * function pow_impl(const CallContext& ctx) -> Value {
  *     return minilua::BinaryNumericFunctionHelper{
  *         [](double lhs, double rhs) { return std::pow(lhs, rhs); },

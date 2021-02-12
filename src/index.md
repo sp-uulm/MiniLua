@@ -5,6 +5,8 @@
 MiniLua is a lua interpreter with source value tracking.
 
 \startuml
+rectangle {
+
 package "Public API" {
     [Interpreter] -- [Environment (Public)]
     [Environment (Public)] -- [Value]
@@ -21,11 +23,13 @@ package "Private API" {
         [Tree] -- [AST]
     }
 }
+
+}
 \enduml
 
 ## Usage Example
 
-```{.cpp}
+```cpp
 minilua::Interpreter interpreter;
 interpreter.environment().add_default_stdlib();
 
@@ -113,7 +117,7 @@ title
 end title
 \enduml
 
-Here a [`SourceChangeAlternative`](@ref minilua::SourceChangeAlternative) means
+Here a [SourceChangeAlternative](@ref minilua::SourceChangeAlternative) means
 that exactly one of the *children* should be applied. In this case (because
 multiple `SourceChangeAlternative`s are nested) we could flatten the hierarchy.
 If we apply any of the source changes we will have forced the old value of
@@ -226,7 +230,7 @@ end
 
 \todo how source changes work and how to use them
 
-## Allocator
+## Allocator {#allocator}
 
 \todo allocator
 
