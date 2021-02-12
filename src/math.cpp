@@ -124,6 +124,9 @@ auto abs(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
+            if (!new_value.is_number()) {
+                return std::nullopt;
+            }
             Number n = std::get<Number>(new_value);
             if (n.value >= 0) {
                 return old_value.force(n); // just guess that it was a positive number
@@ -131,7 +134,7 @@ auto abs(const CallContext& ctx) -> Value {
                 return std::nullopt;
             }
         }});
-    return math_helper(ctx, static_cast<double (*)(double)>(&std::abs), "abs");
+    return math_helper(ctx, static_cast<double (*)(double)>(&std::abs), "abs").with_origin(origin);
 }
 
 auto acos(const CallContext& ctx) -> Value {
