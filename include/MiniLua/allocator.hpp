@@ -29,6 +29,17 @@ struct TableImpl;
 //
 // template <typename T> gc_ptr(T*) -> gc_ptr<T>;
 
+/**
+ * A memory allocator for the [Tables](@ref Table).
+ *
+ * It keeps track of all tables and can free them all at once.
+ *
+ * This was introduced to prevent memory leaks because tables can have cyclic
+ * references. And really the environment always has a cyclic reference because
+ * the global variable `_G` refers to the global environment. And additionally
+ * function definitions capture the environment but are also stored in the
+ * environment. So they form an indirect cycle.
+ */
 class MemoryAllocator {
     std::vector<TableImpl*> table_memory;
 

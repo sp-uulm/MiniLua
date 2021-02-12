@@ -4,28 +4,7 @@
 
 MiniLua is a lua interpreter with source value tracking.
 
-\startuml
-rectangle {
-
-package "Public API" {
-    [Interpreter] -- [Environment (Public)]
-    [Environment (Public)] -- [Value]
-}
-
-package "Private API" {
-    [AST] -- [Interpreter (Intern)]
-    [Environment (Intern)] -- [Interpreter (Intern)]
-    [Environment (Intern)] -- [Environment (Public)]
-    [Interpreter (Intern)] -- [Value]
-
-    package "Tree-Sitter" {
-        [Parser] -- [Interpreter (Intern)]
-        [Tree] -- [AST]
-    }
-}
-
-}
-\enduml
+- [Architecture Overview](@ref architecture)
 
 ## Usage Example
 
