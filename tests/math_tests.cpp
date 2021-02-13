@@ -2530,6 +2530,25 @@ TEST_CASE("reverse acos") {
         CHECK(
             result.value().collect_first_alternative()[0] ==
             minilua::SourceChange(minilua::Range(), "1"));
+
+        SECTION("force value to nan") {
+            double x = -0.5;
+            minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+            minilua::Vallist list = minilua::Vallist({value});
+            ctx = ctx.make_new(list);
+
+            auto res = minilua::math::acos(ctx);
+            minilua::Number n = std::get<minilua::Number>(res);
+            REQUIRE(n.value == Approx(2.0944));
+
+            // force value to nan, directly insert nan doesn't work
+            auto result = res.force(minilua::Value(std::asin(2)));
+            REQUIRE(result.has_value());
+
+            CHECK(
+                result.value().collect_first_alternative()[0] ==
+                minilua::SourceChange(minilua::Range(), "nan"));
+        }
     }
 
     SECTION("invalid force") {
@@ -2543,6 +2562,94 @@ TEST_CASE("reverse acos") {
         REQUIRE(n.value == Approx(2.0944));
 
         auto result = res.force(minilua::Value("2"));
+        CHECK_FALSE(result.has_value());
+    }
+}
+
+TEST_CASE("reverse asin") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("correct force") {
+        double x = -0.5;
+        minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+        minilua::Vallist list = minilua::Vallist({value});
+        ctx = ctx.make_new(list);
+
+        auto res = minilua::math::asin(ctx);
+        minilua::Number n = std::get<minilua::Number>(res);
+        REQUIRE(n.value == Approx(-0.5235987755983));
+
+        auto result = res.force(minilua::Value(0));
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "0"));
+
+        std::string s = "-0.5";
+        value = minilua::Value(s).with_origin(minilua::LiteralOrigin());
+        list = minilua::Vallist({value});
+        ctx = ctx.make_new(list);
+
+        res = minilua::math::asin(ctx);
+        n = std::get<minilua::Number>(res);
+        REQUIRE(n.value == Approx(-0.5235987755983));
+
+        result = res.force(minilua::Value(0));
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "0"));
+
+        x = 2;
+        value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+        list = minilua::Vallist({value});
+        ctx = ctx.make_new(list);
+
+        res = minilua::math::asin(ctx);
+        n = std::get<minilua::Number>(res);
+        REQUIRE(std::isnan(n.value));
+
+        result = res.force(minilua::Value(0));
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "0"));
+
+        SECTION("force value to nan") {
+            double x = -0.5;
+            minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+            minilua::Vallist list = minilua::Vallist({value});
+            ctx = ctx.make_new(list);
+
+            auto res = minilua::math::asin(ctx);
+            minilua::Number n = std::get<minilua::Number>(res);
+            REQUIRE(n.value == Approx(-0.5235987755983));
+
+            // force value to nan, directly insert nan doesn't work
+            auto result = res.force(minilua::Value(std::asin(2)));
+            REQUIRE(result.has_value());
+
+            CHECK(
+                result.value().collect_first_alternative()[0] ==
+                minilua::SourceChange(minilua::Range(), "nan"));
+        }
+    }
+
+    SECTION("incorrect force") {
+        double x = -0.5;
+        minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+        minilua::Vallist list = minilua::Vallist({value});
+        ctx = ctx.make_new(list);
+
+        auto res = minilua::math::asin(ctx);
+        minilua::Number n = std::get<minilua::Number>(res);
+        REQUIRE(n.value == Approx(-0.5235987755983));
+
+        auto result = res.force("2");
         CHECK_FALSE(result.has_value());
     }
 }
