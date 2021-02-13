@@ -8,11 +8,11 @@
 #include "values.hpp"
 
 /**
- * This header defines the public api of the MiniLua library.
+ * @brief Public API of the MiniLua library.
  *
- * For more documentation see the [main page](@ref mainpage).
+ * This namespaces defines the public api of the MiniLua library.
  *
- * ----
+ * For more information see the [main page](@ref mainpage).
  *
  */
 namespace minilua {} // namespace minilua

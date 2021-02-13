@@ -40,7 +40,7 @@ strict digraph {
 }
 @enddot
 
-## Parse {#parser}
+## Parser {#parser}
 
 This library uses [Tree-Sitter](https://tree-sitter.github.io/tree-sitter/) as
 the parser. Tree-Sitter is only a parser generator library and we use

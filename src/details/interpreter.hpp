@@ -7,6 +7,9 @@
 #include "ast.hpp"
 #include "tree_sitter/tree_sitter.hpp"
 
+/**
+ * @brief Users of the library should ignore this namespace. It is only usable internally.
+ */
 namespace minilua::details {
 
 /**

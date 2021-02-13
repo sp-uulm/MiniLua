@@ -30,7 +30,7 @@ struct TableImpl;
 // template <typename T> gc_ptr(T*) -> gc_ptr<T>;
 
 /**
- * A memory allocator for the [Tables](@ref Table).
+ * @brief A memory allocator for the [Tables](@ref Table).
  *
  * It keeps track of all tables and can free them all at once.
  *
@@ -47,30 +47,31 @@ public:
     ~MemoryAllocator();
 
     /**
-     * This will allocate an new table implementation object.
+     * @brief Allocate an new table implementation object.
      *
-     * This is used internally in `Table`.
+     * This is used internally in Table.
      */
     auto allocate_table() -> TableImpl*;
 
     /**
-     * This will free all objects created through this allocator.
+     * @breif Free all objects created through this allocator.
      *
-     * This is highly unsafe! You have to be absolutely certain that none of the
-     * values allocated by this will be used again.
+     * \warning This is highly unsafe! You have to be absolutely certain that
+     * none of the values allocated by this will be used again.
      *
-     * **Any object/pointer allocated before calling this will become invalid.**
+     * \warning **Any object/pointer allocated before calling this will become
+     * invalid.**
      */
     void free_all();
 
     /**
-     * Return the number of allocated objects.
+     * @brief The number of allocated objects.
      */
     auto num_objects() -> std::size_t;
 };
 
 /**
- * A global memory allocator.
+ * @brief The global memory allocator.
  *
  * This is meant only for use for values outside of the interpreter and outside
  * of `Function`s.

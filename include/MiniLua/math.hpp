@@ -10,7 +10,13 @@
 
 #include "MiniLua/values.hpp"
 
+/**
+ * @brief Math functions in the lua standard library.
+ */
 namespace minilua::math {
+
+// TODO add documentation for all the items
+
 const long MAXINTEGER = LONG_MAX;
 const long MININTEGER = LONG_MIN;
 const double PI = M_PI;
