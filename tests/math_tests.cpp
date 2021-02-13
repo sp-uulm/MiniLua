@@ -2454,7 +2454,6 @@ TEST_CASE("reverse abs") {
         auto result = res.force(minilua::Value{25});
         REQUIRE(result.has_value());
 
-        INFO(result->origin());
         CHECK(
             result.value().collect_first_alternative()[0] ==
             minilua::SourceChange(minilua::Range(), "25"));
@@ -2491,6 +2490,59 @@ TEST_CASE("reverse abs") {
         CHECK_FALSE(result.has_value());
 
         result = res.force(minilua::Value{true});
+        CHECK_FALSE(result.has_value());
+    }
+}
+
+TEST_CASE("reverse acos") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("correct force") {
+        double x = -0.5;
+        minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+        minilua::Vallist list = minilua::Vallist({value});
+        ctx = ctx.make_new(list);
+
+        auto res = minilua::math::acos(ctx);
+        minilua::Number n = std::get<minilua::Number>(res);
+        REQUIRE(n.value == Approx(2.0944));
+
+        auto result = res.force(minilua::Value(0));
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "1"));
+
+        std::string s = "-0.5";
+        value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+        list = minilua::Vallist({value});
+        ctx = ctx.make_new(list);
+
+        res = minilua::math::acos(ctx);
+        n = std::get<minilua::Number>(res);
+        REQUIRE(n.value == Approx(2.0944));
+
+        result = res.force(minilua::Value(0));
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "1"));
+    }
+
+    SECTION("invalid force") {
+        double x = -0.5;
+        minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+        minilua::Vallist list = minilua::Vallist({value});
+        ctx = ctx.make_new(list);
+
+        auto res = minilua::math::acos(ctx);
+        minilua::Number n = std::get<minilua::Number>(res);
+        REQUIRE(n.value == Approx(2.0944));
+
+        auto result = res.force(minilua::Value("2"));
         CHECK_FALSE(result.has_value());
     }
 }
