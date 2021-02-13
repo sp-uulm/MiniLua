@@ -143,6 +143,9 @@ auto acos(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
+            if (!new_value.is_number()) {
+                return std::nullopt;
+            }
             Number n = std::get<Number>(new_value);
             return old_value.force(std::cos(n.value));
         }});
@@ -157,6 +160,9 @@ auto asin(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
+            if (!new_value.is_number()) {
+                return std::nullopt;
+            }
             Number n = std::get<Number>(new_value);
             return old_value.force(std::sin(n.value));
         }});
@@ -172,6 +178,9 @@ auto atan(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [len](const Value& new_value, const Value& old_value1, const Value& old_value2)
             -> std::optional<SourceChangeTree> {
+            if (!new_value.is_number()) {
+                return std::nullopt;
+            }
             if (old_value2 == Nil()) {
                 Number n = std::get<Number>(new_value);
                 return old_value1.force(std::tan(n.value));
@@ -295,6 +304,9 @@ auto ceil(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
+            if (!new_value.is_number()) {
+                return std::nullopt;
+            }
             Number n = std::get<Number>(new_value);
             if (std::fmod(n.value, 1.0) == 0.0) {
                 return old_value.force(
@@ -314,6 +326,9 @@ auto cos(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
+            if (!new_value.is_number()) {
+                return std::nullopt;
+            }
             Number n = std::get<Number>(new_value);
             return old_value.force(std::acos(n.value));
         }});
@@ -327,6 +342,9 @@ auto deg(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
+            if (!new_value.is_number()) {
+                return std::nullopt;
+            }
             Number n = std::get<Number>(new_value);
             return old_value.force(n * PI / 180);
         }});
@@ -342,6 +360,9 @@ auto exp(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
+            if (!new_value.is_number()) {
+                return std::nullopt;
+            }
             Number n = std::get<Number>(new_value);
             if (n > 0) {
                 return old_value.force(std::log(n.value));
@@ -360,6 +381,9 @@ auto floor(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
+            if (!new_value.is_number()) {
+                return std::nullopt;
+            }
             Number n = std::get<Number>(new_value);
             if (std::fmod(n.value, 1.0) == 0.0) {
                 return old_value.force(new_value);
@@ -425,6 +449,9 @@ auto log(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value, const Value& old_value1,
                       const Value& old_value2) -> std::optional<SourceChangeTree> {
+            if (!new_value.is_number()) {
+                return std::nullopt;
+            }
             if (old_value2 == Nil()) {
                 Number n = std::get<Number>(new_value);
                 return old_value1.force(std::exp(n.value));
@@ -543,6 +570,9 @@ auto rad(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
+            if (!new_value.is_number()) {
+                return std::nullopt;
+            }
             Number n = std::get<Number>(new_value);
             return old_value.force(n * 180 / PI);
         }});
@@ -606,6 +636,9 @@ auto sin(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
+            if (!new_value.is_number()) {
+                return std::nullopt;
+            }
             Number n = std::get<Number>(new_value);
             return old_value.force(std::asin(n.value));
         }});
@@ -618,6 +651,9 @@ auto sqrt(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
+            if (!new_value.is_number()) {
+                return std::nullopt;
+            }
             Number n = std::get<Number>(new_value);
             if (n.value >= 0) {
                 return old_value.force(n.value * n.value);
@@ -635,6 +671,9 @@ auto tan(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
+            if (!new_value.is_number()) {
+                return std::nullopt;
+            }
             Number n = std::get<Number>(new_value);
             return old_value.force(std::atan(n.value));
         }});
@@ -647,6 +686,9 @@ auto to_integer(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
+            if (!new_value.is_number()) {
+                return std::nullopt;
+            }
             Number n = std::get<Number>(new_value);
             if (new_value == Nil() || std::fmod(n.value, 1.0) == 0.0) {
                 return std::nullopt;
