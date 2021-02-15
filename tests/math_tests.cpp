@@ -2653,3 +2653,81 @@ TEST_CASE("reverse asin") {
         CHECK_FALSE(result.has_value());
     }
 }
+
+TEST_CASE("reverse atan") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        SECTION("One parameter") {
+            int x = 1;
+            minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+            minilua::Vallist list = minilua::Vallist({value, minilua::Nil()});
+            ctx = ctx.make_new(list);
+            minilua::Value res = minilua::math::atan(ctx);
+            auto n = std::get<minilua::Number>(res);
+            REQUIRE(n.value == Approx(0.78539816339745));
+
+            auto result = res.force(minilua::Value(0));
+            REQUIRE(result.has_value());
+
+            CHECK(
+                result.value().collect_first_alternative()[0] ==
+                minilua::SourceChange(minilua::Range(), "0"));
+        }
+
+        SECTION("Two parameters") {
+            int x = 1;
+            int y = 2;
+            minilua::Value value1 = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+            minilua::Value value2 = minilua::Value(y).with_origin(minilua::LiteralOrigin());
+            minilua::Vallist list = minilua::Vallist({value1, value2});
+            ctx = ctx.make_new(list);
+            minilua::Value res = minilua::math::atan(ctx);
+            auto n = std::get<minilua::Number>(res);
+            REQUIRE(n.value == Approx(0.46364760900081));
+
+            auto result = res.force(minilua::Value(0.64350110879328));
+            REQUIRE(result.has_value());
+
+            auto tree = result.value();
+            tree.visit(minilua::overloaded{
+                [](const minilua::SourceChangeAlternative& change) {
+                    REQUIRE(change.changes.size() == 2);
+                    CHECK(change.changes[0] == minilua::SourceChange(minilua::Range(), "-0.6"));
+                    CHECK(change.changes[1] == minilua::SourceChange(minilua::Range(), "-0.8"));
+                },
+                [](const auto& /*unused*/) { FAIL("unexpected source change"); }});
+        }
+    }
+
+    SECTION("invalid force") {
+        SECTION("one parameter") {
+            int x = 1;
+            minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+            minilua::Vallist list = minilua::Vallist({value, minilua::Nil()});
+            ctx = ctx.make_new(list);
+            minilua::Value res = minilua::math::atan(ctx);
+            auto n = std::get<minilua::Number>(res);
+            REQUIRE(n.value == Approx(0.78539816339745));
+
+            auto result = res.force(minilua::Value("0"));
+            REQUIRE_FALSE(result.has_value());
+        }
+
+        SECTION("two paramters") {
+            int x = 1;
+            int y = 2;
+            minilua::Value value1 = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+            minilua::Value value2 = minilua::Value(y).with_origin(minilua::LiteralOrigin());
+            minilua::Vallist list = minilua::Vallist({value1, value2});
+            ctx = ctx.make_new(list);
+            minilua::Value res = minilua::math::atan(ctx);
+            auto n = std::get<minilua::Number>(res);
+            REQUIRE(n.value == Approx(0.46364760900081));
+
+            auto result = res.force(minilua::Value("0.64350110879328"));
+            REQUIRE_FALSE(result.has_value());
+        }
+    }
+}
