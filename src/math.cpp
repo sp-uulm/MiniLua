@@ -321,7 +321,8 @@ auto ceil(const CallContext& ctx) -> Value {
             }
         }});
 
-    return math_helper(ctx, static_cast<double (*)(double)>(&std::ceil), "ceil");
+    return math_helper(ctx, static_cast<double (*)(double)>(&std::ceil), "ceil")
+        .with_origin(origin);
 }
 
 auto cos(const CallContext& ctx) -> Value {
