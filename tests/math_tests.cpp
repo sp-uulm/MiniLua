@@ -2712,7 +2712,7 @@ TEST_CASE("reverse atan") {
             REQUIRE(n.value == Approx(0.78539816339745));
 
             auto result = res.force(minilua::Value("0"));
-            REQUIRE_FALSE(result.has_value());
+            CHECK_FALSE(result.has_value());
         }
 
         SECTION("two paramters") {
@@ -2727,7 +2727,43 @@ TEST_CASE("reverse atan") {
             REQUIRE(n.value == Approx(0.46364760900081));
 
             auto result = res.force(minilua::Value("0.64350110879328"));
-            REQUIRE_FALSE(result.has_value());
+            CHECK_FALSE(result.has_value());
         }
+    }
+}
+
+TEST_CASE("reverse ceil") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        double i = 42.5;
+        minilua::Value value = minilua::Value(i).with_origin(minilua::LiteralOrigin());
+        minilua::Vallist list = minilua::Vallist({value});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::ceil(ctx);
+        REQUIRE(res == minilua::Value(43));
+
+        auto result = res.force(10);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "10"));
+    }
+
+    SECTION("invalid force") {
+        double i = 42.5;
+        minilua::Value value = minilua::Value(i).with_origin(minilua::LiteralOrigin());
+        minilua::Vallist list = minilua::Vallist({value});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::ceil(ctx);
+        REQUIRE(res == minilua::Value(43));
+
+        auto result = res.force("10");
+        CHECK_FALSE(result.has_value());
+
+        result = res.force(1.5);
+        CHECK_FALSE(result.has_value());
     }
 }
