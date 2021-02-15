@@ -186,8 +186,12 @@ auto atan(const CallContext& ctx) -> Value {
                 return old_value1.force(std::tan(n.value));
             } else {
                 double theta = std::get<Number>(new_value).value;
-                old_value1.force(len * std::sin(theta));
-                return old_value2.force(len * std::cos(theta));
+                SourceChangeAlternative changes;
+                auto val1 = old_value1.force(len * std::sin(theta));
+                auto val2 = old_value2.force(len * std::cos(theta));
+                changes.add_if_some(val1);
+                changes.add_if_some(val2);
+                return changes;
             }
         }});
 
