@@ -5,6 +5,7 @@
 #include <cmath>
 #include <functional>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>
 #include <variant>
@@ -156,45 +157,119 @@ DELEGATE_OP(Bool, &&);
 DELEGATE_OP(Bool, ||);
 DELEGATE_OP(Bool, ^);
 
-struct Number {
-    double value; // NOLINT(misc-non-private-member-variables-in-classes)
+/**
+ * In lua numbers can be integers or floats.
+ *
+ * \note Int and Float does not have the same meaning as in C++.
+ * See @ref Number::Int and @ref Number::Float.
+ *
+ * The Number type automatically converts Int to Float according to the rules
+ * of lua.
+ */
+class Number {
+public:
+    using Int = int;
+    using Float = double;
 
+private:
+    std::variant<Int, Float> value;
+
+public:
     constexpr static const std::string_view TYPE = "number";
 
-    constexpr Number(int value) : value(value) {}
-    constexpr Number(double value) : value(value) {}
+    constexpr Number(Int value) : value(value) {}
+    constexpr Number(Float value) : value(value) {}
 
     [[nodiscard]] auto to_literal() const -> std::string;
 
     explicit operator bool() const;
 
-    [[nodiscard]] auto is_int() const -> bool;
-};
-constexpr auto operator==(Number lhs, Number rhs) noexcept -> bool {
-    return lhs.value == rhs.value;
-}
-constexpr auto operator!=(Number lhs, Number rhs) noexcept -> bool { return !(lhs == rhs); }
-constexpr auto operator<(Number lhs, Number rhs) noexcept -> bool { return lhs.value < rhs.value; }
-constexpr auto operator>(Number lhs, Number rhs) noexcept -> bool { return lhs.value > rhs.value; }
-constexpr auto operator<=(Number lhs, Number rhs) noexcept -> bool {
-    return lhs.value <= rhs.value;
-}
-constexpr auto operator>=(Number lhs, Number rhs) noexcept -> bool {
-    return lhs.value >= rhs.value;
-}
-auto operator<<(std::ostream&, Number) -> std::ostream&;
+    /**
+     * Converts the number to a float if it is an int otherwise just returns
+     * the number.
+     *
+     * \note This actually returns a double but they are called float in lua.
+     */
+    [[nodiscard]] auto as_float() const -> Float;
+    /**
+     * Returns the number if it is an int, otherwise throws an exception.
+     *
+     * @throws std::runtime_error
+     */
+    [[nodiscard]] auto try_as_int() const -> Int;
 
-// normal c++ operators
-auto operator-(Number self) -> Number;
-DELEGATE_OP(Number, +);
-DELEGATE_OP(Number, -);
-DELEGATE_OP(Number, *);
-DELEGATE_OP(Number, /);
-// exponentiation (pow)
-auto operator^(Number lhs, Number rhs) -> Number;
-auto operator%(Number lhs, Number rhs) -> Number;
-auto operator&(Number lhs, Number rhs) -> Number;
-auto operator|(Number lhs, Number rhs) -> Number;
+    [[nodiscard]] auto raw() const -> std::variant<Int, Float>;
+
+    [[nodiscard]] auto is_int() const -> bool;
+    [[nodiscard]] auto is_float() const -> bool;
+
+    template <typename Fn> auto visit(Fn fn) const {
+        static_assert(std::is_invocable_v<Fn, int>, "fn must be invocable with an int parameter");
+        static_assert(
+            std::is_invocable_v<Fn, double>, "fn must be invocable with a double parameter");
+        return std::visit(fn, this->value);
+    }
+
+    /**
+     * Invoce the given function with either two ints or two doubles.
+     *
+     * If one of the numbers (either this or rhs) is a double the otherone will
+     * also be converted to a double if it is not one.
+     */
+    template <typename Fn> auto apply_with_number_rules(const Number& rhs, Fn fn) const {
+        static_assert(std::is_invocable_v<Fn, int, int>);
+        static_assert(std::is_invocable_v<Fn, double, double>);
+        return std::visit(
+            overloaded{
+                [&fn](int lhs, int rhs) { return fn(lhs, rhs); },
+                [&fn](double lhs, int rhs) { return fn(lhs, static_cast<double>(rhs)); },
+                [&fn](int lhs, double rhs) { return fn(static_cast<double>(lhs), rhs); },
+                [&fn](double lhs, double rhs) { return fn(lhs, rhs); },
+            },
+            this->value, rhs.value);
+    }
+
+    friend constexpr auto operator==(Number lhs, Number rhs) noexcept -> bool {
+        return lhs.value == rhs.value;
+    }
+    friend constexpr auto operator!=(Number lhs, Number rhs) noexcept -> bool {
+        return !(lhs == rhs);
+    }
+    friend constexpr auto operator<(Number lhs, Number rhs) noexcept -> bool {
+        return lhs.value < rhs.value;
+    }
+    friend constexpr auto operator>(Number lhs, Number rhs) noexcept -> bool {
+        return lhs.value > rhs.value;
+    }
+    friend constexpr auto operator<=(Number lhs, Number rhs) noexcept -> bool {
+        return lhs.value <= rhs.value;
+    }
+    friend constexpr auto operator>=(Number lhs, Number rhs) noexcept -> bool {
+        return lhs.value >= rhs.value;
+    }
+    friend auto operator<<(std::ostream&, Number) -> std::ostream&;
+
+    friend auto operator-(Number self) -> Number;
+    friend auto operator+(const Number& lhs, const Number& rhs) -> Number;
+    friend auto operator-(const Number& lhs, const Number& rhs) -> Number;
+    friend auto operator*(const Number& lhs, const Number& rhs) -> Number;
+    friend auto operator/(const Number& lhs, const Number& rhs) -> Number;
+
+    [[nodiscard]] auto int_div(const Number& rhs) const -> Number;
+    // We don't use the "normal" C++ operators because they don't cover all lua operators
+    [[nodiscard]] auto pow(const Number& rhs) const -> Number;
+    [[nodiscard]] auto mod(const Number& rhs) const -> Number;
+    // We can't give these methods propert names because C++ has alternate operator tokens
+    // In particular using bitand, bitor, and, or and not is illegal syntax
+    [[nodiscard]] auto bit_and(const Number& rhs) const -> Number;
+    [[nodiscard]] auto bit_or(const Number& rhs) const -> Number;
+    [[nodiscard]] auto logic_and(const Number& rhs) const -> Number;
+    [[nodiscard]] auto logic_or(const Number& rhs) const -> Number;
+    /**
+     * unary `not` operator
+     */
+    [[nodiscard]] auto invert() const -> Number;
+};
 
 struct String {
     std::string value; // NOLINT(misc-non-private-member-variables-in-classes)
@@ -919,6 +994,8 @@ public:
     [[nodiscard]] auto mul(const Value& rhs, std::optional<Range> location = std::nullopt) const
         -> Value;
     [[nodiscard]] auto div(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    [[nodiscard]] auto int_div(const Value& rhs, std::optional<Range> location = std::nullopt) const
         -> Value;
     [[nodiscard]] auto pow(const Value& rhs, std::optional<Range> location = std::nullopt) const
         -> Value;
