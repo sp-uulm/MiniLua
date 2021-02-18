@@ -21,7 +21,6 @@ void add_stdlib(Table& table) {
     table.set("tostring", to_string);
     table.set("to_number", to_number);
     table.set("type", type);
-    table.set("assert", assert_lua);
     table.set("next", next);
     table.set("select", select);
     table.set("print", print);

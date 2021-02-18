@@ -97,9 +97,10 @@ auto operator<<(std::ostream&, const EvalResult&) -> std::ostream&;
 struct Interpreter {
 private:
     const InterpreterConfig& config;
+    ts::Parser& parser;
 
 public:
-    Interpreter(const InterpreterConfig& config);
+    Interpreter(const InterpreterConfig& config, ts::Parser& parser);
     auto run(const ts::Tree& tree, Env& env) -> EvalResult;
 
 private:

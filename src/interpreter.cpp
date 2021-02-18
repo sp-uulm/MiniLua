@@ -115,7 +115,7 @@ void Interpreter::apply_source_changes(std::vector<SourceChange> source_changes)
     std::cout << "apply_source_changes\n";
 }
 auto Interpreter::evaluate() -> EvalResult {
-    details::Interpreter interpreter{this->config()};
+    details::Interpreter interpreter{this->config(), this->impl->parser};
     return interpreter.run(this->impl->tree, this->impl->env.get_raw_impl().inner);
 }
 

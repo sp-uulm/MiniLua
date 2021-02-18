@@ -15,6 +15,11 @@
 #include <sstream>
 #include <utility>
 
+// This points to a binary blob containing the lua/stdlib.lua file.
+// The file is put into the compiled object by the linker.
+extern const char _binary_stdlib_lua_start[]; // NOLINT
+extern const char _binary_stdlib_lua_end[];   // NOLINT
+
 namespace minilua::details {
 
 // TODO remove the unimplemented stuff once everything is implemented
@@ -82,12 +87,34 @@ auto operator<<(std::ostream& o, const EvalResult& self) -> std::ostream& {
 }
 
 // class Interpreter
-Interpreter::Interpreter(const InterpreterConfig& config) : config(config) {}
+Interpreter::Interpreter(const InterpreterConfig& config, ts::Parser& parser)
+    : config(config), parser(parser) {}
 
 auto Interpreter::run(const ts::Tree& tree, Env& env) -> EvalResult {
-    // load the stdlib
+    // load the C++ part of the stdlib
     add_stdlib(env.global());
-    // TODO load the file parts
+
+    // load the Lua part of the stdlib
+    // NOTE the result of executing the stdlib file will be ignored
+
+    std::string stdlib_code(_binary_stdlib_lua_start, _binary_stdlib_lua_end);
+
+    // We need these to be outside of the scope of the first try so they live
+    // long enough but they don't have default constructors so we wrap them in
+    // optional.
+    std::optional<ast::Program> ast;
+    std::optional<ts::Tree> stdlib_tree;
+
+    try {
+        stdlib_tree = ts::Tree(this->parser.parse_string(stdlib_code));
+        ast = ast::Program(stdlib_tree->root_node());
+        this->visit_root(*ast, env);
+    } catch (const std::exception& e) {
+        // This should never actually throw an exception
+        throw InterpreterException("Failed to initialize the stdlib: "s + e.what());
+    }
+
+    // execute the actual program
 
     try {
         return this->visit_root(ast::Program(tree.root_node()), env);
