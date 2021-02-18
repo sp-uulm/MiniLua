@@ -29,9 +29,6 @@ TEST_CASE("Interpreter integration test") {
     minilua::Interpreter interpreter;
     interpreter.config().all(true);
 
-    // populate the environment
-    interpreter.environment().add_default_stdlib();
-
     auto lambda = [](minilua::CallContext /*unused*/) { // NOLINT
         return std::string{"force something"};
     };

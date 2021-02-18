@@ -85,6 +85,10 @@ auto operator<<(std::ostream& o, const EvalResult& self) -> std::ostream& {
 Interpreter::Interpreter(const InterpreterConfig& config) : config(config) {}
 
 auto Interpreter::run(const ts::Tree& tree, Env& env) -> EvalResult {
+    // load the stdlib
+    add_stdlib(env.global());
+    // TODO load the file parts
+
     try {
         return this->visit_root(ast::Program(tree.root_node()), env);
     } catch (const InterpreterException&) {

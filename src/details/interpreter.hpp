@@ -10,6 +10,13 @@
 namespace minilua::details {
 
 /**
+ * Add the stdlib to the given table.
+ *
+ * This will only add the parts that are directly implemented in lua.
+ */
+void add_stdlib(Table& table);
+
+/**
  * Internal results of the interpreter.
  *
  * Will be converted to the public minilua::EvalResult when the interpreter
