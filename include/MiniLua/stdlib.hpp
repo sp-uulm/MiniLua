@@ -7,6 +7,9 @@
 #include "MiniLua/values.hpp"
 
 namespace minilua {
+
+void error(const CallContext& ctx);
+
 auto to_string(const CallContext& ctx) -> Value;
 
 auto to_number(const CallContext& ctx) -> Value;

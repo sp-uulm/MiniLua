@@ -25,9 +25,16 @@ void add_stdlib(Table& table) {
     table.set("next", next);
     table.set("select", select);
     table.set("print", print);
+    table.set("error", error);
 }
 
 } // namespace details
+
+void error(const CallContext& ctx) {
+    // TODO implement level (we need a proper call stack for that)
+    auto message = ctx.arguments().get(0);
+    throw std::runtime_error(std::get<String>(message.to_string()).value);
+}
 
 /**
 Splits a string into two parts. the split happens at the character c which is not included in the
