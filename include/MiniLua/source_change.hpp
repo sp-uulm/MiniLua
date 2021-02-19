@@ -48,10 +48,11 @@ auto operator<<(std::ostream&, const Location&) -> std::ostream&;
 struct Range {
     Location start;
     Location end;
+    std::optional<std::string_view> file;
 };
 
 constexpr auto operator==(Range lhs, Range rhs) noexcept -> bool {
-    return lhs.start == rhs.start && lhs.end == rhs.end;
+    return lhs.start == rhs.start && lhs.end == rhs.end && lhs.file == rhs.file;
 }
 constexpr auto operator!=(Range lhs, Range rhs) noexcept -> bool { return !(lhs == rhs); }
 auto operator<<(std::ostream&, const Range&) -> std::ostream&;

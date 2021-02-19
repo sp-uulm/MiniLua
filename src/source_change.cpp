@@ -12,7 +12,13 @@ auto operator<<(std::ostream& os, const Location& self) -> std::ostream& {
 
 // struct Range
 auto operator<<(std::ostream& os, const Range& self) -> std::ostream& {
-    return os << "Range{ start = " << self.start << ", end = " << self.end << " }";
+    os << "Range{ start = " << self.start << ", end = " << self.end << ", file = ";
+    if (self.file) {
+        os << "\"" << *self.file << "\"";
+    } else {
+        os << "nullopt";
+    }
+    return os << " }";
 }
 
 // struct SourceChange
