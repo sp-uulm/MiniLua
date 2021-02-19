@@ -146,44 +146,6 @@ TEST_CASE("to_number") {
     }
 }
 
-TEST_CASE("assert_lua") {
-    SECTION("Assert fails with default message") {
-        minilua::Environment env;
-        minilua::CallContext ctx(&env);
-        minilua::Vallist list = minilua::Vallist({minilua::Value{false}, minilua::Nil()});
-        ctx = ctx.make_new(list);
-        CHECK_THROWS_WITH(minilua::assert_lua(ctx), "assertion failed");
-    }
-
-    SECTION("Assert fails with default message") {
-        std::string s = "Hallo Welt!";
-        minilua::Environment env;
-        minilua::CallContext ctx(&env);
-        minilua::Vallist list = minilua::Vallist({minilua::Value{false}, minilua::Value{s}});
-        ctx = ctx.make_new(list);
-        CHECK_THROWS_WITH(minilua::assert_lua(ctx), s);
-    }
-
-    SECTION("Assert passes") {
-        SECTION("Assert passes with standard true") {
-            minilua::Environment env;
-            minilua::CallContext ctx(&env);
-            minilua::Vallist list = minilua::Vallist({minilua::Value{true}, minilua::Value{42}});
-            ctx = ctx.make_new(list);
-            CHECK(minilua::assert_lua(ctx) == ctx.arguments());
-        }
-
-        SECTION("Assert passes with converted true") {
-            minilua::Environment env;
-            minilua::CallContext ctx(&env);
-            minilua::Vallist list =
-                minilua::Vallist({minilua::Value{42}, minilua::Value{"Hallo Welt!"}});
-            ctx = ctx.make_new(list);
-            CHECK(minilua::assert_lua(ctx) == ctx.arguments());
-        }
-    }
-}
-
 TEST_CASE("select") {
     minilua::Environment env;
     minilua::CallContext ctx(&env);

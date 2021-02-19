@@ -16,8 +16,6 @@ auto to_number(const CallContext& ctx) -> Value;
 
 auto type(const CallContext& ctx) -> Value;
 
-auto assert_lua(const CallContext& ctx) -> Vallist;
-
 auto next(const CallContext& ctx) -> Vallist;
 
 /**
@@ -35,6 +33,7 @@ auto next(const CallContext& ctx) -> Vallist;
 auto select(const CallContext& ctx) -> Vallist;
 
 void print(const CallContext& ctx);
+
 } // namespace minilua
 
 #endif

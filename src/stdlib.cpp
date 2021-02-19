@@ -35,26 +35,6 @@ void error(const CallContext& ctx) {
     throw std::runtime_error(std::get<String>(message.to_string()).value);
 }
 
-/**
-Splits a string into two parts. the split happens at the character c which is not included in the
-result.
-
-Example:
-split_string("123.456", '.') = (123, 456)
-*/
-// commented because not needed at the moment, maybe in the future. if not, delete it
-/*static auto split_string(const std::string& s, char c) -> std::pair<std::string, std::string> {
-    std::pair<std::string, std::string> result;
-    std::stringstream split(s);
-    std::string tmp;
-    std::getline(split, tmp, c);
-    result.first = tmp;
-    std::getline(split, tmp, c);
-    result.second = tmp;
-    return result;
-}
-*/
-
 auto to_string(const CallContext& ctx) -> Value {
     auto arg = ctx.arguments().get(0);
 
@@ -72,19 +52,6 @@ auto type(const CallContext& ctx) -> Value {
     auto v = ctx.arguments().get(0);
 
     return v.type();
-}
-
-auto assert_lua(const CallContext& ctx) -> Vallist {
-    auto v = ctx.arguments().get(0);
-    auto message = ctx.arguments().get(1);
-
-    if (v) {
-        return ctx.arguments();
-    } else {
-        // TODO: improve error behaviour
-        throw std::runtime_error(
-            message == Nil() ? std::string("assertion failed") : get<String>(message).value);
-    }
 }
 
 auto next(const CallContext& ctx) -> Vallist {
