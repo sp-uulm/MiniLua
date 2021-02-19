@@ -156,6 +156,11 @@ public:
     auto hint() -> std::string&;
 
     /**
+     * Removes the filename from the ranges in the tree.
+     */
+    void remove_filename();
+
+    /**
      * Visit the root node of the tree of source changes.
      *
      * You have to manually navigate the tree.

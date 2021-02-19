@@ -47,6 +47,10 @@ auto SourceChangeTree::hint() -> std::string& {
     return this->visit([](auto& change) -> std::string& { return change.hint; });
 }
 
+void SourceChangeTree::remove_filename() {
+    this->visit_all([](SourceChange& change) { change.range.file = std::nullopt; });
+}
+
 [[nodiscard]] auto SourceChangeTree::collect_first_alternative() const
     -> std::vector<SourceChange> {
     std::vector<SourceChange> changes;

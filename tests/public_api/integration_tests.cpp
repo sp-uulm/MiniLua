@@ -71,11 +71,12 @@ TEST_CASE("Interpreter integration test") {
     REQUIRE(result.source_change.has_value());
     auto range = minilua::Range{
         .start = {0, 10, 10}, // NOLINT
-        .end = {0, 12, 12},   // NOLINT
-        .file = std::make_shared<std::string>("__root__"),
+        .end = {0, 12, 12}    // NOLINT
     };
     auto expected_source_changes = minilua::SourceChangeTree(minilua::SourceChange(range, "25"));
-    CHECK(result.source_change.value() == expected_source_changes);
+    auto actual_source_changes = result.source_change.value();
+    actual_source_changes.remove_filename();
+    CHECK(actual_source_changes == expected_source_changes);
 
     // choose source changes to apply
     // TODO do we need a vector here or is is ok to assume that one run of the
