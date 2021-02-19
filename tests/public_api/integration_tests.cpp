@@ -71,7 +71,8 @@ TEST_CASE("Interpreter integration test") {
     REQUIRE(result.source_change.has_value());
     auto range = minilua::Range{
         .start = {0, 10, 10}, // NOLINT
-        .end = {0, 12, 12}    // NOLINT
+        .end = {0, 12, 12},   // NOLINT
+        .file = std::make_shared<std::string>("__root__"),
     };
     auto expected_source_changes = minilua::SourceChangeTree(minilua::SourceChange(range, "25"));
     CHECK(result.source_change.value() == expected_source_changes);

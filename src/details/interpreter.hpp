@@ -149,6 +149,7 @@ private:
     auto visit_vararg_expression(Env& env) -> EvalResult;
 
     auto visit_table_constructor(ast::Table table_constructor, Env& env) -> EvalResult;
+    auto visit_literal(ast::Literal literal, Env& env) -> EvalResult;
 
     /**
      * Evaluates a list of expressions (like return values, function parameters, etc).

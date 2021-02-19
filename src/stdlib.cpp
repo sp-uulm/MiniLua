@@ -12,6 +12,7 @@
 #include "MiniLua/environment.hpp"
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/utils.hpp"
+#include "internal_env.hpp"
 
 namespace minilua {
 

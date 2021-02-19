@@ -42,6 +42,7 @@ class Env {
     Table _global;
     LocalEnv _local;
     std::optional<Vallist> varargs;
+    std::optional<std::shared_ptr<std::string>> file;
 
     // iostreams
     std::istream* in;
@@ -140,6 +141,9 @@ public:
     auto get_stdin() -> std::istream*;
     auto get_stdout() -> std::ostream*;
     auto get_stderr() -> std::ostream*;
+
+    void set_file(std::optional<std::shared_ptr<std::string>> file);
+    auto get_file() const -> std::optional<std::shared_ptr<std::string>>;
 
     [[nodiscard]] auto allocator() const -> MemoryAllocator*;
 };

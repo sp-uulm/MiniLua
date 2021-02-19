@@ -343,7 +343,7 @@ auto Origin::raw() -> Type& { return this->origin; }
         },
         this->origin);
 }
-void Origin::set_file(std::optional<std::string_view> file) {
+void Origin::set_file(std::optional<std::shared_ptr<std::string>> file) {
     std::visit(
         overloaded{
             [&file](BinaryOrigin& origin) {

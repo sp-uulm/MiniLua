@@ -11,10 +11,17 @@ auto operator<<(std::ostream& os, const Location& self) -> std::ostream& {
 }
 
 // struct Range
+auto operator==(Range lhs, Range rhs) noexcept -> bool {
+    // check the internal string for equality instead of the shared_ptr
+    bool file_equals = (!lhs.file.has_value() && !lhs.file.has_value()) ||
+                       (lhs.file.has_value() && rhs.file.has_value() && **lhs.file == **rhs.file);
+    return lhs.start == rhs.start && lhs.end == rhs.end && file_equals;
+}
+auto operator!=(Range lhs, Range rhs) noexcept -> bool { return !(lhs == rhs); }
 auto operator<<(std::ostream& os, const Range& self) -> std::ostream& {
     os << "Range{ start = " << self.start << ", end = " << self.end << ", file = ";
     if (self.file) {
-        os << "\"" << *self.file << "\"";
+        os << "\"" << **self.file << "\"";
     } else {
         os << "nullopt";
     }

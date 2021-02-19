@@ -10,6 +10,7 @@
 #include <iostream>
 #include <iterator>
 #include <map>
+#include <memory>
 #include <optional>
 #include <set>
 #include <sstream>
@@ -108,6 +109,7 @@ auto Interpreter::run(const ts::Tree& tree, Env& env) -> EvalResult {
     try {
         stdlib_tree = ts::Tree(this->parser.parse_string(stdlib_code));
         ast = ast::Program(stdlib_tree->root_node());
+        env.set_file(std::nullopt);
         this->visit_root(*ast, env);
     } catch (const std::exception& e) {
         // This should never actually throw an exception
@@ -117,6 +119,8 @@ auto Interpreter::run(const ts::Tree& tree, Env& env) -> EvalResult {
     // execute the actual program
 
     try {
+        std::shared_ptr<std::string> root_filename = std::make_shared<std::string>("__root__");
+        env.set_file(root_filename);
         return this->visit_root(ast::Program(tree.root_node()), env);
     } catch (const InterpreterException&) {
         throw;
@@ -547,30 +551,8 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
             [this, &env](ast::UnaryOperation unary_op) {
                 return this->visit_unary_operation(unary_op, env);
             },
-            [&node](ast::Literal literal) {
-                EvalResult result;
-
-                Value value;
-                switch (literal.type()) {
-                case ast::LiteralType::TRUE:
-                    value = Value(Bool(true));
-                    break;
-                case ast::LiteralType::FALSE:
-                    value = Value(Bool(false));
-                    break;
-                case ast::LiteralType::NIL:
-                    value = Value(Nil());
-                    break;
-                case ast::LiteralType::NUMBER:
-                    value = parse_number_literal(literal.content());
-                    break;
-                case ast::LiteralType::STRING:
-                    value = parse_string_literal(literal.content());
-                    break;
-                }
-                auto origin = LiteralOrigin{.location = literal.range()};
-                result.values = Vallist(value.with_origin(origin));
-                return result;
+            [this, &env](ast::Literal literal) {
+                return this->visit_literal(std::move(literal), env);
             },
             [this, &env](ast::Identifier ident) {
                 auto variable_name = this->visit_identifier(ident, env);
@@ -578,6 +560,35 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
             },
         },
         expr.options());
+
+    return result;
+}
+
+auto Interpreter::visit_literal(ast::Literal literal, Env& env) -> EvalResult {
+    EvalResult result;
+
+    Value value;
+    switch (literal.type()) {
+    case ast::LiteralType::TRUE:
+        value = Value(Bool(true));
+        break;
+    case ast::LiteralType::FALSE:
+        value = Value(Bool(false));
+        break;
+    case ast::LiteralType::NIL:
+        value = Value(Nil());
+        break;
+    case ast::LiteralType::NUMBER:
+        value = parse_number_literal(literal.content());
+        break;
+    case ast::LiteralType::STRING:
+        value = parse_string_literal(literal.content());
+        break;
+    }
+
+    auto origin = LiteralOrigin{.location = literal.range()};
+    origin.location.file = env.get_file();
+    result.values = Vallist(value.with_origin(origin));
 
     return result;
 }
@@ -844,6 +855,7 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
     EvalResult result;
 
     auto origin = convert_range(bin_op.raw().range());
+    origin.file = env.get_file();
 
     auto lhs_result = this->visit_expression(bin_op.left(), env);
     auto rhs_result = this->visit_expression(bin_op.right(), env);
@@ -902,6 +914,7 @@ auto Interpreter::visit_unary_operation(ast::UnaryOperation unary_op, Env& env) 
     EvalResult result = this->visit_expression(unary_op.expression(), env);
 
     auto range = convert_range(unary_op.raw().range());
+    range.file = env.get_file();
 
 #define IMPL(op, method)                                                                           \
     case ast::UnOpEnum::op:                                                                        \
@@ -973,6 +986,8 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
     // call function
     // this will produce an error if the obj is not callable
     auto obj = function_obj_result.values.get(0);
+
+    // move the Env to the CallContext
     auto environment = Environment(env);
     auto ctx = CallContext(&environment).make_new(arguments);
 
@@ -985,6 +1000,9 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
         std::string pos = call.raw().range().start.point.pretty(true);
         throw InterpreterException("failed to call function  ("s + pos + ") : " + e.what());
     }
+
+    // move the Env back in case something has changed internally
+    env = environment.get_raw_impl().inner;
 
     return result;
 }

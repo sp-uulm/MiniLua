@@ -729,7 +729,7 @@ public:
     /**
      * Sets the file of the underlying origin type (if possible).
      */
-    void set_file(std::optional<std::string_view> file);
+    void set_file(std::optional<std::shared_ptr<std::string>> file);
 };
 
 auto operator==(const Origin&, const Origin&) noexcept -> bool;

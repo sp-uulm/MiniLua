@@ -4,6 +4,7 @@
 #include "MiniLua/utils.hpp"
 #include <cstdint>
 #include <iostream>
+#include <memory>
 #include <numeric>
 #include <optional>
 #include <variant>
@@ -48,13 +49,17 @@ auto operator<<(std::ostream&, const Location&) -> std::ostream&;
 struct Range {
     Location start;
     Location end;
-    std::optional<std::string_view> file;
+
+    /**
+     * Optional filename where the Range is located.
+     *
+     * The filename is behind a shared_ptr to avoid unnecessary copies.
+     */
+    std::optional<std::shared_ptr<std::string>> file;
 };
 
-constexpr auto operator==(Range lhs, Range rhs) noexcept -> bool {
-    return lhs.start == rhs.start && lhs.end == rhs.end && lhs.file == rhs.file;
-}
-constexpr auto operator!=(Range lhs, Range rhs) noexcept -> bool { return !(lhs == rhs); }
+auto operator==(Range lhs, Range rhs) noexcept -> bool;
+auto operator!=(Range lhs, Range rhs) noexcept -> bool;
 auto operator<<(std::ostream&, const Range&) -> std::ostream&;
 
 class SourceChangeTree;
