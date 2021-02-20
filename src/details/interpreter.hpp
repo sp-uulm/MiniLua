@@ -104,7 +104,8 @@ public:
     auto run(const ts::Tree& tree, Env& env) -> EvalResult;
 
 private:
-    auto execute_stdlib(Env& env);
+    auto init_stdlib() -> ast::Program;
+    void execute_stdlib(Env& env);
 
     auto visit_root(ast::Program program, Env& env) -> EvalResult;
 

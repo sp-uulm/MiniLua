@@ -96,28 +96,7 @@ auto Interpreter::run(const ts::Tree& tree, Env& user_env) -> EvalResult {
     // with user set values
     Env env(user_env.allocator());
 
-    // load the C++ part of the stdlib
-    add_stdlib(env.global());
-
-    // load the Lua part of the stdlib
-    // NOTE the result of executing the stdlib file will be ignored
-    std::string stdlib_code(_binary_stdlib_lua_start, _binary_stdlib_lua_end);
-
-    // We need these to be outside of the scope of the first try so they live
-    // long enough but they don't have default constructors so we wrap them in
-    // optional.
-    std::optional<ast::Program> ast;
-    std::optional<ts::Tree> stdlib_tree;
-
-    try {
-        stdlib_tree = ts::Tree(this->parser.parse_string(stdlib_code));
-        ast = ast::Program(stdlib_tree->root_node());
-        env.set_file(std::nullopt);
-        this->visit_root(*ast, env);
-    } catch (const std::exception& e) {
-        // This should never actually throw an exception
-        throw InterpreterException("Failed to initialize the stdlib: "s + e.what());
-    }
+    this->execute_stdlib(env);
 
     // overwrite with the user values
     // TODO this can be made easier
@@ -134,6 +113,36 @@ auto Interpreter::run(const ts::Tree& tree, Env& user_env) -> EvalResult {
         throw;
     } catch (const std::exception& e) {
         throw InterpreterException("unknown error: "s + e.what());
+    }
+}
+auto Interpreter::init_stdlib() -> ast::Program {
+    // load the Lua part of the stdlib
+    // NOTE the result of executing the stdlib file will be ignored
+
+    // NOTE Both the source code string and the tree are static so they are only
+    // initialized once
+    static std::string stdlib_code(_binary_stdlib_lua_start, _binary_stdlib_lua_end);
+
+    try {
+        static ts::Tree stdlib_tree = ts::Tree(this->parser.parse_string(stdlib_code));
+        return ast::Program(stdlib_tree.root_node());
+    } catch (const std::exception& e) {
+        // This should never actually throw an exception
+        throw InterpreterException("Failed to parse the stdlib: "s + e.what());
+    }
+}
+void Interpreter::execute_stdlib(Env& env) {
+    // load the C++ part of the stdlib
+    add_stdlib(env.global());
+
+    // run the Lua part of the stdlib
+    auto ast = this->init_stdlib();
+    try {
+        env.set_file(std::nullopt);
+        this->visit_root(ast, env);
+    } catch (const std::exception& e) {
+        // This should never actually throw an exception
+        throw InterpreterException("Failed to initialize the stdlib: "s + e.what());
     }
 }
 
