@@ -91,13 +91,16 @@ auto operator<<(std::ostream& o, const EvalResult& self) -> std::ostream& {
 Interpreter::Interpreter(const InterpreterConfig& config, ts::Parser& parser)
     : config(config), parser(parser) {}
 
-auto Interpreter::run(const ts::Tree& tree, Env& env) -> EvalResult {
+auto Interpreter::run(const ts::Tree& tree, Env& user_env) -> EvalResult {
+    // add the stdlib to another env then (possible) overwrite the variables
+    // with user set values
+    Env env(user_env.allocator());
+
     // load the C++ part of the stdlib
     add_stdlib(env.global());
 
     // load the Lua part of the stdlib
     // NOTE the result of executing the stdlib file will be ignored
-
     std::string stdlib_code(_binary_stdlib_lua_start, _binary_stdlib_lua_end);
 
     // We need these to be outside of the scope of the first try so they live
@@ -116,11 +119,16 @@ auto Interpreter::run(const ts::Tree& tree, Env& env) -> EvalResult {
         throw InterpreterException("Failed to initialize the stdlib: "s + e.what());
     }
 
-    // execute the actual program
+    // overwrite with the user values
+    // TODO this can be made easier
+    for (const auto& [key, value] : user_env.global()) {
+        env.global().set(key, value);
+    }
 
+    // execute the actual program
     try {
         std::shared_ptr<std::string> root_filename = std::make_shared<std::string>("__root__");
-        env.set_file(root_filename);
+        user_env.set_file(root_filename);
         return this->visit_root(ast::Program(tree.root_node()), env);
     } catch (const InterpreterException&) {
         throw;
