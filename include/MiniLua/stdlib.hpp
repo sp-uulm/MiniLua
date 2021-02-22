@@ -32,6 +32,13 @@ auto next(const CallContext& ctx) -> Vallist;
 auto select(const CallContext& ctx) -> Vallist;
 
 void print(const CallContext& ctx);
+
+/**
+ * Remove the origin of all passed in values and return them.
+ *
+ * \note This is not part of the official lua standard.
+ */
+auto discard_origin(const CallContext& ctx) -> Vallist;
 } // namespace minilua
 
 #endif
