@@ -387,6 +387,8 @@ Functions</h2></td></tr>
 <tr class="separator:aecddd7e2bb983b093d7d69a0572ee8c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad8119e4245ca8b8addbba759613c9bfa"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#ad8119e4245ca8b8addbba759613c9bfa">print</a> (const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;ctx)</td></tr>
 <tr class="separator:ad8119e4245ca8b8addbba759613c9bfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8831ff5d681092907d29efbae0c2f6c3"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a8831ff5d681092907d29efbae0c2f6c3">discard_origin</a> (const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;ctx) -&gt; <a class="el" href="classminilua_1_1Vallist.html">Vallist</a></td></tr>
+<tr class="separator:a8831ff5d681092907d29efbae0c2f6c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5b8117b06bce383f88a4caca59e52ca6"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#a5b8117b06bce383f88a4caca59e52ca6">check_and_get_trim</a> (const std::string &amp;s) -&gt; size_t</td></tr>
 <tr class="separator:a5b8117b06bce383f88a4caca59e52ca6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec5a18c13c1099dcdb937840efe084ee"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua.html#aec5a18c13c1099dcdb937840efe084ee">escape_string</a> (const std::string &amp;s, size_t trim) -&gt; std::string</td></tr>
@@ -847,6 +849,26 @@ template&lt;class... Ts&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8831ff5d681092907d29efbae0c2f6c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8831ff5d681092907d29efbae0c2f6c3">&#9670;&nbsp;</a></span>discard_origin()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::discard_origin </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;&#160;</td>
+          <td class="paramname"><em>ctx</em></td><td>)</td>
+          <td> -&gt; <a class="el" href="classminilua_1_1Vallist.html">Vallist</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Remove the origin of all passed in values and return them.</p>
+<dl class="section note"><dt>Note</dt><dd>This is not part of the official lua standard. </dd></dl>
 
 </div>
 </div>

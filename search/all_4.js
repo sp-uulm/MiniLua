@@ -13,11 +13,12 @@ var searchData=
   ['difference_5ftype_146',['difference_type',['../classminilua_1_1Table_1_1iterator.html#a789ceb13a1e674fa8a8a592d0aa21b87',1,'minilua::Table::iterator::difference_type()'],['../classminilua_1_1Table_1_1const__iterator.html#a380b2516ae10a05026e8a637ded4875e',1,'minilua::Table::const_iterator::difference_type()']]],
   ['disable_5fcapture_147',['disable_capture',['../classts_1_1Query.html#ace4e70d3d90fff1ba6e028f552f67655',1,'ts::Query']]],
   ['disable_5fpattern_148',['disable_pattern',['../classts_1_1Query.html#ac16bea54153917eb085037be23bc0495',1,'ts::Query']]],
-  ['div_149',['div',['../classminilua_1_1Value.html#ae18c106b4f3a985c6c98b79d9bde8306',1,'minilua::Value::div()'],['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432abfa28bb1e9296fa865b204c8631cc35a',1,'LuaToken::DIV()'],['../namespaceminilua_1_1details_1_1ast.html#a3c6cffcd7e4488a497f69ee5ea8abea0a29bbf66f7f8529ec47e394fb5a36c646',1,'minilua::details::ast::DIV()']]],
-  ['do_150',['DO',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432a6281c7dcee4135ff23dccfe250a24381',1,'LuaToken']]],
-  ['do_5fbreak_151',['do_break',['../structminilua_1_1details_1_1EvalResult.html#a23026c8c576b909f2b072efab68e5102',1,'minilua::details::EvalResult']]],
-  ['do_5freturn_152',['do_return',['../structminilua_1_1details_1_1EvalResult.html#a0ef9f37f91ff57c61d86e6b5b0d499a6',1,'minilua::details::EvalResult']]],
-  ['do_5fstatement_153',['do_statement',['../classminilua_1_1details_1_1ast_1_1DoStatement.html#a7aacf9cf2d2c46c1381d8535f16053d1',1,'minilua::details::ast::DoStatement']]],
-  ['dostatement_154',['DoStatement',['../classminilua_1_1details_1_1ast_1_1DoStatement.html',1,'minilua::details::ast::DoStatement'],['../classminilua_1_1details_1_1ast_1_1DoStatement.html#a237f114ec0410c78e8543c54a9ae18af',1,'minilua::details::ast::DoStatement::DoStatement()']]],
-  ['dot_155',['DOT',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432a228709cce007600b40dd06e9b85fa1ed',1,'LuaToken']]]
+  ['discard_5forigin_149',['discard_origin',['../namespaceminilua.html#a8831ff5d681092907d29efbae0c2f6c3',1,'minilua']]],
+  ['div_150',['div',['../classminilua_1_1Value.html#ae18c106b4f3a985c6c98b79d9bde8306',1,'minilua::Value::div()'],['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432abfa28bb1e9296fa865b204c8631cc35a',1,'LuaToken::DIV()'],['../namespaceminilua_1_1details_1_1ast.html#a3c6cffcd7e4488a497f69ee5ea8abea0a29bbf66f7f8529ec47e394fb5a36c646',1,'minilua::details::ast::DIV()']]],
+  ['do_151',['DO',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432a6281c7dcee4135ff23dccfe250a24381',1,'LuaToken']]],
+  ['do_5fbreak_152',['do_break',['../structminilua_1_1details_1_1EvalResult.html#a23026c8c576b909f2b072efab68e5102',1,'minilua::details::EvalResult']]],
+  ['do_5freturn_153',['do_return',['../structminilua_1_1details_1_1EvalResult.html#a0ef9f37f91ff57c61d86e6b5b0d499a6',1,'minilua::details::EvalResult']]],
+  ['do_5fstatement_154',['do_statement',['../classminilua_1_1details_1_1ast_1_1DoStatement.html#a7aacf9cf2d2c46c1381d8535f16053d1',1,'minilua::details::ast::DoStatement']]],
+  ['dostatement_155',['DoStatement',['../classminilua_1_1details_1_1ast_1_1DoStatement.html',1,'minilua::details::ast::DoStatement'],['../classminilua_1_1details_1_1ast_1_1DoStatement.html#a237f114ec0410c78e8543c54a9ae18af',1,'minilua::details::ast::DoStatement::DoStatement()']]],
+  ['dot_156',['DOT',['../structLuaToken.html#aa60b13d88c317e381fc5033c047cf432a228709cce007600b40dd06e9b85fa1ed',1,'LuaToken']]]
 ];
