@@ -125,6 +125,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a7a04d2afd0e39b7de02bb76cdfcf650f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5d758f52a37e9bc9193bf33f89cce5ff"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#a5d758f52a37e9bc9193bf33f89cce5ff">operator=</a> (<a class="el" href="classminilua_1_1Table.html">Table</a> &amp;&amp;other) noexcept -&gt; <a class="el" href="classminilua_1_1Table.html">Table</a> &amp;</td></tr>
 <tr class="separator:a5d758f52a37e9bc9193bf33f89cce5ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a210099d27fade41d0804d4a7520d20fa"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#a210099d27fade41d0804d4a7520d20fa">border</a> () const -&gt; int</td></tr>
+<tr class="separator:a210099d27fade41d0804d4a7520d20fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af36ca64fc48e8262bb4e4a805218ef03"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#af36ca64fc48e8262bb4e4a805218ef03">get</a> (const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;key) -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td></tr>
 <tr class="separator:af36ca64fc48e8262bb4e4a805218ef03"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac1abaaf495fa3deaee2f89be0d65ca45"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Table.html#ac1abaaf495fa3deaee2f89be0d65ca45">has</a> (const <a class="el" href="classminilua_1_1Value.html">Value</a> &amp;key) -&gt; bool</td></tr>
@@ -489,6 +491,25 @@ Friends</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a210099d27fade41d0804d4a7520d20fa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a210099d27fade41d0804d4a7520d20fa">&#9670;&nbsp;</a></span>border()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::Table::border </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; int</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The result of the lua length operator <code>#</code>.</p>
+<p>Satisfies: <code>(border == 0 or t[border] ~= nil) and t[border + 1] == nil</code> </p>
 
 </div>
 </div>
