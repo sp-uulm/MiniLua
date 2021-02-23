@@ -1,5 +1,6 @@
 #include "tree_sitter/tree_sitter.hpp"
 #include <algorithm>
+#include <cassert>
 #include <cstdio>
 #include <iostream>
 #include <iterator>
@@ -495,6 +496,22 @@ void Tree::print_dot_graph(std::string_view file) const {
     std::unique_ptr<std::FILE, decltype(&fclose)> f{std::fopen(file.data(), "w"), fclose};
     ts_tree_print_dot_graph(this->raw(), f.get());
 }
+
+// helpers to implement visit_tree
+void visit_children(Cursor& cursor, const std::function<void(ts::Node)>& fn) {
+    if (cursor.goto_first_child()) {
+        fn(cursor.current_node());
+    }
+    visit_siblings(cursor, fn);
+};
+
+void visit_siblings(Cursor& cursor, const std::function<void(ts::Node)>& fn) {
+    while (cursor.goto_next_sibling()) {
+        fn(cursor.current_node());
+        visit_children(cursor, fn);
+    }
+    assert(cursor.goto_parent());
+};
 
 // class Cursor
 Cursor::Cursor(Node node) noexcept : cursor(ts_tree_cursor_new(node.raw())), tree(&node.tree()) {}
