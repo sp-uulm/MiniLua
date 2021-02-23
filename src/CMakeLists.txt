@@ -13,8 +13,9 @@ set(LIB_SRC_LIST
 
 # statically link the stdlib lua files
 add_custom_command(OUTPUT stdlib.lua.o
-      COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/lua && ld -r -b binary -o ${CMAKE_CURRENT_BINARY_DIR}/stdlib.lua.o stdlib.lua
-      COMMAND objcopy --rename-section .data=.rodata,alloc,load,readonly,data,contents ${CMAKE_CURRENT_BINARY_DIR}/stdlib.lua.o ${CMAKE_CURRENT_BINARY_DIR}/stdlib.lua.o)
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/lua/stdlib.lua
+    COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/lua && ld -r -b binary -o ${CMAKE_CURRENT_BINARY_DIR}/stdlib.lua.o stdlib.lua
+    COMMAND objcopy --rename-section .data=.rodata,alloc,load,readonly,data,contents ${CMAKE_CURRENT_BINARY_DIR}/stdlib.lua.o ${CMAKE_CURRENT_BINARY_DIR}/stdlib.lua.o)
 
 add_library(lua_stdlib
     STATIC
