@@ -1006,7 +1006,8 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
 
     // move the Env to the CallContext
     auto environment = Environment(env);
-    auto ctx = CallContext(&environment).make_new(arguments);
+    auto ctx =
+        CallContext(&environment).make_new(arguments, call.range().with_file(env.get_file()));
 
     try {
         CallResult call_result = obj.call(ctx);

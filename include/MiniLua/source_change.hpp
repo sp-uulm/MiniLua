@@ -54,8 +54,15 @@ struct Range {
      * Optional filename where the Range is located.
      *
      * The filename is behind a shared_ptr to avoid unnecessary copies.
+     *
+     * \note Changing the underlying string might lead to undefined behaviour.
      */
     std::optional<std::shared_ptr<std::string>> file;
+
+    /**
+     * Returns a copy of this range with the filename changed.
+     */
+    [[nodiscard]] auto with_file(std::optional<std::shared_ptr<std::string>> file) const -> Range;
 };
 
 auto operator==(Range lhs, Range rhs) noexcept -> bool;
