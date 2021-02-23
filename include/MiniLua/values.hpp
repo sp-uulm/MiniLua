@@ -344,6 +344,13 @@ public:
     auto operator=(Table&& other) noexcept -> Table&;
     friend void swap(Table& self, Table& other);
 
+    /**
+     * The result of the lua length operator `#`.
+     *
+     * Satisfies: `(border == 0 or t[border] ~= nil) and t[border + 1] == nil`
+     */
+    [[nodiscard]] auto border() const -> int;
+
     auto get(const Value& key) -> Value;
     auto has(const Value& key) -> bool;
     void set(const Value& key, Value value);

@@ -1,6 +1,8 @@
+#include <algorithm>
 #include <cstdio>
 #include <exception>
 #include <iostream>
+#include <iterator>
 #include <regex>
 #include <sstream>
 #include <stdexcept>
@@ -26,6 +28,7 @@ void add_stdlib(Table& table) {
     table.set("select", select);
     table.set("print", print);
     table.set("error", error);
+    table.set("discard_origin", discard_origin);
 }
 
 } // namespace details
@@ -139,4 +142,17 @@ void print(const CallContext& ctx) {
     }
     *stdout << std::endl;
 }
+
+auto discard_origin(const CallContext& ctx) -> Vallist {
+    const Vallist& args = ctx.arguments();
+    std::vector<Value> values;
+    values.reserve(args.size());
+
+    std::transform(args.begin(), args.end(), std::back_inserter(values), [](const Value& value) {
+        return value.remove_origin();
+    });
+
+    return Vallist(values);
+}
+
 } // namespace minilua

@@ -264,3 +264,43 @@ TEST_CASE("select") {
         }
     }
 }
+
+TEST_CASE("discard_origin") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("one Value") {
+        minilua::Value a = 1;
+        minilua::Value b = 2;
+        minilua::Value c = a + b;
+        REQUIRE(c.has_origin());
+
+        minilua::Vallist result1 = minilua::discard_origin(ctx.make_new({c}));
+        CHECK(!result1.get(0).has_origin());
+
+        minilua::Vallist result2 = minilua::discard_origin(ctx.make_new({a}));
+        CHECK(!result2.get(0).has_origin());
+    }
+    SECTION("multiple Values") {
+        minilua::Value a = 1;
+        minilua::Value b = 2;
+        minilua::Value c = 3;
+        minilua::Value d = 4;
+        minilua::Value e = a + b;
+        minilua::Value f = c + d;
+        minilua::Value g = e + f;
+        REQUIRE(e.has_origin());
+        REQUIRE(f.has_origin());
+        REQUIRE(g.has_origin());
+
+        minilua::Vallist result1 = minilua::discard_origin(ctx.make_new({e, f, g}));
+        CHECK(!result1.get(0).has_origin());
+        CHECK(!result1.get(1).has_origin());
+        CHECK(!result1.get(2).has_origin());
+
+        minilua::Vallist result2 = minilua::discard_origin(ctx.make_new({a, b, c}));
+        CHECK(!result2.get(0).has_origin());
+        CHECK(!result2.get(1).has_origin());
+        CHECK(!result2.get(2).has_origin());
+    }
+}
