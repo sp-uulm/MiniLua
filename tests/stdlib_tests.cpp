@@ -20,7 +20,7 @@ TEST_CASE("assert") {
     SECTION("assert false with message") {
         minilua::Interpreter interpreter;
         REQUIRE(interpreter.parse(R"(assert(false, "message"))"));
-        REQUIRE_THROWS_WITH(interpreter.evaluate(), "message");
+        REQUIRE_THROWS_WITH(interpreter.evaluate(), Catch::Contains("message"));
     }
 }
 
