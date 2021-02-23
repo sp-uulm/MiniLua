@@ -100,8 +100,8 @@ auto operator<<(std::ostream& os, const Env& self) -> std::ostream& {
     }
 
     os << "}, .file = ";
-    if (self.get_file()) {
-        os << *self.get_file();
+    if (self.get_file().has_value()) {
+        os << self.get_file().value();
     } else {
         os << "nullopt";
     }

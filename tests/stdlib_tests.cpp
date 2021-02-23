@@ -2,8 +2,27 @@
 #include <string>
 
 #include "MiniLua/environment.hpp"
+#include "MiniLua/interpreter.hpp"
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/values.hpp"
+
+TEST_CASE("assert") {
+    SECTION("assert false") {
+        minilua::Interpreter interpreter;
+        REQUIRE(interpreter.parse("assert(false)"));
+        REQUIRE_THROWS(interpreter.evaluate());
+    }
+    SECTION("assert true") {
+        minilua::Interpreter interpreter;
+        REQUIRE(interpreter.parse("assert(true)"));
+        REQUIRE_NOTHROW(interpreter.evaluate());
+    }
+    SECTION("assert false with message") {
+        minilua::Interpreter interpreter;
+        REQUIRE(interpreter.parse(R"(assert(false, "message"))"));
+        REQUIRE_THROWS_WITH(interpreter.evaluate(), "message");
+    }
+}
 
 TEST_CASE("to_string") {
     minilua::Environment env;

@@ -14,6 +14,7 @@
 #include <optional>
 #include <set>
 #include <sstream>
+#include <stdexcept>
 #include <utility>
 
 // This points to a binary blob containing the lua/stdlib.lua file.
@@ -125,6 +126,19 @@ auto Interpreter::init_stdlib() -> ast::Program {
 
     try {
         static ts::Tree stdlib_tree = ts::Tree(this->parser.parse_string(stdlib_code));
+
+        // This is just in case. Failing to parse is a bug!!!
+        if (stdlib_tree.root_node().has_error()) {
+            std::stringstream ss;
+            ts::visit_tree(stdlib_tree, [&ss](ts::Node node) {
+                if (node.type() == "ERROR"s || node.is_missing()) {
+                    ss << "Error in node: ";
+                    ss << ts::debug_print_node(node);
+                }
+            });
+            throw std::runtime_error(ss.str());
+        }
+
         return ast::Program(stdlib_tree.root_node());
     } catch (const std::exception& e) {
         // This should never actually throw an exception
