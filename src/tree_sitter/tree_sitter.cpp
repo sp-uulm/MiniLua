@@ -207,6 +207,7 @@ TypeKind Language::node_type_kind(TypeId type_id) const {
     case TSSymbolTypeAuxiliary:
         return TypeKind::Hidden;
     }
+    throw std::runtime_error("Invalid TypeId");
 }
 
 std::uint32_t Language::version() const { return ts_language_version(this->raw()); }

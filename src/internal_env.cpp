@@ -106,7 +106,7 @@ auto operator<<(std::ostream& os, const Env& self) -> std::ostream& {
         os << "nullopt";
     }
 
-    os << "}\n";
+    return os << "}\n";
 }
 
 }; // namespace minilua
