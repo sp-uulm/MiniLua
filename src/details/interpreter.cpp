@@ -93,39 +93,57 @@ Interpreter::Interpreter(const InterpreterConfig& config, ts::Parser& parser)
     : config(config), parser(parser) {}
 
 auto Interpreter::run(const ts::Tree& tree, Env& user_env) -> EvalResult {
-    // add the stdlib to another env then (possible) overwrite the variables
-    // with user set values
+    Env env = this->setup_environment(user_env);
+
+    // execute the actual program
+    std::shared_ptr<std::string> root_filename = std::make_shared<std::string>("__root__");
+    env.set_file(root_filename);
+    this->run_file(tree, env);
+}
+
+auto Interpreter::setup_environment(Env& user_env) -> Env {
     Env env(user_env.allocator());
 
     this->execute_stdlib(env);
 
-    // overwrite with the user values
-    // TODO this can be made easier
-    for (const auto& [key, value] : user_env.global()) {
-        env.global().set(key, value);
-    }
+    // apply user overwrites
+    // NOTE we only consider global variables because the user can only set
+    // global variables
+    env.global().set_all(user_env.global());
 
-    // execute the actual program
+    return env;
+}
+
+void Interpreter::execute_stdlib(Env& env) {
+    // load the C++ part of the stdlib
+    add_stdlib(env.global());
+
+    // run the Lua part of the stdlib
+
+    // NOTE The tree is static so it is only initialized once
+    static const ts::Tree stdlib_tree = this->load_stdlib();
+
     try {
-        std::shared_ptr<std::string> root_filename = std::make_shared<std::string>("__root__");
-        user_env.set_file(root_filename);
-        return this->visit_root(ast::Program(tree.root_node()), env);
-    } catch (const InterpreterException&) {
-        throw;
+        env.set_file(std::nullopt);
+        this->run_file(stdlib_tree, env);
     } catch (const std::exception& e) {
-        throw InterpreterException("unknown error: "s + e.what());
+        // This should never actually throw an exception
+        throw InterpreterException(
+            "THIS IS A BUG! Failed to execute the stdlib file: "s + e.what());
     }
 }
-auto Interpreter::init_stdlib() -> ast::Program {
+
+auto Interpreter::load_stdlib() -> ts::Tree {
+    // NOTE this method should only be called once when the stdlib_tree in
+    // Interpreter::execute_stdlib is initialized
+
     // load the Lua part of the stdlib
     // NOTE the result of executing the stdlib file will be ignored
 
-    // NOTE Both the source code string and the tree are static so they are only
-    // initialized once
-    static std::string stdlib_code(_binary_stdlib_lua_start, _binary_stdlib_lua_end);
+    std::string stdlib_code(_binary_stdlib_lua_start, _binary_stdlib_lua_end);
 
     try {
-        static ts::Tree stdlib_tree = ts::Tree(this->parser.parse_string(stdlib_code));
+        ts::Tree stdlib_tree = ts::Tree(this->parser.parse_string(std::move(stdlib_code)));
 
         // This is just in case. Failing to parse is a bug!!!
         if (stdlib_tree.root_node().has_error()) {
@@ -139,24 +157,20 @@ auto Interpreter::init_stdlib() -> ast::Program {
             throw std::runtime_error(ss.str());
         }
 
-        return ast::Program(stdlib_tree.root_node());
+        return stdlib_tree;
     } catch (const std::exception& e) {
         // This should never actually throw an exception
-        throw InterpreterException("Failed to parse the stdlib: "s + e.what());
+        throw InterpreterException("THIS IS A BUG! Failed to parse the stdlib: "s + e.what());
     }
 }
-void Interpreter::execute_stdlib(Env& env) {
-    // load the C++ part of the stdlib
-    add_stdlib(env.global());
 
-    // run the Lua part of the stdlib
-    auto ast = this->init_stdlib();
+auto Interpreter::run_file(const ts::Tree& tree, Env& env) -> EvalResult {
     try {
-        env.set_file(std::nullopt);
-        this->visit_root(ast, env);
+        return this->visit_root(ast::Program(tree.root_node()), env);
+    } catch (const InterpreterException&) {
+        throw;
     } catch (const std::exception& e) {
-        // This should never actually throw an exception
-        throw InterpreterException("Failed to initialize the stdlib: "s + e.what());
+        throw InterpreterException("unknown error: "s + e.what());
     }
 }
 

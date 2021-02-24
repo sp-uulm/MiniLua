@@ -355,6 +355,11 @@ public:
     auto has(const Value& key) -> bool;
     void set(const Value& key, Value value);
     void set(Value&& key, Value value);
+    /**
+     * Copy the `other` table into this table overwriting all keys that are
+     * duplicate.
+     */
+    void set_all(const Table& other);
     [[nodiscard]] auto size() const -> size_t;
 
     // iterators for Table

@@ -101,11 +101,22 @@ private:
 
 public:
     Interpreter(const InterpreterConfig& config, ts::Parser& parser);
-    auto run(const ts::Tree& tree, Env& env) -> EvalResult;
+    auto run(const ts::Tree& tree, Env& user_env) -> EvalResult;
 
 private:
-    auto init_stdlib() -> ast::Program;
+    /**
+     * Setup the stdlib and overwrite (global) variables with the user defined
+     * once.
+     */
+    auto setup_environment(Env& user_env) -> Env;
+
+    auto load_stdlib() -> ts::Tree;
     void execute_stdlib(Env& env);
+
+    /**
+     * Run a loaded tree.
+     */
+    auto run_file(const ts::Tree& tree, Env& env) -> EvalResult;
 
     auto visit_root(ast::Program program, Env& env) -> EvalResult;
 
