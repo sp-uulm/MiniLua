@@ -114,7 +114,10 @@ private:
     void execute_stdlib(Env& env);
 
     /**
-     * Run a loaded tree.
+     * Run a file.
+     *
+     * The file has to be loaded and parsed into a tree and the file
+     * in Env should be set before calling this method.
      */
     auto run_file(const ts::Tree& tree, Env& env) -> EvalResult;
 

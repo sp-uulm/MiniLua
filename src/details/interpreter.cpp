@@ -98,7 +98,7 @@ auto Interpreter::run(const ts::Tree& tree, Env& user_env) -> EvalResult {
     // execute the actual program
     std::shared_ptr<std::string> root_filename = std::make_shared<std::string>("__root__");
     env.set_file(root_filename);
-    this->run_file(tree, env);
+    return this->run_file(tree, env);
 }
 
 auto Interpreter::setup_environment(Env& user_env) -> Env {
@@ -143,7 +143,7 @@ auto Interpreter::load_stdlib() -> ts::Tree {
     std::string stdlib_code(_binary_stdlib_lua_start, _binary_stdlib_lua_end);
 
     try {
-        ts::Tree stdlib_tree = ts::Tree(this->parser.parse_string(std::move(stdlib_code)));
+        ts::Tree stdlib_tree = this->parser.parse_string(std::move(stdlib_code));
 
         // This is just in case. Failing to parse is a bug!!!
         if (stdlib_tree.root_node().has_error()) {
