@@ -408,14 +408,28 @@ auto fmod(const CallContext& ctx) -> Value {
         .lhs = make_owning<Value>(ctx.arguments().get(0)),
         .rhs = make_owning<Value>(ctx.arguments().get(1)),
         .location = ctx.call_location(),
+        // returns the result of 'new_value + old_value2' because of 'new_value = old_value1 %
+        // old_value2' and the information about the concrete value of old_value1 is lost, so just
+        // guessing is possible
         .reverse = [](const Value& new_value, const Value& old_value1,
                       const Value& old_value2) -> std::optional<SourceChangeTree> {
-            return std::nullopt;
-        }}); // TODO: return it correctly
-    // Evtl. old_value1.force(new_value + old_value2) (because of 'new_value = old_value1 %
-    // old_value2' and the information about the concrete value of old_value1 is lost, so just
-    // guessing is possible)
+            if (!new_value.is_number()) {
+                return std::nullopt;
+            } else {
+                // old_value2 could be a string formated like a number or a number
+                // but can't be a invalid value because then fmod throws an exception
+                Number divisor = std::get<Number>(old_value2.to_number());
+                Number new_val = std::get<Number>(new_value);
 
+                // fmod is like modulo. and its not possible that the result of the operation is
+                // greater than or equal to the divisor
+                if (new_val >= divisor) {
+                    return std::nullopt;
+                } else {
+                    return old_value1.force(new_val + divisor);
+                }
+            }
+        }});
     // lua throws an error if x and y are 0 so i cant use the helper-function
     Vallist list = Vallist({ctx.arguments().get(0)});
     CallContext new_ctx = ctx.make_new(list);
