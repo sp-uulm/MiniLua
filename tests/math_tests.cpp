@@ -2909,3 +2909,63 @@ TEST_CASE("reverse floor") {
         REQUIRE_FALSE(result.has_value());
     }
 }
+
+TEST_CASE("reverse fmod") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        SECTION("divisor is number") {
+            double i = -2.5;
+            double j = 4.2;
+            minilua::Vallist list = minilua::Vallist(
+                {minilua::Value(i).with_origin(minilua::LiteralOrigin()),
+                 minilua::Value(j).with_origin(minilua::LiteralOrigin())});
+            ctx = ctx.make_new(list);
+            auto res = minilua::math::fmod(ctx);
+            REQUIRE(res == minilua::Value(-2.5));
+
+            auto result = res.force(1);
+            REQUIRE(result.has_value());
+
+            CHECK(
+                result.value().collect_first_alternative()[0] ==
+                minilua::SourceChange(minilua::Range(), "5.2"));
+        }
+
+        SECTION("divisor is string") {
+            double i = -2.5;
+            std::string j = "4.2";
+            minilua::Vallist list = minilua::Vallist(
+                {minilua::Value(i).with_origin(minilua::LiteralOrigin()),
+                 minilua::Value(j).with_origin(minilua::LiteralOrigin())});
+            ctx = ctx.make_new(list);
+            auto res = minilua::math::fmod(ctx);
+            REQUIRE(res == minilua::Value(-2.5));
+
+            auto result = res.force(1);
+            REQUIRE(result.has_value());
+
+            CHECK(
+                result.value().collect_first_alternative()[0] ==
+                minilua::SourceChange(minilua::Range(), "5.2"));
+        }
+    }
+
+    SECTION("invalid force") {
+        double i = -2.5;
+        double j = 4.2;
+        minilua::Vallist list = minilua::Vallist(
+            {minilua::Value(i).with_origin(minilua::LiteralOrigin()),
+             minilua::Value(j).with_origin(minilua::LiteralOrigin())});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::fmod(ctx);
+        REQUIRE(res == minilua::Value(-2.5));
+
+        auto result = res.force("1");
+        CHECK_FALSE(result.has_value());
+
+        result = res.force(5);
+        CHECK_FALSE(result.has_value());
+    }
+}
