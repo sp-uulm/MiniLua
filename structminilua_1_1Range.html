@@ -69,6 +69,7 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="structminilua_1_1Range-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -78,16 +79,43 @@ $(function() {
 
 <p><code>#include &lt;<a class="el" href="source__change_8hpp_source.html">source_change.hpp</a>&gt;</code></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:a9df8988cac798e95ad9a4c01916fd91f"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1Range.html#a9df8988cac798e95ad9a4c01916fd91f">with_file</a> (std::optional&lt; std::shared_ptr&lt; const std::string &gt;&gt; <a class="el" href="structminilua_1_1Range.html#aeb106fcff235e8fc688d75984246001f">file</a>) const -&gt; <a class="el" href="structminilua_1_1Range.html">Range</a></td></tr>
+<tr class="separator:a9df8988cac798e95ad9a4c01916fd91f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a644712afde3b9e9bab5f8adc11ddd0cd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structminilua_1_1Location.html">Location</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1Range.html#a644712afde3b9e9bab5f8adc11ddd0cd">start</a></td></tr>
 <tr class="separator:a644712afde3b9e9bab5f8adc11ddd0cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af58f8da201e23660d5eda5b2d72f21f1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structminilua_1_1Location.html">Location</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1Range.html#af58f8da201e23660d5eda5b2d72f21f1">end</a></td></tr>
 <tr class="separator:af58f8da201e23660d5eda5b2d72f21f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb106fcff235e8fc688d75984246001f"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::shared_ptr&lt; const std::string &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1Range.html#aeb106fcff235e8fc688d75984246001f">file</a></td></tr>
+<tr class="separator:aeb106fcff235e8fc688d75984246001f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Represents a range/span in source code. </p>
-</div><h2 class="groupheader">Member Data Documentation</h2>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a9df8988cac798e95ad9a4c01916fd91f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9df8988cac798e95ad9a4c01916fd91f">&#9670;&nbsp;</a></span>with_file()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::Range::with_file </td>
+          <td>(</td>
+          <td class="paramtype">std::optional&lt; std::shared_ptr&lt; const std::string &gt;&gt;&#160;</td>
+          <td class="paramname"><em>file</em></td><td>)</td>
+          <td> const -&gt; <a class="el" href="structminilua_1_1Range.html">Range</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns a copy of this range with the filename changed. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
 <a id="af58f8da201e23660d5eda5b2d72f21f1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af58f8da201e23660d5eda5b2d72f21f1">&#9670;&nbsp;</a></span>end</h2>
 
@@ -99,6 +127,22 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="aeb106fcff235e8fc688d75984246001f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb106fcff235e8fc688d75984246001f">&#9670;&nbsp;</a></span>file</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt;std::shared_ptr&lt;const std::string&gt; &gt; minilua::Range::file</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Optional filename where the <a class="el" href="structminilua_1_1Range.html">Range</a> is located.</p>
+<p>The filename is behind a shared_ptr to avoid unnecessary copies. </p>
 
 </div>
 </div>
@@ -116,8 +160,9 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<hr/>The documentation for this struct was generated from the following file:<ul>
+<hr/>The documentation for this struct was generated from the following files:<ul>
 <li>/home/runner/work/MiniLua/MiniLua/include/MiniLua/<a class="el" href="source__change_8hpp_source.html">source_change.hpp</a></li>
+<li><a class="el" href="source__change_8cpp.html">source_change.cpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

@@ -72,7 +72,8 @@ $(function() {
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
 <a href="#define-members">Macros</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
 <div class="title">interpreter.cpp File Reference</div>  </div>
 </div><!--header-->
@@ -88,9 +89,11 @@ $(function() {
 <code>#include &lt;iostream&gt;</code><br />
 <code>#include &lt;iterator&gt;</code><br />
 <code>#include &lt;map&gt;</code><br />
+<code>#include &lt;memory&gt;</code><br />
 <code>#include &lt;optional&gt;</code><br />
 <code>#include &lt;set&gt;</code><br />
 <code>#include &lt;sstream&gt;</code><br />
+<code>#include &lt;stdexcept&gt;</code><br />
 <code>#include &lt;utility&gt;</code><br />
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
@@ -122,6 +125,13 @@ Functions</h2></td></tr>
 <tr class="separator:a92e0595b2a611525620ca17c901301fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a16992464ffe303e0d0a69277c6b18406"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1details.html#a16992464ffe303e0d0a69277c6b18406">minilua::details::convert_range</a> (<a class="el" href="structts_1_1Range.html">ts::Range</a> range) -&gt; Range</td></tr>
 <tr class="separator:a16992464ffe303e0d0a69277c6b18406"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:a666fb67d943c1283a97a025d28e7f55d"><td class="memItemLeft" align="right" valign="top">const char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="details_2interpreter_8cpp.html#a666fb67d943c1283a97a025d28e7f55d">_binary_stdlib_lua_start</a> []</td></tr>
+<tr class="separator:a666fb67d943c1283a97a025d28e7f55d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add412f053c6cc086cf6245dff8a6ad86"><td class="memItemLeft" align="right" valign="top">const char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="details_2interpreter_8cpp.html#add412f053c6cc086cf6245dff8a6ad86">_binary_stdlib_lua_end</a> []</td></tr>
+<tr class="separator:add412f053c6cc086cf6245dff8a6ad86"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="afdc98d57dfd302ea2a9a04c256429deb"></a>
@@ -208,8 +218,37 @@ Functions</h2></td></tr>
 </div><!-- fragment -->
 </div>
 </div>
+<h2 class="groupheader">Variable Documentation</h2>
+<a id="add412f053c6cc086cf6245dff8a6ad86"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#add412f053c6cc086cf6245dff8a6ad86">&#9670;&nbsp;</a></span>_binary_stdlib_lua_end</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char _binary_stdlib_lua_end[]</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a666fb67d943c1283a97a025d28e7f55d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a666fb67d943c1283a97a025d28e7f55d">&#9670;&nbsp;</a></span>_binary_stdlib_lua_start</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char _binary_stdlib_lua_start[]</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 </div><!-- contents -->
-<div class="ttc" id="anamespaceminilua_html_a8e792c4cbda0190a0af716f409d2dd72"><div class="ttname"><a href="namespaceminilua.html#a8e792c4cbda0190a0af716f409d2dd72">minilua::to_string</a></div><div class="ttdeci">auto to_string(const CallContext &amp;ctx) -&gt; Value</div><div class="ttdef"><b>Definition:</b> stdlib.cpp:51</div></div>
+<div class="ttc" id="anamespaceminilua_html_a8e792c4cbda0190a0af716f409d2dd72"><div class="ttname"><a href="namespaceminilua.html#a8e792c4cbda0190a0af716f409d2dd72">minilua::to_string</a></div><div class="ttdeci">auto to_string(const CallContext &amp;ctx) -&gt; Value</div><div class="ttdef"><b>Definition:</b> stdlib.cpp:42</div></div>
 <!-- start footer part -->
 		<script src="custom.js"></script>
 	</body>

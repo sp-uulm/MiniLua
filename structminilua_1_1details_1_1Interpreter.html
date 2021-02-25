@@ -89,13 +89,21 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a96a923db1344d022f1be05d79dc775ce"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1Interpreter.html#a96a923db1344d022f1be05d79dc775ce">Interpreter</a> (const <a class="el" href="structminilua_1_1InterpreterConfig.html">InterpreterConfig</a> &amp;<a class="el" href="structminilua_1_1details_1_1Interpreter.html#a09ac672fe6b2079d94869dbc2395abaf">config</a>)</td></tr>
-<tr class="separator:a96a923db1344d022f1be05d79dc775ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a98292d0c6e154c851a03338db1a5888f"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1Interpreter.html#a98292d0c6e154c851a03338db1a5888f">run</a> (const <a class="el" href="classts_1_1Tree.html">ts::Tree</a> &amp;tree, <a class="el" href="classminilua_1_1Env.html">Env</a> &amp;env) -&gt; <a class="el" href="structminilua_1_1details_1_1EvalResult.html">EvalResult</a></td></tr>
-<tr class="separator:a98292d0c6e154c851a03338db1a5888f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb7703c3ea285ec54e8a55feba2a9b0a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1Interpreter.html#adb7703c3ea285ec54e8a55feba2a9b0a">Interpreter</a> (const <a class="el" href="structminilua_1_1InterpreterConfig.html">InterpreterConfig</a> &amp;<a class="el" href="structminilua_1_1details_1_1Interpreter.html#a09ac672fe6b2079d94869dbc2395abaf">config</a>, <a class="el" href="classts_1_1Parser.html">ts::Parser</a> &amp;<a class="el" href="structminilua_1_1details_1_1Interpreter.html#a9dc457befdf74ddca0a4dccf514b4618">parser</a>)</td></tr>
+<tr class="separator:adb7703c3ea285ec54e8a55feba2a9b0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a6deabeef213bc70cce132db120dbca"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1Interpreter.html#a0a6deabeef213bc70cce132db120dbca">run</a> (const <a class="el" href="classts_1_1Tree.html">ts::Tree</a> &amp;tree, <a class="el" href="classminilua_1_1Env.html">Env</a> &amp;user_env) -&gt; <a class="el" href="structminilua_1_1details_1_1EvalResult.html">EvalResult</a></td></tr>
+<tr class="separator:a0a6deabeef213bc70cce132db120dbca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
+<tr class="memitem:a070feb06d8d2bf059d11cf7d22129e15"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1Interpreter.html#a070feb06d8d2bf059d11cf7d22129e15">setup_environment</a> (<a class="el" href="classminilua_1_1Env.html">Env</a> &amp;user_env) -&gt; <a class="el" href="classminilua_1_1Env.html">Env</a></td></tr>
+<tr class="separator:a070feb06d8d2bf059d11cf7d22129e15"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac5db2e0d84e56a44d2b471b210c402a3"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1Interpreter.html#ac5db2e0d84e56a44d2b471b210c402a3">load_stdlib</a> () -&gt; <a class="el" href="classts_1_1Tree.html">ts::Tree</a></td></tr>
+<tr class="separator:ac5db2e0d84e56a44d2b471b210c402a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a162f032290a2e56eb1eb9e64755187c0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1Interpreter.html#a162f032290a2e56eb1eb9e64755187c0">execute_stdlib</a> (<a class="el" href="classminilua_1_1Env.html">Env</a> &amp;env)</td></tr>
+<tr class="separator:a162f032290a2e56eb1eb9e64755187c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a40cabb296150dd1d07c34979ebccbb11"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1Interpreter.html#a40cabb296150dd1d07c34979ebccbb11">run_file</a> (const <a class="el" href="classts_1_1Tree.html">ts::Tree</a> &amp;tree, <a class="el" href="classminilua_1_1Env.html">Env</a> &amp;env) -&gt; <a class="el" href="structminilua_1_1details_1_1EvalResult.html">EvalResult</a></td></tr>
+<tr class="separator:a40cabb296150dd1d07c34979ebccbb11"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1d7c47931b979f16f80321b594e3b49b"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1Interpreter.html#a1d7c47931b979f16f80321b594e3b49b">visit_root</a> (<a class="el" href="classminilua_1_1details_1_1ast_1_1Program.html">ast::Program</a> program, <a class="el" href="classminilua_1_1Env.html">Env</a> &amp;env) -&gt; <a class="el" href="structminilua_1_1details_1_1EvalResult.html">EvalResult</a></td></tr>
 <tr class="separator:a1d7c47931b979f16f80321b594e3b49b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9338f0bae5b1df9089be9de5ca7f7034"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1Interpreter.html#a9338f0bae5b1df9089be9de5ca7f7034">visit_identifier</a> (<a class="el" href="classminilua_1_1details_1_1ast_1_1Identifier.html">ast::Identifier</a> ident, <a class="el" href="classminilua_1_1Env.html">Env</a> &amp;env) -&gt; std::string</td></tr>
@@ -142,6 +150,8 @@ Private Member Functions</h2></td></tr>
 <tr class="separator:a373a48fc0503f82b2009e92f5c356128"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaf9cbce0d50483f4352693dcfeb87004"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1Interpreter.html#aaf9cbce0d50483f4352693dcfeb87004">visit_table_constructor</a> (<a class="el" href="classminilua_1_1details_1_1ast_1_1Table.html">ast::Table</a> table_constructor, <a class="el" href="classminilua_1_1Env.html">Env</a> &amp;env) -&gt; <a class="el" href="structminilua_1_1details_1_1EvalResult.html">EvalResult</a></td></tr>
 <tr class="separator:aaf9cbce0d50483f4352693dcfeb87004"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6f86fb97ed3d30aa0338879676216f4a"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1Interpreter.html#a6f86fb97ed3d30aa0338879676216f4a">visit_literal</a> (<a class="el" href="classminilua_1_1details_1_1ast_1_1Literal.html">ast::Literal</a> literal, <a class="el" href="classminilua_1_1Env.html">Env</a> &amp;env) -&gt; <a class="el" href="structminilua_1_1details_1_1EvalResult.html">EvalResult</a></td></tr>
+<tr class="separator:a6f86fb97ed3d30aa0338879676216f4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaec4e297ba3d91a849280f4c8348c65e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1Interpreter.html#aaec4e297ba3d91a849280f4c8348c65e">visit_expression_list</a> (std::vector&lt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Expression.html">ast::Expression</a> &gt; expressions, <a class="el" href="classminilua_1_1Env.html">Env</a> &amp;env) -&gt; <a class="el" href="structminilua_1_1details_1_1EvalResult.html">EvalResult</a></td></tr>
 <tr class="separator:aaec4e297ba3d91a849280f4c8348c65e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adde47cecfb7a679331bb7234bbb86aa1"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1Interpreter.html#adde47cecfb7a679331bb7234bbb86aa1">visit_parameter_list</a> (std::vector&lt; <a class="el" href="classminilua_1_1details_1_1ast_1_1Identifier.html">ast::Identifier</a> &gt; raw_params, <a class="el" href="classminilua_1_1Env.html">Env</a> &amp;env) -&gt; std::vector&lt; std::string &gt;</td></tr>
@@ -165,6 +175,8 @@ Private Member Functions</h2></td></tr>
 Private Attributes</h2></td></tr>
 <tr class="memitem:a09ac672fe6b2079d94869dbc2395abaf"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structminilua_1_1InterpreterConfig.html">InterpreterConfig</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1Interpreter.html#a09ac672fe6b2079d94869dbc2395abaf">config</a></td></tr>
 <tr class="separator:a09ac672fe6b2079d94869dbc2395abaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9dc457befdf74ddca0a4dccf514b4618"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classts_1_1Parser.html">ts::Parser</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structminilua_1_1details_1_1Interpreter.html#a9dc457befdf74ddca0a4dccf514b4618">parser</a></td></tr>
+<tr class="separator:a9dc457befdf74ddca0a4dccf514b4618"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
 Friends</h2></td></tr>
@@ -178,8 +190,8 @@ Friends</h2></td></tr>
 <p><code>visit_block</code> and <code>visit_block_with_local_env</code> are helper methods to create a new scope (for local variables).</p>
 <p>Additionally there are some <code>trace_</code> methods to help in debugging and logging. And <a class="el" href="classminilua_1_1details_1_1Interpreter_1_1NodeTracer.html">NodeTracer</a> to trace entering and exiting the <code>visit_</code> methods. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a96a923db1344d022f1be05d79dc775ce"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a96a923db1344d022f1be05d79dc775ce">&#9670;&nbsp;</a></span>Interpreter()</h2>
+<a id="adb7703c3ea285ec54e8a55feba2a9b0a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb7703c3ea285ec54e8a55feba2a9b0a">&#9670;&nbsp;</a></span>Interpreter()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -188,8 +200,18 @@ Friends</h2></td></tr>
           <td class="memname">minilua::details::Interpreter::Interpreter </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="structminilua_1_1InterpreterConfig.html">InterpreterConfig</a> &amp;&#160;</td>
-          <td class="paramname"><em>config</em></td><td>)</td>
+          <td class="paramname"><em>config</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="classts_1_1Parser.html">ts::Parser</a> &amp;&#160;</td>
+          <td class="paramname"><em>parser</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -197,14 +219,96 @@ Friends</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a98292d0c6e154c851a03338db1a5888f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a98292d0c6e154c851a03338db1a5888f">&#9670;&nbsp;</a></span>run()</h2>
+<a id="a162f032290a2e56eb1eb9e64755187c0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a162f032290a2e56eb1eb9e64755187c0">&#9670;&nbsp;</a></span>execute_stdlib()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void minilua::details::Interpreter::execute_stdlib </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classminilua_1_1Env.html">Env</a> &amp;&#160;</td>
+          <td class="paramname"><em>env</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac5db2e0d84e56a44d2b471b210c402a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac5db2e0d84e56a44d2b471b210c402a3">&#9670;&nbsp;</a></span>load_stdlib()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::details::Interpreter::load_stdlib </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> -&gt; <a class="el" href="classts_1_1Tree.html">ts::Tree</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0a6deabeef213bc70cce132db120dbca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0a6deabeef213bc70cce132db120dbca">&#9670;&nbsp;</a></span>run()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname">auto minilua::details::Interpreter::run </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classts_1_1Tree.html">ts::Tree</a> &amp;&#160;</td>
+          <td class="paramname"><em>tree</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classminilua_1_1Env.html">Env</a> &amp;&#160;</td>
+          <td class="paramname"><em>user_env</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; <a class="el" href="structminilua_1_1details_1_1EvalResult.html">EvalResult</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a40cabb296150dd1d07c34979ebccbb11"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a40cabb296150dd1d07c34979ebccbb11">&#9670;&nbsp;</a></span>run_file()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::details::Interpreter::run_file </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classts_1_1Tree.html">ts::Tree</a> &amp;&#160;</td>
           <td class="paramname"><em>tree</em>, </td>
@@ -221,7 +325,41 @@ Friends</h2></td></tr>
           <td></td><td> -&gt; <a class="el" href="structminilua_1_1details_1_1EvalResult.html">EvalResult</a></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
+<p>Run a file.</p>
+<p>The file has to be loaded and parsed into a tree and the file in <a class="el" href="classminilua_1_1Env.html">Env</a> should be set before calling this method. </p>
+
+</div>
+</div>
+<a id="a070feb06d8d2bf059d11cf7d22129e15"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a070feb06d8d2bf059d11cf7d22129e15">&#9670;&nbsp;</a></span>setup_environment()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::details::Interpreter::setup_environment </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classminilua_1_1Env.html">Env</a> &amp;&#160;</td>
+          <td class="paramname"><em>user_env</em></td><td>)</td>
+          <td> -&gt; <a class="el" href="classminilua_1_1Env.html">Env</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Setup the stdlib and overwrite (global) variables with the user defined once. </p>
 
 </div>
 </div>
@@ -929,6 +1067,42 @@ Friends</h2></td></tr>
 
 </div>
 </div>
+<a id="a6f86fb97ed3d30aa0338879676216f4a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6f86fb97ed3d30aa0338879676216f4a">&#9670;&nbsp;</a></span>visit_literal()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::details::Interpreter::visit_literal </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classminilua_1_1details_1_1ast_1_1Literal.html">ast::Literal</a>&#160;</td>
+          <td class="paramname"><em>literal</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classminilua_1_1Env.html">Env</a> &amp;&#160;</td>
+          <td class="paramname"><em>env</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; <a class="el" href="structminilua_1_1details_1_1EvalResult.html">EvalResult</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="adde47cecfb7a679331bb7234bbb86aa1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adde47cecfb7a679331bb7234bbb86aa1">&#9670;&nbsp;</a></span>visit_parameter_list()</h2>
 
@@ -1386,6 +1560,28 @@ Friends</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">const <a class="el" href="structminilua_1_1InterpreterConfig.html">InterpreterConfig</a>&amp; minilua::details::Interpreter::config</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9dc457befdf74ddca0a4dccf514b4618"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9dc457befdf74ddca0a4dccf514b4618">&#9670;&nbsp;</a></span>parser</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classts_1_1Parser.html">ts::Parser</a>&amp; minilua::details::Interpreter::parser</td>
         </tr>
       </table>
   </td>

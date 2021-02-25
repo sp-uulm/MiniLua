@@ -81,6 +81,7 @@ $(function() {
 <div class="contents">
 <div class="textblock"><code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;exception&gt;</code><br />
+<code>#include &lt;functional&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
 <code>#include &lt;optional&gt;</code><br />
 <code>#include &lt;stdexcept&gt;</code><br />
@@ -238,6 +239,13 @@ Functions</h2></td></tr>
 <tr class="separator:a53674cb6f25ab4dcf091dd56dafedaed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0b3492df4a122c3901cfa037f8f834d2"><td class="memItemLeft" align="right" valign="top">EditResult&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacets.html#a0b3492df4a122c3901cfa037f8f834d2">ts::edit_tree</a> (std::vector&lt; Edit &gt; edits, Tree &amp;tree, TSTree *old_tree)</td></tr>
 <tr class="separator:a0b3492df4a122c3901cfa037f8f834d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afcf8a585eea4f04ebf58f173f0ec6974"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacets.html#afcf8a585eea4f04ebf58f173f0ec6974">ts::visit_children</a> (Cursor &amp;cursor, const std::function&lt; void(<a class="el" href="classts_1_1Node.html">ts::Node</a>)&gt; &amp;fn)</td></tr>
+<tr class="separator:afcf8a585eea4f04ebf58f173f0ec6974"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f05e838bf629fc10c5cfd5a36273b5d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacets.html#a3f05e838bf629fc10c5cfd5a36273b5d">ts::visit_siblings</a> (Cursor &amp;cursor, const std::function&lt; void(<a class="el" href="classts_1_1Node.html">ts::Node</a>)&gt; &amp;fn)</td></tr>
+<tr class="separator:a3f05e838bf629fc10c5cfd5a36273b5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abea3c01cb968ebdbeaaa43de439939e2"><td class="memTemplParams" colspan="2">template&lt;typename Fn &gt; </td></tr>
+<tr class="memitem:abea3c01cb968ebdbeaaa43de439939e2"><td class="memTemplItemLeft" align="right" valign="top">static void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacets.html#abea3c01cb968ebdbeaaa43de439939e2">ts::visit_tree</a> (const <a class="el" href="classts_1_1Tree.html">ts::Tree</a> &amp;tree, Fn fn)</td></tr>
+<tr class="separator:abea3c01cb968ebdbeaaa43de439939e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a00fc7b2680ce629c82ed82f74fa2379d"><td class="memItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacets.html#a00fc7b2680ce629c82ed82f74fa2379d">ts::operator&lt;&lt;</a> (std::ostream &amp;, const Capture &amp;)</td></tr>
 <tr class="separator:a00fc7b2680ce629c82ed82f74fa2379d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0767895301d6d7f10a25f2a91bd1667f"><td class="memItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacets.html#a0767895301d6d7f10a25f2a91bd1667f">ts::operator&lt;&lt;</a> (std::ostream &amp;os, const std::vector&lt; Capture &gt; &amp;)</td></tr>

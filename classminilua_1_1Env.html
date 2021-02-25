@@ -129,6 +129,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aa1e16c2bb9851d0bbb0df652ff6705a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a30a2b4d2d793216eb4fd4893ecebd8da"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Env.html#a30a2b4d2d793216eb4fd4893ecebd8da">get_stderr</a> () -&gt; std::ostream *</td></tr>
 <tr class="separator:a30a2b4d2d793216eb4fd4893ecebd8da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af65ba62f31acefdb932cadd32f87065c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Env.html#af65ba62f31acefdb932cadd32f87065c">set_file</a> (std::optional&lt; std::shared_ptr&lt; std::string &gt;&gt; <a class="el" href="classminilua_1_1Env.html#ac82268fe6309a979aafdb3db43514944">file</a>)</td></tr>
+<tr class="separator:af65ba62f31acefdb932cadd32f87065c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0d18f6f90d79ef11165e9c452720b90d"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Env.html#a0d18f6f90d79ef11165e9c452720b90d">get_file</a> () const -&gt; std::optional&lt; std::shared_ptr&lt; std::string &gt;&gt;</td></tr>
+<tr class="separator:a0d18f6f90d79ef11165e9c452720b90d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad2c504a34ffe6151941bb726408c2920"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Env.html#ad2c504a34ffe6151941bb726408c2920">allocator</a> () const -&gt; <a class="el" href="classminilua_1_1MemoryAllocator.html">MemoryAllocator</a> *</td></tr>
 <tr class="separator:ad2c504a34ffe6151941bb726408c2920"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -142,6 +146,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:aa6c8213e6ff5b639ca7dabf057bad5af"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2b3b431dc5ad8cd6b313044b1bfc77d1"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="classminilua_1_1Vallist.html">Vallist</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Env.html#a2b3b431dc5ad8cd6b313044b1bfc77d1">varargs</a></td></tr>
 <tr class="separator:a2b3b431dc5ad8cd6b313044b1bfc77d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac82268fe6309a979aafdb3db43514944"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::shared_ptr&lt; std::string &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Env.html#ac82268fe6309a979aafdb3db43514944">file</a></td></tr>
+<tr class="separator:ac82268fe6309a979aafdb3db43514944"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af497398161e90f6a612819e8ed2f78e4"><td class="memItemLeft" align="right" valign="top">std::istream *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Env.html#af497398161e90f6a612819e8ed2f78e4">in</a></td></tr>
 <tr class="separator:af497398161e90f6a612819e8ed2f78e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af7e1b83e1bec111889abf87a327227bd"><td class="memItemLeft" align="right" valign="top">std::ostream *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classminilua_1_1Env.html#af7e1b83e1bec111889abf87a327227bd">out</a></td></tr>
@@ -221,6 +227,23 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Declares (or redeclares) a local variable. </p>
+
+</div>
+</div>
+<a id="a0d18f6f90d79ef11165e9c452720b90d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0d18f6f90d79ef11165e9c452720b90d">&#9670;&nbsp;</a></span>get_file()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto minilua::Env::get_file </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; std::optional&lt;std::shared_ptr&lt;std::string&gt;&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -483,6 +506,24 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="af65ba62f31acefdb932cadd32f87065c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af65ba62f31acefdb932cadd32f87065c">&#9670;&nbsp;</a></span>set_file()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void minilua::Env::set_file </td>
+          <td>(</td>
+          <td class="paramtype">std::optional&lt; std::shared_ptr&lt; std::string &gt;&gt;&#160;</td>
+          <td class="paramname"><em>file</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a8edf8be978eb8eab3de200d2a984d963"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8edf8be978eb8eab3de200d2a984d963">&#9670;&nbsp;</a></span>set_global()</h2>
 
@@ -724,6 +765,28 @@ Private Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">std::ostream* minilua::Env::err</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac82268fe6309a979aafdb3db43514944"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac82268fe6309a979aafdb3db43514944">&#9670;&nbsp;</a></span>file</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt;std::shared_ptr&lt;std::string&gt; &gt; minilua::Env::file</td>
         </tr>
       </table>
   </td>
