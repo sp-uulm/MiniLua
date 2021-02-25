@@ -2873,3 +2873,39 @@ TEST_CASE("reverse exp") {
         CHECK_FALSE(result.has_value());
     }
 }
+
+TEST_CASE("reverse floor") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        double i = 42.5;
+        minilua::Vallist list =
+            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::floor(ctx);
+        REQUIRE(res == minilua::Value(42));
+
+        auto result = res.force(15);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "15"));
+    }
+
+    SECTION("invalid force") {
+        double i = 42.5;
+        minilua::Vallist list =
+            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::floor(ctx);
+        REQUIRE(res == minilua::Value(42));
+
+        auto result = res.force(15.5);
+        REQUIRE_FALSE(result.has_value());
+
+        result = res.force("15");
+        REQUIRE_FALSE(result.has_value());
+    }
+}
