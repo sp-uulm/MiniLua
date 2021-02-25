@@ -2807,3 +2807,36 @@ TEST_CASE("reverse cos") {
         REQUIRE_FALSE(result.has_value());
     }
 }
+
+TEST_CASE("reverse deg") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        int i = 0;
+        minilua::Vallist list =
+            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::deg(ctx);
+        REQUIRE(res == minilua::Value(0));
+
+        auto result = res.force(57.295779513082);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "1"));
+    }
+
+    SECTION("Invalid force") {
+        int i = 0;
+        minilua::Vallist list =
+            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::deg(ctx);
+        REQUIRE(res == minilua::Value(0));
+
+        auto result = res.force("25");
+        CHECK_FALSE(result.has_value());
+    }
+}
