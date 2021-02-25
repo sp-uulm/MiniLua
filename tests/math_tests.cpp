@@ -3183,3 +3183,39 @@ TEST_CASE("reverse tan") {
         CHECK_FALSE(result.has_value());
     }
 }
+
+TEST_CASE("reverse to_integer") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        int i = 0;
+        minilua::Value v = minilua::Value(i).with_origin(minilua::LiteralOrigin());
+        minilua::Vallist list({v});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::to_integer(ctx);
+        REQUIRE(res == minilua::Value(i));
+
+        auto result = res.force(10);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "10"));
+    }
+
+    SECTION("invalid force") {
+        int i = 0;
+        minilua::Value v = minilua::Value(i).with_origin(minilua::LiteralOrigin());
+        minilua::Vallist list({v});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::to_integer(ctx);
+        REQUIRE(res == minilua::Value(i));
+
+        auto result = res.force("10");
+        CHECK_FALSE(result.has_value());
+
+        result = res.force(4.2);
+        CHECK_FALSE(result.has_value());
+    }
+}
