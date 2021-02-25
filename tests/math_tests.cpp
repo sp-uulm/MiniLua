@@ -2859,6 +2859,13 @@ TEST_CASE("reverse exp") {
         CHECK(
             result.value().collect_first_alternative()[0] ==
             minilua::SourceChange(minilua::Range(), "1"));
+
+        result = res.force(-2.718281828459);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "1"));
     }
 
     SECTION("invalid force") {
@@ -2870,6 +2877,9 @@ TEST_CASE("reverse exp") {
         REQUIRE(res == minilua::Value(1));
 
         auto result = res.force("1");
+        CHECK_FALSE(result.has_value());
+
+        result = res.force(0);
         CHECK_FALSE(result.has_value());
     }
 }
