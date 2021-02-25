@@ -1,6 +1,8 @@
+#include <algorithm>
 #include <cstdio>
 #include <exception>
 #include <iostream>
+#include <iterator>
 #include <regex>
 #include <sstream>
 #include <stdexcept>
@@ -24,6 +26,7 @@ void Environment::add_default_stdlib() {
     this->add("select", select);
     this->add("print", print);
     this->add("force", force);
+    this->add("discard_origin", discard_origin);
 }
 
 auto force(const CallContext& ctx) -> CallResult {
@@ -173,4 +176,17 @@ void print(const CallContext& ctx) {
     }
     *stdout << std::endl;
 }
+
+auto discard_origin(const CallContext& ctx) -> Vallist {
+    const Vallist& args = ctx.arguments();
+    std::vector<Value> values;
+    values.reserve(args.size());
+
+    std::transform(args.begin(), args.end(), std::back_inserter(values), [](const Value& value) {
+        return value.remove_origin();
+    });
+
+    return Vallist(values);
+}
+
 } // namespace minilua

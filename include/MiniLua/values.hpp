@@ -522,6 +522,13 @@ public:
     friend void swap(Table& self, Table& other);
 
     /**
+     * @brief The result of the lua length operator `#`.
+     *
+     * Satisfies: `(border == 0 or t[border] ~= nil) and t[border + 1] == nil`
+     */
+    [[nodiscard]] auto border() const -> int;
+
+    /**
      * @brief Try to get the value with the given key.
      *
      * If the value does not exist this will return `Nil`.
