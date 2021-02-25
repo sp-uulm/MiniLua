@@ -710,16 +710,11 @@ auto to_integer(const CallContext& ctx) -> Value {
                 return std::nullopt;
             }
             Number n = std::get<Number>(new_value);
-            if (new_value == Nil() || std::fmod(n.value, 1.0) == 0.0) {
+            if (std::fmod(n.value, 1.0) == 0.0) {
                 return std::nullopt;
-                // if result is Nil, converting to an integer was not possible.
-                // so it isnt possible to revert anything.
             } else {
                 return old_value.force(new_value);
             }
-            // Second solution (i dont know which is the correct one)
-            // please select the right one in the review and delete the wrong one
-            // return old_value.force(new_value);
         }});
 
     auto x = ctx.arguments().get(0);
