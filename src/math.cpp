@@ -399,7 +399,8 @@ auto floor(const CallContext& ctx) -> Value {
             }
         }});
 
-    return math_helper(ctx, static_cast<double (*)(double)>(&std::floor), "floor");
+    return math_helper(ctx, static_cast<double (*)(double)>(&std::floor), "floor")
+        .with_origin(origin);
 }
 
 auto fmod(const CallContext& ctx) -> Value {
