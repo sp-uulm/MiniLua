@@ -357,7 +357,9 @@ void Origin::set_file(std::optional<std::shared_ptr<std::string>> file) {
                 }
             },
             [&file](LiteralOrigin& origin) { origin.location.file = file; },
-            [](auto& /*unused*/) {}},
+            [](NoOrigin& /*unused*/) {},
+            [](ExternalOrigin& /*unused*/) {},
+        },
         this->origin);
 }
 
