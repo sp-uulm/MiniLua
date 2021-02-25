@@ -3074,3 +3074,43 @@ TEST_CASE("reverse rad") {
         CHECK_FALSE(result.has_value());
     }
 }
+
+TEST_CASE("reverse sin") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        int i = 0;
+        minilua::Vallist list =
+            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::sin(ctx);
+        REQUIRE(res == minilua::Value(0));
+
+        auto result = res.force(1);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "1.5708"));
+
+        result = res.force(3);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "nan"));
+    }
+
+    SECTION("invalid force") {
+        int i = 0;
+        minilua::Vallist list =
+            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::sin(ctx);
+        REQUIRE(res == minilua::Value(0));
+
+        auto result = res.force("1");
+        CHECK_FALSE(result.has_value());
+    }
+}
