@@ -10,10 +10,17 @@
 #include <iostream>
 #include <iterator>
 #include <map>
+#include <memory>
 #include <optional>
 #include <set>
 #include <sstream>
+#include <stdexcept>
 #include <utility>
+
+// This points to a binary blob containing the lua/stdlib.lua file.
+// The file is put into the compiled object by the linker.
+extern const char _binary_stdlib_lua_start[]; // NOLINT
+extern const char _binary_stdlib_lua_end[];   // NOLINT
 
 namespace minilua::details {
 
@@ -82,9 +89,82 @@ auto operator<<(std::ostream& o, const EvalResult& self) -> std::ostream& {
 }
 
 // class Interpreter
-Interpreter::Interpreter(const InterpreterConfig& config) : config(config) {}
+Interpreter::Interpreter(const InterpreterConfig& config, ts::Parser& parser)
+    : config(config), parser(parser) {}
 
-auto Interpreter::run(const ts::Tree& tree, Env& env) -> EvalResult {
+auto Interpreter::run(const ts::Tree& tree, Env& user_env) -> EvalResult {
+    Env env = this->setup_environment(user_env);
+
+    // execute the actual program
+    std::shared_ptr<std::string> root_filename = std::make_shared<std::string>("__root__");
+    env.set_file(root_filename);
+    return this->run_file(tree, env);
+}
+
+auto Interpreter::setup_environment(Env& user_env) -> Env {
+    Env env(user_env.allocator());
+
+    this->execute_stdlib(env);
+
+    // apply user overwrites
+    // NOTE we only consider global variables because the user can only set
+    // global variables
+    env.global().set_all(user_env.global());
+
+    return env;
+}
+
+void Interpreter::execute_stdlib(Env& env) {
+    // load the C++ part of the stdlib
+    add_stdlib(env.global());
+
+    // run the Lua part of the stdlib
+
+    // NOTE The tree is static so it is only initialized once
+    static const ts::Tree stdlib_tree = this->load_stdlib();
+
+    try {
+        env.set_file(std::nullopt);
+        this->run_file(stdlib_tree, env);
+    } catch (const std::exception& e) {
+        // This should never actually throw an exception
+        throw InterpreterException(
+            "THIS IS A BUG! Failed to execute the stdlib file: "s + e.what());
+    }
+}
+
+auto Interpreter::load_stdlib() -> ts::Tree {
+    // NOTE this method should only be called once when the stdlib_tree in
+    // Interpreter::execute_stdlib is initialized
+
+    // load the Lua part of the stdlib
+    // NOTE the result of executing the stdlib file will be ignored
+
+    std::string stdlib_code(_binary_stdlib_lua_start, _binary_stdlib_lua_end);
+
+    try {
+        ts::Tree stdlib_tree = this->parser.parse_string(std::move(stdlib_code));
+
+        // This is just in case. Failing to parse is a bug!!!
+        if (stdlib_tree.root_node().has_error()) {
+            std::stringstream ss;
+            ts::visit_tree(stdlib_tree, [&ss](ts::Node node) {
+                if (node.type() == "ERROR"s || node.is_missing()) {
+                    ss << "Error in node: ";
+                    ss << ts::debug_print_node(node);
+                }
+            });
+            throw std::runtime_error(ss.str());
+        }
+
+        return stdlib_tree;
+    } catch (const std::exception& e) {
+        // This should never actually throw an exception
+        throw InterpreterException("THIS IS A BUG! Failed to parse the stdlib: "s + e.what());
+    }
+}
+
+auto Interpreter::run_file(const ts::Tree& tree, Env& env) -> EvalResult {
     try {
         return this->visit_root(ast::Program(tree.root_node()), env);
     } catch (const InterpreterException&) {
@@ -516,30 +596,8 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
             [this, &env](ast::UnaryOperation unary_op) {
                 return this->visit_unary_operation(unary_op, env);
             },
-            [&node](ast::Literal literal) {
-                EvalResult result;
-
-                Value value;
-                switch (literal.type()) {
-                case ast::LiteralType::TRUE:
-                    value = Value(Bool(true));
-                    break;
-                case ast::LiteralType::FALSE:
-                    value = Value(Bool(false));
-                    break;
-                case ast::LiteralType::NIL:
-                    value = Value(Nil());
-                    break;
-                case ast::LiteralType::NUMBER:
-                    value = parse_number_literal(literal.content());
-                    break;
-                case ast::LiteralType::STRING:
-                    value = parse_string_literal(literal.content());
-                    break;
-                }
-                auto origin = LiteralOrigin{.location = literal.range()};
-                result.values = Vallist(value.with_origin(origin));
-                return result;
+            [this, &env](ast::Literal literal) {
+                return this->visit_literal(std::move(literal), env);
             },
             [this, &env](ast::Identifier ident) {
                 auto variable_name = this->visit_identifier(ident, env);
@@ -547,6 +605,35 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
             },
         },
         expr.options());
+
+    return result;
+}
+
+auto Interpreter::visit_literal(ast::Literal literal, Env& env) -> EvalResult {
+    EvalResult result;
+
+    Value value;
+    switch (literal.type()) {
+    case ast::LiteralType::TRUE:
+        value = Value(Bool(true));
+        break;
+    case ast::LiteralType::FALSE:
+        value = Value(Bool(false));
+        break;
+    case ast::LiteralType::NIL:
+        value = Value(Nil());
+        break;
+    case ast::LiteralType::NUMBER:
+        value = parse_number_literal(literal.content());
+        break;
+    case ast::LiteralType::STRING:
+        value = parse_string_literal(literal.content());
+        break;
+    }
+
+    auto origin = LiteralOrigin{.location = literal.range()};
+    origin.location.file = env.get_file();
+    result.values = Vallist(value.with_origin(origin));
 
     return result;
 }
@@ -813,6 +900,7 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
     EvalResult result;
 
     auto origin = convert_range(bin_op.raw().range());
+    origin.file = env.get_file();
 
     auto lhs_result = this->visit_expression(bin_op.left(), env);
     auto rhs_result = this->visit_expression(bin_op.right(), env);
@@ -871,6 +959,7 @@ auto Interpreter::visit_unary_operation(ast::UnaryOperation unary_op, Env& env) 
     EvalResult result = this->visit_expression(unary_op.expression(), env);
 
     auto range = convert_range(unary_op.raw().range());
+    range.file = env.get_file();
 
 #define IMPL(op, method)                                                                           \
     case ast::UnOpEnum::op:                                                                        \
@@ -942,8 +1031,11 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
     // call function
     // this will produce an error if the obj is not callable
     auto obj = function_obj_result.values.get(0);
+
+    // move the Env to the CallContext
     auto environment = Environment(env);
-    auto ctx = CallContext(&environment).make_new(arguments);
+    auto ctx =
+        CallContext(&environment).make_new(arguments, call.range().with_file(env.get_file()));
 
     try {
         CallResult call_result = obj.call(ctx);
@@ -954,6 +1046,9 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
         std::string pos = call.raw().range().start.point.pretty(true);
         throw InterpreterException("failed to call function  ("s + pos + ") : " + e.what());
     }
+
+    // move the Env back in case something has changed internally
+    env = environment.get_raw_impl().inner;
 
     return result;
 }

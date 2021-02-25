@@ -343,6 +343,25 @@ auto Origin::raw() -> Type& { return this->origin; }
         },
         this->origin);
 }
+void Origin::set_file(std::optional<std::shared_ptr<std::string>> file) {
+    std::visit(
+        overloaded{
+            [&file](BinaryOrigin& origin) {
+                if (origin.location) {
+                    origin.location->file = file;
+                }
+            },
+            [&file](UnaryOrigin& origin) {
+                if (origin.location) {
+                    origin.location->file = file;
+                }
+            },
+            [&file](LiteralOrigin& origin) { origin.location.file = file; },
+            [](NoOrigin& /*unused*/) {},
+            [](ExternalOrigin& /*unused*/) {},
+        },
+        this->origin);
+}
 
 auto operator==(const Origin& lhs, const Origin& rhs) noexcept -> bool {
     return lhs.raw() == rhs.raw();
@@ -497,6 +516,7 @@ auto Value::raw() const -> const Value::Type& { return impl->val; }
 [[nodiscard]] auto Value::has_origin() const -> bool { return !this->impl->origin.is_none(); }
 
 [[nodiscard]] auto Value::origin() const -> const Origin& { return this->impl->origin; }
+[[nodiscard]] auto Value::origin() -> Origin& { return this->impl->origin; }
 
 [[nodiscard]] auto Value::remove_origin() const -> Value {
     return this->with_origin(Origin{NoOrigin()});

@@ -11,8 +11,28 @@ auto operator<<(std::ostream& os, const Location& self) -> std::ostream& {
 }
 
 // struct Range
+auto Range::with_file(std::optional<std::shared_ptr<const std::string>> file) const -> Range {
+    return Range{
+        .start = this->start,
+        .end = this->end,
+        .file = std::move(file),
+    };
+}
+auto operator==(const Range& lhs, const Range& rhs) noexcept -> bool {
+    // check the internal string for equality instead of the shared_ptr
+    bool file_equals = (!lhs.file.has_value() && !lhs.file.has_value()) ||
+                       (lhs.file.has_value() && rhs.file.has_value() && **lhs.file == **rhs.file);
+    return lhs.start == rhs.start && lhs.end == rhs.end && file_equals;
+}
+auto operator!=(const Range& lhs, const Range& rhs) noexcept -> bool { return !(lhs == rhs); }
 auto operator<<(std::ostream& os, const Range& self) -> std::ostream& {
-    return os << "Range{ start = " << self.start << ", end = " << self.end << " }";
+    os << "Range{ start = " << self.start << ", end = " << self.end << ", file = ";
+    if (self.file) {
+        os << "\"" << **self.file << "\"";
+    } else {
+        os << "nullopt";
+    }
+    return os << " }";
 }
 
 // struct SourceChange
@@ -32,6 +52,10 @@ auto SourceChangeTree::origin() -> std::string& {
 }
 auto SourceChangeTree::hint() -> std::string& {
     return this->visit([](auto& change) -> std::string& { return change.hint; });
+}
+
+void SourceChangeTree::remove_filename() {
+    this->visit_all([](SourceChange& change) { change.range.file = std::nullopt; });
 }
 
 [[nodiscard]] auto SourceChangeTree::collect_first_alternative() const

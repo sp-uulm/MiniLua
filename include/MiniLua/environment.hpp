@@ -50,11 +50,6 @@ public:
     [[nodiscard]] auto make_table() const -> Table;
 
     /**
-     * Populates the environment with the (implemented) lua standard library.
-     */
-    void add_default_stdlib();
-
-    /**
      * Add a variable to the environment.
      */
     void add(const std::string& name, Value value);

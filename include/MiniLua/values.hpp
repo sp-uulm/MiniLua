@@ -355,6 +355,11 @@ public:
     auto has(const Value& key) -> bool;
     void set(const Value& key, Value value);
     void set(Value&& key, Value value);
+    /**
+     * Copy the `other` table into this table overwriting all keys that are
+     * duplicate.
+     */
+    void set_all(const Table& other);
     [[nodiscard]] auto size() const -> size_t;
 
     // iterators for Table
@@ -732,6 +737,11 @@ public:
     [[nodiscard]] auto is_unary() const -> bool;
 
     [[nodiscard]] auto force(const Value&) const -> std::optional<SourceChangeTree>;
+
+    /**
+     * Sets the file of the underlying origin type (if possible).
+     */
+    void set_file(std::optional<std::shared_ptr<std::string>> file);
 };
 
 auto operator==(const Origin&, const Origin&) noexcept -> bool;
@@ -858,6 +868,7 @@ public:
     [[nodiscard]] auto has_origin() const -> bool;
 
     [[nodiscard]] auto origin() const -> const Origin&;
+    [[nodiscard]] auto origin() -> Origin&;
 
     [[nodiscard]] auto remove_origin() const -> Value;
     [[nodiscard]] auto with_origin(Origin new_origin) const -> Value;

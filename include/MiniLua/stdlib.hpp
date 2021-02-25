@@ -7,13 +7,14 @@
 #include "MiniLua/values.hpp"
 
 namespace minilua {
+
+void error(const CallContext& ctx);
+
 auto to_string(const CallContext& ctx) -> Value;
 
 auto to_number(const CallContext& ctx) -> Value;
 
 auto type(const CallContext& ctx) -> Value;
-
-auto assert_lua(const CallContext& ctx) -> Vallist;
 
 auto next(const CallContext& ctx) -> Vallist;
 
@@ -39,6 +40,7 @@ void print(const CallContext& ctx);
  * \note This is not part of the official lua standard.
  */
 auto discard_origin(const CallContext& ctx) -> Vallist;
+
 } // namespace minilua
 
 #endif

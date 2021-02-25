@@ -2,8 +2,27 @@
 #include <string>
 
 #include "MiniLua/environment.hpp"
+#include "MiniLua/interpreter.hpp"
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/values.hpp"
+
+TEST_CASE("assert") {
+    SECTION("assert false") {
+        minilua::Interpreter interpreter;
+        REQUIRE(interpreter.parse("assert(false)"));
+        REQUIRE_THROWS(interpreter.evaluate());
+    }
+    SECTION("assert true") {
+        minilua::Interpreter interpreter;
+        REQUIRE(interpreter.parse("assert(true)"));
+        REQUIRE_NOTHROW(interpreter.evaluate());
+    }
+    SECTION("assert false with message") {
+        minilua::Interpreter interpreter;
+        REQUIRE(interpreter.parse(R"(assert(false, "message"))"));
+        REQUIRE_THROWS_WITH(interpreter.evaluate(), Catch::Contains("message"));
+    }
+}
 
 TEST_CASE("to_string") {
     minilua::Environment env;
@@ -142,44 +161,6 @@ TEST_CASE("to_number") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(s), minilua::Value(base)});
             ctx = ctx.make_new(list);
             CHECK(minilua::to_number(ctx) == minilua::Nil());
-        }
-    }
-}
-
-TEST_CASE("assert_lua") {
-    SECTION("Assert fails with default message") {
-        minilua::Environment env;
-        minilua::CallContext ctx(&env);
-        minilua::Vallist list = minilua::Vallist({minilua::Value{false}, minilua::Nil()});
-        ctx = ctx.make_new(list);
-        CHECK_THROWS_WITH(minilua::assert_lua(ctx), "assertion failed");
-    }
-
-    SECTION("Assert fails with default message") {
-        std::string s = "Hallo Welt!";
-        minilua::Environment env;
-        minilua::CallContext ctx(&env);
-        minilua::Vallist list = minilua::Vallist({minilua::Value{false}, minilua::Value{s}});
-        ctx = ctx.make_new(list);
-        CHECK_THROWS_WITH(minilua::assert_lua(ctx), s);
-    }
-
-    SECTION("Assert passes") {
-        SECTION("Assert passes with standard true") {
-            minilua::Environment env;
-            minilua::CallContext ctx(&env);
-            minilua::Vallist list = minilua::Vallist({minilua::Value{true}, minilua::Value{42}});
-            ctx = ctx.make_new(list);
-            CHECK(minilua::assert_lua(ctx) == ctx.arguments());
-        }
-
-        SECTION("Assert passes with converted true") {
-            minilua::Environment env;
-            minilua::CallContext ctx(&env);
-            minilua::Vallist list =
-                minilua::Vallist({minilua::Value{42}, minilua::Value{"Hallo Welt!"}});
-            ctx = ctx.make_new(list);
-            CHECK(minilua::assert_lua(ctx) == ctx.arguments());
         }
     }
 }

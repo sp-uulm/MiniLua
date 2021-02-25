@@ -14,39 +14,30 @@
 #include "MiniLua/environment.hpp"
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/utils.hpp"
+#include "internal_env.hpp"
 
 namespace minilua {
 
-void Environment::add_default_stdlib() {
-    this->add("tostring", to_string);
-    this->add("to_number", to_number);
-    this->add("type", type);
-    this->add("assert", assert_lua);
-    this->add("next", next);
-    this->add("select", select);
-    this->add("print", print);
-    this->add("discard_origin", discard_origin);
+namespace details {
+
+void add_stdlib(Table& table) {
+    table.set("tostring", to_string);
+    table.set("to_number", to_number);
+    table.set("type", type);
+    table.set("next", next);
+    table.set("select", select);
+    table.set("print", print);
+    table.set("error", error);
+    table.set("discard_origin", discard_origin);
 }
 
-/**
-Splits a string into two parts. the split happens at the character c which is not included in the
-result.
+} // namespace details
 
-Example:
-split_string("123.456", '.') = (123, 456)
-*/
-// commented because not needed at the moment, maybe in the future. if not, delete it
-/*static auto split_string(const std::string& s, char c) -> std::pair<std::string, std::string> {
-    std::pair<std::string, std::string> result;
-    std::stringstream split(s);
-    std::string tmp;
-    std::getline(split, tmp, c);
-    result.first = tmp;
-    std::getline(split, tmp, c);
-    result.second = tmp;
-    return result;
+void error(const CallContext& ctx) {
+    // TODO implement level (we need a proper call stack for that)
+    auto message = ctx.arguments().get(0);
+    throw std::runtime_error(std::get<String>(message.to_string()).value);
 }
-*/
 
 auto to_string(const CallContext& ctx) -> Value {
     auto arg = ctx.arguments().get(0);
@@ -65,19 +56,6 @@ auto type(const CallContext& ctx) -> Value {
     auto v = ctx.arguments().get(0);
 
     return v.type();
-}
-
-auto assert_lua(const CallContext& ctx) -> Vallist {
-    auto v = ctx.arguments().get(0);
-    auto message = ctx.arguments().get(1);
-
-    if (v) {
-        return ctx.arguments();
-    } else {
-        // TODO: improve error behaviour
-        throw std::runtime_error(
-            message == Nil() ? std::string("assertion failed") : get<String>(message).value);
-    }
 }
 
 auto next(const CallContext& ctx) -> Vallist {
