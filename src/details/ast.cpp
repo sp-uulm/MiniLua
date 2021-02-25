@@ -278,18 +278,14 @@ auto LoopExpression::variable() const -> Identifier {
     return Identifier(this->loop_exp.named_child(0).value());
 }
 auto LoopExpression::end() const -> Expression {
-    if (this->loop_exp.named_child_count() == 4) {
-        return Expression(this->loop_exp.named_child(3).value());
-    } else {
-        return Expression(this->loop_exp.named_child(2).value());
-    }
+    return Expression(this->loop_exp.named_child(2).value());
 }
 auto LoopExpression::start() const -> Expression {
     return Expression(this->loop_exp.named_child(1).value());
 }
 auto LoopExpression::step() const -> std::optional<Expression> {
     if (this->loop_exp.named_child_count() == 4) {
-        return Expression(this->loop_exp.named_child(2).value());
+        return Expression(this->loop_exp.named_child(3).value());
     } else {
         return std::nullopt;
     }
@@ -667,8 +663,10 @@ VariableDeclarator::VariableDeclarator(ts::Node node) : content(node) {
         throw std::runtime_error("not a variable declarator");
     }
 }
-VariableDeclarator::VariableDeclarator(const Identifier& id, minilua::Range range)
-    : content(std::make_tuple(id, range)) {}
+VariableDeclarator::VariableDeclarator(const Identifier& id)
+    : content(std::make_tuple(id, id.range())) {}
+VariableDeclarator::VariableDeclarator(const FieldExpression& fe)
+    : content(std::make_tuple(fe, fe.range())) {}
 auto VariableDeclarator::options() const -> std::variant<Identifier, FieldExpression, TableIndex> {
     return std::visit(
         overloaded{
@@ -761,20 +759,43 @@ auto DoStatement::raw() const -> std::optional<ts::Node> {
 }
 
 // FieldExpression
-FieldExpression::FieldExpression(ts::Node node) : exp(node) {
+FieldExpression::FieldExpression(ts::Node node) : content(node) {
     if (node.type_id() != ts::NODE_FIELD_EXPRESSION) {
         throw std::runtime_error("not a field_expression node");
     }
     assert(node.named_child_count() == 2);
 }
+FieldExpression::FieldExpression(
+    const Prefix& prefix, const Identifier& identifier, minilua::Range range)
+    : content(std::make_tuple(std::make_shared<Prefix>(prefix), identifier, range)) {}
 auto FieldExpression::table_id() const -> Prefix {
-    return Prefix(this->exp.named_child(0).value());
+    return std::visit(
+        overloaded{
+            [](ts::Node node) -> Prefix { return Prefix(node.named_child(0).value()); },
+            [](const FieldExpTuple& tuple) -> Prefix { return *std::get<TABLE>(tuple); }},
+        this->content);
 }
 auto FieldExpression::property_id() const -> Identifier {
-    return Identifier(this->exp.named_child(1).value());
+    return std::visit(
+        overloaded{
+            [](ts::Node node) -> Identifier { return Identifier(node.named_child(1).value()); },
+            [](const FieldExpTuple& tuple) -> Identifier { return std::get<PROPERTY>(tuple); }},
+        this->content);
 }
-auto FieldExpression::range() const -> minilua::Range { return convert_range(this->exp.range()); }
-auto FieldExpression::raw() const -> ts::Node { return this->exp; }
+auto FieldExpression::range() const -> minilua::Range {
+    return std::visit(
+        overloaded{
+            [](ts::Node node) -> minilua::Range { return convert_range(node.range()); },
+            [](const FieldExpTuple& tuple) -> minilua::Range { return std::get<RANGE>(tuple); }},
+        this->content);
+}
+auto FieldExpression::raw() const -> std::optional<ts::Node> {
+    return std::visit(
+        overloaded{
+            [](ts::Node node) -> std::optional<ts::Node> { return node; },
+            [](const FieldExpTuple& /*tuple*/) -> std::optional<ts::Node> { return nullopt; }},
+        this->content);
+}
 
 // Label
 Label::Label(ts::Node node) : label(node) {
@@ -799,85 +820,65 @@ auto GoTo::range() const -> minilua::Range { return convert_range(this->go_to.ra
 auto GoTo::raw() const -> ts::Node { return this->go_to; }
 
 // Parameters
-Parameters::Parameters(ts::Node node) : parameters(node) {
+Parameters::Parameters(ts::Node node) : content(node) {
     if (node.type_id() != ts::NODE_PARAMETERS) {
         throw std::runtime_error("not a parameters node");
     }
 }
-auto Parameters::leading_self() const -> bool {
-    if (this->parameters.named_child_count() < 1) {
-        return false;
-    } else {
-        return this->parameters.named_child(0)->type_id() == ts::NODE_SELF;
-    }
-}
-auto Parameters::spread() const -> SpreadPos {
-    if (this->parameters.named_child_count() < 1) {
-        return SpreadPos::NO_SPREAD;
-    } else if (this->parameters.named_child(0)->type_id() == ts::NODE_SPREAD) {
-        return SpreadPos::BEGIN;
-    } else if (
-        this->parameters.named_child(this->parameters.named_child_count() - 1)->type_id() ==
-        ts::NODE_SPREAD) {
-        return SpreadPos::END;
-    } else {
-        return SpreadPos::NO_SPREAD;
-    }
+auto Parameters::spread() const -> bool {
+    return std::visit(
+        overloaded{
+            [](ts::Node node) -> bool {
+                return node.named_child_count() > 0 &&
+                       ((node.named_child(node.named_child_count() - 1))->type_id() ==
+                        ts::NODE_SPREAD);
+            },
+            [](ParamTuple tuple) { return std::get<SPREAD>(tuple); }},
+        this->content);
 }
 auto Parameters::params() const -> std::vector<Identifier> {
-    SpreadPos sp = spread();
-    std::vector<Identifier> res;
-    std::vector<ts::Node> children = this->parameters.named_children();
-    if (leading_self()) {
-        if (sp == NO_SPREAD) {
-            if (this->parameters.named_child_count() < 1) {
-                return res;
-            }
-            res.reserve(this->parameters.named_child_count() - 1);
-            std::transform(
-                children.begin() + 1, children.end(), std::back_inserter(res),
-                [](ts::Node node) { return Identifier(node); });
-        } else {
-            if (this->parameters.named_child_count() < 2) {
-                return res;
-            }
-            res.reserve(this->parameters.named_child_count() - 2);
-            std::transform(
-                children.begin() + 1, children.end() - 1, std::back_inserter(res),
-                [](ts::Node node) { return Identifier(node); });
-        }
-    } else {
-        switch (sp) {
-        case NO_SPREAD:
-            res.reserve(this->parameters.named_child_count());
-            std::transform(
-                children.begin(), children.end(), std::back_inserter(res),
-                [](ts::Node node) { return Identifier(node); });
-            break;
-        case BEGIN:
-            if (this->parameters.named_child_count() < 1) {
-                return res;
-            }
-            res.reserve(this->parameters.named_child_count() - 1);
-            std::transform(
-                children.begin() + 1, children.end(), std::back_inserter(res),
-                [](ts::Node node) { return Identifier(node); });
-            break;
-        case END:
-            if (this->parameters.named_child_count() < 1) {
-                return res;
-            }
-            res.reserve(this->parameters.named_child_count() - 1);
-            std::transform(
-                children.begin(), children.end() - 1, std::back_inserter(res),
-                [](ts::Node node) { return Identifier(node); });
-            break;
-        }
-    }
-    return res;
+    const bool spread = this->spread();
+    return std::visit(
+        overloaded{
+            [spread](ts::Node node) -> std::vector<Identifier> {
+                std::vector<Identifier> res;
+                std::vector<ts::Node> children = node.named_children();
+                if (spread) {
+                    if (node.named_child_count() < 1) {
+                        return res;
+                    }
+                    res.reserve(node.named_child_count() - 1);
+                    std::transform(
+                        children.begin(), children.end() - 1, std::back_inserter(res),
+                        [](ts::Node id) { return Identifier(id); });
+                    return res;
+                } else {
+                    res.reserve(node.named_child_count());
+                    std::transform(
+                        children.begin(), children.end(), std::back_inserter(res),
+                        [](ts::Node id) { return Identifier(id); });
+                    return res;
+                }
+            },
+            [](ParamTuple tuple) -> std::vector<Identifier> {
+                return std::get<IDENTIFIERS>(tuple);
+            }},
+        this->content);
 }
-auto Parameters::range() const -> minilua::Range { return convert_range(this->parameters.range()); }
-auto Parameters::raw() const -> ts::Node { return this->parameters; }
+auto Parameters::range() const -> minilua::Range {
+    return std::visit(
+        overloaded{
+            [](ts::Node node) -> minilua::Range { return convert_range(node.range()); },
+            [](ParamTuple tuple) -> minilua::Range { return std::get<RANGE>(tuple); }},
+        this->content);
+}
+auto Parameters::raw() const -> std::optional<ts::Node> {
+    return std::visit(
+        overloaded{
+            [](ts::Node node) -> std::optional<ts::Node> { return node; },
+            [](const ParamTuple& /*tuple*/) -> std::optional<ts::Node> { return nullopt; }},
+        this->content);
+}
 
 // FunctionName
 FunctionName::FunctionName(ts::Node node) : func_name(node) {
@@ -924,7 +925,8 @@ FunctionDefinition::FunctionDefinition(ts::Node node) : content(node) {
         throw std::runtime_error("not a function_definition node");
     }
 }
-FunctionDefinition::FunctionDefinition(Parameters params, const Body& body, minilua::Range range)
+FunctionDefinition::FunctionDefinition(
+    const Parameters& params, const Body& body, minilua::Range range)
     : content(std::tuple(params, std::make_shared<Body>(body), range)) {}
 auto FunctionDefinition::parameters() const -> Parameters {
     return std::visit(
@@ -1098,6 +1100,7 @@ Prefix::Prefix(ts::Node node) : content(node) {
 }
 Prefix::Prefix(const VariableDeclarator& vd, minilua::Range range)
     : content(std::make_tuple(vd, range)) {}
+Prefix::Prefix(const FunctionCall& fc) : content(std::make_tuple(fc, fc.range())) {}
 auto Prefix::options() const -> PrefixVariant {
     return std::visit(
         overloaded{
@@ -1165,6 +1168,11 @@ Expression::Expression(const BinaryOperation& bin, minilua::Range range)
     : content(make_tuple(bin, range)) {}
 Expression::Expression(const FunctionDefinition& fd, minilua::Range range)
     : content(make_tuple(fd, range)) {}
+Expression::Expression(const Literal& literal, minilua::Range range)
+    : content(make_tuple(literal, range)) {}
+Expression::Expression(const Identifier& id, minilua::Range range)
+    : content(make_tuple(id, range)) {}
+Expression::Expression(const Prefix& pfx) : content(make_tuple(pfx, pfx.range())) {}
 auto Expression::options() const -> ExpressionVariant {
     return std::visit(
         overloaded{
@@ -1180,15 +1188,15 @@ auto Expression::options() const -> ExpressionVariant {
                 } else if (node.type_id() == ts::NODE_UNARY_OPERATION) {
                     return UnaryOperation(node);
                 } else if (node.type_id() == ts::NODE_STRING) {
-                    return Literal(LiteralType::STRING, node.text(), node.range());
+                    return Literal(LiteralType::STRING, node.text(), convert_range(node.range()));
                 } else if (node.type_id() == ts::NODE_NUMBER) {
-                    return Literal(LiteralType::NUMBER, node.text(), node.range());
+                    return Literal(LiteralType::NUMBER, node.text(), convert_range(node.range()));
                 } else if (node.type_id() == ts::NODE_NIL) {
-                    return Literal(LiteralType::NIL, node.text(), node.range());
+                    return Literal(LiteralType::NIL, node.text(), convert_range(node.range()));
                 } else if (node.type_id() == ts::NODE_TRUE) {
-                    return Literal(LiteralType::TRUE, node.text(), node.range());
+                    return Literal(LiteralType::TRUE, node.text(), convert_range(node.range()));
                 } else if (node.type_id() == ts::NODE_FALSE) {
-                    return Literal(LiteralType::FALSE, node.text(), node.range());
+                    return Literal(LiteralType::FALSE, node.text(), convert_range(node.range()));
                 } else if (node.type_id() == ts::NODE_IDENTIFIER) {
                     return Identifier(node);
                 } else if (
@@ -1242,9 +1250,10 @@ Statement::Statement(const FunctionCall& func_call, minilua::Range range)
 Statement::Statement(const WhileStatement& while_statement, minilua::Range range)
     : content(make_tuple(while_statement, range)) {}
 Statement::Statement(const VariableDeclaration& var_dec, minilua::Range range)
-    : content(make_tuple(var_dec, range)) {}
+    : content(make_tuple(var_dec, var_dec.range())) {}
 Statement::Statement(const DoStatement& do_statement, minilua::Range range)
     : content(make_tuple(do_statement, range)) {}
+Statement::Statement(const Break& bk, minilua::Range range) : content(make_tuple(bk, range)) {}
 auto Statement::options() const -> StatementVariant {
     return std::visit(
         overloaded{
@@ -1301,9 +1310,9 @@ auto Statement::raw() const -> std::optional<ts::Node> {
         this->content);
 }
 
-Literal::Literal(LiteralType type, std::string string, ts::Range range)
+Literal::Literal(LiteralType type, std::string string, minilua::Range range)
     : literal_content(std::move(string)), literal_type(type), literal_range(range){};
 auto Literal::type() const -> LiteralType { return this->literal_type; }
 auto Literal::content() const -> std::string { return this->literal_content; }
-auto Literal::range() const -> minilua::Range { return convert_range(this->literal_range); }
+auto Literal::range() const -> minilua::Range { return this->literal_range; }
 } // namespace minilua::details::ast

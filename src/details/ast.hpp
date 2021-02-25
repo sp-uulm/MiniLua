@@ -22,10 +22,10 @@ enum class LiteralType { TRUE, FALSE, NIL, NUMBER, STRING };
 class Literal {
     std::string literal_content;
     LiteralType literal_type;
-    ts::Range literal_range;
+    minilua::Range literal_range;
 
 public:
-    Literal(LiteralType, std::string, ts::Range);
+    Literal(LiteralType, std::string, minilua::Range);
     auto content() const -> std::string;
     auto type() const -> LiteralType;
     auto range() const -> minilua::Range;
@@ -45,6 +45,25 @@ public:
     auto body() const -> Body;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
+};
+/**
+ * class for do_statement nodes
+ */
+class DoStatement {
+    using DoTuple = std::tuple<std::shared_ptr<Body>, minilua::Range>;
+    enum TupleIndex { BODY, RANGE };
+    std::variant<ts::Node, DoTuple> content;
+
+public:
+    explicit DoStatement(ts::Node);
+    explicit DoStatement(const Body&, minilua::Range);
+    /**
+     *
+     * @return a body containing all statements of the do block
+     */
+    auto body() const -> Body;
+    auto range() const -> minilua::Range;
+    auto raw() const -> std::optional<ts::Node>;
 };
 /**
  * class for identifier_nodes
@@ -206,6 +225,7 @@ public:
     auto body() const -> Body;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
+    auto desugar() const -> DoStatement;
 };
 /**
  * class for in_loop_expression nodes
@@ -246,6 +266,7 @@ public:
      * @return the corresponding loop expression
      */
     auto loop_expression() const -> InLoopExpression;
+    auto desugar() const -> DoStatement;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
 };
@@ -411,10 +432,13 @@ public:
  * class for field_expression nodes
  */
 class FieldExpression {
-    ts::Node exp;
+    using FieldExpTuple = std::tuple<std::shared_ptr<Prefix>, Identifier, minilua::Range>;
+    enum TupleIndex { TABLE, PROPERTY, RANGE };
+    std::variant<ts::Node, FieldExpTuple> content;
 
 public:
     explicit FieldExpression(ts::Node);
+    explicit FieldExpression(const Prefix&, const Identifier&, minilua::Range);
     /**
      *
      * @return a Prefix containing the Identifier for the table
@@ -426,7 +450,7 @@ public:
      */
     auto property_id() const -> Identifier;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto raw() const -> std::optional<ts::Node>;
 };
 using VarDecVariant = std::variant<Identifier, FieldExpression, TableIndex>;
 /**
@@ -439,7 +463,8 @@ class VariableDeclarator {
 
 public:
     explicit VariableDeclarator(ts::Node node);
-    explicit VariableDeclarator(const Identifier&, minilua::Range);
+    explicit VariableDeclarator(const Identifier&);
+    explicit VariableDeclarator(const FieldExpression&);
     /**
      *
      * @return a variant containing the class this variable declarator gets resolved to
@@ -478,25 +503,6 @@ public:
      * @return a vector with the expressions that get assigned to to the declared variables
      */
     auto declarations() const -> std::vector<Expression>;
-    auto range() const -> minilua::Range;
-    auto raw() const -> std::optional<ts::Node>;
-};
-/**
- * class for do_statement nodes
- */
-class DoStatement {
-    using DoTuple = std::tuple<std::shared_ptr<Body>, minilua::Range>;
-    enum TupleIndex { BODY, RANGE };
-    std::variant<ts::Node, DoTuple> content;
-
-public:
-    explicit DoStatement(ts::Node);
-    explicit DoStatement(const Body&, minilua::Range);
-    /**
-     *
-     * @return a body containing all statements of the do block
-     */
-    auto body() const -> Body;
     auto range() const -> minilua::Range;
     auto raw() const -> std::optional<ts::Node>;
 };
@@ -560,40 +566,27 @@ public:
     auto raw() const -> ts::Node;
 };
 /**
- * an enum defining the different positions a Spread can occur in the parameters of a method
- */
-enum SpreadPos { BEGIN, END, NO_SPREAD };
-/**
  * a class for parameter nodes
  */
 class Parameters {
-    ts::Node parameters;
+    using ParamTuple = std::tuple<std::vector<Identifier>, bool, minilua::Range>;
+    enum TupleIndex { IDENTIFIERS, SPREAD, RANGE };
+    std::variant<ts::Node, ParamTuple> content;
 
 public:
     explicit Parameters(ts::Node);
-    /**
-     * self can only be the first parameter this method looks if the self keyword is present in this
-     * parameter list
-     * @return true if the first parameter is "self"
-     *          false otherwise
-     */
-    auto leading_self() const -> bool;
+    explicit Parameters(std::vector<Identifier>, bool, minilua::Range);
     /**
      *
-     * @return a vector containing all parameters excluding a potential spread at the beginning or
-     * and or a potential self at the beginning
+     * @return a vector containing all parameters excluding a potential spread
      */
     auto params() const -> std::vector<Identifier>;
     /**
-     * specifies the position of a potential spread contained within the parameters
-     * SpreadPos::BEGIN and a leading self is not possible
-     * @return SpreadPos::BEGIN if there is a spread as the first parameter
-     *          SpreadPos::END if there is a spread as the last parameter
-     *          SpreadPos::NO_SPREAD if there is no spread amongst the parameters
+     * @return true if the last parameter is "spread"
      */
-    auto spread() const -> SpreadPos;
+    auto spread() const -> bool;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto raw() const -> std::optional<ts::Node>;
 };
 /**
  * class for function_definition nodes
@@ -605,7 +598,7 @@ class FunctionDefinition {
 
 public:
     explicit FunctionDefinition(ts::Node);
-    explicit FunctionDefinition(Parameters, const Body&, minilua::Range);
+    explicit FunctionDefinition(const Parameters&, const Body&, minilua::Range);
     /**
      *
      * @return a body containing all statements of this function
@@ -646,6 +639,7 @@ public:
     auto local() const -> bool;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
+    auto desugar() const -> VariableDeclaration;
 };
 class FunctionCall {
     using FuncCallTuple = std::tuple<
@@ -731,6 +725,7 @@ class Prefix {
 public:
     explicit Prefix(ts::Node);
     explicit Prefix(const VariableDeclarator&, minilua::Range);
+    explicit Prefix(const FunctionCall&);
     /**
      *
      * @return a variant containing the class this Prefix gets resolved to
@@ -755,6 +750,9 @@ public:
     explicit Expression(const BinaryOperation&, minilua::Range);
     explicit Expression(const UnaryOperation&, minilua::Range);
     explicit Expression(const FunctionDefinition&, minilua::Range);
+    explicit Expression(const Prefix&);
+    explicit Expression(const Literal&, minilua::Range);
+    explicit Expression(const Identifier&, minilua::Range);
     /**
      *
      * @return a variant containing the class this expression gets resolved to
@@ -778,6 +776,7 @@ public:
     explicit Statement(const WhileStatement&, minilua::Range);
     explicit Statement(const IfStatement&, minilua::Range);
     explicit Statement(const DoStatement&, minilua::Range);
+    explicit Statement(const Break&, minilua::Range);
     /**
      *
      * @return a variant containing the class this statement gets resolved to
