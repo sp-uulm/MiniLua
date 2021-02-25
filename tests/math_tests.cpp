@@ -3021,3 +3021,56 @@ TEST_CASE("reverse log") {
         }
     }
 }
+
+TEST_CASE("reverse max") {
+    // TODO: first implement reverse of max
+}
+
+TEST_CASE("reverse min") {
+    // TODO: first implement reverse of min
+}
+
+TEST_CASE("reverse modf") {
+    // TODO: first implement reverse for return-values of modf
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {}
+
+    SECTION("invalid force") {}
+}
+
+TEST_CASE("reverse rad") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        int i = 1;
+        minilua::Vallist list =
+            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::rad(ctx);
+        minilua::Number n = std::get<minilua::Number>(res);
+        REQUIRE(n.value == Approx(0.017453292519943));
+
+        auto result = res.force(0.043633231299858);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "2.5"));
+    }
+
+    SECTION("invalid force") {
+        int i = 1;
+        minilua::Vallist list =
+            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::rad(ctx);
+        minilua::Number n = std::get<minilua::Number>(res);
+        REQUIRE(n.value == Approx(0.017453292519943));
+
+        auto result = res.force("24");
+        CHECK_FALSE(result.has_value());
+    }
+}
