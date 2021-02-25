@@ -372,7 +372,7 @@ auto exp(const CallContext& ctx) -> Value {
             if (n > 0) {
                 return old_value.force(std::log(n.value));
             } else if (n < 0) {
-                return old_value.force(1 / std::log(n.value));
+                return old_value.force(1 / std::log(-n.value));
             } else {
                 return std::nullopt;
             }
@@ -711,9 +711,9 @@ auto to_integer(const CallContext& ctx) -> Value {
             }
             Number n = std::get<Number>(new_value);
             if (std::fmod(n.value, 1.0) == 0.0) {
-                return std::nullopt;
-            } else {
                 return old_value.force(new_value);
+            } else {
+                return std::nullopt;
             }
         }});
 
