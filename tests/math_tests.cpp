@@ -2969,3 +2969,55 @@ TEST_CASE("reverse fmod") {
         CHECK_FALSE(result.has_value());
     }
 }
+
+TEST_CASE("reverse log") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        int x = 3;
+        minilua::Vallist list = minilua::Vallist(
+            {minilua::Value(x).with_origin(minilua::LiteralOrigin()), minilua::Nil()});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::log(ctx);
+        auto n = std::get<minilua::Number>(res);
+        REQUIRE(n.value == Approx(1.0986122886681));
+
+        auto result = res.force(0);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "1"));
+    }
+
+    SECTION("invalid force") {
+        SECTION("try to force a invalid value") {
+            int x = 3;
+            minilua::Vallist list = minilua::Vallist(
+                {minilua::Value(x).with_origin(minilua::LiteralOrigin()), minilua::Nil()});
+            ctx = ctx.make_new(list);
+            auto res = minilua::math::log(ctx);
+            auto n = std::get<minilua::Number>(res);
+            REQUIRE(n.value == Approx(1.0986122886681));
+
+            auto result = res.force("1");
+            CHECK_FALSE(result.has_value());
+        }
+
+        SECTION("valid force, but log was called with 2 arguments") {
+            int x = 3;
+            int y = 2;
+            minilua::Vallist list = minilua::Vallist(
+                {minilua::Value(x).with_origin(minilua::LiteralOrigin()),
+                 minilua::Value(y).with_origin(minilua::LiteralOrigin())});
+            ctx = ctx.make_new(list);
+            auto res = minilua::math::log(ctx);
+            auto n = std::get<minilua::Number>(res);
+            REQUIRE(n.value == Approx(1.5849625007212));
+
+            auto result = res.force(0);
+            CHECK_FALSE(result.has_value());
+        }
+    }
+}
