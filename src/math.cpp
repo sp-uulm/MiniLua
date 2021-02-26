@@ -417,7 +417,7 @@ auto fmod(const CallContext& ctx) -> Value {
                 return std::nullopt;
             } else {
                 // old_value2 could be a string formated like a number or a number
-                // but can't be a invalid value because then fmod throws an exception
+                // but can't be an invalid value because then fmod throws an exception
                 Number divisor = std::get<Number>(old_value2.to_number());
                 Number new_val = std::get<Number>(new_value);
 
