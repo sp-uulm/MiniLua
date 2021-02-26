@@ -78,6 +78,14 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a9ba467771bf37e8145d57586b24eb86a"><td class="memItemLeft" align="right" valign="top">static const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1math.html#a9ba467771bf37e8145d57586b24eb86a">pattern_number</a> (R&quot;(\s*-?\d+)&quot;)</td></tr>
+<tr class="separator:a9ba467771bf37e8145d57586b24eb86a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8fd5e79fe8fc71cda2c75d90ef0cbd09"><td class="memItemLeft" align="right" valign="top">static const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1math.html#a8fd5e79fe8fc71cda2c75d90ef0cbd09">pattern_hex</a> (R&quot;(\s*-?0[xX][\dA-Fa-f]+)&quot;)</td></tr>
+<tr class="separator:a8fd5e79fe8fc71cda2c75d90ef0cbd09"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae209b328280d705cc194d39a88b7e0d8"><td class="memItemLeft" align="right" valign="top">static const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1math.html#ae209b328280d705cc194d39a88b7e0d8">pattern_exp</a> (R&quot;(\s*-?\d+\.?\d*[eE]\d+)&quot;)</td></tr>
+<tr class="separator:ae209b328280d705cc194d39a88b7e0d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a95079332ca8d3b89859717ddf6e1c7b4"><td class="memItemLeft" align="right" valign="top">static const std::regex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1math.html#a95079332ca8d3b89859717ddf6e1c7b4">pattern_all_number_variants</a> (<a class="el" href="namespaceminilua_1_1math.html#a9ba467771bf37e8145d57586b24eb86a">pattern_number</a>+&quot;|&quot;+<a class="el" href="namespaceminilua_1_1math.html#a8fd5e79fe8fc71cda2c75d90ef0cbd09">pattern_hex</a>+&quot;|&quot;+<a class="el" href="namespaceminilua_1_1math.html#ae209b328280d705cc194d39a88b7e0d8">pattern_exp</a>)</td></tr>
+<tr class="separator:a95079332ca8d3b89859717ddf6e1c7b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac00bab741695aef8dc6a078cc41989a6"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1math.html#ac00bab741695aef8dc6a078cc41989a6">math_helper</a> (const <a class="el" href="classminilua_1_1CallContext.html">CallContext</a> &amp;ctx, const std::function&lt; double(double)&gt; &amp;function, const std::string &amp;functionname, const std::string &amp;arg_index=&quot;1&quot;) -&gt; <a class="el" href="classminilua_1_1Value.html">Value</a></td></tr>
 <tr class="separator:ac00bab741695aef8dc6a078cc41989a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2d9e847d2351177c6e951e1cfecdcf9d"><td class="memTemplParams" colspan="2">template&lt;class T &gt; </td></tr>
@@ -503,6 +511,110 @@ template&lt;class T &gt; </div>
           <td> -&gt;  <a class="el" href="classminilua_1_1Vallist.html">Vallist</a></td>
         </tr>
       </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a95079332ca8d3b89859717ddf6e1c7b4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a95079332ca8d3b89859717ddf6e1c7b4">&#9670;&nbsp;</a></span>pattern_all_number_variants()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static const std::regex minilua::math::pattern_all_number_variants </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceminilua_1_1math.html#a9ba467771bf37e8145d57586b24eb86a">pattern_number</a>+&quot;|&quot;+<a class="el" href="namespaceminilua_1_1math.html#a8fd5e79fe8fc71cda2c75d90ef0cbd09">pattern_hex</a>+&quot;|&quot;+&#160;</td>
+          <td class="paramname"><em>pattern_exp</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae209b328280d705cc194d39a88b7e0d8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae209b328280d705cc194d39a88b7e0d8">&#9670;&nbsp;</a></span>pattern_exp()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static const std::string minilua::math::pattern_exp </td>
+          <td>(</td>
+          <td class="paramtype">R&quot;(\s*-?\d+\.?\d*[eE]\d+)&quot;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8fd5e79fe8fc71cda2c75d90ef0cbd09"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8fd5e79fe8fc71cda2c75d90ef0cbd09">&#9670;&nbsp;</a></span>pattern_hex()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static const std::string minilua::math::pattern_hex </td>
+          <td>(</td>
+          <td class="paramtype">R&quot;(\s*-?0[xX][\dA-Fa-f]+)&quot;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9ba467771bf37e8145d57586b24eb86a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9ba467771bf37e8145d57586b24eb86a">&#9670;&nbsp;</a></span>pattern_number()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static const std::string minilua::math::pattern_number </td>
+          <td>(</td>
+          <td class="paramtype">R&quot;(\s*-?\d+)&quot;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>

@@ -74,10 +74,12 @@ $(function() {
 <div class="contents">
 <div class="textblock"><code>#include &lt;cmath&gt;</code><br />
 <code>#include &lt;iostream&gt;</code><br />
+<code>#include &lt;optional&gt;</code><br />
 <code>#include &lt;random&gt;</code><br />
 <code>#include &lt;regex&gt;</code><br />
 <code>#include &lt;stdexcept&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
+<code>#include &lt;unordered_map&gt;</code><br />
 <code>#include &lt;utility&gt;</code><br />
 <code>#include &lt;variant&gt;</code><br />
 <code>#include &quot;<a class="el" href="environment_8hpp_source.html">MiniLua/environment.hpp</a>&quot;</code><br />
@@ -96,6 +98,14 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a9ba467771bf37e8145d57586b24eb86a"><td class="memItemLeft" align="right" valign="top">static const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1math.html#a9ba467771bf37e8145d57586b24eb86a">minilua::math::pattern_number</a> (R&quot;(\s*-?\d+)&quot;)</td></tr>
+<tr class="separator:a9ba467771bf37e8145d57586b24eb86a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8fd5e79fe8fc71cda2c75d90ef0cbd09"><td class="memItemLeft" align="right" valign="top">static const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1math.html#a8fd5e79fe8fc71cda2c75d90ef0cbd09">minilua::math::pattern_hex</a> (R&quot;(\s*-?0[xX][\dA-Fa-f]+)&quot;)</td></tr>
+<tr class="separator:a8fd5e79fe8fc71cda2c75d90ef0cbd09"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae209b328280d705cc194d39a88b7e0d8"><td class="memItemLeft" align="right" valign="top">static const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1math.html#ae209b328280d705cc194d39a88b7e0d8">minilua::math::pattern_exp</a> (R&quot;(\s*-?\d+\.?\d*[eE]\d+)&quot;)</td></tr>
+<tr class="separator:ae209b328280d705cc194d39a88b7e0d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a95079332ca8d3b89859717ddf6e1c7b4"><td class="memItemLeft" align="right" valign="top">static const std::regex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1math.html#a95079332ca8d3b89859717ddf6e1c7b4">minilua::math::pattern_all_number_variants</a> (pattern_number+&quot;|&quot;+pattern_hex+&quot;|&quot;+pattern_exp)</td></tr>
+<tr class="separator:a95079332ca8d3b89859717ddf6e1c7b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac00bab741695aef8dc6a078cc41989a6"><td class="memItemLeft" align="right" valign="top">static auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceminilua_1_1math.html#ac00bab741695aef8dc6a078cc41989a6">minilua::math::math_helper</a> (const CallContext &amp;ctx, const std::function&lt; double(double)&gt; &amp;function, const std::string &amp;functionname, const std::string &amp;arg_index=&quot;1&quot;) -&gt; Value</td></tr>
 <tr class="separator:ac00bab741695aef8dc6a078cc41989a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2d9e847d2351177c6e951e1cfecdcf9d"><td class="memTemplParams" colspan="2">template&lt;class T &gt; </td></tr>
