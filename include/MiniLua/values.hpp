@@ -1075,6 +1075,23 @@ auto operator!=(const UnaryOrigin&, const UnaryOrigin&) noexcept -> bool;
 auto operator<<(std::ostream&, const UnaryOrigin&) -> std::ostream&;
 
 /**
+ * Origin for a Value that was created in a n-ary operation (a function that receives n arguments)
+ * (or some functions with one argument) using val.
+ */
+struct MultipleArgsOrigin {
+    using ReverseFn = std::optional<SourceChangeTree>(const Value&, const Vallist&);
+
+    Vallist values;
+    std::optional<Range> location;
+    // new_value, old_values
+    std::function<ReverseFn> reverse;
+};
+
+auto operator==(const MultipleArgsOrigin&, const MultipleArgsOrigin&) noexcept -> bool;
+auto operator!=(const MultipleArgsOrigin&, const MultipleArgsOrigin&) noexcept -> bool;
+auto operator<<(std::ostream&, const MultipleArgsOrigin&) -> std::ostream&;
+
+/**
  * @brief The origin of a value.
  *
  * Defaults to `NoOrigin`.
@@ -1088,7 +1105,8 @@ auto operator<<(std::ostream&, const UnaryOrigin&) -> std::ostream&;
  */
 class Origin {
 public:
-    using Type = std::variant<NoOrigin, ExternalOrigin, LiteralOrigin, BinaryOrigin, UnaryOrigin>;
+    using Type = std::variant<
+        NoOrigin, ExternalOrigin, LiteralOrigin, BinaryOrigin, UnaryOrigin, MultipleArgsOrigin>;
 
 private:
     Type origin;
@@ -1122,6 +1140,7 @@ public:
      * @brief Creates an Origin from an UnaryOrigin.
      */
     Origin(UnaryOrigin);
+    Origin(MultipleArgsOrigin);
 
     /**
      * @brief Returns the underlying variant type.
