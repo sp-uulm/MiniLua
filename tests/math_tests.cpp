@@ -2446,7 +2446,7 @@ TEST_CASE("reverse abs") {
         int i = 42;
         minilua::Value value =
             minilua::Value(i).with_origin(minilua::LiteralOrigin{minilua::Range()});
-        minilua::Vallist list = minilua::Vallist({value});
+        minilua::Vallist list = minilua::Vallist(value);
         ctx = ctx.make_new(list);
         auto res = minilua::math::abs(ctx);
         REQUIRE(res == 42);
@@ -2481,14 +2481,17 @@ TEST_CASE("reverse abs") {
         int i = 42;
         minilua::Value value =
             minilua::Value(i).with_origin(minilua::LiteralOrigin{minilua::Range()});
-        minilua::Vallist list = minilua::Vallist({value});
+        minilua::Vallist list = minilua::Vallist(value);
         ctx = ctx.make_new(list);
         auto res = minilua::math::abs(ctx);
         REQUIRE(res == 42);
 
+        // abs only returns positive numbers, so the result can't be forced to a negative number
         auto result = res.force(minilua::Value{-25});
         CHECK_FALSE(result.has_value());
 
+        // abs only returns positive Numbers, so the result can't be forced to another datatype
+        // other than Number
         result = res.force(minilua::Value{true});
         CHECK_FALSE(result.has_value());
     }
@@ -2501,7 +2504,7 @@ TEST_CASE("reverse acos") {
     SECTION("correct force") {
         double x = -0.5;
         minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
-        minilua::Vallist list = minilua::Vallist({value});
+        minilua::Vallist list = minilua::Vallist(value);
         ctx = ctx.make_new(list);
 
         auto res = minilua::math::acos(ctx);
@@ -2534,7 +2537,7 @@ TEST_CASE("reverse acos") {
         SECTION("force value to nan") {
             double x = -0.5;
             minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
-            minilua::Vallist list = minilua::Vallist({value});
+            minilua::Vallist list = minilua::Vallist(value);
             ctx = ctx.make_new(list);
 
             auto res = minilua::math::acos(ctx);
@@ -2554,13 +2557,15 @@ TEST_CASE("reverse acos") {
     SECTION("invalid force") {
         double x = -0.5;
         minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
-        minilua::Vallist list = minilua::Vallist({value});
+        minilua::Vallist list = minilua::Vallist(value);
         ctx = ctx.make_new(list);
 
         auto res = minilua::math::acos(ctx);
         minilua::Number n = std::get<minilua::Number>(res);
         REQUIRE(n.value == Approx(2.0944));
 
+        // acos only returns Numbers, so the result can't be forced to a string, even if its
+        // formated like a Number
         auto result = res.force(minilua::Value("2"));
         CHECK_FALSE(result.has_value());
     }
@@ -2573,7 +2578,7 @@ TEST_CASE("reverse asin") {
     SECTION("correct force") {
         double x = -0.5;
         minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
-        minilua::Vallist list = minilua::Vallist({value});
+        minilua::Vallist list = minilua::Vallist(value);
         ctx = ctx.make_new(list);
 
         auto res = minilua::math::asin(ctx);
@@ -2589,7 +2594,7 @@ TEST_CASE("reverse asin") {
 
         std::string s = "-0.5";
         value = minilua::Value(s).with_origin(minilua::LiteralOrigin());
-        list = minilua::Vallist({value});
+        list = minilua::Vallist(value);
         ctx = ctx.make_new(list);
 
         res = minilua::math::asin(ctx);
@@ -2605,7 +2610,7 @@ TEST_CASE("reverse asin") {
 
         x = 2;
         value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
-        list = minilua::Vallist({value});
+        list = minilua::Vallist(value);
         ctx = ctx.make_new(list);
 
         res = minilua::math::asin(ctx);
@@ -2622,7 +2627,7 @@ TEST_CASE("reverse asin") {
         SECTION("force value to nan") {
             double x = -0.5;
             minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
-            minilua::Vallist list = minilua::Vallist({value});
+            minilua::Vallist list = minilua::Vallist(value);
             ctx = ctx.make_new(list);
 
             auto res = minilua::math::asin(ctx);
@@ -2642,13 +2647,15 @@ TEST_CASE("reverse asin") {
     SECTION("incorrect force") {
         double x = -0.5;
         minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
-        minilua::Vallist list = minilua::Vallist({value});
+        minilua::Vallist list = minilua::Vallist(value);
         ctx = ctx.make_new(list);
 
         auto res = minilua::math::asin(ctx);
         minilua::Number n = std::get<minilua::Number>(res);
         REQUIRE(n.value == Approx(-0.5235987755983));
 
+        // asin only returns Numbers, so the result can't be forced to a string, even if its
+        // formated like a Number
         auto result = res.force("2");
         CHECK_FALSE(result.has_value());
     }
@@ -2711,6 +2718,8 @@ TEST_CASE("reverse atan") {
             auto n = std::get<minilua::Number>(res);
             REQUIRE(n.value == Approx(0.78539816339745));
 
+            // atan only returns Numbers, so the result can't be forced to a string, even if its
+            // formated like a Number
             auto result = res.force(minilua::Value("0"));
             CHECK_FALSE(result.has_value());
         }
@@ -2726,6 +2735,8 @@ TEST_CASE("reverse atan") {
             auto n = std::get<minilua::Number>(res);
             REQUIRE(n.value == Approx(0.46364760900081));
 
+            // atan only returns Numbers, so the result can't be forced to a string, even if its
+            // formated like a Number
             auto result = res.force(minilua::Value("0.64350110879328"));
             CHECK_FALSE(result.has_value());
         }
@@ -2739,7 +2750,7 @@ TEST_CASE("reverse ceil") {
     SECTION("valid force") {
         double i = 42.5;
         minilua::Value value = minilua::Value(i).with_origin(minilua::LiteralOrigin());
-        minilua::Vallist list = minilua::Vallist({value});
+        minilua::Vallist list = minilua::Vallist(value);
         ctx = ctx.make_new(list);
         auto res = minilua::math::ceil(ctx);
         REQUIRE(res == minilua::Value(43));
@@ -2755,14 +2766,18 @@ TEST_CASE("reverse ceil") {
     SECTION("invalid force") {
         double i = 42.5;
         minilua::Value value = minilua::Value(i).with_origin(minilua::LiteralOrigin());
-        minilua::Vallist list = minilua::Vallist({value});
+        minilua::Vallist list = minilua::Vallist(value);
         ctx = ctx.make_new(list);
         auto res = minilua::math::ceil(ctx);
         REQUIRE(res == minilua::Value(43));
 
+        // ceil only returns Numbers, so the result can't be forced to a string, even if its
+        // formated like a Number
         auto result = res.force("10");
         CHECK_FALSE(result.has_value());
 
+        // ceil only returns Numbers formated like an Integer, so the result can't be forced to a
+        // float-value
         result = res.force(1.5);
         CHECK_FALSE(result.has_value());
     }
@@ -2972,9 +2987,12 @@ TEST_CASE("reverse fmod") {
         auto res = minilua::math::fmod(ctx);
         REQUIRE(res == minilua::Value(-2.5));
 
+        // fmod only returns Numbers, so the result can't be forced to a string, even if its
+        // formated like a Number
         auto result = res.force("1");
         CHECK_FALSE(result.has_value());
 
+        // fmod only returns Numbers that are smaller than the divisor.
         result = res.force(5);
         CHECK_FALSE(result.has_value());
     }
@@ -3002,7 +3020,7 @@ TEST_CASE("reverse log") {
     }
 
     SECTION("invalid force") {
-        SECTION("try to force a invalid value") {
+        SECTION("try to force an invalid value") {
             int x = 3;
             minilua::Vallist list = minilua::Vallist(
                 {minilua::Value(x).with_origin(minilua::LiteralOrigin()), minilua::Nil()});
@@ -3011,6 +3029,8 @@ TEST_CASE("reverse log") {
             auto n = std::get<minilua::Number>(res);
             REQUIRE(n.value == Approx(1.0986122886681));
 
+            // log only returns numbers, so the result cant be forced to a string, even if its
+            // formated like a number
             auto result = res.force("1");
             CHECK_FALSE(result.has_value());
         }
@@ -3057,7 +3077,7 @@ TEST_CASE("reverse rad") {
     SECTION("valid force") {
         int i = 1;
         minilua::Vallist list =
-            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+            minilua::Vallist(minilua::Value(i).with_origin(minilua::LiteralOrigin()));
         ctx = ctx.make_new(list);
         auto res = minilua::math::rad(ctx);
         minilua::Number n = std::get<minilua::Number>(res);
@@ -3074,12 +3094,14 @@ TEST_CASE("reverse rad") {
     SECTION("invalid force") {
         int i = 1;
         minilua::Vallist list =
-            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+            minilua::Vallist(minilua::Value(i).with_origin(minilua::LiteralOrigin()));
         ctx = ctx.make_new(list);
         auto res = minilua::math::rad(ctx);
         minilua::Number n = std::get<minilua::Number>(res);
         REQUIRE(n.value == Approx(0.017453292519943));
 
+        // rad only returns Numbers, so the result can't be forced to a string, even if its formated
+        // like a Number
         auto result = res.force("24");
         CHECK_FALSE(result.has_value());
     }
@@ -3092,7 +3114,7 @@ TEST_CASE("reverse sin") {
     SECTION("valid force") {
         int i = 0;
         minilua::Vallist list =
-            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+            minilua::Vallist(minilua::Value(i).with_origin(minilua::LiteralOrigin()));
         ctx = ctx.make_new(list);
         auto res = minilua::math::sin(ctx);
         REQUIRE(res == minilua::Value(0));
@@ -3115,11 +3137,13 @@ TEST_CASE("reverse sin") {
     SECTION("invalid force") {
         int i = 0;
         minilua::Vallist list =
-            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+            minilua::Vallist(minilua::Value(i).with_origin(minilua::LiteralOrigin()));
         ctx = ctx.make_new(list);
         auto res = minilua::math::sin(ctx);
         REQUIRE(res == minilua::Value(0));
 
+        // sin only returns Numbers, so the result can't be forced to a string, even if it's
+        // formated like a Number
         auto result = res.force("1");
         CHECK_FALSE(result.has_value());
     }
@@ -3132,7 +3156,7 @@ TEST_CASE("reverse sqrt") {
     SECTION("valid force") {
         int i = 1;
         minilua::Value v = minilua::Value(i).with_origin(minilua::LiteralOrigin());
-        minilua::Vallist list({v});
+        minilua::Vallist list(v);
         ctx = ctx.make_new(list);
         auto res = minilua::math::sqrt(ctx);
         REQUIRE(res == minilua::Value(1));
@@ -3148,14 +3172,17 @@ TEST_CASE("reverse sqrt") {
     SECTION("invalid force") {
         int i = 1;
         minilua::Value v = minilua::Value(i).with_origin(minilua::LiteralOrigin());
-        minilua::Vallist list({v});
+        minilua::Vallist list(v);
         ctx = ctx.make_new(list);
         auto res = minilua::math::sqrt(ctx);
         REQUIRE(res == minilua::Value(1));
 
+        // sqrt only returns Numbers, so the result can't be forced to a string, even if it's
+        // formated like a Number
         auto result = res.force("2");
         CHECK_FALSE(result.has_value());
 
+        // sqrt only returns positive Numbers, so the result can't be forced to an negative Number
         result = res.force(-1);
         CHECK_FALSE(result.has_value());
     }
@@ -3168,7 +3195,7 @@ TEST_CASE("reverse tan") {
     SECTION("valid force") {
         int i = 0;
         minilua::Vallist list =
-            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+            minilua::Vallist(minilua::Value(i).with_origin(minilua::LiteralOrigin()));
         ctx = ctx.make_new(list);
         auto res = minilua::math::tan(ctx);
         REQUIRE(res == minilua::Value(0));
@@ -3184,11 +3211,13 @@ TEST_CASE("reverse tan") {
     SECTION("invalid force") {
         int i = 0;
         minilua::Vallist list =
-            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+            minilua::Vallist(minilua::Value(i).with_origin(minilua::LiteralOrigin()));
         ctx = ctx.make_new(list);
         auto res = minilua::math::tan(ctx);
         REQUIRE(res == minilua::Value(0));
 
+        // tan only returns Numbers, so the result can't be forced to a string, even if it's
+        // formated like a Number
         auto result = res.force("42");
         CHECK_FALSE(result.has_value());
     }
@@ -3222,9 +3251,13 @@ TEST_CASE("reverse to_integer") {
         auto res = minilua::math::to_integer(ctx);
         REQUIRE(res == minilua::Value(i));
 
+        // to_integer only returns Numbers, so the result can't be forced to a string, even if it's
+        // formated like a Number
         auto result = res.force("10");
         CHECK_FALSE(result.has_value());
 
+        // to_integer only returns Numbers formated like Integers, so the result can't be forced to
+        // a float
         result = res.force(4.2);
         CHECK_FALSE(result.has_value());
     }
