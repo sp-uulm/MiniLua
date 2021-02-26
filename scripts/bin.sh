@@ -7,5 +7,5 @@ pushd build
 make MiniLua-bin
 popd
 
-./build/bin/MiniLua-bin "$@"
+time ./build/bin/MiniLua-bin "$@"
 

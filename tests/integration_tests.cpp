@@ -133,7 +133,6 @@ TEST_CASE("unit_tests lua files") {
             }
 
             minilua::Interpreter interpreter;
-            interpreter.environment().add_default_stdlib();
             REQUIRE(interpreter.parse(program));
             auto result = interpreter.evaluate();
             REQUIRE(!result.source_change.has_value());

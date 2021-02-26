@@ -347,6 +347,25 @@ auto Origin::raw() -> Type& { return this->origin; }
         },
         this->origin);
 }
+void Origin::set_file(std::optional<std::shared_ptr<std::string>> file) {
+    std::visit(
+        overloaded{
+            [&file](BinaryOrigin& origin) {
+                if (origin.location) {
+                    origin.location->file = file;
+                }
+            },
+            [&file](UnaryOrigin& origin) {
+                if (origin.location) {
+                    origin.location->file = file;
+                }
+            },
+            [&file](LiteralOrigin& origin) { origin.location.file = file; },
+            [](NoOrigin& /*unused*/) {},
+            [](ExternalOrigin& /*unused*/) {},
+        },
+        this->origin);
+}
 
 auto operator==(const Origin& lhs, const Origin& rhs) noexcept -> bool {
     return lhs.raw() == rhs.raw();
@@ -523,6 +542,7 @@ auto Value::raw() const -> const Value::Type& { return impl->val; }
 [[nodiscard]] auto Value::has_origin() const -> bool { return !this->impl->origin.is_none(); }
 
 [[nodiscard]] auto Value::origin() const -> const Origin& { return this->impl->origin; }
+[[nodiscard]] auto Value::origin() -> Origin& { return this->impl->origin; }
 
 [[nodiscard]] auto Value::remove_origin() const -> Value {
     return this->with_origin(Origin{NoOrigin()});
@@ -907,9 +927,7 @@ static inline auto num_op_helper(
     return std::visit(
                overloaded{
                    [](const String& value) -> Value { return (int)value.value.size(); },
-                   [](const Table& value) -> Value {
-                       return (int)std::distance(value.begin(), value.end());
-                   },
+                   [](const Table& value) -> Value { return value.border(); },
                    [](const auto& value) -> Value {
                        throw std::runtime_error(
                            "attempt to get length for value of type " + std::string(value.TYPE));

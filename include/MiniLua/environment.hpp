@@ -50,11 +50,6 @@ public:
     [[nodiscard]] auto make_table() const -> Table;
 
     /**
-     * Populates the environment with the (implemented) lua standard library.
-     */
-    void add_default_stdlib();
-
-    /**
      * Adds the math-functions to a table and inserts this table to the global environment
      */
     void create_math_table();
