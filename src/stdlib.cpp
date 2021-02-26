@@ -14,20 +14,9 @@
 #include "MiniLua/environment.hpp"
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/utils.hpp"
+#include "internal_env.hpp"
 
 namespace minilua {
-
-void Environment::add_default_stdlib() {
-    this->add("tostring", to_string);
-    this->add("to_number", to_number);
-    this->add("type", type);
-    this->add("assert", assert_lua);
-    this->add("next", next);
-    this->add("select", select);
-    this->add("print", print);
-    this->add("force", force);
-    this->add("discard_origin", discard_origin);
-}
 
 auto force(const CallContext& ctx) -> CallResult {
     auto old_value = ctx.arguments().get(0);
@@ -57,8 +46,28 @@ split_string("123.456", '.') = (123, 456)
     std::getline(split, tmp, c);
     result.second = tmp;
     return result;
+    */
+
+namespace details {
+
+void add_stdlib(Table& table) {
+    table.set("tostring", to_string);
+    table.set("to_number", to_number);
+    table.set("type", type);
+    table.set("next", next);
+    table.set("select", select);
+    table.set("print", print);
+    table.set("error", error);
+    table.set("discard_origin", discard_origin);
 }
-*/
+
+} // namespace details
+
+void error(const CallContext& ctx) {
+    // TODO implement level (we need a proper call stack for that)
+    auto message = ctx.arguments().get(0);
+    throw std::runtime_error(std::get<String>(message.to_string()).value);
+}
 
 auto to_string(const CallContext& ctx) -> Value {
     auto arg = ctx.arguments().get(0);
@@ -77,19 +86,6 @@ auto type(const CallContext& ctx) -> Value {
     auto v = ctx.arguments().get(0);
 
     return v.type();
-}
-
-auto assert_lua(const CallContext& ctx) -> Vallist {
-    auto v = ctx.arguments().get(0);
-    auto message = ctx.arguments().get(1);
-
-    if (v) {
-        return ctx.arguments();
-    } else {
-        // TODO: improve error behaviour
-        throw std::runtime_error(
-            message == Nil() ? std::string("assertion failed") : get<String>(message).value);
-    }
 }
 
 auto next(const CallContext& ctx) -> Vallist {

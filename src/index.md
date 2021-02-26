@@ -10,7 +10,6 @@ MiniLua is a lua interpreter with source value tracking.
 
 ```cpp
 minilua::Interpreter interpreter;
-interpreter.environment().add_default_stdlib();
 
 // parse the program
 if (!interpreter.parse("x_coord = 10; forceValue(x_coord, 25)")) {

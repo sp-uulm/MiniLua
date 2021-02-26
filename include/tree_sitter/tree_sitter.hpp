@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <exception>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -1130,6 +1131,26 @@ public:
      */
     std::vector<Node> named_children();
 };
+
+/**
+ * Visits all children of the cursor and call the given function.
+ */
+void visit_children(Cursor& cursor, const std::function<void(ts::Node)>& fn);
+
+/**
+ * Visit all siblings of the cursor and call the given function.
+ */
+void visit_siblings(Cursor& cursor, const std::function<void(ts::Node)>& fn);
+
+/**
+ * Visits a tree using a cursor.
+ */
+template <typename Fn> static void visit_tree(const ts::Tree& tree, Fn fn) {
+    Cursor cursor(tree);
+
+    fn(cursor.current_node());
+    visit_children(cursor, fn);
+}
 
 /**
  * @brief A query is a "pre-compiled" string of S-expression patterns.

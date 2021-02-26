@@ -1,6 +1,5 @@
 find_package(Boost REQUIRED)
 
-# core
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} PUBLIC_INTERFACE_IMPL)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/details PRIVATE_IMPL)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/core CORE_SRC_LIST)
@@ -12,6 +11,29 @@ set(LIB_SRC_LIST
     ${CORE_SRC_LIST}
     ${TREE_SITTER_WRAPPER_SRC_LIST})
 
+# statically link the stdlib lua files
+add_custom_command(OUTPUT stdlib.lua.o
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/lua/stdlib.lua
+    COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/lua && ld -r -b binary -o ${CMAKE_CURRENT_BINARY_DIR}/stdlib.lua.o stdlib.lua
+    COMMAND objcopy --rename-section .data=.rodata,alloc,load,readonly,data,contents ${CMAKE_CURRENT_BINARY_DIR}/stdlib.lua.o ${CMAKE_CURRENT_BINARY_DIR}/stdlib.lua.o)
+
+add_library(lua_stdlib
+    STATIC
+    stdlib.lua.o)
+
+# tell CMake to not compile the file
+SET_SOURCE_FILES_PROPERTIES(
+    stdlib.lua.o
+    PROPERTIES
+    EXTERNAL_OBJECT true
+    GENERATED true)
+
+# tell CMake to use the C linker
+SET_TARGET_PROPERTIES(
+    lua_stdlib
+    PROPERTIES
+    LINKER_LANGUAGE C)
+
 add_library(${PROJECT_NAME} SHARED ${LIB_SRC_LIST})
 target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
@@ -19,7 +41,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 target_link_libraries(${PROJECT_NAME}
     PRIVATE TreeSitter
-    PRIVATE TreeSitterLua)
+    PRIVATE TreeSitterLua
+    PRIVATE lua_stdlib)
 
 install(TARGETS ${PROJECT_NAME}
         EXPORT ${PROJECT_NAME}

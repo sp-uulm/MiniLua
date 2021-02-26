@@ -33,7 +33,6 @@ auto main(int argc, char* argv[]) -> int {
     }
 
     minilua::Interpreter interpreter;
-    interpreter.environment().add_default_stdlib();
     interpreter.config().all(trace);
 
     if (auto result = interpreter.parse(source_code); !result) {

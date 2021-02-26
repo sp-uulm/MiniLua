@@ -161,6 +161,11 @@ auto Table::get(const Value& key) -> Value {
 auto Table::has(const Value& key) -> bool { return impl->value.find(key) != impl->value.end(); }
 void Table::set(const Value& key, Value value) { impl->set(key, std::move(value)); }
 void Table::set(Value&& key, Value value) { impl->set(key, std::move(value)); }
+void Table::set_all(const Table& other) {
+    for (const auto& [key, value] : other) {
+        this->set(key, value);
+    }
+}
 [[nodiscard]] auto Table::size() const -> size_t { return impl->value.size(); }
 
 auto Table::begin() -> Table::iterator {

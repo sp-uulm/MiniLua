@@ -13,6 +13,13 @@
 namespace minilua::details {
 
 /**
+ * Add the stdlib to the given table.
+ *
+ * This will only add the parts that are directly implemented in lua.
+ */
+void add_stdlib(Table& table);
+
+/**
  * Internal results of the interpreter.
  *
  * Will be converted to the public minilua::EvalResult when the interpreter
@@ -93,12 +100,30 @@ auto operator<<(std::ostream&, const EvalResult&) -> std::ostream&;
 struct Interpreter {
 private:
     const InterpreterConfig& config;
+    ts::Parser& parser;
 
 public:
-    Interpreter(const InterpreterConfig& config);
-    auto run(const ts::Tree& tree, Env& env) -> EvalResult;
+    Interpreter(const InterpreterConfig& config, ts::Parser& parser);
+    auto run(const ts::Tree& tree, Env& user_env) -> EvalResult;
 
 private:
+    /**
+     * Setup the stdlib and overwrite (global) variables with the user defined
+     * once.
+     */
+    auto setup_environment(Env& user_env) -> Env;
+
+    auto load_stdlib() -> ts::Tree;
+    void execute_stdlib(Env& env);
+
+    /**
+     * Run a file.
+     *
+     * The file has to be loaded and parsed into a tree and the file
+     * in Env should be set before calling this method.
+     */
+    auto run_file(const ts::Tree& tree, Env& env) -> EvalResult;
+
     auto visit_root(ast::Program program, Env& env) -> EvalResult;
 
     // general
@@ -144,6 +169,7 @@ private:
     auto visit_vararg_expression(Env& env) -> EvalResult;
 
     auto visit_table_constructor(ast::Table table_constructor, Env& env) -> EvalResult;
+    auto visit_literal(ast::Literal literal, Env& env) -> EvalResult;
 
     /**
      * Evaluates a list of expressions (like return values, function parameters, etc).

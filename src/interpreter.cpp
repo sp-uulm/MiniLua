@@ -67,30 +67,6 @@ void Interpreter::set_config(InterpreterConfig config) { this->_config = config;
 auto Interpreter::environment() const -> Environment& { return impl->env; }
 auto Interpreter::source_code() const -> std::string_view { return impl->source_code; }
 
-static auto visit_siblings(ts::Cursor& cursor, const std::function<void(ts::Node)>& fn) -> bool;
-static auto visit_children(ts::Cursor& cursor, const std::function<void(ts::Node)>& fn) -> bool {
-    if (cursor.goto_first_child()) {
-        fn(cursor.current_node());
-    }
-    return visit_siblings(cursor, fn);
-};
-
-static auto visit_siblings(ts::Cursor& cursor, const std::function<void(ts::Node)>& fn) -> bool {
-    while (cursor.goto_next_sibling()) {
-        fn(cursor.current_node());
-        visit_children(cursor, fn);
-    }
-    return cursor.goto_parent();
-};
-
-// TODO refactor this and make it more usable
-template <typename Fn> static void visit_tree(const ts::Tree& tree, Fn fn) {
-    ts::Cursor cursor(tree);
-
-    fn(cursor.current_node());
-    visit_children(cursor, fn);
-}
-
 auto Interpreter::parse(std::string source_code) -> ParseResult {
     this->impl->source_code = std::move(source_code);
     this->impl->tree = this->impl->parser.parse_string(this->impl->source_code);
@@ -115,7 +91,7 @@ void Interpreter::apply_source_changes(std::vector<SourceChange> source_changes)
     std::cout << "apply_source_changes\n";
 }
 auto Interpreter::evaluate() -> EvalResult {
-    details::Interpreter interpreter{this->config()};
+    details::Interpreter interpreter{this->config(), this->impl->parser};
     return interpreter.run(this->impl->tree, this->impl->env.get_raw_impl().inner);
 }
 
