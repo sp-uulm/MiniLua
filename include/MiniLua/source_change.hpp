@@ -4,6 +4,7 @@
 #include "MiniLua/utils.hpp"
 #include <cstdint>
 #include <iostream>
+#include <memory>
 #include <numeric>
 #include <optional>
 #include <variant>
@@ -48,12 +49,23 @@ auto operator<<(std::ostream&, const Location&) -> std::ostream&;
 struct Range {
     Location start;
     Location end;
+
+    /**
+     * Optional filename where the Range is located.
+     *
+     * The filename is behind a shared_ptr to avoid unnecessary copies.
+     */
+    std::optional<std::shared_ptr<const std::string>> file;
+
+    /**
+     * Returns a copy of this range with the filename changed.
+     */
+    [[nodiscard]] auto with_file(std::optional<std::shared_ptr<const std::string>> file) const
+        -> Range;
 };
 
-constexpr auto operator==(Range lhs, Range rhs) noexcept -> bool {
-    return lhs.start == rhs.start && lhs.end == rhs.end;
-}
-constexpr auto operator!=(Range lhs, Range rhs) noexcept -> bool { return !(lhs == rhs); }
+auto operator==(const Range& lhs, const Range& rhs) noexcept -> bool;
+auto operator!=(const Range& lhs, const Range& rhs) noexcept -> bool;
 auto operator<<(std::ostream&, const Range&) -> std::ostream&;
 
 class SourceChangeTree;
@@ -148,6 +160,11 @@ public:
      */
     [[nodiscard]] auto hint() const -> const std::string&;
     auto hint() -> std::string&;
+
+    /**
+     * Removes the filename from the ranges in the tree.
+     */
+    void remove_filename();
 
     /**
      * Visit the root node of the tree of source changes.

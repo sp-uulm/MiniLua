@@ -153,3 +153,12 @@ TEST_CASE("setting I/O in Environment") {
         REQUIRE_THROWS(env.set_stderr(nullptr));
     }
 }
+
+TEST_CASE("adding math-table to environment") {
+    minilua::Environment env;
+    env.create_math_table();
+
+    REQUIRE(env.has("math"));
+    auto tab = env.get("math");
+    CHECK(tab.type() == "table");
+}

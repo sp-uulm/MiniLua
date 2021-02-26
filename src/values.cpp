@@ -326,6 +326,7 @@ Origin::Origin(ExternalOrigin origin) : origin(origin) {}
 Origin::Origin(LiteralOrigin origin) : origin(origin) {}
 Origin::Origin(BinaryOrigin origin) : origin(origin) {}
 Origin::Origin(UnaryOrigin origin) : origin(origin) {}
+Origin::Origin(MultipleArgsOrigin origin) : origin(origin) {}
 
 [[nodiscard]] auto Origin::raw() const -> const Type& { return this->origin; }
 auto Origin::raw() -> Type& { return this->origin; }
@@ -355,6 +356,9 @@ auto Origin::raw() -> Type& { return this->origin; }
             [&new_value](const UnaryOrigin& origin) -> std::optional<SourceChangeTree> {
                 return origin.reverse(new_value, *origin.val);
             },
+            [&new_value](const MultipleArgsOrigin& origin) -> std::optional<SourceChangeTree> {
+                return origin.reverse(new_value, origin.values);
+            },
             [&new_value](const LiteralOrigin& origin) -> std::optional<SourceChangeTree> {
                 return SourceChange(origin.location, new_value.to_literal());
             },
@@ -365,6 +369,24 @@ auto Origin::raw() -> Type& { return this->origin; }
                 return std::nullopt;
             },
         },
+        this->origin);
+}
+void Origin::set_file(std::optional<std::shared_ptr<std::string>> file) {
+    std::visit(
+        overloaded{
+            [&file](BinaryOrigin& origin) {
+                if (origin.location) {
+                    origin.location->file = file;
+                }
+            },
+            [&file](UnaryOrigin& origin) {
+                if (origin.location) {
+                    origin.location->file = file;
+                }
+            },
+            [&file](LiteralOrigin& origin) { origin.location.file = file; },
+            // TODO: fix formating
+            [](NoOrigin& /*unused*/) {}, [](ExternalOrigin& /*unused*/) {}, [](auto /*unused*/) {}},
         this->origin);
 }
 
@@ -440,6 +462,28 @@ auto operator<<(std::ostream& os, const UnaryOrigin& self) -> std::ostream& {
         os << "nullopt";
     }
     os << ", .reverse = " << reinterpret_cast<void*>(self.reverse.target<UnaryOrigin::ReverseFn>());
+    os << " }";
+    return os;
+}
+
+// struct MultipleArgsOrigin
+auto operator==(const MultipleArgsOrigin& lhs, const MultipleArgsOrigin& rhs) noexcept -> bool {
+    return lhs.values == rhs.values && lhs.location == rhs.location;
+}
+auto operator!=(const MultipleArgsOrigin& lhs, const MultipleArgsOrigin& rhs) noexcept -> bool {
+    return !(lhs == rhs);
+}
+auto operator<<(std::ostream& os, const MultipleArgsOrigin& self) -> std::ostream& {
+    os << "MultipleArgsOrigin{ "
+       << ".values = " << self.values << ", "
+       << ".location = ";
+    if (self.location) {
+        os << self.location.value();
+    } else {
+        os << "nullopt";
+    }
+    os << ", .reverse = "
+       << reinterpret_cast<void*>(self.reverse.target<MultipleArgsOrigin::ReverseFn>());
     os << " }";
     return os;
 }
@@ -521,6 +565,7 @@ auto Value::raw() const -> const Value::Type& { return impl->val; }
 [[nodiscard]] auto Value::has_origin() const -> bool { return !this->impl->origin.is_none(); }
 
 [[nodiscard]] auto Value::origin() const -> const Origin& { return this->impl->origin; }
+[[nodiscard]] auto Value::origin() -> Origin& { return this->impl->origin; }
 
 [[nodiscard]] auto Value::remove_origin() const -> Value {
     return this->with_origin(Origin{NoOrigin()});
@@ -908,9 +953,7 @@ static inline auto num_op_helper(
     return std::visit(
                overloaded{
                    [](const String& value) -> Value { return (int)value.value.size(); },
-                   [](const Table& value) -> Value {
-                       return (int)std::distance(value.begin(), value.end());
-                   },
+                   [](const Table& value) -> Value { return value.border(); },
                    [](const auto& value) -> Value {
                        throw std::runtime_error(
                            "attempt to get length for value of type " + std::string(value.TYPE));

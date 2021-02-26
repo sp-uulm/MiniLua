@@ -85,6 +85,9 @@ auto Env::get_stdin() -> std::istream* { return this->in; }
 auto Env::get_stdout() -> std::ostream* { return this->out; }
 auto Env::get_stderr() -> std::ostream* { return this->err; }
 
+void Env::set_file(std::optional<std::shared_ptr<std::string>> file) { this->file = file; }
+auto Env::get_file() const -> std::optional<std::shared_ptr<std::string>> { return this->file; }
+
 auto Env::allocator() const -> MemoryAllocator* { return this->_allocator; }
 
 auto operator<<(std::ostream& os, const Env& self) -> std::ostream& {
@@ -94,6 +97,13 @@ auto operator<<(std::ostream& os, const Env& self) -> std::ostream& {
     for (const auto& [key, value] : self.local()) {
         os << sep << "\"" << key << "\": " << value;
         sep = ", ";
+    }
+
+    os << "}, .file = ";
+    if (self.get_file().has_value()) {
+        os << self.get_file().value();
+    } else {
+        os << "nullopt";
     }
 
     return os << "}\n";

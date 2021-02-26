@@ -419,10 +419,22 @@ public:
     auto operator=(Table&& other) noexcept -> Table&;
     friend void swap(Table& self, Table& other);
 
+    /**
+     * The result of the lua length operator `#`.
+     *
+     * Satisfies: `(border == 0 or t[border] ~= nil) and t[border + 1] == nil`
+     */
+    [[nodiscard]] auto border() const -> int;
+
     auto get(const Value& key) -> Value;
     auto has(const Value& key) -> bool;
     void set(const Value& key, Value value);
     void set(Value&& key, Value value);
+    /**
+     * Copy the `other` table into this table overwriting all keys that are
+     * duplicate.
+     */
+    void set_all(const Table& other);
     [[nodiscard]] auto size() const -> size_t;
 
     // iterators for Table
@@ -765,6 +777,23 @@ auto operator!=(const UnaryOrigin&, const UnaryOrigin&) noexcept -> bool;
 auto operator<<(std::ostream&, const UnaryOrigin&) -> std::ostream&;
 
 /**
+ * Origin for a Value that was created in a n-ary operation (a function that receives n arguments)
+ * (or some functions with one argument) using val.
+ */
+struct MultipleArgsOrigin {
+    using ReverseFn = std::optional<SourceChangeTree>(const Value&, const Vallist&);
+
+    Vallist values;
+    std::optional<Range> location;
+    // new_value, old_values
+    std::function<ReverseFn> reverse;
+};
+
+auto operator==(const MultipleArgsOrigin&, const MultipleArgsOrigin&) noexcept -> bool;
+auto operator!=(const MultipleArgsOrigin&, const MultipleArgsOrigin&) noexcept -> bool;
+auto operator<<(std::ostream&, const MultipleArgsOrigin&) -> std::ostream&;
+
+/**
  * The origin of a value.
  *
  * Defaults to `NoOrigin`.
@@ -776,7 +805,8 @@ auto operator<<(std::ostream&, const UnaryOrigin&) -> std::ostream&;
  */
 class Origin {
 public:
-    using Type = std::variant<NoOrigin, ExternalOrigin, LiteralOrigin, BinaryOrigin, UnaryOrigin>;
+    using Type = std::variant<
+        NoOrigin, ExternalOrigin, LiteralOrigin, BinaryOrigin, UnaryOrigin, MultipleArgsOrigin>;
 
 private:
     Type origin;
@@ -789,6 +819,7 @@ public:
     Origin(LiteralOrigin);
     Origin(BinaryOrigin);
     Origin(UnaryOrigin);
+    Origin(MultipleArgsOrigin);
 
     [[nodiscard]] auto raw() const -> const Type&;
     auto raw() -> Type&;
@@ -800,6 +831,11 @@ public:
     [[nodiscard]] auto is_unary() const -> bool;
 
     [[nodiscard]] auto force(const Value&) const -> std::optional<SourceChangeTree>;
+
+    /**
+     * Sets the file of the underlying origin type (if possible).
+     */
+    void set_file(std::optional<std::shared_ptr<std::string>> file);
 };
 
 auto operator==(const Origin&, const Origin&) noexcept -> bool;
@@ -926,6 +962,7 @@ public:
     [[nodiscard]] auto has_origin() const -> bool;
 
     [[nodiscard]] auto origin() const -> const Origin&;
+    [[nodiscard]] auto origin() -> Origin&;
 
     [[nodiscard]] auto remove_origin() const -> Value;
     [[nodiscard]] auto with_origin(Origin new_origin) const -> Value;

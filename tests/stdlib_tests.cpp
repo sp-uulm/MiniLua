@@ -2,8 +2,27 @@
 #include <string>
 
 #include "MiniLua/environment.hpp"
+#include "MiniLua/interpreter.hpp"
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/values.hpp"
+
+TEST_CASE("assert") {
+    SECTION("assert false") {
+        minilua::Interpreter interpreter;
+        REQUIRE(interpreter.parse("assert(false)"));
+        REQUIRE_THROWS(interpreter.evaluate());
+    }
+    SECTION("assert true") {
+        minilua::Interpreter interpreter;
+        REQUIRE(interpreter.parse("assert(true)"));
+        REQUIRE_NOTHROW(interpreter.evaluate());
+    }
+    SECTION("assert false with message") {
+        minilua::Interpreter interpreter;
+        REQUIRE(interpreter.parse(R"(assert(false, "message"))"));
+        REQUIRE_THROWS_WITH(interpreter.evaluate(), Catch::Contains("message"));
+    }
+}
 
 TEST_CASE("to_string") {
     minilua::Environment env;
@@ -146,44 +165,6 @@ TEST_CASE("to_number") {
     }
 }
 
-TEST_CASE("assert_lua") {
-    SECTION("Assert fails with default message") {
-        minilua::Environment env;
-        minilua::CallContext ctx(&env);
-        minilua::Vallist list = minilua::Vallist({minilua::Value{false}, minilua::Nil()});
-        ctx = ctx.make_new(list);
-        CHECK_THROWS_WITH(minilua::assert_lua(ctx), "assertion failed");
-    }
-
-    SECTION("Assert fails with default message") {
-        std::string s = "Hallo Welt!";
-        minilua::Environment env;
-        minilua::CallContext ctx(&env);
-        minilua::Vallist list = minilua::Vallist({minilua::Value{false}, minilua::Value{s}});
-        ctx = ctx.make_new(list);
-        CHECK_THROWS_WITH(minilua::assert_lua(ctx), s);
-    }
-
-    SECTION("Assert passes") {
-        SECTION("Assert passes with standard true") {
-            minilua::Environment env;
-            minilua::CallContext ctx(&env);
-            minilua::Vallist list = minilua::Vallist({minilua::Value{true}, minilua::Value{42}});
-            ctx = ctx.make_new(list);
-            CHECK(minilua::assert_lua(ctx) == ctx.arguments());
-        }
-
-        SECTION("Assert passes with converted true") {
-            minilua::Environment env;
-            minilua::CallContext ctx(&env);
-            minilua::Vallist list =
-                minilua::Vallist({minilua::Value{42}, minilua::Value{"Hallo Welt!"}});
-            ctx = ctx.make_new(list);
-            CHECK(minilua::assert_lua(ctx) == ctx.arguments());
-        }
-    }
-}
-
 TEST_CASE("select") {
     minilua::Environment env;
     minilua::CallContext ctx(&env);
@@ -281,5 +262,45 @@ TEST_CASE("select") {
                 minilua::select(ctx),
                 "bad argument #1 to 'select' (number expected, got " + a.type() + ")");
         }
+    }
+}
+
+TEST_CASE("discard_origin") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("one Value") {
+        minilua::Value a = 1;
+        minilua::Value b = 2;
+        minilua::Value c = a + b;
+        REQUIRE(c.has_origin());
+
+        minilua::Vallist result1 = minilua::discard_origin(ctx.make_new({c}));
+        CHECK(!result1.get(0).has_origin());
+
+        minilua::Vallist result2 = minilua::discard_origin(ctx.make_new({a}));
+        CHECK(!result2.get(0).has_origin());
+    }
+    SECTION("multiple Values") {
+        minilua::Value a = 1;
+        minilua::Value b = 2;
+        minilua::Value c = 3;
+        minilua::Value d = 4;
+        minilua::Value e = a + b;
+        minilua::Value f = c + d;
+        minilua::Value g = e + f;
+        REQUIRE(e.has_origin());
+        REQUIRE(f.has_origin());
+        REQUIRE(g.has_origin());
+
+        minilua::Vallist result1 = minilua::discard_origin(ctx.make_new({e, f, g}));
+        CHECK(!result1.get(0).has_origin());
+        CHECK(!result1.get(1).has_origin());
+        CHECK(!result1.get(2).has_origin());
+
+        minilua::Vallist result2 = minilua::discard_origin(ctx.make_new({a, b, c}));
+        CHECK(!result2.get(0).has_origin());
+        CHECK(!result2.get(1).has_origin());
+        CHECK(!result2.get(2).has_origin());
     }
 }
