@@ -97,13 +97,13 @@ TEST_CASE("math.acos(x)") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
             minilua::Number n = std::get<minilua::Number>(minilua::math::acos(ctx));
-            CHECK(std::isnan(n.value));
+            CHECK(std::isnan(n.as_float()));
 
             x = 2;
             list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
             n = std::get<minilua::Number>(minilua::math::acos(ctx));
-            CHECK(std::isnan(n.value));
+            CHECK(std::isnan(n.as_float()));
         }
 
         SECTION("x is in [-1, 1]") {
@@ -111,7 +111,7 @@ TEST_CASE("math.acos(x)") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
             minilua::Number n = std::get<minilua::Number>(minilua::math::acos(ctx));
-            CHECK(n.value == Approx(2.0944));
+            CHECK(n.as_float() == Approx(2.0944));
 
             x = 1;
             list = minilua::Vallist({minilua::Value(x)});
@@ -126,13 +126,13 @@ TEST_CASE("math.acos(x)") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
             minilua::Number n = std::get<minilua::Number>(minilua::math::acos(ctx));
-            CHECK(std::isnan(n.value));
+            CHECK(std::isnan(n.as_float()));
 
             x = "2";
             list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
             n = std::get<minilua::Number>(minilua::math::acos(ctx));
-            CHECK(std::isnan(n.value));
+            CHECK(std::isnan(n.as_float()));
         }
 
         SECTION("x is in [-1, 1]") {
@@ -140,7 +140,7 @@ TEST_CASE("math.acos(x)") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
             minilua::Number n = std::get<minilua::Number>(minilua::math::acos(ctx));
-            CHECK(n.value == Approx(2.0943951023932));
+            CHECK(n.as_float() == Approx(2.0943951023932));
 
             x = "1";
             list = minilua::Vallist({minilua::Value(x)});
@@ -168,13 +168,13 @@ TEST_CASE("math.asin(x)") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
             minilua::Number n = std::get<minilua::Number>(minilua::math::asin(ctx));
-            CHECK(std::isnan(n.value));
+            CHECK(std::isnan(n.as_float()));
 
             x = 2;
             list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
             n = std::get<minilua::Number>(minilua::math::acos(ctx));
-            CHECK(std::isnan(n.value));
+            CHECK(std::isnan(n.as_float()));
         }
 
         SECTION("x is in [-1, 1]") {
@@ -182,7 +182,7 @@ TEST_CASE("math.asin(x)") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
             minilua::Number n = std::get<minilua::Number>(minilua::math::asin(ctx));
-            CHECK(n.value == Approx(-0.5235987755983));
+            CHECK(n.as_float() == Approx(-0.5235987755983));
 
             x = 0;
             list = minilua::Vallist({minilua::Value(x)});
@@ -193,7 +193,7 @@ TEST_CASE("math.asin(x)") {
             list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
             n = std::get<minilua::Number>(minilua::math::asin(ctx));
-            CHECK(n.value == Approx(1.5707963267949));
+            CHECK(n.as_float() == Approx(1.5707963267949));
         }
     }
 
@@ -203,13 +203,13 @@ TEST_CASE("math.asin(x)") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
             minilua::Number n = std::get<minilua::Number>(minilua::math::asin(ctx));
-            CHECK(std::isnan(n.value));
+            CHECK(std::isnan(n.as_float()));
 
             x = "2";
             list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
             n = std::get<minilua::Number>(minilua::math::asin(ctx));
-            CHECK(std::isnan(n.value));
+            CHECK(std::isnan(n.as_float()));
         }
 
         SECTION("x is in [-1, 1]") {
@@ -217,7 +217,7 @@ TEST_CASE("math.asin(x)") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
             minilua::Number n = std::get<minilua::Number>(minilua::math::asin(ctx));
-            CHECK(n.value == Approx(-0.5235987755983));
+            CHECK(n.as_float() == Approx(-0.5235987755983));
 
             x = "0";
             list = minilua::Vallist({minilua::Value(x)});
@@ -228,7 +228,7 @@ TEST_CASE("math.asin(x)") {
             list = minilua::Vallist({minilua::Value(x)});
             ctx = ctx.make_new(list);
             n = std::get<minilua::Number>(minilua::math::asin(ctx));
-            CHECK(n.value == Approx(1.5707963267949));
+            CHECK(n.as_float() == Approx(1.5707963267949));
         }
     }
 
@@ -251,7 +251,7 @@ TEST_CASE("math.atan(x [, y]") {
         minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Value(y)});
         ctx = ctx.make_new(list);
         auto n = std::get<minilua::Number>(minilua::math::atan(ctx));
-        CHECK(n.value == Approx(0.46364760900081));
+        CHECK(n.as_float() == Approx(0.46364760900081));
     }
 
     SECTION("Number, Nil") {
@@ -259,7 +259,7 @@ TEST_CASE("math.atan(x [, y]") {
         minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Nil()});
         ctx = ctx.make_new(list);
         auto n = std::get<minilua::Number>(minilua::math::atan(ctx));
-        CHECK(n.value == Approx(0.78539816339745));
+        CHECK(n.as_float() == Approx(0.78539816339745));
     }
 
     SECTION("Number, String") {
@@ -269,7 +269,7 @@ TEST_CASE("math.atan(x [, y]") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Value(y)});
             ctx = ctx.make_new(list);
             auto n = std::get<minilua::Number>(minilua::math::atan(ctx));
-            CHECK(n.value == Approx(0.46364760900081));
+            CHECK(n.as_float() == Approx(0.46364760900081));
         }
 
         SECTION("Invalid String") {
@@ -299,7 +299,7 @@ TEST_CASE("math.atan(x [, y]") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Value(y)});
             ctx = ctx.make_new(list);
             auto n = std::get<minilua::Number>(minilua::math::atan(ctx));
-            CHECK(n.value == Approx(0.46364760900081));
+            CHECK(n.as_float() == Approx(0.46364760900081));
         }
 
         SECTION("Invalid String") {
@@ -319,7 +319,7 @@ TEST_CASE("math.atan(x [, y]") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(s), minilua::Nil()});
             ctx = ctx.make_new(list);
             auto n = std::get<minilua::Number>(minilua::math::atan(ctx));
-            CHECK(n.value == Approx(0.78539816339745));
+            CHECK(n.as_float() == Approx(0.78539816339745));
         }
 
         SECTION("Invalid String") {
@@ -339,7 +339,7 @@ TEST_CASE("math.atan(x [, y]") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(s), minilua::Value(i)});
             ctx = ctx.make_new(list);
             auto n = std::get<minilua::Number>(minilua::math::atan(ctx));
-            CHECK(n.value == Approx(0.46364760900081));
+            CHECK(n.as_float() == Approx(0.46364760900081));
         }
 
         SECTION("Valid String, Invalid String") {
@@ -402,7 +402,7 @@ TEST_CASE("math.atan(x [, y]") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Value(y)});
             ctx = ctx.make_new(list);
             auto n = std::get<minilua::Number>(minilua::math::atan(ctx));
-            CHECK(n.value == Approx(1.5707963267949));
+            CHECK(n.as_float() == Approx(1.5707963267949));
         }
 
         SECTION("y is String") {
@@ -411,7 +411,7 @@ TEST_CASE("math.atan(x [, y]") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Value(y)});
             ctx = ctx.make_new(list);
             auto n = std::get<minilua::Number>(minilua::math::atan(ctx));
-            CHECK(n.value == Approx(1.5707963267949));
+            CHECK(n.as_float() == Approx(1.5707963267949));
         }
     }
 
@@ -521,13 +521,13 @@ TEST_CASE("math.cos(x)") {
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         minilua::Number n = std::get<minilua::Number>(minilua::math::cos(ctx));
-        CHECK(n.value == Approx(0.54030230586814));
+        CHECK(n.as_float() == Approx(0.54030230586814));
 
         i = -1;
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::cos(ctx));
-        CHECK(n.value == Approx(0.54030230586814));
+        CHECK(n.as_float() == Approx(0.54030230586814));
 
         double d = minilua::math::PI;
         list = minilua::Vallist({minilua::Value(d)});
@@ -545,19 +545,19 @@ TEST_CASE("math.cos(x)") {
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         minilua::Number n = std::get<minilua::Number>(minilua::math::cos(ctx));
-        CHECK(n.value == Approx(0.54030230586814));
+        CHECK(n.as_float() == Approx(0.54030230586814));
 
         i = "-1";
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::cos(ctx));
-        CHECK(n.value == Approx(0.54030230586814));
+        CHECK(n.as_float() == Approx(0.54030230586814));
 
         std::string d = std::to_string(minilua::math::PI);
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::cos(ctx));
-        CHECK(n.value == Approx(-1));
+        CHECK(n.as_float() == Approx(-1));
     }
 
     SECTION("invalid input") {
@@ -583,19 +583,19 @@ TEST_CASE("math.deg(x)") {
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         minilua::Number n = std::get<minilua::Number>(minilua::math::deg(ctx));
-        CHECK(n.value == Approx(57.295779513082));
+        CHECK(n.as_float() == Approx(57.295779513082));
 
         i = -1;
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::deg(ctx));
-        CHECK(n.value == Approx(-57.295779513082));
+        CHECK(n.as_float() == Approx(-57.295779513082));
 
         double d = minilua::math::PI;
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::deg(ctx));
-        CHECK(n.value == Approx(180));
+        CHECK(n.as_float() == Approx(180));
     }
 
     SECTION("Strings") {
@@ -608,19 +608,19 @@ TEST_CASE("math.deg(x)") {
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         minilua::Number n = std::get<minilua::Number>(minilua::math::deg(ctx));
-        CHECK(n.value == Approx(57.295779513082));
+        CHECK(n.as_float() == Approx(57.295779513082));
 
         i = "-1";
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::deg(ctx));
-        CHECK(n.value == Approx(-57.295779513082));
+        CHECK(n.as_float() == Approx(-57.295779513082));
 
         std::string d = std::to_string(minilua::math::PI);
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::deg(ctx));
-        CHECK(n.value == Approx(180));
+        CHECK(n.as_float() == Approx(180));
     }
 
     SECTION("invalid input") {
@@ -646,32 +646,32 @@ TEST_CASE("math.exp(x)") {
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         minilua::Number n = std::get<minilua::Number>(minilua::math::exp(ctx));
-        CHECK(n.value == Approx(2.718281828459));
+        CHECK(n.as_float() == Approx(2.718281828459));
 
         i = 2;
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::exp(ctx));
-        CHECK(n.value == Approx(7.3890560989307));
+        CHECK(n.as_float() == Approx(7.3890560989307));
 
         i = -1;
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::exp(ctx));
-        CHECK(n.value == Approx(0.36787944117144));
+        CHECK(n.as_float() == Approx(0.36787944117144));
 
         double d = 0.5;
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::exp(ctx));
-        CHECK(n.value == Approx(1.6487212707001));
+        CHECK(n.as_float() == Approx(1.6487212707001));
 
         int x = 20;
         d = std::log(x);
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::exp(ctx));
-        CHECK(n.value == Approx(x));
+        CHECK(n.as_float() == Approx(x));
     }
 
     SECTION("Strings") {
@@ -684,32 +684,32 @@ TEST_CASE("math.exp(x)") {
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         minilua::Number n = std::get<minilua::Number>(minilua::math::exp(ctx));
-        CHECK(n.value == Approx(2.718281828459));
+        CHECK(n.as_float() == Approx(2.718281828459));
 
         i = "2";
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::exp(ctx));
-        CHECK(n.value == Approx(7.3890560989307));
+        CHECK(n.as_float() == Approx(7.3890560989307));
 
         i = "-1";
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::exp(ctx));
-        CHECK(n.value == Approx(0.36787944117144));
+        CHECK(n.as_float() == Approx(0.36787944117144));
 
         i = "0.5";
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::exp(ctx));
-        CHECK(n.value == Approx(1.6487212707001));
+        CHECK(n.as_float() == Approx(1.6487212707001));
 
         int x = 20;
         i = std::to_string(std::log(x));
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::exp(ctx));
-        CHECK(n.value == Approx(x));
+        CHECK(n.as_float() == Approx(x));
     }
 
     SECTION("invalid input") {
@@ -802,7 +802,7 @@ TEST_CASE("math.fmod(x, y)") {
         minilua::Vallist list = minilua::Vallist({minilua::Value(i), minilua::Value(j)});
         ctx = ctx.make_new(list);
         minilua::Number n = std::get<minilua::Number>(minilua::math::fmod(ctx));
-        CHECK(n.value == Approx(0.5));
+        CHECK(n.as_float() == Approx(0.5));
 
         i = -2.5;
         j = 4.2;
@@ -827,7 +827,7 @@ TEST_CASE("math.fmod(x, y)") {
         list = minilua::Vallist({minilua::Value(i), minilua::Value(j)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::fmod(ctx));
-        CHECK(std::isnan(n.value));
+        CHECK(std::isnan(n.as_float()));
 
         i = 0;
         j = 2.5;
@@ -848,7 +848,7 @@ TEST_CASE("math.fmod(x, y)") {
         minilua::Vallist list = minilua::Vallist({minilua::Value(i), minilua::Value(j)});
         ctx = ctx.make_new(list);
         minilua::Number n = std::get<minilua::Number>(minilua::math::fmod(ctx));
-        CHECK(n.value == Approx(0.5));
+        CHECK(n.as_float() == Approx(0.5));
 
         i = -2.5;
         j = "4.2";
@@ -873,7 +873,7 @@ TEST_CASE("math.fmod(x, y)") {
         list = minilua::Vallist({minilua::Value(i), minilua::Value(j)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::fmod(ctx));
-        CHECK(std::isnan(n.value));
+        CHECK(std::isnan(n.as_float()));
 
         i = 0;
         j = "2.5";
@@ -901,7 +901,7 @@ TEST_CASE("math.fmod(x, y)") {
         minilua::Vallist list = minilua::Vallist({minilua::Value(i), minilua::Value(j)});
         ctx = ctx.make_new(list);
         minilua::Number n = std::get<minilua::Number>(minilua::math::fmod(ctx));
-        CHECK(n.value == Approx(0.5));
+        CHECK(n.as_float() == Approx(0.5));
 
         i = "-2.5";
         j = 4.2;
@@ -926,7 +926,7 @@ TEST_CASE("math.fmod(x, y)") {
         list = minilua::Vallist({minilua::Value(i), minilua::Value(j)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::fmod(ctx));
-        CHECK(std::isnan(n.value));
+        CHECK(std::isnan(n.as_float()));
 
         i = "0";
         j = 2.5;
@@ -954,7 +954,7 @@ TEST_CASE("math.fmod(x, y)") {
         minilua::Vallist list = minilua::Vallist({minilua::Value(i), minilua::Value(j)});
         ctx = ctx.make_new(list);
         minilua::Number n = std::get<minilua::Number>(minilua::math::fmod(ctx));
-        CHECK(n.value == Approx(0.5));
+        CHECK(n.as_float() == Approx(0.5));
 
         i = "-2.5";
         j = "4.2";
@@ -979,7 +979,7 @@ TEST_CASE("math.fmod(x, y)") {
         list = minilua::Vallist({minilua::Value(i), minilua::Value(j)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::fmod(ctx));
-        CHECK(std::isnan(n.value));
+        CHECK(std::isnan(n.as_float()));
 
         i = "0";
         j = "2.5";
@@ -1014,7 +1014,7 @@ TEST_CASE("math.log(x [, base]") {
         minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Value(y)});
         ctx = ctx.make_new(list);
         auto n = std::get<minilua::Number>(minilua::math::log(ctx));
-        CHECK(n.value == Approx(1.5849625007212));
+        CHECK(n.as_float() == Approx(1.5849625007212));
     }
 
     SECTION("Number, Nil") {
@@ -1022,7 +1022,7 @@ TEST_CASE("math.log(x [, base]") {
         minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Nil()});
         ctx = ctx.make_new(list);
         auto n = std::get<minilua::Number>(minilua::math::log(ctx));
-        CHECK(n.value == Approx(1.0986122886681));
+        CHECK(n.as_float() == Approx(1.0986122886681));
     }
 
     SECTION("Number, String") {
@@ -1032,7 +1032,7 @@ TEST_CASE("math.log(x [, base]") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Value(y)});
             ctx = ctx.make_new(list);
             auto n = std::get<minilua::Number>(minilua::math::log(ctx));
-            CHECK(n.value == Approx(1.5849625007212));
+            CHECK(n.as_float() == Approx(1.5849625007212));
         }
 
         SECTION("Invalid String") {
@@ -1061,7 +1061,7 @@ TEST_CASE("math.log(x [, base]") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Value(y)});
             ctx = ctx.make_new(list);
             auto n = std::get<minilua::Number>(minilua::math::log(ctx));
-            CHECK(n.value == Approx(1.5849625007212));
+            CHECK(n.as_float() == Approx(1.5849625007212));
         }
 
         SECTION("Invalid String") {
@@ -1080,7 +1080,7 @@ TEST_CASE("math.log(x [, base]") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(s), minilua::Nil()});
             ctx = ctx.make_new(list);
             auto n = std::get<minilua::Number>(minilua::math::log(ctx));
-            CHECK(n.value == Approx(1.0986122886681));
+            CHECK(n.as_float() == Approx(1.0986122886681));
         }
 
         SECTION("Invalid String") {
@@ -1099,7 +1099,7 @@ TEST_CASE("math.log(x [, base]") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(s), minilua::Value(i)});
             ctx = ctx.make_new(list);
             auto n = std::get<minilua::Number>(minilua::math::log(ctx));
-            CHECK(n.value == Approx(1.5849625007212));
+            CHECK(n.as_float() == Approx(1.5849625007212));
         }
 
         SECTION("Valid String, Invalid String") {
@@ -1174,13 +1174,13 @@ TEST_CASE("math.log(x [, base]") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Nil()});
             ctx = ctx.make_new(list);
             minilua::Number n = std::get<minilua::Number>(minilua::math::log(ctx));
-            CHECK(std::isinf(n.value));
+            CHECK(std::isinf(n.as_float()));
 
             int base = 2;
             list = minilua::Vallist({minilua::Value(x), minilua::Value(base)});
             ctx = ctx.make_new(list);
             n = std::get<minilua::Number>(minilua::math::log(ctx));
-            CHECK(std::isinf(n.value));
+            CHECK(std::isinf(n.as_float()));
         }
 
         SECTION("x is String") {
@@ -1188,7 +1188,7 @@ TEST_CASE("math.log(x [, base]") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(x), minilua::Nil()});
             ctx = ctx.make_new(list);
             minilua::Number n = std::get<minilua::Number>(minilua::math::log(ctx));
-            CHECK(std::isinf(n.value));
+            CHECK(std::isinf(n.as_float()));
         }
     }
 
@@ -1199,7 +1199,7 @@ TEST_CASE("math.log(x [, base]") {
         minilua::Vallist list({minilua::Value(x), minilua::Value(base)});
         ctx = ctx.make_new(list);
         minilua::Number n = std::get<minilua::Number>(minilua::math::log(ctx));
-        CHECK(std::isnan(n.value));
+        CHECK(std::isnan(n.as_float()));
     }
 
     SECTION("log(0,0)") {
@@ -1209,7 +1209,7 @@ TEST_CASE("math.log(x [, base]") {
         minilua::Vallist list({minilua::Value(x), minilua::Value(base)});
         ctx = ctx.make_new(list);
         minilua::Number n = std::get<minilua::Number>(minilua::math::log(ctx));
-        CHECK(std::isnan(n.value));
+        CHECK(std::isnan(n.as_float()));
     }
 
     SECTION("invalid input") {
@@ -1423,25 +1423,25 @@ TEST_CASE("math.rad(x)") {
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         minilua::Number n = std::get<minilua::Number>(minilua::math::rad(ctx));
-        CHECK(n.value == Approx(0.017453292519943));
+        CHECK(n.as_float() == Approx(0.017453292519943));
 
         i = -1;
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::rad(ctx));
-        CHECK(n.value == Approx(-0.017453292519943));
+        CHECK(n.as_float() == Approx(-0.017453292519943));
 
         double d = 180;
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::rad(ctx));
-        CHECK(n.value == Approx(minilua::math::PI));
+        CHECK(n.as_float() == Approx(minilua::math::PI));
 
         d = 2.5;
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::rad(ctx));
-        CHECK(n.value == Approx(0.043633231299858));
+        CHECK(n.as_float() == Approx(0.043633231299858));
     }
 
     SECTION("Strings") {
@@ -1454,25 +1454,25 @@ TEST_CASE("math.rad(x)") {
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         minilua::Number n = std::get<minilua::Number>(minilua::math::rad(ctx));
-        CHECK(n.value == Approx(0.017453292519943));
+        CHECK(n.as_float() == Approx(0.017453292519943));
 
         i = "-1";
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::rad(ctx));
-        CHECK(n.value == Approx(-0.017453292519943));
+        CHECK(n.as_float() == Approx(-0.017453292519943));
 
         std::string d = "180";
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::rad(ctx));
-        CHECK(n.value == Approx(minilua::math::PI));
+        CHECK(n.as_float() == Approx(minilua::math::PI));
 
         d = "2.5";
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::rad(ctx));
-        CHECK(n.value == Approx(0.043633231299858));
+        CHECK(n.as_float() == Approx(0.043633231299858));
     }
 
     SECTION("invalid input") {
@@ -1528,7 +1528,7 @@ TEST_CASE("math.random([x, [y]]") {
         list = minilua::Vallist({minilua::Nil(), minilua::Nil()});
         ctx = ctx.make_new(list);
         minilua::Number n = std::get<minilua::Number>(minilua::math::random(ctx));
-        CHECK(n.value == Approx(0.524587));
+        CHECK(n.as_float() == Approx(0.524587));
     }
 
     SECTION("Number, nil") {
@@ -1825,25 +1825,25 @@ TEST_CASE("math.sin(x)") {
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         minilua::Number n = std::get<minilua::Number>(minilua::math::sin(ctx));
-        CHECK(n.value == Approx(0.8414709848079));
+        CHECK(n.as_float() == Approx(0.8414709848079));
 
         i = -1;
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::sin(ctx));
-        CHECK(n.value == Approx(-0.8414709848079));
+        CHECK(n.as_float() == Approx(-0.8414709848079));
 
         double d = 180;
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::sin(ctx));
-        CHECK(n.value == Approx(-0.80115263573383));
+        CHECK(n.as_float() == Approx(-0.80115263573383));
 
         d = 1.579;
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::sin(ctx));
-        CHECK(n.value == Approx(0.99996635006169));
+        CHECK(n.as_float() == Approx(0.99996635006169));
     }
 
     SECTION("Strings") {
@@ -1856,25 +1856,25 @@ TEST_CASE("math.sin(x)") {
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         minilua::Number n = std::get<minilua::Number>(minilua::math::sin(ctx));
-        CHECK(n.value == Approx(0.8414709848079));
+        CHECK(n.as_float() == Approx(0.8414709848079));
 
         i = "-1";
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::sin(ctx));
-        CHECK(n.value == Approx(-0.8414709848079));
+        CHECK(n.as_float() == Approx(-0.8414709848079));
 
         std::string d = "180";
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::sin(ctx));
-        CHECK(n.value == Approx(-0.80115263573383));
+        CHECK(n.as_float() == Approx(-0.80115263573383));
 
         d = "1.579";
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::sin(ctx));
-        CHECK(n.value == Approx(0.99996635006169));
+        CHECK(n.as_float() == Approx(0.99996635006169));
     }
 
     SECTION("invalid input") {
@@ -1910,13 +1910,13 @@ TEST_CASE("math.sqrt(x)") {
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         minilua::Number n = std::get<minilua::Number>(minilua::math::sqrt(ctx));
-        CHECK(n.value == Approx(1.5811388300842));
+        CHECK(n.as_float() == Approx(1.5811388300842));
 
         i = -1;
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::sqrt(ctx));
-        CHECK(isnan(n.value));
+        CHECK(isnan(n.as_float()));
     }
 
     SECTION("Strings") {
@@ -1939,13 +1939,13 @@ TEST_CASE("math.sqrt(x)") {
         list = minilua::Vallist({d});
         ctx = ctx.make_new(list);
         minilua::Number n = std::get<minilua::Number>(minilua::math::sqrt(ctx));
-        CHECK(n.value == Approx(1.5811388300842));
+        CHECK(n.as_float() == Approx(1.5811388300842));
 
         i = "-1";
         list = minilua::Vallist({i});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::sqrt(ctx));
-        CHECK(isnan(n.value));
+        CHECK(isnan(n.as_float()));
     }
 
     SECTION("invalid input") {
@@ -1971,25 +1971,25 @@ TEST_CASE("math.tan(x)") {
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         minilua::Number n = std::get<minilua::Number>(minilua::math::tan(ctx));
-        CHECK(n.value == Approx(1.5574077246549));
+        CHECK(n.as_float() == Approx(1.5574077246549));
 
         i = -1;
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::tan(ctx));
-        CHECK(n.value == Approx(-1.5574077246549));
+        CHECK(n.as_float() == Approx(-1.5574077246549));
 
         double d = 180;
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::tan(ctx));
-        CHECK(n.value == Approx(1.3386902103512));
+        CHECK(n.as_float() == Approx(1.3386902103512));
 
         d = 1.579;
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::tan(ctx));
-        CHECK(n.value == Approx(-121.89388112867));
+        CHECK(n.as_float() == Approx(-121.89388112867));
     }
 
     SECTION("Strings") {
@@ -2002,25 +2002,25 @@ TEST_CASE("math.tan(x)") {
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         minilua::Number n = std::get<minilua::Number>(minilua::math::tan(ctx));
-        CHECK(n.value == Approx(1.5574077246549));
+        CHECK(n.as_float() == Approx(1.5574077246549));
 
         i = "-1";
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::tan(ctx));
-        CHECK(n.value == Approx(-1.5574077246549));
+        CHECK(n.as_float() == Approx(-1.5574077246549));
 
         std::string d = "180";
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::tan(ctx));
-        CHECK(n.value == Approx(1.3386902103512));
+        CHECK(n.as_float() == Approx(1.3386902103512));
 
         d = "1.579";
         list = minilua::Vallist({minilua::Value(d)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::tan(ctx));
-        CHECK(n.value == Approx(-121.89388112867));
+        CHECK(n.as_float() == Approx(-121.89388112867));
     }
 
     SECTION("invalid input") {
@@ -2197,7 +2197,7 @@ TEST_CASE("math.ult(m, n)") {
             list = minilua::Vallist({m, n});
             ctx = ctx.make_new(list);
             b = std::get<minilua::Bool>(minilua::math::ult(ctx));
-            CHECK_FALSE(b);
+            CHECK(!b);
 
             m = 1;
             n = -2;
@@ -2509,7 +2509,7 @@ TEST_CASE("reverse acos") {
 
         auto res = minilua::math::acos(ctx);
         minilua::Number n = std::get<minilua::Number>(res);
-        REQUIRE(n.value == Approx(2.0944));
+        REQUIRE(n.as_float() == Approx(2.0944));
 
         auto result = res.force(minilua::Value(0));
         REQUIRE(result.has_value());
@@ -2525,7 +2525,7 @@ TEST_CASE("reverse acos") {
 
         res = minilua::math::acos(ctx);
         n = std::get<minilua::Number>(res);
-        REQUIRE(n.value == Approx(2.0944));
+        REQUIRE(n.as_float() == Approx(2.0944));
 
         result = res.force(minilua::Value(0));
         REQUIRE(result.has_value());
@@ -2542,7 +2542,7 @@ TEST_CASE("reverse acos") {
 
             auto res = minilua::math::acos(ctx);
             minilua::Number n = std::get<minilua::Number>(res);
-            REQUIRE(n.value == Approx(2.0944));
+            REQUIRE(n.as_float() == Approx(2.0944));
 
             // force value to nan, directly insert nan doesn't work
             auto result = res.force(minilua::Value(std::asin(2)));
@@ -2562,7 +2562,7 @@ TEST_CASE("reverse acos") {
 
         auto res = minilua::math::acos(ctx);
         minilua::Number n = std::get<minilua::Number>(res);
-        REQUIRE(n.value == Approx(2.0944));
+        REQUIRE(n.as_float() == Approx(2.0944));
 
         // acos only returns Numbers, so the result can't be forced to a string, even if its
         // formated like a Number
@@ -2583,7 +2583,7 @@ TEST_CASE("reverse asin") {
 
         auto res = minilua::math::asin(ctx);
         minilua::Number n = std::get<minilua::Number>(res);
-        REQUIRE(n.value == Approx(-0.5235987755983));
+        REQUIRE(n.as_float() == Approx(-0.5235987755983));
 
         auto result = res.force(minilua::Value(0));
         REQUIRE(result.has_value());
@@ -2599,7 +2599,7 @@ TEST_CASE("reverse asin") {
 
         res = minilua::math::asin(ctx);
         n = std::get<minilua::Number>(res);
-        REQUIRE(n.value == Approx(-0.5235987755983));
+        REQUIRE(n.as_float() == Approx(-0.5235987755983));
 
         result = res.force(minilua::Value(0));
         REQUIRE(result.has_value());
@@ -2615,7 +2615,7 @@ TEST_CASE("reverse asin") {
 
         res = minilua::math::asin(ctx);
         n = std::get<minilua::Number>(res);
-        REQUIRE(std::isnan(n.value));
+        REQUIRE(std::isnan(n.as_float()));
 
         result = res.force(minilua::Value(0));
         REQUIRE(result.has_value());
@@ -2632,7 +2632,7 @@ TEST_CASE("reverse asin") {
 
             auto res = minilua::math::asin(ctx);
             minilua::Number n = std::get<minilua::Number>(res);
-            REQUIRE(n.value == Approx(-0.5235987755983));
+            REQUIRE(n.as_float() == Approx(-0.5235987755983));
 
             // force value to nan, directly insert nan doesn't work
             auto result = res.force(minilua::Value(std::asin(2)));
@@ -2652,7 +2652,7 @@ TEST_CASE("reverse asin") {
 
         auto res = minilua::math::asin(ctx);
         minilua::Number n = std::get<minilua::Number>(res);
-        REQUIRE(n.value == Approx(-0.5235987755983));
+        REQUIRE(n.as_float() == Approx(-0.5235987755983));
 
         // asin only returns Numbers, so the result can't be forced to a string, even if its
         // formated like a Number
@@ -2673,7 +2673,7 @@ TEST_CASE("reverse atan") {
             ctx = ctx.make_new(list);
             minilua::Value res = minilua::math::atan(ctx);
             auto n = std::get<minilua::Number>(res);
-            REQUIRE(n.value == Approx(0.78539816339745));
+            REQUIRE(n.as_float() == Approx(0.78539816339745));
 
             auto result = res.force(minilua::Value(0));
             REQUIRE(result.has_value());
@@ -2692,7 +2692,7 @@ TEST_CASE("reverse atan") {
             ctx = ctx.make_new(list);
             minilua::Value res = minilua::math::atan(ctx);
             auto n = std::get<minilua::Number>(res);
-            REQUIRE(n.value == Approx(0.46364760900081));
+            REQUIRE(n.as_float() == Approx(0.46364760900081));
 
             auto result = res.force(minilua::Value(0.64350110879328));
             REQUIRE(result.has_value());
@@ -2716,7 +2716,7 @@ TEST_CASE("reverse atan") {
             ctx = ctx.make_new(list);
             minilua::Value res = minilua::math::atan(ctx);
             auto n = std::get<minilua::Number>(res);
-            REQUIRE(n.value == Approx(0.78539816339745));
+            REQUIRE(n.as_float() == Approx(0.78539816339745));
 
             // atan only returns Numbers, so the result can't be forced to a string, even if its
             // formated like a Number
@@ -2733,7 +2733,7 @@ TEST_CASE("reverse atan") {
             ctx = ctx.make_new(list);
             minilua::Value res = minilua::math::atan(ctx);
             auto n = std::get<minilua::Number>(res);
-            REQUIRE(n.value == Approx(0.46364760900081));
+            REQUIRE(n.as_float() == Approx(0.46364760900081));
 
             // atan only returns Numbers, so the result can't be forced to a string, even if its
             // formated like a Number
@@ -3009,7 +3009,7 @@ TEST_CASE("reverse log") {
         ctx = ctx.make_new(list);
         auto res = minilua::math::log(ctx);
         auto n = std::get<minilua::Number>(res);
-        REQUIRE(n.value == Approx(1.0986122886681));
+        REQUIRE(n.as_float() == Approx(1.0986122886681));
 
         auto result = res.force(0);
         REQUIRE(result.has_value());
@@ -3027,7 +3027,7 @@ TEST_CASE("reverse log") {
             ctx = ctx.make_new(list);
             auto res = minilua::math::log(ctx);
             auto n = std::get<minilua::Number>(res);
-            REQUIRE(n.value == Approx(1.0986122886681));
+            REQUIRE(n.as_float() == Approx(1.0986122886681));
 
             // log only returns numbers, so the result cant be forced to a string, even if its
             // formated like a number
@@ -3044,7 +3044,7 @@ TEST_CASE("reverse log") {
             ctx = ctx.make_new(list);
             auto res = minilua::math::log(ctx);
             auto n = std::get<minilua::Number>(res);
-            REQUIRE(n.value == Approx(1.5849625007212));
+            REQUIRE(n.as_float() == Approx(1.5849625007212));
 
             auto result = res.force(0);
             CHECK_FALSE(result.has_value());
@@ -3081,7 +3081,7 @@ TEST_CASE("reverse rad") {
         ctx = ctx.make_new(list);
         auto res = minilua::math::rad(ctx);
         minilua::Number n = std::get<minilua::Number>(res);
-        REQUIRE(n.value == Approx(0.017453292519943));
+        REQUIRE(n.as_float() == Approx(0.017453292519943));
 
         auto result = res.force(0.043633231299858);
         REQUIRE(result.has_value());
@@ -3098,7 +3098,7 @@ TEST_CASE("reverse rad") {
         ctx = ctx.make_new(list);
         auto res = minilua::math::rad(ctx);
         minilua::Number n = std::get<minilua::Number>(res);
-        REQUIRE(n.value == Approx(0.017453292519943));
+        REQUIRE(n.as_float() == Approx(0.017453292519943));
 
         // rad only returns Numbers, so the result can't be forced to a string, even if its formated
         // like a Number

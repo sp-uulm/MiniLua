@@ -64,14 +64,15 @@ static const std::regex
 // except the function that is called to determine the new value
 // gets 1 parameter
 auto static math_helper(
-    const CallContext& ctx, const std::function<double(double)>& function,
+    const CallContext& ctx, const std::function<Number(Number)>& function,
     const std::string& functionname, const std::string& arg_index = "1") -> Value {
+
     auto res = to_number(ctx);
 
     if (res != Nil()) {
         auto num = std::get<Number>(res);
 
-        return Value(function(num.value));
+        return Value(function(num));
     } else {
         auto x = ctx.arguments().get(0);
         throw std::runtime_error(
@@ -83,7 +84,7 @@ auto static math_helper(
 // gets 2 parameter
 template <class T>
 auto static math_helper(
-    const CallContext& ctx, const std::function<T(double, double)>& function,
+    const CallContext& ctx, const std::function<T(Number, Number)>& function,
     const std::string& functionname) -> Value {
 
     Vallist list = Vallist({ctx.arguments().get(0)});
@@ -99,7 +100,7 @@ auto static math_helper(
             auto num1 = std::get<Number>(res1);
             auto num2 = std::get<Number>(res2);
 
-            return Value(function(num1.value, num2.value));
+            return Value(function(num1, num2));
         } else {
             auto y = ctx.arguments().get(1);
             throw std::runtime_error(
@@ -128,13 +129,15 @@ auto abs(const CallContext& ctx) -> Value {
                 return std::nullopt;
             }
             Number n = std::get<Number>(new_value);
-            if (n.value >= 0) {
+            if (n >= 0) {
                 return old_value.force(n); // just guess that it was a positive number
             } else {
                 return std::nullopt;
             }
         }});
-    return math_helper(ctx, static_cast<double (*)(double)>(&std::abs), "abs").with_origin(origin);
+    return math_helper(
+               ctx, [](Number value) -> Number { return std::abs(value.as_float()); }, "abs")
+        .with_origin(origin);
 }
 
 auto acos(const CallContext& ctx) -> Value {
@@ -147,10 +150,11 @@ auto acos(const CallContext& ctx) -> Value {
                 return std::nullopt;
             }
             Number n = std::get<Number>(new_value);
-            return old_value.force(std::cos(n.value));
+            return old_value.force(std::cos(n.as_float()));
         }});
 
-    return math_helper(ctx, static_cast<double (*)(double)>(&std::acos), "acos")
+    return math_helper(
+               ctx, [](Number value) -> Number { return std::acos(value.as_float()); }, "acos")
         .with_origin(origin);
 }
 
@@ -164,9 +168,10 @@ auto asin(const CallContext& ctx) -> Value {
                 return std::nullopt;
             }
             Number n = std::get<Number>(new_value);
-            return old_value.force(std::sin(n.value));
+            return old_value.force(std::sin(n.as_float()));
         }});
-    return math_helper(ctx, static_cast<double (*)(double)>(&std::asin), "asin")
+    return math_helper(
+               ctx, [](Number value) -> Number { return std::asin(value.as_float()); }, "asin")
         .with_origin(origin);
 }
 
@@ -183,9 +188,9 @@ auto atan(const CallContext& ctx) -> Value {
             }
             if (old_value2 == Nil()) {
                 Number n = std::get<Number>(new_value);
-                return old_value1.force(std::tan(n.value));
+                return old_value1.force(std::tan(n.as_float()));
             } else {
-                double theta = std::get<Number>(new_value).value;
+                double theta = std::get<Number>(new_value).as_float();
                 SourceChangeAlternative changes;
                 auto val1 = old_value1.force(len * std::sin(theta));
                 auto val2 = old_value2.force(len * std::cos(theta));
@@ -201,8 +206,8 @@ auto atan(const CallContext& ctx) -> Value {
     return std::visit(
                overloaded{
                    [&len](Number x, Number y) {
-                       len = std::sqrt(x.value * x.value + y.value * y.value);
-                       return Value(std::atan2(x.value, y.value));
+                       len = std::sqrt(x.as_float() * x.as_float() + y.as_float() * y.as_float());
+                       return Value(std::atan2(x.as_float(), y.as_float()));
                    },
                    [ctx, &len](Number x, String y) {
                        Vallist list = Vallist({Value(std::move(y))});
@@ -212,14 +217,15 @@ auto atan(const CallContext& ctx) -> Value {
                        if (res != Nil()) {
                            auto num = get<Number>(res);
 
-                           len = std::sqrt(x.value * x.value + num.value * num.value);
-                           return Value(std::atan2(x.value, num.value));
+                           len = std::sqrt(
+                               x.as_float() * x.as_float() + num.as_float() * num.as_float());
+                           return Value(std::atan2(x.as_float(), num.as_float()));
                        } else {
                            throw std::runtime_error(
                                "bad argument #2 to 'atan' (number expected, got string)");
                        }
                    },
-                   [](Number x, Nil /*unused*/) { return Value(std::atan2(x.value, 1)); },
+                   [](Number x, Nil /*unused*/) { return Value(std::atan2(x.as_float(), 1)); },
                    [](Number /*unused*/, auto y) -> Value {
                        throw std::runtime_error(
                            "bad argument #2 to 'atan' (number expected, got " +
@@ -233,8 +239,9 @@ auto atan(const CallContext& ctx) -> Value {
                        if (res != Nil()) {
                            auto num = get<Number>(res);
 
-                           len = std::sqrt(num.value * num.value + y.value * y.value);
-                           return Value(std::atan2(num.value, y.value));
+                           len = std::sqrt(
+                               num.as_float() * num.as_float() + y.as_float() * y.as_float());
+                           return Value(std::atan2(num.as_float(), y.as_float()));
                        } else {
                            throw std::runtime_error(
                                "bad argument #1 to 'atan' (number expected, got string)");
@@ -254,8 +261,9 @@ auto atan(const CallContext& ctx) -> Value {
                                auto x1 = std::get<Number>(res1);
                                auto x2 = std::get<Number>(res2);
 
-                               len = std::sqrt(x1.value * x1.value + x2.value * x2.value);
-                               return Value(std::atan2(x1.value, x2.value));
+                               len = std::sqrt(
+                                   x1.as_float() * x1.as_float() + x2.as_float() * x2.as_float());
+                               return Value(std::atan2(x1.as_float(), x2.as_float()));
                            } else {
                                throw std::runtime_error(
                                    "bad argument #2 to 'atan' (number expected, got string)");
@@ -273,7 +281,7 @@ auto atan(const CallContext& ctx) -> Value {
                        if (res != Nil()) {
                            auto num = get<Number>(res);
 
-                           return Value(std::atan2(num.value, 1));
+                           return Value(std::atan2(num.as_float(), 1));
                        } else {
                            throw std::runtime_error(
                                "bad argument #1 to 'atan' (number expected, got string)");
@@ -312,7 +320,7 @@ auto ceil(const CallContext& ctx) -> Value {
                 return std::nullopt;
             }
             Number n = std::get<Number>(new_value);
-            if (std::fmod(n.value, 1.0) == 0.0) {
+            if (std::fmod(n.as_float(), 1.0) == 0.0) {
                 return old_value.force(
                     new_value); // Just guessing that this is the right value because every
                                 // information about post-comma numbers is lost
@@ -321,7 +329,8 @@ auto ceil(const CallContext& ctx) -> Value {
             }
         }});
 
-    return math_helper(ctx, static_cast<double (*)(double)>(&std::ceil), "ceil")
+    return math_helper(
+               ctx, [](Number value) -> Number { return std::ceil(value.as_float()); }, "ceil")
         .with_origin(origin);
 }
 
@@ -335,10 +344,12 @@ auto cos(const CallContext& ctx) -> Value {
                 return std::nullopt;
             }
             Number n = std::get<Number>(new_value);
-            return old_value.force(std::acos(n.value));
+            return old_value.force(std::acos(n.as_float()));
         }});
 
-    return math_helper(ctx, static_cast<double (*)(double)>(&std::cos), "cos").with_origin(origin);
+    return math_helper(
+               ctx, [](Number value) -> Number { return std::cos(value.as_float()); }, "cos")
+        .with_origin(origin);
 }
 
 auto deg(const CallContext& ctx) -> Value {
@@ -355,7 +366,7 @@ auto deg(const CallContext& ctx) -> Value {
         }});
 
     return math_helper(
-               ctx, [](double d) { return d * 180 / PI; }, "deg")
+               ctx, [](Number value) { return value.as_float() * 180 / PI; }, "deg")
         .with_origin(origin);
 }
 
@@ -370,14 +381,16 @@ auto exp(const CallContext& ctx) -> Value {
             }
             Number n = std::get<Number>(new_value);
             if (n > 0) {
-                return old_value.force(std::log(n.value));
+                return old_value.force(std::log(n.as_float()));
             } else if (n < 0) {
-                return old_value.force(1 / std::log(-n.value));
+                return old_value.force(1 / std::log(-n.as_float()));
             } else {
                 return std::nullopt;
             }
         }});
-    return math_helper(ctx, static_cast<double (*)(double)>(&std::exp), "exp").with_origin(origin);
+    return math_helper(
+               ctx, [](Number value) -> Number { return std::exp(value.as_float()); }, "exp")
+        .with_origin(origin);
 }
 
 auto floor(const CallContext& ctx) -> Value {
@@ -390,7 +403,7 @@ auto floor(const CallContext& ctx) -> Value {
                 return std::nullopt;
             }
             Number n = std::get<Number>(new_value);
-            if (std::fmod(n.value, 1.0) == 0.0) {
+            if (std::fmod(n.as_float(), 1.0) == 0.0) {
                 return old_value.force(new_value);
                 // Just guessing that this is the right value because every information about
                 // post-comma numbers is lost
@@ -399,7 +412,8 @@ auto floor(const CallContext& ctx) -> Value {
             }
         }});
 
-    return math_helper(ctx, static_cast<double (*)(double)>(&std::floor), "floor")
+    return math_helper(
+               ctx, [](Number value) -> Number { return std::floor(value.as_float()); }, "floor")
         .with_origin(origin);
 }
 
@@ -444,11 +458,11 @@ auto fmod(const CallContext& ctx) -> Value {
             auto num1 = std::get<Number>(res1);
             auto num2 = std::get<Number>(res2);
 
-            if (num1.value == 0 && num2.value == 0) {
+            if (num1.as_float() == 0 && num2.as_float() == 0) {
                 // case 0/0
                 throw std::runtime_error("bad argument #2 to 'fmod' (zero)");
             } else {
-                return Value(std::fmod(num1.value, num2.value)).with_origin(origin);
+                return Value(std::fmod(num1.as_float(), num2.as_float())).with_origin(origin);
             }
         } else {
             auto y = ctx.arguments().get(1);
@@ -474,7 +488,7 @@ auto log(const CallContext& ctx) -> Value {
             }
             if (old_value2 == Nil()) {
                 Number n = std::get<Number>(new_value);
-                return old_value1.force(std::exp(n.value));
+                return old_value1.force(std::exp(n.as_float()));
             } else {
                 // TODO: return both SourceChangeAlternatives
                 // log(x)/log(base) is ambiguously. so no clear return could be done
@@ -489,20 +503,26 @@ auto log(const CallContext& ctx) -> Value {
     return std::visit(
                overloaded{
                    [ctx](auto /*unused*/, Nil /*unused*/) -> Value {
-                       return math_helper(ctx, static_cast<double (*)(double)>(&std::log), "log");
+                       return math_helper(
+                           ctx, [](Number value) -> Number { return std::log(value.as_float()); },
+                           "log");
                    },
                    [ctx](auto a, auto b) -> Value {
                        Vallist list({Value(a)});
                        CallContext new_ctx = ctx.make_new(list);
-                       auto x =
-                           math_helper(new_ctx, static_cast<double (*)(double)>(&std::log), "log");
+                       auto x = math_helper(
+                           new_ctx,
+                           [](Number value) -> Number { return std::log(value.as_float()); },
+                           "log");
                        list = Vallist({Value(b)});
                        new_ctx = ctx.make_new(list);
                        auto base = math_helper(
-                           new_ctx, static_cast<double (*)(double)>(&std::log), "log", "2");
+                           new_ctx,
+                           [](Number value) -> Number { return std::log(value.as_float()); }, "log",
+                           "2");
                        Number x_n = std::get<Number>(x);
                        Number base_n = std::get<Number>(base);
-                       return Value(x_n.value / base_n.value);
+                       return Value(x_n.as_float() / base_n.as_float());
                    }},
                x.raw(), base.raw())
         .with_origin(origin);
@@ -560,7 +580,7 @@ auto modf(const CallContext& ctx) -> Vallist {
     if (res != Nil()) {
         Number num = std::get<Number>(res);
         double iptr;
-        num.value = std::modf(num.value, &iptr);
+        num = std::modf(num.as_float(), &iptr);
 
         auto origin1 = Origin(UnaryOrigin{
             .val = make_owning<Value>(Value(iptr)),
@@ -598,7 +618,7 @@ auto rad(const CallContext& ctx) -> Value {
         }});
 
     return math_helper(
-               ctx, [](double d) { return d * PI / 180; }, "rad")
+               ctx, [](Number value) { return value.as_float() * PI / 180; }, "rad")
         .with_origin(origin);
 }
 
@@ -615,15 +635,19 @@ auto random(const CallContext& ctx) -> Value {
             [ctx](auto /*unused*/, Nil /*unused*/) {
                 return math_helper(
                     ctx,
-                    [](long x) { return std::uniform_int_distribution<int>(1, x)(random_seed); },
+                    [](Number value) {
+                        return std::uniform_int_distribution<int>(1, value.try_as_int())(
+                            random_seed);
+                    },
                     "random");
             },
             [ctx](auto /*unused*/, auto /*unused*/) -> Value {
                 return math_helper<int>(
                     ctx,
-                    [](long x, long y) {
+                    [](Number x, Number y) {
                         if (x <= y) {
-                            return std::uniform_int_distribution<int>(x, y)(random_seed);
+                            return std::uniform_int_distribution<int>(
+                                x.try_as_int(), y.try_as_int())(random_seed);
                         } else {
                             throw std::runtime_error(
                                 "bad argument #1 to 'random' (interval is empty)");
@@ -642,7 +666,7 @@ void randomseed(const CallContext& ctx) {
     if (x != Nil()) {
         Number num = std::get<Number>(x);
 
-        random_seed = std::default_random_engine((unsigned int)num.value);
+        random_seed = std::default_random_engine((unsigned int)num.try_as_int());
     } else {
         throw std::runtime_error(
             "bad argument #1 to 'randomseed' (number expected, got " +
@@ -660,9 +684,11 @@ auto sin(const CallContext& ctx) -> Value {
                 return std::nullopt;
             }
             Number n = std::get<Number>(new_value);
-            return old_value.force(std::asin(n.value));
+            return old_value.force(std::asin(n.as_float()));
         }});
-    return math_helper(ctx, static_cast<double (*)(double)>(&std::sin), "sin").with_origin(origin);
+    return math_helper(
+               ctx, [](Number value) -> Number { return std::sin(value.as_float()); }, "sin")
+        .with_origin(origin);
 }
 
 auto sqrt(const CallContext& ctx) -> Value {
@@ -675,13 +701,14 @@ auto sqrt(const CallContext& ctx) -> Value {
                 return std::nullopt;
             }
             Number n = std::get<Number>(new_value);
-            if (n.value >= 0) {
-                return old_value.force(n.value * n.value);
+            if (n >= 0) {
+                return old_value.force(n.as_float() * n.as_float());
             } else {
                 return std::nullopt;
             }
         }});
-    return math_helper(ctx, static_cast<double (*)(double)>(&std::sqrt), "sqrt")
+    return math_helper(
+               ctx, [](Number value) -> Number { return std::sqrt(value.as_float()); }, "sqrt")
         .with_origin(origin);
 }
 
@@ -695,9 +722,11 @@ auto tan(const CallContext& ctx) -> Value {
                 return std::nullopt;
             }
             Number n = std::get<Number>(new_value);
-            return old_value.force(std::atan(n.value));
+            return old_value.force(std::atan(n.as_float()));
         }});
-    return math_helper(ctx, static_cast<double (*)(double)>(&std::tan), "tan").with_origin(origin);
+    return math_helper(
+               ctx, [](Number value) -> Number { return std::tan(value.as_float()); }, "tan")
+        .with_origin(origin);
 }
 
 auto to_integer(const CallContext& ctx) -> Value {
@@ -710,7 +739,7 @@ auto to_integer(const CallContext& ctx) -> Value {
                 return std::nullopt;
             }
             Number n = std::get<Number>(new_value);
-            if (std::fmod(n.value, 1.0) == 0.0) {
+            if (std::fmod(n.as_float(), 1.0) == 0.0) {
                 return old_value.force(new_value);
             } else {
                 return std::nullopt;
@@ -722,8 +751,9 @@ auto to_integer(const CallContext& ctx) -> Value {
     return std::visit(
                overloaded{
                    [](Number n) -> Value {
-                       if (std::modf(n.value, &n.value) == 0) {
-                           return Value(n.value);
+                       double value = n.as_float();
+                       if (std::modf(value, &value) == 0) {
+                           return Value(value);
                        } else {
                            return Nil();
                        }
@@ -746,7 +776,8 @@ auto type(const CallContext& ctx) -> Value {
 
     if (x.is_number()) {
         Number num = std::get<Number>(x);
-        double fraction = std::modf(num.value, &num.value);
+        double value = num.as_float();
+        double fraction = std::modf(value, &value);
 
         return Value(fraction == 0.0 ? "integer" : "float");
     } else {
@@ -759,25 +790,34 @@ auto ult(const CallContext& ctx) -> Value {
     // possible to correctly get the numbers back. So no origin is needed
     return math_helper<bool>(
         ctx,
-        [](double m, double n) -> bool {
-            double num_m;
-            double fraction = std::modf(m, &num_m);
+        [](Number m, Number n) -> bool {
+            unsigned long m_int;
+            if (m.is_int()) {
+                m_int = m.try_as_int();
+            } else {
+                double num_m;
+                double fraction = std::modf(m.as_float(), &num_m);
+                if (fraction != 0.0) {
+                    throw std::runtime_error(
+                        "bad argument #1 to 'ult' (number has no integer representation)");
+                }
+                m_int = (int)num_m;
+            }
 
-            if (fraction == 0.0) {
+            unsigned long n_int;
+            if (n.is_int()) {
+                n_int = n.try_as_int();
+            } else {
                 double num_n;
-                fraction = std::modf(n, &num_n);
-                if (fraction == 0.0) {
-                    unsigned long ml = (long)num_m;
-                    unsigned long nl = (long)n;
-                    return ml < nl;
-                } else {
+                double fraction = std::modf(n.as_float(), &num_n);
+                if (fraction != 0.0) {
                     throw std::runtime_error(
                         "bad argument #2 to 'ult' (number has no integer representation)");
                 }
-            } else {
-                throw std::runtime_error(
-                    "bad argument #1 to 'ult' (number has no integer representation)");
+                n_int = (int)num_n;
             }
+
+            return m_int < n_int;
         },
         "ult");
 }
