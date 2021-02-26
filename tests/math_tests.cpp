@@ -9,6 +9,7 @@
 
 #include "MiniLua/environment.hpp"
 #include "MiniLua/math.hpp"
+#include "MiniLua/source_change.hpp"
 #include "MiniLua/values.hpp"
 
 TEST_CASE("math.abs(x)") {
@@ -1274,6 +1275,10 @@ TEST_CASE("math.max(x, ...)") {
         ctx = ctx.make_new(list);
         CHECK(minilua::math::max(ctx) == minilua::Value("zug"));
     }
+
+    SECTION("No arguemts") {
+        CHECK_THROWS_WITH(minilua::math::max(ctx), "bad argument #1 to 'max' (value expected)");
+    }
 }
 
 TEST_CASE("math.min(x, ...)") {
@@ -1330,6 +1335,10 @@ TEST_CASE("math.min(x, ...)") {
         list = minilua::Vallist(v);
         ctx = ctx.make_new(list);
         CHECK(minilua::math::min(ctx) == minilua::Value("Analysis2a"));
+    }
+
+    SECTION("No arguemts") {
+        CHECK_THROWS_WITH(minilua::math::min(ctx), "bad argument #1 to 'min' (value expected)");
     }
 }
 
@@ -2426,5 +2435,830 @@ TEST_CASE("math.ult(m, n)") {
             CHECK_THROWS_WITH(
                 minilua::math::ult(ctx), "bad argument #2 to 'ult' (number expected, got string)");
         }
+    }
+}
+
+TEST_CASE("reverse abs") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("force result of abs to a positive number") {
+        int i = 42;
+        minilua::Value value =
+            minilua::Value(i).with_origin(minilua::LiteralOrigin{minilua::Range()});
+        minilua::Vallist list = minilua::Vallist(value);
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::abs(ctx);
+        REQUIRE(res == 42);
+
+        auto result = res.force(minilua::Value{25});
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "25"));
+
+        std::string s = "42";
+        value = minilua::Value(i).with_origin(minilua::LiteralOrigin{minilua::Range()});
+        list = minilua::Vallist({value});
+        ctx = ctx.make_new(list);
+        res = minilua::math::abs(ctx);
+        REQUIRE(res == 42);
+
+        result = res.force(minilua::Value{25});
+        REQUIRE(result.has_value());
+
+        INFO(result->origin());
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "25"));
+
+        result = res.force(minilua::Value{"10"});
+        CHECK_FALSE(result.has_value());
+    }
+
+    SECTION("force result of abs to a negative number or invalid value") {
+        int i = 42;
+        minilua::Value value =
+            minilua::Value(i).with_origin(minilua::LiteralOrigin{minilua::Range()});
+        minilua::Vallist list = minilua::Vallist(value);
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::abs(ctx);
+        REQUIRE(res == 42);
+
+        // abs only returns positive numbers, so the result can't be forced to a negative number
+        auto result = res.force(minilua::Value{-25});
+        CHECK_FALSE(result.has_value());
+
+        // abs only returns positive Numbers, so the result can't be forced to another datatype
+        // other than Number
+        result = res.force(minilua::Value{true});
+        CHECK_FALSE(result.has_value());
+    }
+}
+
+TEST_CASE("reverse acos") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("correct force") {
+        double x = -0.5;
+        minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+        minilua::Vallist list = minilua::Vallist(value);
+        ctx = ctx.make_new(list);
+
+        auto res = minilua::math::acos(ctx);
+        minilua::Number n = std::get<minilua::Number>(res);
+        REQUIRE(n.value == Approx(2.0944));
+
+        auto result = res.force(minilua::Value(0));
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "1"));
+
+        std::string s = "-0.5";
+        value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+        list = minilua::Vallist({value});
+        ctx = ctx.make_new(list);
+
+        res = minilua::math::acos(ctx);
+        n = std::get<minilua::Number>(res);
+        REQUIRE(n.value == Approx(2.0944));
+
+        result = res.force(minilua::Value(0));
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "1"));
+
+        SECTION("force value to nan") {
+            double x = -0.5;
+            minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+            minilua::Vallist list = minilua::Vallist(value);
+            ctx = ctx.make_new(list);
+
+            auto res = minilua::math::acos(ctx);
+            minilua::Number n = std::get<minilua::Number>(res);
+            REQUIRE(n.value == Approx(2.0944));
+
+            // force value to nan, directly insert nan doesn't work
+            auto result = res.force(minilua::Value(std::asin(2)));
+            REQUIRE(result.has_value());
+
+            CHECK(
+                result.value().collect_first_alternative()[0] ==
+                minilua::SourceChange(minilua::Range(), "nan"));
+        }
+    }
+
+    SECTION("invalid force") {
+        double x = -0.5;
+        minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+        minilua::Vallist list = minilua::Vallist(value);
+        ctx = ctx.make_new(list);
+
+        auto res = minilua::math::acos(ctx);
+        minilua::Number n = std::get<minilua::Number>(res);
+        REQUIRE(n.value == Approx(2.0944));
+
+        // acos only returns Numbers, so the result can't be forced to a string, even if its
+        // formated like a Number
+        auto result = res.force(minilua::Value("2"));
+        CHECK_FALSE(result.has_value());
+    }
+}
+
+TEST_CASE("reverse asin") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("correct force") {
+        double x = -0.5;
+        minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+        minilua::Vallist list = minilua::Vallist(value);
+        ctx = ctx.make_new(list);
+
+        auto res = minilua::math::asin(ctx);
+        minilua::Number n = std::get<minilua::Number>(res);
+        REQUIRE(n.value == Approx(-0.5235987755983));
+
+        auto result = res.force(minilua::Value(0));
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "0"));
+
+        std::string s = "-0.5";
+        value = minilua::Value(s).with_origin(minilua::LiteralOrigin());
+        list = minilua::Vallist(value);
+        ctx = ctx.make_new(list);
+
+        res = minilua::math::asin(ctx);
+        n = std::get<minilua::Number>(res);
+        REQUIRE(n.value == Approx(-0.5235987755983));
+
+        result = res.force(minilua::Value(0));
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "0"));
+
+        x = 2;
+        value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+        list = minilua::Vallist(value);
+        ctx = ctx.make_new(list);
+
+        res = minilua::math::asin(ctx);
+        n = std::get<minilua::Number>(res);
+        REQUIRE(std::isnan(n.value));
+
+        result = res.force(minilua::Value(0));
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "0"));
+
+        SECTION("force value to nan") {
+            double x = -0.5;
+            minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+            minilua::Vallist list = minilua::Vallist(value);
+            ctx = ctx.make_new(list);
+
+            auto res = minilua::math::asin(ctx);
+            minilua::Number n = std::get<minilua::Number>(res);
+            REQUIRE(n.value == Approx(-0.5235987755983));
+
+            // force value to nan, directly insert nan doesn't work
+            auto result = res.force(minilua::Value(std::asin(2)));
+            REQUIRE(result.has_value());
+
+            CHECK(
+                result.value().collect_first_alternative()[0] ==
+                minilua::SourceChange(minilua::Range(), "nan"));
+        }
+    }
+
+    SECTION("incorrect force") {
+        double x = -0.5;
+        minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+        minilua::Vallist list = minilua::Vallist(value);
+        ctx = ctx.make_new(list);
+
+        auto res = minilua::math::asin(ctx);
+        minilua::Number n = std::get<minilua::Number>(res);
+        REQUIRE(n.value == Approx(-0.5235987755983));
+
+        // asin only returns Numbers, so the result can't be forced to a string, even if its
+        // formated like a Number
+        auto result = res.force("2");
+        CHECK_FALSE(result.has_value());
+    }
+}
+
+TEST_CASE("reverse atan") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        SECTION("One parameter") {
+            int x = 1;
+            minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+            minilua::Vallist list = minilua::Vallist({value, minilua::Nil()});
+            ctx = ctx.make_new(list);
+            minilua::Value res = minilua::math::atan(ctx);
+            auto n = std::get<minilua::Number>(res);
+            REQUIRE(n.value == Approx(0.78539816339745));
+
+            auto result = res.force(minilua::Value(0));
+            REQUIRE(result.has_value());
+
+            CHECK(
+                result.value().collect_first_alternative()[0] ==
+                minilua::SourceChange(minilua::Range(), "0"));
+        }
+
+        SECTION("Two parameters") {
+            int x = 1;
+            int y = 2;
+            minilua::Value value1 = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+            minilua::Value value2 = minilua::Value(y).with_origin(minilua::LiteralOrigin());
+            minilua::Vallist list = minilua::Vallist({value1, value2});
+            ctx = ctx.make_new(list);
+            minilua::Value res = minilua::math::atan(ctx);
+            auto n = std::get<minilua::Number>(res);
+            REQUIRE(n.value == Approx(0.46364760900081));
+
+            auto result = res.force(minilua::Value(0.64350110879328));
+            REQUIRE(result.has_value());
+
+            auto tree = result.value();
+            tree.visit(minilua::overloaded{
+                [](const minilua::SourceChangeAlternative& change) {
+                    REQUIRE(change.changes.size() == 2);
+                    CHECK(change.changes[0] == minilua::SourceChange(minilua::Range(), "-0.6"));
+                    CHECK(change.changes[1] == minilua::SourceChange(minilua::Range(), "-0.8"));
+                },
+                [](const auto& /*unused*/) { FAIL("unexpected source change"); }});
+        }
+    }
+
+    SECTION("invalid force") {
+        SECTION("one parameter") {
+            int x = 1;
+            minilua::Value value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+            minilua::Vallist list = minilua::Vallist({value, minilua::Nil()});
+            ctx = ctx.make_new(list);
+            minilua::Value res = minilua::math::atan(ctx);
+            auto n = std::get<minilua::Number>(res);
+            REQUIRE(n.value == Approx(0.78539816339745));
+
+            // atan only returns Numbers, so the result can't be forced to a string, even if its
+            // formated like a Number
+            auto result = res.force(minilua::Value("0"));
+            CHECK_FALSE(result.has_value());
+        }
+
+        SECTION("two paramters") {
+            int x = 1;
+            int y = 2;
+            minilua::Value value1 = minilua::Value(x).with_origin(minilua::LiteralOrigin());
+            minilua::Value value2 = minilua::Value(y).with_origin(minilua::LiteralOrigin());
+            minilua::Vallist list = minilua::Vallist({value1, value2});
+            ctx = ctx.make_new(list);
+            minilua::Value res = minilua::math::atan(ctx);
+            auto n = std::get<minilua::Number>(res);
+            REQUIRE(n.value == Approx(0.46364760900081));
+
+            // atan only returns Numbers, so the result can't be forced to a string, even if its
+            // formated like a Number
+            auto result = res.force(minilua::Value("0.64350110879328"));
+            CHECK_FALSE(result.has_value());
+        }
+    }
+}
+
+TEST_CASE("reverse ceil") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        double i = 42.5;
+        minilua::Value value = minilua::Value(i).with_origin(minilua::LiteralOrigin());
+        minilua::Vallist list = minilua::Vallist(value);
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::ceil(ctx);
+        REQUIRE(res == minilua::Value(43));
+
+        auto result = res.force(10);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "10"));
+    }
+
+    SECTION("invalid force") {
+        double i = 42.5;
+        minilua::Value value = minilua::Value(i).with_origin(minilua::LiteralOrigin());
+        minilua::Vallist list = minilua::Vallist(value);
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::ceil(ctx);
+        REQUIRE(res == minilua::Value(43));
+
+        // ceil only returns Numbers, so the result can't be forced to a string, even if its
+        // formated like a Number
+        auto result = res.force("10");
+        CHECK_FALSE(result.has_value());
+
+        // ceil only returns Numbers formated like an Integer, so the result can't be forced to a
+        // float-value
+        result = res.force(1.5);
+        CHECK_FALSE(result.has_value());
+    }
+}
+
+TEST_CASE("reverse cos") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        int i = 0;
+        minilua::Vallist list =
+            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::cos(ctx);
+        REQUIRE(res == minilua::Value(1));
+
+        auto result = res.force(0);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "1.5708"));
+
+        result = res.force(3);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "nan"));
+    }
+
+    SECTION("invalid force") {
+        int i = 0;
+        minilua::Vallist list =
+            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::cos(ctx);
+        REQUIRE(res == minilua::Value(1));
+
+        auto result = res.force("0");
+        REQUIRE_FALSE(result.has_value());
+    }
+}
+
+TEST_CASE("reverse deg") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        int i = 0;
+        minilua::Vallist list =
+            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::deg(ctx);
+        REQUIRE(res == minilua::Value(0));
+
+        auto result = res.force(57.295779513082);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "1"));
+    }
+
+    SECTION("Invalid force") {
+        int i = 0;
+        minilua::Vallist list =
+            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::deg(ctx);
+        REQUIRE(res == minilua::Value(0));
+
+        auto result = res.force("25");
+        CHECK_FALSE(result.has_value());
+    }
+}
+
+TEST_CASE("reverse exp") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        int i = 0;
+        minilua::Vallist list =
+            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::exp(ctx);
+        REQUIRE(res == minilua::Value(1));
+
+        auto result = res.force(2.718281828459);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "1"));
+
+        result = res.force(-2.718281828459);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "1"));
+    }
+
+    SECTION("invalid force") {
+        int i = 0;
+        minilua::Vallist list =
+            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::exp(ctx);
+        REQUIRE(res == minilua::Value(1));
+
+        auto result = res.force("1");
+        CHECK_FALSE(result.has_value());
+
+        result = res.force(0);
+        CHECK_FALSE(result.has_value());
+    }
+}
+
+TEST_CASE("reverse floor") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        double i = 42.5;
+        minilua::Vallist list =
+            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::floor(ctx);
+        REQUIRE(res == minilua::Value(42));
+
+        auto result = res.force(15);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "15"));
+    }
+
+    SECTION("invalid force") {
+        double i = 42.5;
+        minilua::Vallist list =
+            minilua::Vallist({minilua::Value(i).with_origin(minilua::LiteralOrigin())});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::floor(ctx);
+        REQUIRE(res == minilua::Value(42));
+
+        auto result = res.force(15.5);
+        REQUIRE_FALSE(result.has_value());
+
+        result = res.force("15");
+        REQUIRE_FALSE(result.has_value());
+    }
+}
+
+TEST_CASE("reverse fmod") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        SECTION("divisor is number") {
+            double i = -2.5;
+            double j = 4.2;
+            minilua::Vallist list = minilua::Vallist(
+                {minilua::Value(i).with_origin(minilua::LiteralOrigin()),
+                 minilua::Value(j).with_origin(minilua::LiteralOrigin())});
+            ctx = ctx.make_new(list);
+            auto res = minilua::math::fmod(ctx);
+            REQUIRE(res == minilua::Value(-2.5));
+
+            auto result = res.force(1);
+            REQUIRE(result.has_value());
+
+            CHECK(
+                result.value().collect_first_alternative()[0] ==
+                minilua::SourceChange(minilua::Range(), "5.2"));
+        }
+
+        SECTION("divisor is string") {
+            double i = -2.5;
+            std::string j = "4.2";
+            minilua::Vallist list = minilua::Vallist(
+                {minilua::Value(i).with_origin(minilua::LiteralOrigin()),
+                 minilua::Value(j).with_origin(minilua::LiteralOrigin())});
+            ctx = ctx.make_new(list);
+            auto res = minilua::math::fmod(ctx);
+            REQUIRE(res == minilua::Value(-2.5));
+
+            auto result = res.force(1);
+            REQUIRE(result.has_value());
+
+            CHECK(
+                result.value().collect_first_alternative()[0] ==
+                minilua::SourceChange(minilua::Range(), "5.2"));
+        }
+    }
+
+    SECTION("invalid force") {
+        double i = -2.5;
+        double j = 4.2;
+        minilua::Vallist list = minilua::Vallist(
+            {minilua::Value(i).with_origin(minilua::LiteralOrigin()),
+             minilua::Value(j).with_origin(minilua::LiteralOrigin())});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::fmod(ctx);
+        REQUIRE(res == minilua::Value(-2.5));
+
+        // fmod only returns Numbers, so the result can't be forced to a string, even if its
+        // formated like a Number
+        auto result = res.force("1");
+        CHECK_FALSE(result.has_value());
+
+        // fmod only returns Numbers that are smaller than the divisor.
+        result = res.force(5);
+        CHECK_FALSE(result.has_value());
+    }
+}
+
+TEST_CASE("reverse log") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        int x = 3;
+        minilua::Vallist list = minilua::Vallist(
+            {minilua::Value(x).with_origin(minilua::LiteralOrigin()), minilua::Nil()});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::log(ctx);
+        auto n = std::get<minilua::Number>(res);
+        REQUIRE(n.value == Approx(1.0986122886681));
+
+        auto result = res.force(0);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "1"));
+    }
+
+    SECTION("invalid force") {
+        SECTION("try to force an invalid value") {
+            int x = 3;
+            minilua::Vallist list = minilua::Vallist(
+                {minilua::Value(x).with_origin(minilua::LiteralOrigin()), minilua::Nil()});
+            ctx = ctx.make_new(list);
+            auto res = minilua::math::log(ctx);
+            auto n = std::get<minilua::Number>(res);
+            REQUIRE(n.value == Approx(1.0986122886681));
+
+            // log only returns numbers, so the result cant be forced to a string, even if its
+            // formated like a number
+            auto result = res.force("1");
+            CHECK_FALSE(result.has_value());
+        }
+
+        SECTION("valid force, but log was called with 2 arguments") {
+            int x = 3;
+            int y = 2;
+            minilua::Vallist list = minilua::Vallist(
+                {minilua::Value(x).with_origin(minilua::LiteralOrigin()),
+                 minilua::Value(y).with_origin(minilua::LiteralOrigin())});
+            ctx = ctx.make_new(list);
+            auto res = minilua::math::log(ctx);
+            auto n = std::get<minilua::Number>(res);
+            REQUIRE(n.value == Approx(1.5849625007212));
+
+            auto result = res.force(0);
+            CHECK_FALSE(result.has_value());
+        }
+    }
+}
+
+TEST_CASE("reverse max") {
+    // TODO: first implement reverse of max
+}
+
+TEST_CASE("reverse min") {
+    // TODO: first implement reverse of min
+}
+
+TEST_CASE("reverse modf") {
+    // TODO: first implement reverse for return-values of modf
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {}
+
+    SECTION("invalid force") {}
+}
+
+TEST_CASE("reverse rad") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        int i = 1;
+        minilua::Vallist list =
+            minilua::Vallist(minilua::Value(i).with_origin(minilua::LiteralOrigin()));
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::rad(ctx);
+        minilua::Number n = std::get<minilua::Number>(res);
+        REQUIRE(n.value == Approx(0.017453292519943));
+
+        auto result = res.force(0.043633231299858);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "2.5"));
+    }
+
+    SECTION("invalid force") {
+        int i = 1;
+        minilua::Vallist list =
+            minilua::Vallist(minilua::Value(i).with_origin(minilua::LiteralOrigin()));
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::rad(ctx);
+        minilua::Number n = std::get<minilua::Number>(res);
+        REQUIRE(n.value == Approx(0.017453292519943));
+
+        // rad only returns Numbers, so the result can't be forced to a string, even if its formated
+        // like a Number
+        auto result = res.force("24");
+        CHECK_FALSE(result.has_value());
+    }
+}
+
+TEST_CASE("reverse sin") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        int i = 0;
+        minilua::Vallist list =
+            minilua::Vallist(minilua::Value(i).with_origin(minilua::LiteralOrigin()));
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::sin(ctx);
+        REQUIRE(res == minilua::Value(0));
+
+        auto result = res.force(1);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "1.5708"));
+
+        result = res.force(3);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "nan"));
+    }
+
+    SECTION("invalid force") {
+        int i = 0;
+        minilua::Vallist list =
+            minilua::Vallist(minilua::Value(i).with_origin(minilua::LiteralOrigin()));
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::sin(ctx);
+        REQUIRE(res == minilua::Value(0));
+
+        // sin only returns Numbers, so the result can't be forced to a string, even if it's
+        // formated like a Number
+        auto result = res.force("1");
+        CHECK_FALSE(result.has_value());
+    }
+}
+
+TEST_CASE("reverse sqrt") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        int i = 1;
+        minilua::Value v = minilua::Value(i).with_origin(minilua::LiteralOrigin());
+        minilua::Vallist list(v);
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::sqrt(ctx);
+        REQUIRE(res == minilua::Value(1));
+
+        auto result = res.force(2);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "4"));
+    }
+
+    SECTION("invalid force") {
+        int i = 1;
+        minilua::Value v = minilua::Value(i).with_origin(minilua::LiteralOrigin());
+        minilua::Vallist list(v);
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::sqrt(ctx);
+        REQUIRE(res == minilua::Value(1));
+
+        // sqrt only returns Numbers, so the result can't be forced to a string, even if it's
+        // formated like a Number
+        auto result = res.force("2");
+        CHECK_FALSE(result.has_value());
+
+        // sqrt only returns positive Numbers, so the result can't be forced to an negative Number
+        result = res.force(-1);
+        CHECK_FALSE(result.has_value());
+    }
+}
+
+TEST_CASE("reverse tan") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        int i = 0;
+        minilua::Vallist list =
+            minilua::Vallist(minilua::Value(i).with_origin(minilua::LiteralOrigin()));
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::tan(ctx);
+        REQUIRE(res == minilua::Value(0));
+
+        auto result = res.force(1.3386902103512);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "0.929219"));
+    }
+
+    SECTION("invalid force") {
+        int i = 0;
+        minilua::Vallist list =
+            minilua::Vallist(minilua::Value(i).with_origin(minilua::LiteralOrigin()));
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::tan(ctx);
+        REQUIRE(res == minilua::Value(0));
+
+        // tan only returns Numbers, so the result can't be forced to a string, even if it's
+        // formated like a Number
+        auto result = res.force("42");
+        CHECK_FALSE(result.has_value());
+    }
+}
+
+TEST_CASE("reverse to_integer") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("valid force") {
+        int i = 0;
+        minilua::Value v = minilua::Value(i).with_origin(minilua::LiteralOrigin());
+        minilua::Vallist list({v});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::to_integer(ctx);
+        REQUIRE(res == minilua::Value(i));
+
+        auto result = res.force(10);
+        REQUIRE(result.has_value());
+
+        CHECK(
+            result.value().collect_first_alternative()[0] ==
+            minilua::SourceChange(minilua::Range(), "10"));
+    }
+
+    SECTION("invalid force") {
+        int i = 0;
+        minilua::Value v = minilua::Value(i).with_origin(minilua::LiteralOrigin());
+        minilua::Vallist list({v});
+        ctx = ctx.make_new(list);
+        auto res = minilua::math::to_integer(ctx);
+        REQUIRE(res == minilua::Value(i));
+
+        // to_integer only returns Numbers, so the result can't be forced to a string, even if it's
+        // formated like a Number
+        auto result = res.force("10");
+        CHECK_FALSE(result.has_value());
+
+        // to_integer only returns Numbers formated like Integers, so the result can't be forced to
+        // a float
+        result = res.force(4.2);
+        CHECK_FALSE(result.has_value());
     }
 }

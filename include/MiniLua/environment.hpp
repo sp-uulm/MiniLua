@@ -50,6 +50,11 @@ public:
     [[nodiscard]] auto make_table() const -> Table;
 
     /**
+     * Adds the math-functions to a table and inserts this table to the global environment
+     */
+    void create_math_table();
+
+    /**
      * Add a variable to the environment.
      */
     void add(const std::string& name, Value value);
