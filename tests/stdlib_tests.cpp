@@ -5,6 +5,31 @@
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/values.hpp"
 
+TEST_CASE("force") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("without origin") {
+        minilua::Value old_value = 25; // NOLINT
+        minilua::Value new_value = 17; // NOLINT
+        ctx = ctx.make_new({old_value, new_value});
+        CHECK(!minilua::force(ctx).source_change().has_value());
+    }
+    SECTION("with origin") {
+        minilua::Value old_value =
+            minilua::Value(25).with_origin(minilua::LiteralOrigin{}); // NOLINT
+        minilua::Value new_value = 17;                                // NOLINT
+        ctx = ctx.make_new({old_value, new_value});
+        CHECK(minilua::force(ctx).source_change().has_value());
+    }
+    SECTION("error when less than two arguments") {
+        ctx = ctx.make_new({25}); // NOLINT
+        CHECK_THROWS(minilua::force(ctx));
+        ctx = ctx.make_new();
+        CHECK_THROWS(minilua::force(ctx));
+    }
+}
+
 TEST_CASE("to_string") {
     minilua::Environment env;
     minilua::CallContext ctx(&env);
