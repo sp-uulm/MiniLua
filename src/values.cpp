@@ -67,7 +67,8 @@ auto Number::try_as_int() const -> int {
     return this->visit(overloaded{
         [](int value) { return value; },
         [](double value) -> int {
-            throw std::runtime_error("number has no integer representation");
+            throw std::runtime_error(
+                std::string("number has no integer representation ") + std::to_string(value));
         },
     });
 }
@@ -678,30 +679,21 @@ auto Value::to_number(const Value base, std::optional<Range> location) const -> 
     return std::visit(
         overloaded{
             [this, &location](const String& number, const Nil& /*nil*/) -> Value {
-                // if the string matches the expected format we parse it otherwise return nil
-                if (std::regex_match(number.value, to_number_general_pattern)) {
-                    auto origin = UnaryOrigin{
-                        .val = make_owning<Value>(*this),
-                        .location = location,
-                        .reverse = [](const Value& new_value,
-                                      const Value& old_value) -> std::optional<SourceChangeTree> {
-                            if (new_value.is_number()) {
-                                // TODO maybe produce the same format as the old value
-                                return old_value.force(new_value.to_string());
-                            } else {
-                                return std::nullopt;
-                            }
-                        },
-                    };
-
-                    if (std::regex_match(number.value, to_number_int_pattern)) {
-                        return Value(std::stoi(number.value)).with_origin(Origin(origin));
-                    } else {
-                        return Value(std::stod(number.value)).with_origin(Origin(origin));
-                    }
-                } else {
-                    return Nil();
-                }
+                // same behaviour as number literal parsing but add a different origin
+                auto origin = UnaryOrigin{
+                    .val = make_owning<Value>(*this),
+                    .location = location,
+                    .reverse = [](const Value& new_value,
+                                  const Value& old_value) -> std::optional<SourceChangeTree> {
+                        if (new_value.is_number()) {
+                            // TODO maybe produce the same format as the old value
+                            return old_value.force(new_value.to_string());
+                        } else {
+                            return std::nullopt;
+                        }
+                    },
+                };
+                return parse_number_literal(number.value).with_origin(origin);
             },
             [this, base_value = base,
              &location](const String& number, const Number& base) -> Value {

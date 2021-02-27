@@ -7,14 +7,25 @@ namespace minilua {
 
 // helper functions
 
-auto parse_number_literal(const std::string& str) -> Value {
-    std::regex pattern_number(R"(\s*\d+\.?\d*)");
-    std::regex pattern_hex(R"(\s*0[xX][\dA-Fa-f]+\.?[\dA-Fa-f]*)");
-    std::regex pattern_exp(R"(\s*\d+\.?\d*[eE]-?\d+)");
+// TODO remove duplication
+// these are the same as in src/values.cpp (near Value::to_number)
+static std::string pattern_decimal = R"((\s*-?\d+\.?\d*))";
+static std::string pattern_hex = R"((\s*-?0[xX][\dA-Fa-f]+\.?[\dA-Fa-f]*))";
+static std::string pattern_scientific_notation = R"((\s*-?\d+\.?\d*[eE]-?\d+))";
+static std::regex to_number_general_pattern(
+    pattern_decimal + "|" + pattern_hex + "|" + pattern_scientific_notation,
+    std::regex::ECMAScript | std::regex::optimize);
+static std::regex to_number_int_pattern(R"(\s*-?[a-zA-Z0-9]+)");
 
-    if (std::regex_match(str, pattern_number) || std::regex_match(str, pattern_hex) ||
-        std::regex_match(str, pattern_exp)) {
-        return std::stod(str);
+auto parse_number_literal(const std::string& str) -> Value {
+    // if the string matches the expected format we parse it otherwise return nil
+    if (std::regex_match(str, to_number_general_pattern)) {
+
+        if (std::regex_match(str, to_number_int_pattern)) {
+            return Value(std::stoi(str));
+        } else {
+            return Value(std::stod(str));
+        }
     } else {
         return Nil();
     }
