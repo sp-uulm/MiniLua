@@ -43,9 +43,8 @@ auto create_math_table(MemoryAllocator* allocator) -> Table {
     math.set("tointeger", math::to_integer);
     math.set("type", math::type);
     math.set("ult", math::ult);
-    // TODO: uncomment when long works
-    // math.set("maxinteger", math::MAXINTEGER);
-    // math.set("mininteger", math::MININTEGER);
+    math.set("maxinteger", math::MAXINTEGER);
+    math.set("mininteger", math::MININTEGER);
     math.set("pi", math::PI);
     math.set("huge", math::HUGE);
 
