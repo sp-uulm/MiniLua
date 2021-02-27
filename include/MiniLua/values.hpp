@@ -165,6 +165,9 @@ DELEGATE_OP(Bool, ^);
  *
  * The Number type automatically converts Int to Float according to the rules
  * of lua.
+ *
+ * The equals and hash implementation treat whole Floats and like their
+ * equivalent Ints.
  */
 class Number {
 public:
@@ -208,18 +211,20 @@ public:
         static_assert(std::is_invocable_v<Fn, Int>, "fn must be invocable with an int parameter");
         static_assert(
             std::is_invocable_v<Fn, Float>, "fn must be invocable with a double parameter");
+
         return std::visit(fn, this->value);
     }
 
     /**
-     * Invoce the given function with either two ints or two doubles.
+     * Invoke the given function with either two Ints or two Floats.
      *
-     * If one of the numbers (either this or rhs) is a double the otherone will
-     * also be converted to a double if it is not one.
+     * If one of the numbers (either this or rhs) is a Float the other one will
+     * also be converted to a Float if it is not one.
      */
     template <typename Fn> auto apply_with_number_rules(const Number& rhs, Fn fn) const {
         static_assert(std::is_invocable_v<Fn, Int, Int>);
         static_assert(std::is_invocable_v<Fn, Float, Float>);
+
         return std::visit(
             overloaded{
                 [&fn](Int lhs, Int rhs) { return fn(lhs, rhs); },
@@ -255,10 +260,6 @@ public:
     [[nodiscard]] auto bit_or(const Number& rhs) const -> Number;
     [[nodiscard]] auto logic_and(const Number& rhs) const -> Number;
     [[nodiscard]] auto logic_or(const Number& rhs) const -> Number;
-    /**
-     * unary `not` operator
-     */
-    [[nodiscard]] auto invert() const -> Number;
 };
 
 struct String {

@@ -6,10 +6,6 @@
 
 namespace minilua {
 
-// helper functions
-
-// TODO remove duplication
-// these are the same as in src/values.cpp (near Value::to_number)
 static std::string pattern_decimal = R"((\s*-?\d+\.?\d*))";
 static std::string pattern_hex = R"((\s*-?0[xX][\dA-Fa-f]+\.?[\dA-Fa-f]*))";
 static std::string pattern_scientific_notation = R"((\s*-?\d+\.?\d*[eE]-?\d+))";
@@ -40,6 +36,8 @@ auto parse_number_literal(const std::string& str) -> Value {
         return Nil();
     }
 }
+
+// helper functions
 
 /**
  * Helper function to check if the string literal "delimiters" are correct and get their length.

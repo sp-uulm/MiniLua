@@ -52,7 +52,7 @@ Bool::operator bool() const { return this->value; }
         },
     });
     // TODO maybe we can use a better float representation algorithm than the default c++
-    // (not sure what c++ uses by default)
+    // (not sure what c++ uses by default or if it is the same on all compilers)
     return result.str();
 }
 auto operator<<(std::ostream& os, Number self) -> std::ostream& {
@@ -103,7 +103,7 @@ auto operator/(const Number& lhs, const Number& rhs) -> Number {
     return lhs.as_float() / rhs.as_float();
 }
 auto Number::int_div(const Number& rhs) const -> Number {
-    return static_cast<int>(this->as_float() / rhs.as_float());
+    return static_cast<Number::Int>(this->as_float() / rhs.as_float());
 }
 auto Number::pow(const Number& rhs) const -> Number {
     return std::pow(this->as_float(), rhs.as_float());
@@ -674,15 +674,6 @@ Value::operator bool() const {
     return std::visit([](const auto& value) { return bool(value); }, this->impl->val);
 }
 
-// create a static variable for the regex so it is only compiled once
-static std::string pattern_decimal = R"((\s*-?\d+\.?\d*))";
-static std::string pattern_hex = R"((\s*-?0[xX][\dA-Fa-f]+\.?[\dA-Fa-f]*))";
-static std::string pattern_scientific_notation = R"((\s*-?\d+\.?\d*[eE]-?\d+))";
-static std::regex to_number_general_pattern(
-    pattern_decimal + "|" + pattern_hex + "|" + pattern_scientific_notation,
-    std::regex::ECMAScript | std::regex::optimize);
-static std::regex to_number_int_pattern(R"(\s*-?[a-zA-Z0-9]+)");
-
 auto Value::to_number(const Value base, std::optional<Range> location) const -> Value {
     return std::visit(
         overloaded{
@@ -705,6 +696,8 @@ auto Value::to_number(const Value base, std::optional<Range> location) const -> 
             },
             [this, base_value = base,
              &location](const String& number, const Number& base) -> Value {
+                static std::regex to_number_int_pattern(R"(\s*-?[a-zA-Z0-9]+)");
+
                 // NOTE: we only parse ints when we get a base
                 // the base has to be between 2 adn 35 (because numbers with other bases
                 // are not representable strings)
@@ -1201,8 +1194,10 @@ auto std::hash<minilua::Bool>::operator()(const minilua::Bool& /*value*/) const 
     return 0;
 }
 auto std::hash<minilua::Number>::operator()(const minilua::Number& value) const -> size_t {
-    // lua does not allow using NaN as a table key
-    // but we are not allowed to throw inside of std::hash
+    // we treat whole floats like their integer equivalent
+
+    // NOTE lua does not allow using NaN as a table key but we are not allowed
+    // to throw inside of std::hash
     return std::visit(
         minilua::overloaded{
             [](minilua::Number::Int value) { return std::hash<minilua::Number::Int>()(value); },
