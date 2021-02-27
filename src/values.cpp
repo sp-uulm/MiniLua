@@ -42,8 +42,8 @@ Bool::operator bool() const { return this->value; }
     // NOTE: use stringstream so we get better formatting than with std::to_string
     std::ostringstream result;
     this->visit(overloaded{
-        [&result](const int& value) { result << value; },
-        [&result](const double& value) {
+        [&result](Number::Int value) { result << value; },
+        [&result](Number::Float value) {
             if (ceil(value) == value) {
                 // always output the .0 for whole numbers
                 result << std::setprecision(1) << std::fixed;
@@ -58,22 +58,22 @@ Bool::operator bool() const { return this->value; }
 auto operator<<(std::ostream& os, Number self) -> std::ostream& {
     os << "Number(";
     self.visit(overloaded{
-        [&os](int value) { os << value; },
-        [&os](double value) { os << value; },
+        [&os](Number::Int value) { os << value; },
+        [&os](Number::Float value) { os << value; },
     });
     return os << ")";
 }
 Number::operator bool() const { return true; }
-auto Number::as_float() const -> double {
+auto Number::as_float() const -> Number::Float {
     return this->visit(overloaded{
-        [](int value) { return static_cast<double>(value); },
-        [](double value) { return value; },
+        [](Number::Int value) { return static_cast<Number::Float>(value); },
+        [](Number::Float value) { return value; },
     });
 }
-auto Number::try_as_int() const -> int {
+auto Number::try_as_int() const -> Number::Int {
     return this->visit(overloaded{
-        [](int value) { return value; },
-        [](double value) -> int {
+        [](Number::Int value) { return value; },
+        [](Number::Float value) -> Number::Int {
             throw std::runtime_error(
                 std::string("number has no integer representation ") + std::to_string(value));
         },
@@ -526,6 +526,7 @@ Value::Value(Bool val) : impl(make_owning<Impl>(Impl{.val = val})) {}
 Value::Value(bool val) : Value(Bool(val)) {}
 Value::Value(Number val) : impl(make_owning<Impl>(Impl{.val = val})) {}
 Value::Value(int val) : Value(Number(val)) {}
+Value::Value(long val) : Value(Number(val)) {}
 Value::Value(double val) : Value(Number(val)) {}
 Value::Value(String val) : impl(make_owning<Impl>(Impl{.val = val})) {}
 Value::Value(std::string val) : Value(String(std::move(val))) {}

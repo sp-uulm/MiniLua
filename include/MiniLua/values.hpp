@@ -168,7 +168,7 @@ DELEGATE_OP(Bool, ^);
  */
 class Number {
 public:
-    using Int = int;
+    using Int = long;
     using Float = double;
 
 private:
@@ -177,6 +177,7 @@ private:
 public:
     constexpr static const std::string_view TYPE = "number";
 
+    constexpr Number(int value) : value((Int)value) {}
     constexpr Number(Int value) : value(value) {}
     constexpr Number(Float value) : value(value) {}
 
@@ -886,6 +887,7 @@ public:
     Value(bool val);
     Value(Number val);
     Value(int val);
+    Value(long val);
     Value(double val);
     Value(String val);
     Value(std::string val);
