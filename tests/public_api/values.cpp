@@ -126,6 +126,15 @@ TEST_CASE("number Value to literal") {
     CHECK(value2.to_literal() == "-2e+12");
 }
 
+TEST_CASE("number Value int and float equality") {
+    CHECK(minilua::Value(2) == minilua::Value(2.0));                             // NOLINT
+    CHECK(std::hash<minilua::Value>{}(2) == std::hash<minilua::Value>{}(2.0));   // NOLINT
+    CHECK(minilua::Value(0) == minilua::Value(0.0));                             // NOLINT
+    CHECK(std::hash<minilua::Value>{}(0) == std::hash<minilua::Value>{}(0.0));   // NOLINT
+    CHECK(minilua::Value(10) != minilua::Value(10.1));                           // NOLINT
+    CHECK(std::hash<minilua::Value>{}(10) != std::hash<minilua::Value>{}(10.1)); // NOLINT
+}
+
 TEST_CASE("string Value is constructable") {
     static_assert(std::is_nothrow_move_constructible<minilua::String>());
     static_assert(std::is_nothrow_move_assignable<minilua::String>());

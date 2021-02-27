@@ -1200,9 +1200,15 @@ auto std::hash<minilua::Number>::operator()(const minilua::Number& value) const 
         minilua::overloaded{
             [](minilua::Number::Int value) { return std::hash<minilua::Number::Int>()(value); },
             [](minilua::Number::Float value) {
-                if (std::isnan(value)) {
-                    return 0uL;
+                if (std::isnan(value) || std::isinf(value)) {
+                    return std::numeric_limits<size_t>::max();
                 }
+
+                if (ceil(value) == value) {
+                    return std::hash<minilua::Number::Int>()(
+                        static_cast<minilua::Number::Int>(value));
+                }
+
                 return std::hash<minilua::Number::Float>()(value);
             }},
         value.raw());
