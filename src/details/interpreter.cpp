@@ -936,18 +936,10 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
         IMPL(AND, logic_and)
         IMPL(BIT_OR, bit_or)
         IMPL(BIT_AND, bit_and)
-    case ast::BinOpEnum::SHIFT_LEFT:
-        throw UNIMPLEMENTED("shift left");
-        break;
-    case ast::BinOpEnum::SHIFT_RIGHT:
-        throw UNIMPLEMENTED("shift right");
-        break;
-    case ast::BinOpEnum::BIT_XOR:
-        throw UNIMPLEMENTED("bitwise xor");
-        break;
-    case ast::BinOpEnum::INT_DIV:
-        throw UNIMPLEMENTED("intdiv");
-        break;
+        IMPL(SHIFT_LEFT, bit_shl)
+        IMPL(SHIFT_RIGHT, bit_shr)
+        IMPL(BIT_XOR, bit_xor)
+        IMPL(INT_DIV, int_div)
     }
 
 #undef IMPL
@@ -972,9 +964,7 @@ auto Interpreter::visit_unary_operation(ast::UnaryOperation unary_op, Env& env) 
         IMPL(NOT, invert)
         IMPL(NEG, negate)
         IMPL(LEN, len)
-    case ast::UnOpEnum::BWNOT:
-        throw UNIMPLEMENTED("bitwise not");
-        break;
+        IMPL(BWNOT, bit_not)
     }
 
 #undef IMPL

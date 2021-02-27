@@ -79,6 +79,12 @@ auto Number::try_as_int() const -> Number::Int {
         },
     });
 }
+auto Number::convert_to_int() const -> Int {
+    return this->visit(overloaded{
+        [](Number::Int value) { return value; },
+        [](Number::Float value) -> Number::Int { return static_cast<Number::Int>(value); },
+    });
+}
 auto Number::raw() const -> std::variant<Int, Float> { return this->value; }
 auto Number::is_int() const -> bool { return std::holds_alternative<Int>(this->value); }
 auto Number::is_float() const -> bool { return std::holds_alternative<Float>(this->value); }
@@ -117,6 +123,16 @@ auto Number::bit_and(const Number& rhs) const -> Number {
 auto Number::bit_or(const Number& rhs) const -> Number {
     return this->try_as_int() | rhs.try_as_int();
 }
+auto Number::bit_xor(const Number& rhs) const -> Number {
+    return this->try_as_int() ^ rhs.try_as_int();
+}
+auto Number::bit_shl(const Number& rhs) const -> Number {
+    return this->try_as_int() << rhs.try_as_int();
+}
+auto Number::bit_shr(const Number& rhs) const -> Number {
+    return this->try_as_int() >> rhs.try_as_int();
+}
+auto Number::bit_not() const -> Number { return ~this->try_as_int(); }
 
 auto operator==(Number lhs, Number rhs) noexcept -> bool {
     return lhs.apply_with_number_rules(rhs, [](auto lhs, auto rhs) { return lhs == rhs; });
@@ -869,6 +885,14 @@ static inline auto num_op_helper(
             [](Number new_value, Number lhs) { return lhs / new_value; }, "div"),
         location);
 }
+auto Value::int_div(const Value& rhs, std::optional<Range> location) const -> Value {
+    return num_op_helper(
+        *this, rhs, [](Number lhs, Number rhs) { return lhs.int_div(rhs); }, "int divide",
+        binary_num_reverse(
+            [](Number new_value, Number rhs) { return new_value * rhs; },
+            [](Number new_value, Number lhs) { return lhs.int_div(new_value); }, "intdiv"),
+        location);
+}
 [[nodiscard]] auto Value::pow(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
         *this, rhs, [](Number lhs, Number rhs) { return lhs.pow(rhs); }, "attempt to pow",
@@ -900,6 +924,50 @@ static inline auto num_op_helper(
         [](auto...) { return std::nullopt; },
         location); // TODO reverse
 }
+auto Value::bit_xor(const Value& rhs, std::optional<Range> location) const -> Value {
+    return num_op_helper(
+        *this, rhs, [](Number lhs, Number rhs) { return lhs.bit_xor(rhs); }, "bitwise xor",
+        [](auto...) { return std::nullopt; },
+        location); // TODO reverse
+}
+auto Value::bit_shl(const Value& rhs, std::optional<Range> location) const -> Value {
+    return num_op_helper(
+        *this, rhs, [](Number lhs, Number rhs) { return lhs.bit_shl(rhs); }, "bitwise shift left",
+        [](auto...) { return std::nullopt; },
+        location); // TODO reverse
+}
+auto Value::bit_shr(const Value& rhs, std::optional<Range> location) const -> Value {
+    return num_op_helper(
+        *this, rhs, [](Number lhs, Number rhs) { return lhs.bit_shr(rhs); }, "bitwise shift right",
+        [](auto...) { return std::nullopt; },
+        location); // TODO reverse
+}
+auto Value::bit_not(std::optional<Range> location) const -> Value {
+    return std::visit(
+        overloaded{
+            [this, &location](Number number) {
+                auto origin = Origin(UnaryOrigin{
+                    .val = make_owning<Value>(*this),
+                    .location = location,
+                    .reverse = [](const Value& new_value,
+                                  const Value& old_value) -> std::optional<SourceChangeTree> {
+                        if (old_value.is_number() && new_value.is_number()) {
+                            Number new_number = std::get<Number>(new_value);
+                            return old_value.force(new_number.bit_not());
+                        }
+
+                        return std::nullopt;
+                    }});
+                return Value(number.bit_not()).with_origin(origin);
+            },
+            [](const auto& value) -> Value {
+                throw std::runtime_error(
+                    "attempt to get bitwise not for value of type " + std::string(value.TYPE));
+            },
+        },
+        this->raw());
+}
+
 [[nodiscard]] auto Value::logic_and(const Value& rhs, std::optional<Range> location) const
     -> Value {
     // return lhs if it is falsey and rhs otherwise

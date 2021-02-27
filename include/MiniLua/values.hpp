@@ -202,6 +202,11 @@ public:
      */
     [[nodiscard]] auto try_as_int() const -> Int;
 
+    /**
+     * Convert to int by casting the Float to an Int (if it is not already an Int).
+     */
+    [[nodiscard]] auto convert_to_int() const -> Int;
+
     [[nodiscard]] auto raw() const -> std::variant<Int, Float>;
 
     [[nodiscard]] auto is_int() const -> bool;
@@ -258,6 +263,10 @@ public:
     // In particular using bitand, bitor, and, or and not is illegal syntax
     [[nodiscard]] auto bit_and(const Number& rhs) const -> Number;
     [[nodiscard]] auto bit_or(const Number& rhs) const -> Number;
+    [[nodiscard]] auto bit_xor(const Number& rhs) const -> Number;
+    [[nodiscard]] auto bit_shl(const Number& rhs) const -> Number;
+    [[nodiscard]] auto bit_shr(const Number& rhs) const -> Number;
+    [[nodiscard]] auto bit_not() const -> Number;
     [[nodiscard]] auto logic_and(const Number& rhs) const -> Number;
     [[nodiscard]] auto logic_or(const Number& rhs) const -> Number;
 };
@@ -1036,6 +1045,23 @@ public:
         -> Value;
     [[nodiscard]] auto bit_or(const Value& rhs, std::optional<Range> location = std::nullopt) const
         -> Value;
+    [[nodiscard]] auto bit_xor(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    /**
+     * @brief Bitwise shift left.
+     */
+    [[nodiscard]] auto bit_shl(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    /**
+     * @brief Bitwise shift right.
+     */
+    [[nodiscard]] auto bit_shr(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    /**
+     * @brief Bitwise `not` operator.
+     */
+    [[nodiscard]] auto bit_not(std::optional<Range> location = std::nullopt) const -> Value;
+
     [[nodiscard]] auto
     logic_and(const Value& rhs, std::optional<Range> location = std::nullopt) const -> Value;
     [[nodiscard]] auto

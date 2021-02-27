@@ -18,20 +18,33 @@ auto parse_number_literal(const std::string& str) -> Value {
     // if the string matches the expected format we parse it otherwise return nil
     if (std::regex_match(str, to_number_int_pattern)) {
         // parse as int and check if whole input is consumed
-        std::size_t last_pos;
-        auto value = std::stoi(str, &last_pos, 0);
-        if (last_pos != str.length()) {
-            throw std::runtime_error("Could not completely parse integer literal. This is a bug.");
+        try {
+            std::size_t last_pos;
+            // we need to parse as unsigned long so the range is big enough
+            // TODO lua permits arbitrary long literals and just truncates them
+            auto value = static_cast<Number::Int>(std::stoul(str, &last_pos, 0));
+            if (last_pos != str.length()) {
+                throw std::runtime_error(
+                    "Could not completely parse integer literal. This is a bug.");
+            }
+
+            return Value(value);
+        } catch (const std::out_of_range& e) {
+            throw std::runtime_error("integer is out of range");
         }
-        return Value(value);
     } else if (std::regex_match(str, to_number_general_pattern)) {
         // parse as double and check if whole input is consumed
-        std::size_t last_pos;
-        auto value = std::stod(str, &last_pos);
-        if (last_pos != str.length()) {
-            throw std::runtime_error("Could not completely parse float literal. This is a bug.");
+        try {
+            std::size_t last_pos;
+            auto value = std::stod(str, &last_pos);
+            if (last_pos != str.length()) {
+                throw std::runtime_error(
+                    "Could not completely parse float literal. This is a bug.");
+            }
+            return Value(value);
+        } catch (const std::out_of_range& e) {
+            throw std::runtime_error("float is out of range");
         }
-        return Value(value);
     } else {
         return Nil();
     }
