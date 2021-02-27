@@ -63,7 +63,7 @@ TEST_CASE("define correct origin for unary math functions and force value") {
     REQUIRE(res.has_origin());
     auto source_change_tree = res.force(3).value(); // NOLINT
     auto source_changes = source_change_tree.collect_first_alternative();
-    CHECK(source_changes[0].replacement == "9");
+    CHECK(source_changes[0].replacement == "9.0");
 }
 
 auto pow_impl(const minilua::CallContext& ctx) -> minilua::Value {
@@ -102,7 +102,7 @@ TEST_CASE("define correct origin for binary math functions and force value") {
                 [](const auto&) { FAIL("unexpected inner element"); }});
             change.changes[1].visit(minilua::overloaded{
                 [](const minilua::SourceChange& inner_change) {
-                    CHECK(inner_change.replacement == "2"); // -> 8^2 = 64
+                    CHECK(inner_change.replacement == "2.0"); // -> 8^2 = 64
                 },
                 [](const auto&) { FAIL("unexpected inner element"); }});
         },

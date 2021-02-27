@@ -4,6 +4,7 @@
 #include "MiniLua/utils.hpp"
 
 #include <cmath>
+#include <iomanip>
 #include <iostream>
 #include <regex>
 #include <set>
@@ -42,7 +43,13 @@ Bool::operator bool() const { return this->value; }
     std::ostringstream result;
     this->visit(overloaded{
         [&result](const int& value) { result << value; },
-        [&result](const double& value) { result << value; },
+        [&result](const double& value) {
+            if (ceil(value) == value) {
+                // always output the .0 for whole numbers
+                result << std::setprecision(1) << std::fixed;
+            }
+            result << value;
+        },
     });
     // TODO maybe we can use a better float representation algorithm than the default c++
     // (not sure what c++ uses by default)
@@ -733,8 +740,15 @@ auto Value::to_number(const Value base, std::optional<Range> location) const -> 
                                     return std::nullopt;
                                 }
                             }};
-                        return Value(std::stoi(number.value, nullptr, base.try_as_int()))
-                            .with_origin(origin);
+
+                        // try to parse as int and check if whole input is consumed
+                        std::size_t last_pos;
+                        Number::Int value = std::stoi(number.value, &last_pos, base.try_as_int());
+                        if (last_pos != number.value.size()) {
+                            return Nil();
+                        }
+
+                        return Value(value).with_origin(origin);
                     } catch (const std::invalid_argument& /*unused*/) {
                         // invalid base returns nil
                         return Nil();

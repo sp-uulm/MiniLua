@@ -8,6 +8,11 @@
 
 namespace minilua {
 
+/**
+ * Returns a table with all the math functions.
+ */
+auto create_math_table(MemoryAllocator* allocator) -> Table;
+
 void error(const CallContext& ctx);
 
 auto to_string(const CallContext& ctx) -> Value;

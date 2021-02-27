@@ -1,6 +1,7 @@
 #include "interpreter.hpp"
 #include "MiniLua/environment.hpp"
 #include "MiniLua/interpreter.hpp"
+#include "MiniLua/stdlib.hpp"
 #include "ast.hpp"
 #include "tree_sitter/tree_sitter.hpp"
 
@@ -105,6 +106,7 @@ auto Interpreter::setup_environment(Env& user_env) -> Env {
     Env env(user_env.allocator());
 
     this->execute_stdlib(env);
+    env.global().set("math", create_math_table(env.allocator()));
 
     // apply user overwrites
     // NOTE we only consider global variables because the user can only set

@@ -123,7 +123,7 @@ TEST_CASE("number Value to literal") {
     const minilua::Value value{2};
     CHECK(value.to_literal() == "2");
     const minilua::Value value2{-2e12};
-    CHECK(value2.to_literal() == "-2e+12");
+    CHECK(value2.to_literal() == "-2000000000000.0");
 }
 
 TEST_CASE("number Value int and float equality") {

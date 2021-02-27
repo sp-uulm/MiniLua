@@ -2,6 +2,7 @@
 
 #include <regex>
 #include <sstream>
+#include <stdexcept>
 
 namespace minilua {
 
@@ -15,17 +16,26 @@ static std::string pattern_scientific_notation = R"((\s*-?\d+\.?\d*[eE]-?\d+))";
 static std::regex to_number_general_pattern(
     pattern_decimal + "|" + pattern_hex + "|" + pattern_scientific_notation,
     std::regex::ECMAScript | std::regex::optimize);
-static std::regex to_number_int_pattern(R"(\s*-?[a-zA-Z0-9]+)");
+static std::regex to_number_int_pattern(R"(\s*-?([0-9]+|(0[xX][a-fA-F0-9]+)))");
 
 auto parse_number_literal(const std::string& str) -> Value {
     // if the string matches the expected format we parse it otherwise return nil
-    if (std::regex_match(str, to_number_general_pattern)) {
-
-        if (std::regex_match(str, to_number_int_pattern)) {
-            return Value(std::stoi(str));
-        } else {
-            return Value(std::stod(str));
+    if (std::regex_match(str, to_number_int_pattern)) {
+        // parse as int and check if whole input is consumed
+        std::size_t last_pos;
+        auto value = std::stoi(str, &last_pos, 0);
+        if (last_pos != str.length()) {
+            throw std::runtime_error("Could not completely parse integer literal. This is a bug.");
         }
+        return Value(value);
+    } else if (std::regex_match(str, to_number_general_pattern)) {
+        // parse as double and check if whole input is consumed
+        std::size_t last_pos;
+        auto value = std::stod(str, &last_pos);
+        if (last_pos != str.length()) {
+            throw std::runtime_error("Could not completely parse float literal. This is a bug.");
+        }
+        return Value(value);
     } else {
         return Nil();
     }

@@ -18,9 +18,9 @@
 
 namespace minilua {
 
-void Environment::create_math_table() {
+auto create_math_table(MemoryAllocator* allocator) -> Table {
     std::unordered_map<Value, Value> math_functions;
-    Table math = this->make_table();
+    Table math(allocator);
     math.set("abs", math::abs);
     math.set("acos", math::acos);
     math.set("asin", math::asin);
@@ -48,7 +48,8 @@ void Environment::create_math_table() {
     // math.set("mininteger", math::MININTEGER);
     math.set("pi", math::PI);
     math.set("huge", math::HUGE);
-    this->add("math", math);
+
+    return math;
 }
 
 namespace math {
@@ -775,11 +776,11 @@ auto type(const CallContext& ctx) -> Value {
     auto x = ctx.arguments().get(0);
 
     if (x.is_number()) {
-        Number num = std::get<Number>(x);
-        double value = num.as_float();
-        double fraction = std::modf(value, &value);
-
-        return Value(fraction == 0.0 ? "integer" : "float");
+        if (std::get<Number>(x).is_int()) {
+            return "integer";
+        } else {
+            return "float";
+        }
     } else {
         return Value(Nil());
     }

@@ -2516,7 +2516,7 @@ TEST_CASE("reverse acos") {
 
         CHECK(
             result.value().collect_first_alternative()[0] ==
-            minilua::SourceChange(minilua::Range(), "1"));
+            minilua::SourceChange(minilua::Range(), "1.0"));
 
         std::string s = "-0.5";
         value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
@@ -2532,7 +2532,7 @@ TEST_CASE("reverse acos") {
 
         CHECK(
             result.value().collect_first_alternative()[0] ==
-            minilua::SourceChange(minilua::Range(), "1"));
+            minilua::SourceChange(minilua::Range(), "1.0"));
 
         SECTION("force value to nan") {
             double x = -0.5;
@@ -2590,7 +2590,7 @@ TEST_CASE("reverse asin") {
 
         CHECK(
             result.value().collect_first_alternative()[0] ==
-            minilua::SourceChange(minilua::Range(), "0"));
+            minilua::SourceChange(minilua::Range(), "0.0"));
 
         std::string s = "-0.5";
         value = minilua::Value(s).with_origin(minilua::LiteralOrigin());
@@ -2606,7 +2606,7 @@ TEST_CASE("reverse asin") {
 
         CHECK(
             result.value().collect_first_alternative()[0] ==
-            minilua::SourceChange(minilua::Range(), "0"));
+            minilua::SourceChange(minilua::Range(), "0.0"));
 
         x = 2;
         value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
@@ -2622,7 +2622,7 @@ TEST_CASE("reverse asin") {
 
         CHECK(
             result.value().collect_first_alternative()[0] ==
-            minilua::SourceChange(minilua::Range(), "0"));
+            minilua::SourceChange(minilua::Range(), "0.0"));
 
         SECTION("force value to nan") {
             double x = -0.5;
@@ -2680,7 +2680,7 @@ TEST_CASE("reverse atan") {
 
             CHECK(
                 result.value().collect_first_alternative()[0] ==
-                minilua::SourceChange(minilua::Range(), "0"));
+                minilua::SourceChange(minilua::Range(), "0.0"));
         }
 
         SECTION("Two parameters") {
@@ -3016,7 +3016,7 @@ TEST_CASE("reverse log") {
 
         CHECK(
             result.value().collect_first_alternative()[0] ==
-            minilua::SourceChange(minilua::Range(), "1"));
+            minilua::SourceChange(minilua::Range(), "1.0"));
     }
 
     SECTION("invalid force") {
@@ -3166,7 +3166,7 @@ TEST_CASE("reverse sqrt") {
 
         CHECK(
             result.value().collect_first_alternative()[0] ==
-            minilua::SourceChange(minilua::Range(), "4"));
+            minilua::SourceChange(minilua::Range(), "4.0"));
     }
 
     SECTION("invalid force") {
