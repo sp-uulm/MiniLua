@@ -1,5 +1,6 @@
 #include "MiniLua/values.hpp"
 
+#include <iterator>
 #include <regex>
 #include <sstream>
 #include <stdexcept>
@@ -19,11 +20,12 @@ auto parse_number_literal(const std::string& str) -> Value {
     if (std::regex_match(str, to_number_int_pattern)) {
         // parse as int and check if whole input is consumed
         try {
-            std::size_t last_pos;
-            // we need to parse as unsigned long so the range is big enough
-            // TODO lua permits arbitrary long literals and just truncates them
-            auto value = static_cast<Number::Int>(std::stoul(str, &last_pos, 0));
-            if (last_pos != str.length()) {
+            char* last_pos;
+            // we need to parse as unsigned long to retain the same behaviour as lua
+            auto value = static_cast<Number::Int>(std::strtoul(str.c_str(), &last_pos, 0));
+            // NOTE this sets `errno` to `ERANGE` if the result is out of range but
+            // we ignore this to automatically truncate the result
+            if (std::distance(str.c_str(), static_cast<const char*>(last_pos)) != str.length()) {
                 throw std::runtime_error(
                     "Could not completely parse integer literal. This is a bug.");
             }
@@ -35,9 +37,10 @@ auto parse_number_literal(const std::string& str) -> Value {
     } else if (std::regex_match(str, to_number_general_pattern)) {
         // parse as double and check if whole input is consumed
         try {
-            std::size_t last_pos;
-            auto value = std::stod(str, &last_pos);
-            if (last_pos != str.length()) {
+            char* last_pos;
+            auto value = std::strtod(str.c_str(), &last_pos);
+            // NOTE if the value is out of range HUGE_VAL is returned
+            if (std::distance(str.c_str(), static_cast<const char*>(last_pos)) != str.length()) {
                 throw std::runtime_error(
                     "Could not completely parse float literal. This is a bug.");
             }
