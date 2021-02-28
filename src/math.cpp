@@ -739,7 +739,7 @@ auto to_integer(const CallContext& ctx) -> Value {
                 return std::nullopt;
             }
             Number n = std::get<Number>(new_value);
-            if (std::fmod(n.as_float(), 1.0) == 0.0) {
+            if (!n.is_float()) {
                 return old_value.force(new_value);
             } else {
                 return std::nullopt;
