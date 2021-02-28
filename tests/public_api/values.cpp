@@ -102,7 +102,7 @@ TEST_CASE("number Value is constructable") {
         CHECK(std::holds_alternative<minilua::Number>(value.raw()));
         CHECK(std::get<minilua::Number>(value.raw()) == 2);
         CHECK(std::get<minilua::Number>(value.raw()).try_as_int() == 2);
-        CHECK(std::get<minilua::Number>(value.raw()).as_float() == 2);
+        CHECK(std::get<minilua::Number>(value.raw()).as_float() == 2.0);
         CHECK(std::get<minilua::Number>(value) == 2);
         CHECK(value.is_number());
     }
