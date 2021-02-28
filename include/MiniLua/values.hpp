@@ -196,7 +196,7 @@ public:
      */
     [[nodiscard]] auto as_float() const -> Float;
     /**
-     * Returns the number if it is an int, otherwise throws an exception.
+     * Returns the number as an int if it is a whole number otherwise throws an exception.
      *
      * @throws std::runtime_error
      */

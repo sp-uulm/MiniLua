@@ -74,8 +74,14 @@ auto Number::try_as_int() const -> Number::Int {
     return this->visit(overloaded{
         [](Number::Int value) { return value; },
         [](Number::Float value) -> Number::Int {
-            throw std::runtime_error(
-                std::string("number has no integer representation ") + std::to_string(value));
+            double num;
+            double fraction = std::modf(value, &num);
+            if (fraction != 0.0) {
+                throw std::runtime_error(
+                    std::string("number has no integer representation ") + std::to_string(value));
+            } else {
+                return (Number::Int)num;
+            }
         },
     });
 }
