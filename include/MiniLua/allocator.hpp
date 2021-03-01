@@ -54,7 +54,7 @@ public:
     auto allocate_table() -> TableImpl*;
 
     /**
-     * @breif Free all objects created through this allocator.
+     * @brief Free all objects created through this allocator.
      *
      * \warning This is highly unsafe! You have to be absolutely certain that
      * none of the values allocated by this will be used again.

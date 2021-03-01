@@ -259,7 +259,7 @@ public:
     /**
      * @brief Visit the root node of the tree of source changes.
      *
-     * \note You have to manually navigate the tree.
+     * \note You have to manually navigate through the tree.
      *
      * `Visitor` has to be callable with `SourceChange&`,
      * `SourceChangeCombination&` and `SourceChangeAlternative&`.
@@ -276,7 +276,7 @@ public:
     /**
      * @brief Visit the root node of the tree of source changes.
      *
-     * \note You have to manually navigate the tree.
+     * \note You have to manually navigate through the tree.
      *
      * `Visitor` has to be callable with `const SourceChange&`,
      * `const SourceChangeCombination&` and `const SourceChangeAlternative&`.

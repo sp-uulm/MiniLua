@@ -149,7 +149,7 @@ public:
      * const auto& [val1, val2, val3] = vallist.tuple<3>();
      * ```
      *
-     * \note The values will be `std::reference_wrapper`s becuase it's not
+     * \note The values will be `std::reference_wrapper`s because it's not
      * possible to put references in a tuple. You have to call `get` on the
      * values before using them.
      */
@@ -560,27 +560,27 @@ public:
     [[nodiscard]] auto size() const -> size_t;
 
     /**
-     * @brief Returns an ierator to the beginning.
+     * @brief Returns an iterator to the beginning.
      */
     auto begin() -> iterator;
     /**
-     * @brief Returns an ierator to the beginning.
+     * @brief Returns an iterator to the beginning.
      */
     [[nodiscard]] auto begin() const -> const_iterator;
     /**
-     * @brief Returns an ierator to the beginning.
+     * @brief Returns an iterator to the beginning.
      */
     [[nodiscard]] auto cbegin() const -> const_iterator;
     /**
-     * @brief Returns an ierator to the end.
+     * @brief Returns an iterator to the end.
      */
     auto end() -> iterator;
     /**
-     * @brief Returns an ierator to the end.
+     * @brief Returns an iterator to the end.
      */
     [[nodiscard]] auto end() const -> const_iterator;
     /**
-     * @brief Returns an ierator to the end.
+     * @brief Returns an iterator to the end.
      */
     [[nodiscard]] auto cend() const -> const_iterator;
 

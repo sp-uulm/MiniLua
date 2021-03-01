@@ -34,12 +34,12 @@ private:
 
 public:
     /**
-     * @brief Create an empty with environment with the default C++ I/O streams
+     * @brief Create an empty environment with the default C++ I/O streams
      * in the @ref GLOBAL_ALLOCATOR.
      */
     Environment();
     /**
-     * @brief Create an empty with environment with the default C++ I/O streams
+     * @brief Create an empty environment with the default C++ I/O streams
      * in the given `allocator`.
      */
     Environment(MemoryAllocator* allocator);

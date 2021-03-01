@@ -206,7 +206,7 @@ struct Point {
      * Returns the Point as a pretty printed string. By default the row and
      * column start at 0 (which is not usually how code locations are counted).
      * If you want the row and column to start at 1 you need to call it with
-     * parameter true.
+     * parameter `true`.
      *
      * @param start_at_one Default to `false`.
      *      If `true` the row and column will be printed starting at 1 otherwise
@@ -323,7 +323,7 @@ public:
     /**
      * @brief Get the raw TSLanguage pointer.
      *
-     * \warning Use with care. Only intended vor internal use in the wrapper
+     * \warning Use with care. Only intended for internal use in the wrapper
      * types. Never free or delete this pointer.
      */
     [[nodiscard]] const TSLanguage* raw() const;
@@ -545,7 +545,7 @@ public:
     [[nodiscard]] const char* type() const;
 
     /**
-     * @brief The numeric TypeId if the node.
+     * @brief The numeric TypeId of the node.
      *
      * In tree-sitter this is called *symbol*.
      */
@@ -638,7 +638,7 @@ public:
      *
      * This will also return anonymous nodes.
      *
-     * Returns `std::nullopt` this node is already the first sibling.
+     * Returns `std::nullopt` if this node is already the first sibling.
      */
     [[nodiscard]] std::optional<Node> prev_sibling() const;
 
@@ -656,7 +656,7 @@ public:
      *
      * This will not return anonymous nodes.
      *
-     * Returns `std::nullopt` this node is already the first named sibling.
+     * Returns `std::nullopt` if this node is already the first named sibling.
      */
     [[nodiscard]] std::optional<Node> prev_named_sibling() const;
 
@@ -666,7 +666,7 @@ public:
     [[nodiscard]] std::uint32_t start_byte() const;
 
     /**
-     * @brief Start position as byte offset.
+     * @brief End position as byte offset.
      *
      * Returns the position **after** the last character.
      */
