@@ -10,6 +10,9 @@
 
 #include "MiniLua/values.hpp"
 
+/**
+ * @brief Math functions in the lua standard library.
+ */
 namespace minilua::math {
 
 const Number::Int MAXINTEGER = LONG_MAX;
