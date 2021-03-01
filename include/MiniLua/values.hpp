@@ -5,6 +5,7 @@
 #include <cmath>
 #include <functional>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>
 #include <variant>
@@ -237,16 +238,31 @@ DELEGATE_OP(Bool, ||);
 DELEGATE_OP(Bool, ^);
 
 /**
- * @brief A lua number value.
+ * Numbers in lua can be integers or floats.
+ *
+ * \note Int and Float does not have the same meaning as in C++.
+ * See @ref Number::Int and @ref Number::Float.
+ *
+ * The Number type automatically converts Int to Float according to the rules
+ * of lua.
+ *
+ * The equals and hash implementation treat whole Floats and like their
+ * equivalent Ints.
  *
  * Supports comparison operators and `+`, `-`, `*`, `/`, `^` (exponentiation),
  * `%`, `&`, `|`.
  *
  * Is hashable.
  */
-struct Number {
-    double value; // NOLINT(misc-non-private-member-variables-in-classes)
+class Number {
+public:
+    using Int = long;
+    using Float = double;
 
+private:
+    std::variant<Int, Float> value;
+
+public:
     /**
      * @brief The type of this value as a string.
      */
@@ -255,11 +271,15 @@ struct Number {
     /**
      * @brief Creates a number form an int.
      */
-    constexpr Number(int value) : value(value) {}
+    constexpr Number(int value) : value((Int)value) {}
     /**
-     * @brief Creates a number form a double.
+     * @brief Creates a number form a Int.
      */
-    constexpr Number(double value) : value(value) {}
+    constexpr Number(Int value) : value(value) {}
+    /**
+     * @brief Creates a number form a Float.
+     */
+    constexpr Number(Float value) : value(value) {}
 
     /**
      * @brief Converts the value to it's literal representation.
@@ -272,35 +292,95 @@ struct Number {
     explicit operator bool() const;
 
     /**
+     * @brief Converts the number to a float.
+     *
+     * If it is an int otherwise just returns the number.
+     *
+     * \note This actually returns a double but they are called float in lua.
+     */
+    [[nodiscard]] auto as_float() const -> Float;
+    /**
+     * @brief Returns the number as an int if it is a whole number.
+     *
+     * Otherwise throws an exception.
+     *
+     * @throws std::runtime_error
+     */
+    [[nodiscard]] auto try_as_int() const -> Int;
+
+    /**
+     * @brief Convert to Int.
+     *
+     * By casting the Float to an Int (if it is not already an Int).
+     */
+    [[nodiscard]] auto convert_to_int() const -> Int;
+
+    [[nodiscard]] auto raw() const -> std::variant<Int, Float>;
+
+    /**
      * @brief Check if the number is an int.
      */
     [[nodiscard]] auto is_int() const -> bool;
-};
-constexpr auto operator==(Number lhs, Number rhs) noexcept -> bool {
-    return lhs.value == rhs.value;
-}
-constexpr auto operator!=(Number lhs, Number rhs) noexcept -> bool { return !(lhs == rhs); }
-constexpr auto operator<(Number lhs, Number rhs) noexcept -> bool { return lhs.value < rhs.value; }
-constexpr auto operator>(Number lhs, Number rhs) noexcept -> bool { return lhs.value > rhs.value; }
-constexpr auto operator<=(Number lhs, Number rhs) noexcept -> bool {
-    return lhs.value <= rhs.value;
-}
-constexpr auto operator>=(Number lhs, Number rhs) noexcept -> bool {
-    return lhs.value >= rhs.value;
-}
-auto operator<<(std::ostream&, Number) -> std::ostream&;
+    [[nodiscard]] auto is_float() const -> bool;
 
-// normal c++ operators
-auto operator-(Number self) -> Number;
-DELEGATE_OP(Number, +);
-DELEGATE_OP(Number, -);
-DELEGATE_OP(Number, *);
-DELEGATE_OP(Number, /);
-// exponentiation (pow)
-auto operator^(Number lhs, Number rhs) -> Number;
-auto operator%(Number lhs, Number rhs) -> Number;
-auto operator&(Number lhs, Number rhs) -> Number;
-auto operator|(Number lhs, Number rhs) -> Number;
+    template <typename Fn> auto visit(Fn fn) const {
+        static_assert(std::is_invocable_v<Fn, Int>, "fn must be invocable with an int parameter");
+        static_assert(
+            std::is_invocable_v<Fn, Float>, "fn must be invocable with a double parameter");
+
+        return std::visit(fn, this->value);
+    }
+
+    /**
+     * @brief Invoke the given function with either two Ints or two Floats.
+     *
+     * If one of the numbers (either this or rhs) is a Float the other one will
+     * also be converted to a Float if it is not one.
+     */
+    template <typename Fn> auto apply_with_number_rules(const Number& rhs, Fn fn) const {
+        static_assert(std::is_invocable_v<Fn, Int, Int>);
+        static_assert(std::is_invocable_v<Fn, Float, Float>);
+
+        return std::visit(
+            overloaded{
+                [&fn](Int lhs, Int rhs) { return fn(lhs, rhs); },
+                [&fn](Float lhs, Int rhs) { return fn(lhs, static_cast<double>(rhs)); },
+                [&fn](Int lhs, Float rhs) { return fn(static_cast<double>(lhs), rhs); },
+                [&fn](Float lhs, Float rhs) { return fn(lhs, rhs); },
+            },
+            this->value, rhs.value);
+    }
+
+    friend auto operator==(Number lhs, Number rhs) noexcept -> bool;
+    friend auto operator!=(Number lhs, Number rhs) noexcept -> bool;
+    friend auto operator<(Number lhs, Number rhs) noexcept -> bool;
+    friend auto operator>(Number lhs, Number rhs) noexcept -> bool;
+    friend auto operator<=(Number lhs, Number rhs) noexcept -> bool;
+    friend auto operator>=(Number lhs, Number rhs) noexcept -> bool;
+
+    friend auto operator<<(std::ostream&, Number) -> std::ostream&;
+
+    friend auto operator-(Number self) -> Number;
+    friend auto operator+(const Number& lhs, const Number& rhs) -> Number;
+    friend auto operator-(const Number& lhs, const Number& rhs) -> Number;
+    friend auto operator*(const Number& lhs, const Number& rhs) -> Number;
+    friend auto operator/(const Number& lhs, const Number& rhs) -> Number;
+
+    [[nodiscard]] auto int_div(const Number& rhs) const -> Number;
+    // We don't use the "normal" C++ operators because they don't cover all lua operators
+    [[nodiscard]] auto pow(const Number& rhs) const -> Number;
+    [[nodiscard]] auto mod(const Number& rhs) const -> Number;
+    // We can't give these methods propert names because C++ has alternate operator tokens
+    // In particular using bitand, bitor, and, or and not is illegal syntax
+    [[nodiscard]] auto bit_and(const Number& rhs) const -> Number;
+    [[nodiscard]] auto bit_or(const Number& rhs) const -> Number;
+    [[nodiscard]] auto bit_xor(const Number& rhs) const -> Number;
+    [[nodiscard]] auto bit_shl(const Number& rhs) const -> Number;
+    [[nodiscard]] auto bit_shr(const Number& rhs) const -> Number;
+    [[nodiscard]] auto bit_not() const -> Number;
+    [[nodiscard]] auto logic_and(const Number& rhs) const -> Number;
+    [[nodiscard]] auto logic_or(const Number& rhs) const -> Number;
+};
 
 /**
  * @brief A lua string value.
@@ -757,7 +837,7 @@ public:
      *
      * See also: `CallContext::binary_numeric_args_helper`.
      */
-    [[nodiscard]] auto unary_numeric_arg_helper() const -> std::tuple<double, UnaryOrigin>;
+    [[nodiscard]] auto unary_numeric_arg_helper() const -> std::tuple<Number, UnaryOrigin>;
     /**
      * @brief Convenience method for writing unary numeric functions.
      *
@@ -775,7 +855,7 @@ public:
      * See also: `CallContext::unary_numeric_arg_helper`.
      */
     [[nodiscard]] auto binary_numeric_args_helper() const
-        -> std::tuple<double, double, BinaryOrigin>;
+        -> std::tuple<Number, Number, BinaryOrigin>;
 
     friend auto operator<<(std::ostream&, const CallContext&) -> std::ostream&;
 };
@@ -1276,6 +1356,7 @@ public:
      * @brief Creates a value using the given int value.
      */
     Value(int val);
+    Value(long val);
     /**
      * @brief Creates a value using the given double value.
      */
@@ -1548,6 +1629,11 @@ public:
     [[nodiscard]] auto div(const Value& rhs, std::optional<Range> location = std::nullopt) const
         -> Value;
     /**
+     * @brief integer division
+     */
+    [[nodiscard]] auto int_div(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    /**
      * @brief binary `^` operator
      */
     [[nodiscard]] auto pow(const Value& rhs, std::optional<Range> location = std::nullopt) const
@@ -1569,6 +1655,26 @@ public:
      */
     [[nodiscard]] auto bit_or(const Value& rhs, std::optional<Range> location = std::nullopt) const
         -> Value;
+    /**
+     * @brief Bitwise xor.
+     */
+    [[nodiscard]] auto bit_xor(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    /**
+     * @brief Bitwise shift left.
+     */
+    [[nodiscard]] auto bit_shl(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    /**
+     * @brief Bitwise shift right.
+     */
+    [[nodiscard]] auto bit_shr(const Value& rhs, std::optional<Range> location = std::nullopt) const
+        -> Value;
+    /**
+     * @brief Bitwise `not` operator.
+     */
+    [[nodiscard]] auto bit_not(std::optional<Range> location = std::nullopt) const -> Value;
+
     /**
      * @brief binary `and` operator
      */
@@ -1671,19 +1777,21 @@ namespace minilua {
  * @brief Helper to create the reverse function for `UnaryOrigin` or
  * `UnaryNumericFunctionHelper`.
  *
- * You only need to supply a function that accepts two `double`s (the new and
- * old values) and returns `double` (the new value for the parameter).
+ * You only need to supply a function that accepts one `Number` (the new value for the result)
+ * and returns `Number` (the new value for the parameter).
  *
  * \note Don't use this if the reverse can fail.
  *
  * See also: @ref binary_num_reverse.
  */
 template <typename Fn> auto unary_num_reverse(Fn fn) -> decltype(auto) {
+    static_assert(std::is_invocable_r_v<Number, Fn, Number>);
+
     return [fn](const Value& new_value, const Value& old_value) -> std::optional<SourceChangeTree> {
         if (!new_value.is_number() || !old_value.is_number()) {
             return std::nullopt;
         }
-        double num = std::get<Number>(new_value).value;
+        auto num = std::get<Number>(new_value);
         return old_value.force(fn(num));
     };
 }
@@ -1692,9 +1800,8 @@ template <typename Fn> auto unary_num_reverse(Fn fn) -> decltype(auto) {
  * @brief Helper to create the reverse function for `BinaryOrigin` or
  * `BinaryNumericFunctionHelper`.
  *
- * You only need to supply a function that accepts two `double`s (the new value
- * and old lhs/rhs value) and returns `double` (the new value for the lhs/rhs
- * parameter).
+ * You only need to supply a function that accepts two `Number`s (the new value and old lhs/rhs
+ * value) and returns `Number` (the new value for the lhs/rhs parameter).
  *
  * \note Don't use this if the reverse can fail.
  *
@@ -1703,15 +1810,18 @@ template <typename Fn> auto unary_num_reverse(Fn fn) -> decltype(auto) {
 template <typename FnLeft, typename FnRight>
 auto binary_num_reverse(FnLeft fn_left, FnRight fn_right, std::string origin = "")
     -> decltype(auto) {
+    static_assert(std::is_invocable_r_v<Number, FnLeft, Number, Number>);
+    static_assert(std::is_invocable_r_v<Number, FnRight, Number, Number>);
+
     return [fn_left, fn_right, origin = std::move(origin)](
                const Value& new_value, const Value& old_lhs,
                const Value& old_rhs) -> std::optional<SourceChangeTree> {
         if (!new_value.is_number() || !old_lhs.is_number() || !old_rhs.is_number()) {
             return std::nullopt;
         }
-        double num = std::get<Number>(new_value).value;
-        double lhs_num = std::get<Number>(old_lhs).value;
-        double rhs_num = std::get<Number>(old_rhs).value;
+        auto num = std::get<Number>(new_value);
+        auto lhs_num = std::get<Number>(old_lhs);
+        auto rhs_num = std::get<Number>(old_rhs);
 
         auto lhs_change = old_lhs.force(fn_left(num, rhs_num));
         auto rhs_change = old_rhs.force(fn_right(num, lhs_num));
@@ -1730,9 +1840,8 @@ auto binary_num_reverse(FnLeft fn_left, FnRight fn_right, std::string origin = "
  *
  * \note Don't use this if the reverse can fail.
  *
- * With this helper you don't have to manually match the `Value`s you just have
- * to provide functions that take `double` values and return `double` values
- * for:
+ * With this helper you don't have to manually match the `Value`s you just have to
+ * provide functions that take `Number` values and return `Number` values for:
  *
  * 1. the normal function you want to write
  * 2. the reverse function for propagating the changed result to the parameter
@@ -1742,8 +1851,9 @@ auto binary_num_reverse(FnLeft fn_left, FnRight fn_right, std::string origin = "
  * ```cpp
  * function sqrt_impl(const CallContext& ctx) -> Value {
  *     return minilua::UnaryNumericFunctionHelper{
- *         [](double param) { return std::sqrt(param); },
- *         [](double new_value, double old_param) { return new_value * new_value; },
+ *         [](Number param) { return std::sqrt(param.as_float()); },
+ *         [](Number new_value, Number old_param) { return new_value.as_float() *
+ * new_value.as_float(); },
  *      }(ctx);
  * }
  * ```
@@ -1773,9 +1883,8 @@ template <typename... Ts> UnaryNumericFunctionHelper(Ts...) -> UnaryNumericFunct
  *
  * \note Don't use this if the reverse can fail.
  *
- * With this helper you don't have to manually match the `Value`s you just have
- * to provide functions that take `double` values and return `double` values
- * for:
+ * With this helper you don't have to manually match the `Value`s you just have to
+ * provide functions that take `Number` values and return `Number` values for:
  *
  * 1. the normal function you want to write
  * 2. the reverse function for propagating the changed result to the left parameter
@@ -1786,9 +1895,11 @@ template <typename... Ts> UnaryNumericFunctionHelper(Ts...) -> UnaryNumericFunct
  * ```cpp
  * function pow_impl(const CallContext& ctx) -> Value {
  *     return minilua::BinaryNumericFunctionHelper{
- *         [](double lhs, double rhs) { return std::pow(lhs, rhs); },
- *         [](double new_value, double old_rhs) { return std::pow(new_value, 1 / old_rhs); },
- *         [](double new_value, double old_lhs) { return std::log(new_value) / std::log(old_lhs); }
+ *         [](Number lhs, double rhs) { return std::pow(lhs.as_float(), rhs.as_float()); },
+ *         [](Number new_value, Number old_rhs) { return std::pow(new_value.as_float(), 1 /
+ * old_rhs.as_float()); },
+ *         [](Number new_value, Number old_lhs) { return std::log(new_value.as_float()) /
+ * std::log(old_lhs.as_float()); }
  *      }(ctx);
  * }
  * ```

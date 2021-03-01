@@ -101,7 +101,8 @@ TEST_CASE("number Value is constructable") {
         const minilua::Value value{2};
         CHECK(std::holds_alternative<minilua::Number>(value.raw()));
         CHECK(std::get<minilua::Number>(value.raw()) == 2);
-        CHECK(std::get<minilua::Number>(value.raw()).value == 2);
+        CHECK(std::get<minilua::Number>(value.raw()).try_as_int() == 2);
+        CHECK(std::get<minilua::Number>(value.raw()).as_float() == 2.0);
         CHECK(std::get<minilua::Number>(value) == 2);
         CHECK(value.is_number());
     }
@@ -111,7 +112,8 @@ TEST_CASE("number Value is constructable") {
         const minilua::Value value{expected_value};
         CHECK(std::holds_alternative<minilua::Number>(value.raw()));
         CHECK(std::get<minilua::Number>(value.raw()) == expected_value);
-        CHECK(std::get<minilua::Number>(value.raw()).value == expected_value);
+        CHECK(std::get<minilua::Number>(value.raw()).try_as_int() == -2e12); // NOLINT
+        CHECK(std::get<minilua::Number>(value.raw()).as_float() == expected_value);
         CHECK(std::get<minilua::Number>(value) == expected_value);
         CHECK(value.is_number());
     }
@@ -121,7 +123,16 @@ TEST_CASE("number Value to literal") {
     const minilua::Value value{2};
     CHECK(value.to_literal() == "2");
     const minilua::Value value2{-2e12};
-    CHECK(value2.to_literal() == "-2000000000000");
+    CHECK(value2.to_literal() == "-2000000000000.0");
+}
+
+TEST_CASE("number Value int and float equality") {
+    CHECK(minilua::Value(2) == minilua::Value(2.0));                             // NOLINT
+    CHECK(std::hash<minilua::Value>{}(2) == std::hash<minilua::Value>{}(2.0));   // NOLINT
+    CHECK(minilua::Value(0) == minilua::Value(0.0));                             // NOLINT
+    CHECK(std::hash<minilua::Value>{}(0) == std::hash<minilua::Value>{}(0.0));   // NOLINT
+    CHECK(minilua::Value(10) != minilua::Value(10.1));                           // NOLINT
+    CHECK(std::hash<minilua::Value>{}(10) != std::hash<minilua::Value>{}(10.1)); // NOLINT
 }
 
 TEST_CASE("string Value is constructable") {
@@ -574,14 +585,17 @@ TEST_CASE("modulo of two Values") {
         minilua::Value value1{5.4}; // NOLINT
         minilua::Value value2{2.1}; // NOLINT
 
-        REQUIRE(std::fmod(5.4, 2.1) == Approx(1.2));                                      // NOLINT
-        REQUIRE(std::get<minilua::Number>((value1 % value2).raw()).value == Approx(1.2)); // NOLINT
+        REQUIRE(std::fmod(5.4, 2.1) == Approx(1.2)); // NOLINT
+        REQUIRE(
+            std::get<minilua::Number>((value1 % value2).raw()).as_float() == Approx(1.2)); // NOLINT
 
-        REQUIRE(std::get<minilua::Number>(value1.mod(value2).raw()).value == Approx(1.2)); // NOLINT
+        REQUIRE(
+            std::get<minilua::Number>(value1.mod(value2).raw()).as_float() ==
+            Approx(1.2)); // NOLINT
 
         auto range = minilua::Range{{0, 0, 0}, {0, 10, 10}}; // NOLINT
         auto res = value1.mod(value2, range);
-        REQUIRE(std::get<minilua::Number>(res).value == Approx(1.2)); // NOLINT
+        REQUIRE(std::get<minilua::Number>(res).as_float() == Approx(1.2)); // NOLINT
         REQUIRE(std::get<minilua::BinaryOrigin>(res.origin().raw()).location == range);
     }
     SECTION("can't take modulo of two non numbers") {

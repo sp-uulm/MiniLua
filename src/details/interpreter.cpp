@@ -1,6 +1,7 @@
 #include "interpreter.hpp"
 #include "MiniLua/environment.hpp"
 #include "MiniLua/interpreter.hpp"
+#include "MiniLua/stdlib.hpp"
 #include "ast.hpp"
 #include "tree_sitter/tree_sitter.hpp"
 
@@ -105,6 +106,7 @@ auto Interpreter::setup_environment(Env& user_env) -> Env {
     Env env(user_env.allocator());
 
     this->execute_stdlib(env);
+    env.global().set("math", create_math_table(env.allocator()));
 
     // apply user overwrites
     // NOTE we only consider global variables because the user can only set
@@ -934,18 +936,10 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
         IMPL(AND, logic_and)
         IMPL(BIT_OR, bit_or)
         IMPL(BIT_AND, bit_and)
-    case ast::BinOpEnum::SHIFT_LEFT:
-        throw UNIMPLEMENTED("shift left");
-        break;
-    case ast::BinOpEnum::SHIFT_RIGHT:
-        throw UNIMPLEMENTED("shift right");
-        break;
-    case ast::BinOpEnum::BIT_XOR:
-        throw UNIMPLEMENTED("bitwise xor");
-        break;
-    case ast::BinOpEnum::INT_DIV:
-        throw UNIMPLEMENTED("intdiv");
-        break;
+        IMPL(SHIFT_LEFT, bit_shl)
+        IMPL(SHIFT_RIGHT, bit_shr)
+        IMPL(BIT_XOR, bit_xor)
+        IMPL(INT_DIV, int_div)
     }
 
 #undef IMPL
@@ -970,9 +964,7 @@ auto Interpreter::visit_unary_operation(ast::UnaryOperation unary_op, Env& env) 
         IMPL(NOT, invert)
         IMPL(NEG, negate)
         IMPL(LEN, len)
-    case ast::UnOpEnum::BWNOT:
-        throw UNIMPLEMENTED("bitwise not");
-        break;
+        IMPL(BWNOT, bit_not)
     }
 
 #undef IMPL

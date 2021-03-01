@@ -76,13 +76,6 @@ public:
     [[nodiscard]] auto make_table() const -> Table;
 
     /**
-     * Adds the math-functions to a table and inserts this table to the global environment
-     *
-     * TODO move this to the interpreter
-     */
-    void create_math_table();
-
-    /**
      * @brief Add a variable to the environment.
      */
     void add(const std::string& name, Value value);

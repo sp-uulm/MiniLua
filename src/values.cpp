@@ -4,6 +4,7 @@
 #include "MiniLua/utils.hpp"
 
 #include <cmath>
+#include <iomanip>
 #include <iostream>
 #include <regex>
 #include <set>
@@ -36,54 +37,124 @@ auto operator<<(std::ostream& os, Bool self) -> std::ostream& {
 }
 Bool::operator bool() const { return this->value; }
 
-// struct Number
+// class Number
 [[nodiscard]] auto Number::to_literal() const -> std::string {
     // NOTE: use stringstream so we get better formatting than with std::to_string
     std::ostringstream result;
-    if (this->is_int()) {
-        result << static_cast<long>(this->value);
-    } else {
-        // TODO maybe we can use a better float representation algorithm than the default c++
-        // (not sure what c++ uses by default)
-
-        result << this->value;
-    }
+    this->visit(overloaded{
+        [&result](Number::Int value) { result << value; },
+        [&result](Number::Float value) {
+            if (ceil(value) == value) {
+                // always output the .0 for whole numbers
+                result << std::setprecision(1) << std::fixed;
+            }
+            result << value;
+        },
+    });
+    // TODO maybe we can use a better float representation algorithm than the default c++
+    // (not sure what c++ uses by default or if it is the same on all compilers)
     return result.str();
 }
 auto operator<<(std::ostream& os, Number self) -> std::ostream& {
-    return os << "Number(" << self.value << ")";
+    os << "Number(";
+    self.visit(overloaded{
+        [&os](Number::Int value) { os << value; },
+        [&os](Number::Float value) { os << value; },
+    });
+    return os << ")";
 }
 Number::operator bool() const { return true; }
-auto Number::is_int() const -> bool { return this->value == std::floor(this->value); }
-
-auto operator-(Number self) -> Number { return -self.value; }
-auto operator^(Number lhs, Number rhs) -> Number { return std::pow(lhs.value, rhs.value); }
-auto operator%(Number lhs, Number rhs) -> Number { return Number(std::fmod(lhs.value, rhs.value)); }
-auto operator&(Number lhs, Number rhs) -> Number {
-    if (lhs.value != std::floor(lhs.value)) {
-        throw std::runtime_error("lhs of bitwise and is not an integer");
-    }
-    if (rhs.value != std::floor(rhs.value)) {
-        throw std::runtime_error("rhs of bitwise and is not an integer");
-    }
-    // TODO is int big enough or do we need long?
-    int lhs_int = lhs.value;
-    int rhs_int = rhs.value;
-
-    return Number(lhs_int & rhs_int);
+auto Number::as_float() const -> Number::Float {
+    return this->visit(overloaded{
+        [](Number::Int value) { return static_cast<Number::Float>(value); },
+        [](Number::Float value) { return value; },
+    });
 }
-auto operator|(Number lhs, Number rhs) -> Number {
-    if (lhs.value != std::floor(lhs.value)) {
-        throw std::runtime_error("lhs of bitwise or is not an integer");
-    }
-    if (rhs.value != std::floor(rhs.value)) {
-        throw std::runtime_error("rhs of bitwise or is not an integer");
-    }
-    // TODO is int big enough or do we need long?
-    int lhs_int = lhs.value;
-    int rhs_int = rhs.value;
+auto Number::try_as_int() const -> Number::Int {
+    return this->visit(overloaded{
+        [](Number::Int value) { return value; },
+        [](Number::Float value) -> Number::Int {
+            double num;
+            double fraction = std::modf(value, &num);
+            if (fraction != 0.0) {
+                throw std::runtime_error(
+                    std::string("number has no integer representation ") + std::to_string(value));
+            } else {
+                return (Number::Int)num;
+            }
+        },
+    });
+}
+auto Number::convert_to_int() const -> Int {
+    return this->visit(overloaded{
+        [](Number::Int value) { return value; },
+        [](Number::Float value) -> Number::Int { return static_cast<Number::Int>(value); },
+    });
+}
+auto Number::raw() const -> std::variant<Int, Float> { return this->value; }
+auto Number::is_int() const -> bool { return std::holds_alternative<Int>(this->value); }
+auto Number::is_float() const -> bool { return std::holds_alternative<Float>(this->value); }
 
-    return Number(lhs_int | rhs_int);
+auto operator-(Number self) -> Number {
+    return self.visit(overloaded{
+        [](Number::Int value) { return Number(-value); },
+        [](Number::Float value) { return Number(-value); },
+    });
+}
+
+auto operator+(const Number& lhs, const Number& rhs) -> Number {
+    return lhs.apply_with_number_rules(rhs, [](auto lhs, auto rhs) { return Number(lhs + rhs); });
+}
+auto operator-(const Number& lhs, const Number& rhs) -> Number {
+    return lhs.apply_with_number_rules(rhs, [](auto lhs, auto rhs) { return Number(lhs - rhs); });
+}
+auto operator*(const Number& lhs, const Number& rhs) -> Number {
+    return lhs.apply_with_number_rules(rhs, [](auto lhs, auto rhs) { return Number(lhs * rhs); });
+}
+auto operator/(const Number& lhs, const Number& rhs) -> Number {
+    return lhs.as_float() / rhs.as_float();
+}
+auto Number::int_div(const Number& rhs) const -> Number {
+    return static_cast<Number::Int>(this->as_float() / rhs.as_float());
+}
+auto Number::pow(const Number& rhs) const -> Number {
+    return std::pow(this->as_float(), rhs.as_float());
+}
+auto Number::mod(const Number& rhs) const -> Number {
+    return std::fmod(this->as_float(), rhs.as_float());
+}
+auto Number::bit_and(const Number& rhs) const -> Number {
+    return this->try_as_int() & rhs.try_as_int();
+}
+auto Number::bit_or(const Number& rhs) const -> Number {
+    return this->try_as_int() | rhs.try_as_int();
+}
+auto Number::bit_xor(const Number& rhs) const -> Number {
+    return this->try_as_int() ^ rhs.try_as_int();
+}
+auto Number::bit_shl(const Number& rhs) const -> Number {
+    return this->try_as_int() << rhs.try_as_int();
+}
+auto Number::bit_shr(const Number& rhs) const -> Number {
+    return this->try_as_int() >> rhs.try_as_int();
+}
+auto Number::bit_not() const -> Number { return ~this->try_as_int(); }
+
+auto operator==(Number lhs, Number rhs) noexcept -> bool {
+    return lhs.apply_with_number_rules(rhs, [](auto lhs, auto rhs) { return lhs == rhs; });
+}
+auto operator!=(Number lhs, Number rhs) noexcept -> bool { return !(lhs == rhs); }
+auto operator<(Number lhs, Number rhs) noexcept -> bool {
+    return lhs.apply_with_number_rules(rhs, [](auto lhs, auto rhs) { return lhs < rhs; });
+}
+auto operator>(Number lhs, Number rhs) noexcept -> bool {
+    return lhs.apply_with_number_rules(rhs, [](auto lhs, auto rhs) { return lhs > rhs; });
+}
+auto operator<=(Number lhs, Number rhs) noexcept -> bool {
+    return lhs.apply_with_number_rules(rhs, [](auto lhs, auto rhs) { return lhs <= rhs; });
+}
+auto operator>=(Number lhs, Number rhs) noexcept -> bool {
+    return lhs.apply_with_number_rules(rhs, [](auto lhs, auto rhs) { return lhs >= rhs; });
 }
 
 // helper function to escape characters in string literals
@@ -208,9 +279,9 @@ auto CallContext::get(const std::string& name) const -> Value { return impl->env
 auto CallContext::arguments() const -> const Vallist& { return impl->args; }
 
 [[nodiscard]] auto CallContext::unary_numeric_arg_helper() const
-    -> std::tuple<double, UnaryOrigin> {
+    -> std::tuple<Number, UnaryOrigin> {
     auto arg = this->arguments().get(0);
-    auto num = std::get<Number>(arg.to_number(Nil(), this->call_location())).value;
+    auto num = std::get<Number>(arg.to_number(Nil(), this->call_location()));
 
     auto origin = minilua::UnaryOrigin{
         .val = minilua::make_owning<minilua::Value>(arg),
@@ -221,12 +292,12 @@ auto CallContext::arguments() const -> const Vallist& { return impl->args; }
 }
 
 [[nodiscard]] auto CallContext::binary_numeric_args_helper() const
-    -> std::tuple<double, double, BinaryOrigin> {
+    -> std::tuple<Number, Number, BinaryOrigin> {
     auto arg1 = this->arguments().get(0);
     auto arg2 = this->arguments().get(1);
 
-    auto num1 = std::get<Number>(arg1.to_number(Nil(), this->call_location())).value;
-    auto num2 = std::get<Number>(arg2.to_number(Nil(), this->call_location())).value;
+    auto num1 = std::get<Number>(arg1.to_number(Nil(), this->call_location()));
+    auto num2 = std::get<Number>(arg2.to_number(Nil(), this->call_location()));
 
     auto origin = minilua::BinaryOrigin{
         .lhs = minilua::make_owning<minilua::Value>(arg1),
@@ -478,6 +549,7 @@ Value::Value(Bool val) : impl(make_owning<Impl>(Impl{.val = val})) {}
 Value::Value(bool val) : Value(Bool(val)) {}
 Value::Value(Number val) : impl(make_owning<Impl>(Impl{.val = val})) {}
 Value::Value(int val) : Value(Number(val)) {}
+Value::Value(long val) : Value(Number(val)) {}
 Value::Value(double val) : Value(Number(val)) {}
 Value::Value(String val) : impl(make_owning<Impl>(Impl{.val = val})) {}
 Value::Value(std::string val) : Value(String(std::move(val))) {}
@@ -625,41 +697,30 @@ Value::operator bool() const {
     return std::visit([](const auto& value) { return bool(value); }, this->impl->val);
 }
 
-// create a static variable for the regex so it is only compiled once
-static std::string pattern_decimal = R"((\s*-?\d+\.?\d*))";
-static std::string pattern_hex = R"((\s*-?0[xX][\dA-Fa-f]+\.?[\dA-Fa-f]*))";
-static std::string pattern_scientific_notation = R"((\s*-?\d+\.?\d*[eE]-?\d+))";
-static std::regex to_number_general_pattern(
-    pattern_decimal + "|" + pattern_hex + "|" + pattern_scientific_notation,
-    std::regex::ECMAScript | std::regex::optimize);
-static std::regex to_number_int_pattern(R"(\s*-?[a-zA-Z0-9]+)");
-
 auto Value::to_number(const Value base, std::optional<Range> location) const -> Value {
     return std::visit(
         overloaded{
             [this, &location](const String& number, const Nil& /*nil*/) -> Value {
-                // if the string matches the expected format we parse it otherwise return nil
-                if (std::regex_match(number.value, to_number_general_pattern)) {
-                    auto origin = UnaryOrigin{
-                        .val = make_owning<Value>(*this),
-                        .location = location,
-                        .reverse = [](const Value& new_value,
-                                      const Value& old_value) -> std::optional<SourceChangeTree> {
-                            if (new_value.is_number()) {
-                                // TODO maybe produce the same format as the old value
-                                return old_value.force(new_value.to_string());
-                            } else {
-                                return std::nullopt;
-                            }
-                        },
-                    };
-                    return Value(std::stod(number.value)).with_origin(Origin(origin));
-                } else {
-                    return Nil();
-                }
+                // same behaviour as number literal parsing but add a different origin
+                auto origin = UnaryOrigin{
+                    .val = make_owning<Value>(*this),
+                    .location = location,
+                    .reverse = [](const Value& new_value,
+                                  const Value& old_value) -> std::optional<SourceChangeTree> {
+                        if (new_value.is_number()) {
+                            // TODO maybe produce the same format as the old value
+                            return old_value.force(new_value.to_string());
+                        } else {
+                            return std::nullopt;
+                        }
+                    },
+                };
+                return parse_number_literal(number.value).with_origin(origin);
             },
             [this, base_value = base,
              &location](const String& number, const Number& base) -> Value {
+                static std::regex to_number_int_pattern(R"(\s*-?[a-zA-Z0-9]+)");
+
                 // NOTE: we only parse ints when we get a base
                 // the base has to be between 2 adn 35 (because numbers with other bases
                 // are not representable strings)
@@ -687,8 +748,8 @@ auto Value::to_number(const Value base, std::optional<Range> location) const -> 
                                     Number base = std::get<Number>(old_base);
                                     Number new_number = std::get<Number>(new_value);
                                     if (new_number.is_int()) {
-                                        return old_lhs.force(
-                                            to_string_with_base(new_number.value, base.value));
+                                        return old_lhs.force(to_string_with_base(
+                                            new_number.try_as_int(), base.try_as_int()));
                                     } else {
                                         return std::nullopt;
                                     }
@@ -696,8 +757,15 @@ auto Value::to_number(const Value base, std::optional<Range> location) const -> 
                                     return std::nullopt;
                                 }
                             }};
-                        return Value(std::stoi(number.value, nullptr, base.value))
-                            .with_origin(origin);
+
+                        // try to parse as int and check if whole input is consumed
+                        std::size_t last_pos;
+                        Number::Int value = std::stoi(number.value, &last_pos, base.try_as_int());
+                        if (last_pos != number.value.size()) {
+                            return Nil();
+                        }
+
+                        return Value(value).with_origin(origin);
                     } catch (const std::invalid_argument& /*unused*/) {
                         // invalid base returns nil
                         return Nil();
@@ -740,6 +808,9 @@ template <typename Fn, typename FnRev>
 static inline auto num_op_helper(
     const Value& lhs, const Value& rhs, Fn op, std::string err_info, FnRev reverse,
     std::optional<Range> location) -> Value {
+    static_assert(
+        std::is_invocable_v<Fn, Number, Number>, "op is not invocable with two Number arguments");
+
     auto origin = Origin(BinaryOrigin{
         .lhs = make_owning<Value>(lhs),
         .rhs = make_owning<Value>(rhs),
@@ -750,7 +821,7 @@ static inline auto num_op_helper(
     return std::visit(
         overloaded{
             [op, &origin](const Number& lhs, const Number& rhs) -> Value {
-                return Value(op(lhs.value, rhs.value)).with_origin(origin);
+                return Value(op(lhs, rhs)).with_origin(origin);
             },
             [&origin](const Table& lhs, const Table& rhs) -> Value {
                 // TODO tables with metatables
@@ -791,63 +862,119 @@ static inline auto num_op_helper(
 }
 [[nodiscard]] auto Value::add(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        *this, rhs, [](double lhs, double rhs) { return lhs + rhs; }, "add",
+        *this, rhs, [](Number lhs, Number rhs) { return lhs + rhs; }, "add",
         binary_num_reverse(
-            [](double new_value, double rhs) { return new_value - rhs; },
-            [](double new_value, double lhs) { return new_value - lhs; }, "add"),
+            [](Number new_value, Number rhs) { return new_value - rhs; },
+            [](Number new_value, Number lhs) { return new_value - lhs; }, "add"),
         location);
 }
 [[nodiscard]] auto Value::sub(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        *this, rhs, [](double lhs, double rhs) { return lhs - rhs; }, "subtract",
+        *this, rhs, [](Number lhs, Number rhs) { return lhs - rhs; }, "subtract",
         binary_num_reverse(
-            [](double new_value, double rhs) { return new_value + rhs; },
-            [](double new_value, double lhs) { return lhs - new_value; }, "sub"),
+            [](Number new_value, Number rhs) { return new_value + rhs; },
+            [](Number new_value, Number lhs) { return lhs - new_value; }, "sub"),
         location);
 }
 [[nodiscard]] auto Value::mul(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        *this, rhs, [](double lhs, double rhs) { return lhs * rhs; }, "multiply",
+        *this, rhs, [](Number lhs, Number rhs) { return lhs * rhs; }, "multiply",
         binary_num_reverse(
-            [](double new_value, double rhs) { return new_value / rhs; },
-            [](double new_value, double lhs) { return new_value / lhs; }, "mul"),
+            [](Number new_value, Number rhs) { return new_value / rhs; },
+            [](Number new_value, Number lhs) { return new_value / lhs; }, "mul"),
         location);
 }
 [[nodiscard]] auto Value::div(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        *this, rhs, [](double lhs, double rhs) { return lhs / rhs; }, "divide",
+        *this, rhs, [](Number lhs, Number rhs) { return lhs / rhs; }, "divide",
         binary_num_reverse(
-            [](double new_value, double rhs) { return new_value * rhs; },
-            [](double new_value, double lhs) { return lhs / new_value; }, "div"),
+            [](Number new_value, Number rhs) { return new_value * rhs; },
+            [](Number new_value, Number lhs) { return lhs / new_value; }, "div"),
+        location);
+}
+auto Value::int_div(const Value& rhs, std::optional<Range> location) const -> Value {
+    return num_op_helper(
+        *this, rhs, [](Number lhs, Number rhs) { return lhs.int_div(rhs); }, "int divide",
+        binary_num_reverse(
+            [](Number new_value, Number rhs) { return new_value * rhs; },
+            [](Number new_value, Number lhs) { return lhs.int_div(new_value); }, "intdiv"),
         location);
 }
 [[nodiscard]] auto Value::pow(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        *this, rhs, [](double lhs, double rhs) { return std::pow(lhs, rhs); }, "attempt to pow",
+        *this, rhs, [](Number lhs, Number rhs) { return lhs.pow(rhs); }, "attempt to pow",
         binary_num_reverse(
-            [](double new_value, double rhs) { return std::pow(new_value, 1 / rhs); },
-            [](double new_value, double lhs) { return std::log(new_value) / std::log(lhs); },
+            [](Number new_value, Number rhs) {
+                return std::pow(new_value.as_float(), 1 / rhs.as_float());
+            },
+            [](Number new_value, Number lhs) {
+                return std::log(new_value.as_float()) / std::log(lhs.as_float());
+            },
             "pow"),
         location);
 }
 [[nodiscard]] auto Value::mod(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        *this, rhs, [](Number lhs, Number rhs) { return lhs % rhs; }, "take modulo of",
+        *this, rhs, [](Number lhs, Number rhs) { return lhs.mod(rhs); }, "take modulo of",
         [](auto...) { return std::nullopt; },
         location); // TODO reverse
 }
 [[nodiscard]] auto Value::bit_and(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        *this, rhs, [](Number lhs, Number rhs) { return lhs & rhs; }, "bitwise and",
+        *this, rhs, [](Number lhs, Number rhs) { return lhs.bit_and(rhs); }, "bitwise and",
         [](auto...) { return std::nullopt; },
         location); // TODO reverse
 }
 [[nodiscard]] auto Value::bit_or(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        *this, rhs, [](Number lhs, Number rhs) { return lhs | rhs; }, "bitwise or",
+        *this, rhs, [](Number lhs, Number rhs) { return lhs.bit_or(rhs); }, "bitwise or",
         [](auto...) { return std::nullopt; },
         location); // TODO reverse
 }
+auto Value::bit_xor(const Value& rhs, std::optional<Range> location) const -> Value {
+    return num_op_helper(
+        *this, rhs, [](Number lhs, Number rhs) { return lhs.bit_xor(rhs); }, "bitwise xor",
+        [](auto...) { return std::nullopt; },
+        location); // TODO reverse
+}
+auto Value::bit_shl(const Value& rhs, std::optional<Range> location) const -> Value {
+    return num_op_helper(
+        *this, rhs, [](Number lhs, Number rhs) { return lhs.bit_shl(rhs); }, "bitwise shift left",
+        [](auto...) { return std::nullopt; },
+        location); // TODO reverse
+}
+auto Value::bit_shr(const Value& rhs, std::optional<Range> location) const -> Value {
+    return num_op_helper(
+        *this, rhs, [](Number lhs, Number rhs) { return lhs.bit_shr(rhs); }, "bitwise shift right",
+        [](auto...) { return std::nullopt; },
+        location); // TODO reverse
+}
+auto Value::bit_not(std::optional<Range> location) const -> Value {
+    return std::visit(
+        overloaded{
+            [this, &location](Number number) {
+                auto origin = Origin(UnaryOrigin{
+                    .val = make_owning<Value>(*this),
+                    .location = location,
+                    .reverse = [](const Value& new_value,
+                                  const Value& old_value) -> std::optional<SourceChangeTree> {
+                        if (old_value.is_number() && new_value.is_number()) {
+                            Number new_number = std::get<Number>(new_value);
+                            return old_value.force(new_number.bit_not());
+                        }
+
+                        return std::nullopt;
+                    }});
+                return Value(number.bit_not()).with_origin(origin);
+            },
+            [](const auto& value) -> Value {
+                throw std::runtime_error(
+                    "attempt to get bitwise not for value of type " + std::string(value.TYPE));
+            },
+        },
+        this->raw());
+}
+
 [[nodiscard]] auto Value::logic_and(const Value& rhs, std::optional<Range> location) const
     -> Value {
     // return lhs if it is falsey and rhs otherwise
@@ -978,9 +1105,7 @@ static inline auto num_op_helper(
 
     return std::visit(
                overloaded{
-                   [](const Number& lhs, const Number& rhs) -> Value {
-                       return lhs.value < rhs.value;
-                   },
+                   [](const Number& lhs, const Number& rhs) -> Value { return lhs < rhs; },
                    [](const String& lhs, const String& rhs) -> Value {
                        return lhs.value < rhs.value;
                    },
@@ -1007,9 +1132,7 @@ static inline auto num_op_helper(
 
     return std::visit(
                overloaded{
-                   [](const Number& lhs, const Number& rhs) -> Value {
-                       return lhs.value <= rhs.value;
-                   },
+                   [](const Number& lhs, const Number& rhs) -> Value { return lhs <= rhs; },
                    [](const String& lhs, const String& rhs) -> Value {
                        return lhs.value <= rhs.value;
                    },
@@ -1036,9 +1159,7 @@ static inline auto num_op_helper(
 
     return std::visit(
                overloaded{
-                   [](const Number& lhs, const Number& rhs) -> Value {
-                       return lhs.value > rhs.value;
-                   },
+                   [](const Number& lhs, const Number& rhs) -> Value { return lhs > rhs; },
                    [](const String& lhs, const String& rhs) -> Value {
                        return lhs.value > rhs.value;
                    },
@@ -1065,9 +1186,7 @@ Value::greater_than_or_equal(const Value& rhs, std::optional<Range> location) co
 
     return std::visit(
                overloaded{
-                   [](const Number& lhs, const Number& rhs) -> Value {
-                       return lhs.value >= rhs.value;
-                   },
+                   [](const Number& lhs, const Number& rhs) -> Value { return lhs >= rhs; },
                    [](const String& lhs, const String& rhs) -> Value {
                        return lhs.value >= rhs.value;
                    },
@@ -1150,12 +1269,26 @@ auto std::hash<minilua::Bool>::operator()(const minilua::Bool& /*value*/) const 
     return 0;
 }
 auto std::hash<minilua::Number>::operator()(const minilua::Number& value) const -> size_t {
-    // lua does not allow using NaN as a table key
-    // but we are not allowed to throw inside of std::hash
-    if (std::isnan(value.value)) {
-        return 0;
-    }
-    return std::hash<double>()(value.value);
+    // we treat whole floats like their integer equivalent
+
+    // NOTE lua does not allow using NaN as a table key but we are not allowed
+    // to throw inside of std::hash
+    return std::visit(
+        minilua::overloaded{
+            [](minilua::Number::Int value) { return std::hash<minilua::Number::Int>()(value); },
+            [](minilua::Number::Float value) {
+                if (std::isnan(value) || std::isinf(value)) {
+                    return std::numeric_limits<size_t>::max();
+                }
+
+                if (ceil(value) == value) {
+                    return std::hash<minilua::Number::Int>()(
+                        static_cast<minilua::Number::Int>(value));
+                }
+
+                return std::hash<minilua::Number::Float>()(value);
+            }},
+        value.raw());
 }
 auto std::hash<minilua::String>::operator()(const minilua::String& value) const -> size_t {
     return std::hash<std::string>()(value.value);

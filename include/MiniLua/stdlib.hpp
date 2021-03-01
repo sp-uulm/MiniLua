@@ -9,6 +9,11 @@
 namespace minilua {
 
 /**
+ * Returns a table with all the math functions.
+ */
+auto create_math_table(MemoryAllocator* allocator) -> Table;
+
+/**
  * @brief Tries to force the first argument to take on the value of the second
  * argument.
  *
