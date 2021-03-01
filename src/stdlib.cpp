@@ -18,6 +18,36 @@
 
 namespace minilua {
 
+auto force(const CallContext& ctx) -> CallResult {
+    auto old_value = ctx.arguments().get(0);
+    auto new_value = ctx.arguments().get(1);
+
+    if (old_value.is_nil() || new_value.is_nil()) {
+        throw std::runtime_error("requires two arguments (old_value and new_value)");
+    }
+
+    return CallResult(old_value.force(new_value));
+}
+
+/**
+Splits a string into two parts. the split happens at the character c which is not included in the
+result.
+
+Example:
+split_string("123.456", '.') = (123, 456)
+*/
+// commented because not needed at the moment, maybe in the future. if not, delete it
+/*static auto split_string(const std::string& s, char c) -> std::pair<std::string, std::string> {
+    std::pair<std::string, std::string> result;
+    std::stringstream split(s);
+    std::string tmp;
+    std::getline(split, tmp, c);
+    result.first = tmp;
+    std::getline(split, tmp, c);
+    result.second = tmp;
+    return result;
+    */
+
 namespace details {
 
 void add_stdlib(Table& table) {

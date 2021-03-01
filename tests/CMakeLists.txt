@@ -23,3 +23,5 @@ target_link_libraries(MiniLua-tests
 if(COVERAGE)
     setup_target_for_coverage(MiniLua-tests-coverage MiniLua-tests coverage)
 endif()
+
+add_subdirectory(docs)

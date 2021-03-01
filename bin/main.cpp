@@ -50,6 +50,9 @@ auto main(int argc, char* argv[]) -> int {
         if (result.source_change.has_value()) {
             std::cerr << "and source changes:\n\t" << result.source_change.value() << "\n";
         }
+
+        // TODO pretty print
+        std::cerr << "\nThe value had origin: " << result.value.origin() << "\n";
     } catch (const minilua::InterpreterException& e) {
         std::cerr << "Evaluation failed with: " << e.what() << "\n";
         return 4;

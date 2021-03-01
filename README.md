@@ -26,7 +26,30 @@ Alternatively you can use the included scripts:
 ./scripts/build.sh # will forward arguments to make
 ```
 
+### Generating Documentation
+
+The documentation uses [Doxygen](https://www.doxygen.nl/index.html) and the
+C++ Doxygen Theme of [m.css](https://mcss.mosra.cz/). You need the
+`doxygen` command installed and you Python 3.6 as well as Jinja2 and Pygments
+installed:
+
+```sh
+# You may need sudo here
+pip3 install jinja2 Pygments
+```
+
+To build the documentation you can simply run:
+
+```sh
+./scripts/docs.sh
+```
+
+You can now open `build/docs/html/index.html` in your browser and you should see
+the main page of the documentation.
+
 ## Using MiniLua
+
+For more information see the [dokumentation](https://sp-uulm.github.io/MiniLua/)
 
 ### Example Applications
 
@@ -36,21 +59,4 @@ There are two included example applications (possibly out of date). They can be 
 - MiniLua-gui: Opens a window with an editor and a preview. The editor highlights positions that would be changed due to forcing the values. The preview is completely non-interactive.
 
 For a more up-to-date example take a look at the *interactive_script plugin for rqt*.
-
-### Embedding MiniLua
-
-**TODO**
-
-### Calling C++ Functions from Lua
-
-**TODO**
-
-`gui.cpp` shows how additional functions can be registered.
-
-### Calling Lua Functions from C++
-
-**TODO**
-
-You would need to create a `LuaFunctioncall` from the `lfunction` and then visit it using the interpreters ASTEvaluator. No idea on the details currently. I have never tried it.
-
 

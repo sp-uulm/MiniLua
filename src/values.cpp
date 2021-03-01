@@ -269,6 +269,7 @@ CallResult::CallResult(Vallist vallist, std::optional<SourceChangeTree> sc)
 auto operator==(const CallResult& lhs, const CallResult& rhs) -> bool {
     return lhs.values() == rhs.values(); // && lhs.source_change() == rhs.source_change();
 }
+auto operator!=(const CallResult& lhs, const CallResult& rhs) -> bool { return !(lhs == rhs); }
 auto operator<<(std::ostream& os, const CallResult& self) -> std::ostream& {
     os << "CallResult{ .values = " << self.values() << ", .source_change = ";
     if (self.source_change()) {

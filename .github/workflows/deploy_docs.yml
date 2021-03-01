@@ -19,6 +19,7 @@ jobs:
         run: |
           ./.github/workflows/install_packages.sh
           sudo apt-get install doxygen
+          pip3 install jinja2 Pygments
       - name: Setup CMake
         run: ./scripts/setup_build.sh
       - name: Build Documentation
