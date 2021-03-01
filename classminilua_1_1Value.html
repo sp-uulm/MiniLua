@@ -94,9 +94,9 @@
             </dt>
             <dd>Creates a value using the given bool value.</dd>
             <dt id="a2136143aadd979bec31f0ef794d1ca30">
-              <span class="m-doc-wrap-bumper"><a href="#a2136143aadd979bec31f0ef794d1ca30" class="m-doc-self">Value</a>(</span><span class="m-doc-wrap"><a href="structminilua_1_1Number.html" class="m-doc">Number</a> val)</span>
+              <span class="m-doc-wrap-bumper"><a href="#a2136143aadd979bec31f0ef794d1ca30" class="m-doc-self">Value</a>(</span><span class="m-doc-wrap"><a href="classminilua_1_1Number.html" class="m-doc">Number</a> val)</span>
             </dt>
-            <dd>Creates a value using the given <a href="structminilua_1_1Number.html" class="m-doc">Number</a> value.</dd>
+            <dd>Creates a value using the given <a href="classminilua_1_1Number.html" class="m-doc">Number</a> value.</dd>
             <dt id="a5ec8ab6d8be1227bd6f08a552370b836">
               <span class="m-doc-wrap-bumper"><a href="#a5ec8ab6d8be1227bd6f08a552370b836" class="m-doc-self">Value</a>(</span><span class="m-doc-wrap">int val)</span>
             </dt>
@@ -187,7 +187,7 @@
             <dt id="aa49d89c3466c3fa17006e5127d604d7f">
               <span class="m-doc-wrap-bumper">auto <a href="#aa49d89c3466c3fa17006e5127d604d7f" class="m-doc-self">is_number</a>(</span><span class="m-doc-wrap">) const -&gt; bool -&gt; auto</span>
             </dt>
-            <dd>Check if the value is a <a href="structminilua_1_1Number.html" class="m-doc">Number</a>.</dd>
+            <dd>Check if the value is a <a href="classminilua_1_1Number.html" class="m-doc">Number</a>.</dd>
             <dt id="a985548b11c251216b9c79340f5a8eeb2">
               <span class="m-doc-wrap-bumper">auto <a href="#a985548b11c251216b9c79340f5a8eeb2" class="m-doc-self">is_string</a>(</span><span class="m-doc-wrap">) const -&gt; bool -&gt; auto</span>
             </dt>
@@ -251,7 +251,7 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a45c1e760f0b8956a0fe60d3849f62a1c" class="m-doc">to_number</a>(</span><span class="m-doc-wrap"><a href="classminilua_1_1Value.html" class="m-doc">Value</a> base = <a href="structminilua_1_1Nil.html" class="m-doc">Nil</a>(),
               std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) const -&gt; Value -&gt; auto</span>
             </dt>
-            <dd>Converts the value to a <code><a href="structminilua_1_1Number.html" class="m-doc">Number</a></code>.</dd>
+            <dd>Converts the value to a <code><a href="classminilua_1_1Number.html" class="m-doc">Number</a></code>.</dd>
             <dt id="a96f3ada62a67f79798173cf8f67e84de">
               <span class="m-doc-wrap-bumper">auto <a href="#a96f3ada62a67f79798173cf8f67e84de" class="m-doc-self">to_string</a>(</span><span class="m-doc-wrap">std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) const -&gt; Value -&gt; auto</span>
             </dt>
@@ -280,6 +280,11 @@
               std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) const -&gt; Value -&gt; auto</span>
             </dt>
             <dd>binary <code>/</code> operator</dd>
+            <dt id="ad5651bf7f5c29ebdedc37117e58c7058">
+              <span class="m-doc-wrap-bumper">auto <a href="#ad5651bf7f5c29ebdedc37117e58c7058" class="m-doc-self">int_div</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1Value.html" class="m-doc">Value</a>&amp; rhs,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) const -&gt; Value -&gt; auto</span>
+            </dt>
+            <dd>integer division</dd>
             <dt id="a1d40bc2ec71ae70e8fb07b9f119dff57">
               <span class="m-doc-wrap-bumper">auto <a href="#a1d40bc2ec71ae70e8fb07b9f119dff57" class="m-doc-self">pow</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1Value.html" class="m-doc">Value</a>&amp; rhs,
               std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) const -&gt; Value -&gt; auto</span>
@@ -300,6 +305,25 @@
               std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) const -&gt; Value -&gt; auto</span>
             </dt>
             <dd>binary <code>|</code> operator</dd>
+            <dt id="a6a89a664eab3fd206ce2b3aead81a310">
+              <span class="m-doc-wrap-bumper">auto <a href="#a6a89a664eab3fd206ce2b3aead81a310" class="m-doc-self">bit_xor</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1Value.html" class="m-doc">Value</a>&amp; rhs,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) const -&gt; Value -&gt; auto</span>
+            </dt>
+            <dd>Bitwise xor.</dd>
+            <dt id="a7159d2fca970254e9a5c5fb34e18e89c">
+              <span class="m-doc-wrap-bumper">auto <a href="#a7159d2fca970254e9a5c5fb34e18e89c" class="m-doc-self">bit_shl</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1Value.html" class="m-doc">Value</a>&amp; rhs,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) const -&gt; Value -&gt; auto</span>
+            </dt>
+            <dd>Bitwise shift left.</dd>
+            <dt id="a66d72bcc6f05f200482f9b7c34c6ce2c">
+              <span class="m-doc-wrap-bumper">auto <a href="#a66d72bcc6f05f200482f9b7c34c6ce2c" class="m-doc-self">bit_shr</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1Value.html" class="m-doc">Value</a>&amp; rhs,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) const -&gt; Value -&gt; auto</span>
+            </dt>
+            <dd>Bitwise shift right.</dd>
+            <dt id="a45832f59181fed7081e295fe99f8a27a">
+              <span class="m-doc-wrap-bumper">auto <a href="#a45832f59181fed7081e295fe99f8a27a" class="m-doc-self">bit_not</a>(</span><span class="m-doc-wrap">std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) const -&gt; Value -&gt; auto</span>
+            </dt>
+            <dd>Bitwise <code>not</code> operator.</dd>
             <dt id="a61c739726a47306384297e6c101e04d2">
               <span class="m-doc-wrap-bumper">auto <a href="#a61c739726a47306384297e6c101e04d2" class="m-doc-self">logic_and</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1Value.html" class="m-doc">Value</a>&amp; rhs,
               std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) const -&gt; Value -&gt; auto</span>
@@ -479,7 +503,7 @@
               <span class="m-doc-wrap-bumper">auto minilua::<wbr />Value::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a45c1e760f0b8956a0fe60d3849f62a1c" class="m-doc-self">to_number</a>(</span><span class="m-doc-wrap"><a href="classminilua_1_1Value.html" class="m-doc">Value</a> base = <a href="structminilua_1_1Nil.html" class="m-doc">Nil</a>(),
               std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) const -&gt; Value</span></span>
             </h3>
-            <p>Converts the value to a <code><a href="structminilua_1_1Number.html" class="m-doc">Number</a></code>.</p>
+            <p>Converts the value to a <code><a href="classminilua_1_1Number.html" class="m-doc">Number</a></code>.</p>
 <p>If the value is already a number we return it. If it is a string we try to parse it. In all other cases and if parsing fails we return <code><a href="structminilua_1_1Nil.html" class="m-doc">Nil</a></code>.</p><p>If you provide a <code>base</code> the value has to be a string representing an integer in that base. Otherwise <code><a href="structminilua_1_1Nil.html" class="m-doc">Nil</a></code> is returned.</p>
           </div></section>
         </section>

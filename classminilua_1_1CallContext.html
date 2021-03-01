@@ -128,11 +128,11 @@
             </dt>
             <dd>Returns the arguments given to this function.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a66fb63b2b62a7e4f7fac85caeb6beed1" class="m-doc">unary_numeric_arg_helper</a>(</span><span class="m-doc-wrap">) const -&gt; std::tuple&lt; double, UnaryOrigin &gt; -&gt; auto</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a64de6fc9188934f54712f286ccb7c13d" class="m-doc">unary_numeric_arg_helper</a>(</span><span class="m-doc-wrap">) const -&gt; std::tuple&lt; Number, UnaryOrigin &gt; -&gt; auto</span>
             </dt>
             <dd>Convenience method for writing unary numeric functions.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a81a08eb866044355d4cd11306bf75cc5" class="m-doc">binary_numeric_args_helper</a>(</span><span class="m-doc-wrap">) const -&gt; std::tuple&lt; double, double, BinaryOrigin &gt; -&gt; auto</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a21e7b7faef395d4762dda2f7ef8e6ac4" class="m-doc">binary_numeric_args_helper</a>(</span><span class="m-doc-wrap">) const -&gt; std::tuple&lt; Number, Number, BinaryOrigin &gt; -&gt; auto</span>
             </dt>
             <dd>Convenience method for writing unary numeric functions.</dd>
           </dl>
@@ -186,23 +186,23 @@
             <p>Returns the value of a variable accessible from the function.</p>
 <p>Returns <code><a href="structminilua_1_1Nil.html" class="m-doc">Nil</a></code> if the variable is not accessible or does not exist.</p>
           </div></section>
-          <section class="m-doc-details" id="a66fb63b2b62a7e4f7fac85caeb6beed1"><div>
+          <section class="m-doc-details" id="a64de6fc9188934f54712f286ccb7c13d"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">auto minilua::<wbr />CallContext::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a66fb63b2b62a7e4f7fac85caeb6beed1" class="m-doc-self">unary_numeric_arg_helper</a>(</span><span class="m-doc-wrap">) const -&gt; std::tuple&lt; double, UnaryOrigin &gt;</span></span>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />CallContext::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a64de6fc9188934f54712f286ccb7c13d" class="m-doc-self">unary_numeric_arg_helper</a>(</span><span class="m-doc-wrap">) const -&gt; std::tuple&lt; Number, UnaryOrigin &gt;</span></span>
             </h3>
             <p>Convenience method for writing unary numeric functions.</p>
 <p>Convenience method for writing functions with one numeric argument that should track the origin (e.g. pow).</p><p>Usage:</p><pre class="m-code"><span class="k">auto</span> <span class="p">[</span><span class="n">arg</span><span class="p">,</span> <span class="n">origin</span><span class="p">]</span> <span class="o">=</span> <span class="n">ctx</span><span class="p">.</span><span class="n">unary_numeric_arg_helper</span><span class="p">();</span>
 <span class="n">origin</span><span class="p">.</span><span class="n">reverse</span> <span class="o">=</span> <span class="n">unary_num_reverse</span><span class="p">(...);</span>
-<span class="c1">// ...</span></pre><p>See also: <code><a href="classminilua_1_1CallContext.html#a81a08eb866044355d4cd11306bf75cc5" class="m-doc">CallContext::<wbr />binary_numeric_args_helper</a></code>.</p>
+<span class="c1">// ...</span></pre><p>See also: <code><a href="classminilua_1_1CallContext.html#a21e7b7faef395d4762dda2f7ef8e6ac4" class="m-doc">CallContext::<wbr />binary_numeric_args_helper</a></code>.</p>
           </div></section>
-          <section class="m-doc-details" id="a81a08eb866044355d4cd11306bf75cc5"><div>
+          <section class="m-doc-details" id="a21e7b7faef395d4762dda2f7ef8e6ac4"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">auto minilua::<wbr />CallContext::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a81a08eb866044355d4cd11306bf75cc5" class="m-doc-self">binary_numeric_args_helper</a>(</span><span class="m-doc-wrap">) const -&gt; std::tuple&lt; double, double, BinaryOrigin &gt;</span></span>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />CallContext::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a21e7b7faef395d4762dda2f7ef8e6ac4" class="m-doc-self">binary_numeric_args_helper</a>(</span><span class="m-doc-wrap">) const -&gt; std::tuple&lt; Number, Number, BinaryOrigin &gt;</span></span>
             </h3>
             <p>Convenience method for writing unary numeric functions.</p>
 <p>Convenience method for writing functions with two numeric arguments that should track the origin (e.g. sqrt).</p><p>Usage:</p><pre class="m-code"><span class="k">auto</span> <span class="p">[</span><span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">,</span> <span class="n">origin</span><span class="p">]</span> <span class="o">=</span> <span class="n">ctx</span><span class="p">.</span><span class="n">binary_numeric_arg_helper</span><span class="p">();</span>
 <span class="n">origin</span><span class="p">.</span><span class="n">reverse</span> <span class="o">=</span> <span class="n">binary_num_reverse</span><span class="p">(...);</span>
-<span class="c1">// ...</span></pre><p>See also: <code><a href="classminilua_1_1CallContext.html#a66fb63b2b62a7e4f7fac85caeb6beed1" class="m-doc">CallContext::<wbr />unary_numeric_arg_helper</a></code>.</p>
+<span class="c1">// ...</span></pre><p>See also: <code><a href="classminilua_1_1CallContext.html#a64de6fc9188934f54712f286ccb7c13d" class="m-doc">CallContext::<wbr />unary_numeric_arg_helper</a></code>.</p>
           </div></section>
         </section>
       </div>

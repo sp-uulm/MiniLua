@@ -170,9 +170,9 @@
             </dt>
             <dd>Default origin for <code><a href="classminilua_1_1Value.html" class="m-doc">Value</a></code>s.</dd>
             <dt>
-              struct <a href="structminilua_1_1Number.html" class="m-doc">Number</a>
+              class <a href="classminilua_1_1Number.html" class="m-doc">Number</a>
             </dt>
-            <dd>A lua number value.</dd>
+            <dd></dd>
             <dt>
               class <a href="classminilua_1_1Origin.html" class="m-doc">Origin</a>
             </dt>
@@ -291,6 +291,10 @@
             </dt>
             <dd></dd>
             <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a74d69f5050e669eca9f59c5f45423af5" class="m-doc">create_math_table</a>(</span><span class="m-doc-wrap"><a href="classminilua_1_1MemoryAllocator.html" class="m-doc">MemoryAllocator</a>* allocator) -&gt; Table -&gt; auto</span>
+            </dt>
+            <dd></dd>
+            <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a71dd5e7b9d9a278153df4b5ff003a686" class="m-doc">force</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; CallResult -&gt; auto</span>
             </dt>
             <dd>Tries to force the first argument to take on the value of the second argument.</dd>
@@ -346,7 +350,7 @@
               <span class="m-doc-wrap-bumper">auto minilua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3533c865eb291bcf3dff829fb0607af8" class="m-doc-self">unary_num_reverse</a>(</span><span class="m-doc-wrap">Fn fn)</span></span>
             </h3>
             <p>Helper to create the reverse function for <code><a href="structminilua_1_1UnaryOrigin.html" class="m-doc">UnaryOrigin</a></code> or <code><a href="structminilua_1_1UnaryNumericFunctionHelper.html" class="m-doc">UnaryNumericFunctionHelper</a></code>.</p>
-<p>You only need to supply a function that accepts two <code>double</code>s (the new and old values) and returns <code>double</code> (the new value for the parameter).</p><aside class="m-note m-info"><h4>Note</h4><p>Don&#x27;t use this if the reverse can fail.</p></aside><p>See also: <a href="namespaceminilua.html#a2ce17b0d50309e0d4a3a43e71dd592c2" class="m-doc">binary_<wbr />num_<wbr />reverse</a>.</p>
+<p>You only need to supply a function that accepts one <code><a href="classminilua_1_1Number.html" class="m-doc">Number</a></code> (the new value for the result) and returns <code><a href="classminilua_1_1Number.html" class="m-doc">Number</a></code> (the new value for the parameter).</p><aside class="m-note m-info"><h4>Note</h4><p>Don&#x27;t use this if the reverse can fail.</p></aside><p>See also: <a href="namespaceminilua.html#a2ce17b0d50309e0d4a3a43e71dd592c2" class="m-doc">binary_<wbr />num_<wbr />reverse</a>.</p>
           </div></section>
           <section class="m-doc-details" id="a2ce17b0d50309e0d4a3a43e71dd592c2"><div>
             <h3>
@@ -358,7 +362,7 @@
               std::string origin = &quot;&quot;)</span></span>
             </h3>
             <p>Helper to create the reverse function for <code><a href="structminilua_1_1BinaryOrigin.html" class="m-doc">BinaryOrigin</a></code> or <code><a href="structminilua_1_1BinaryNumericFunctionHelper.html" class="m-doc">BinaryNumericFunctionHelper</a></code>.</p>
-<p>You only need to supply a function that accepts two <code>double</code>s (the new value and old lhs/rhs value) and returns <code>double</code> (the new value for the lhs/rhs parameter).</p><aside class="m-note m-info"><h4>Note</h4><p>Don&#x27;t use this if the reverse can fail.</p></aside><p>See also: <a href="namespaceminilua.html#a3533c865eb291bcf3dff829fb0607af8" class="m-doc">unary_<wbr />num_<wbr />reverse</a>.</p>
+<p>You only need to supply a function that accepts two <code><a href="classminilua_1_1Number.html" class="m-doc">Number</a></code>s (the new value and old lhs/rhs value) and returns <code><a href="classminilua_1_1Number.html" class="m-doc">Number</a></code> (the new value for the lhs/rhs parameter).</p><aside class="m-note m-info"><h4>Note</h4><p>Don&#x27;t use this if the reverse can fail.</p></aside><p>See also: <a href="namespaceminilua.html#a3533c865eb291bcf3dff829fb0607af8" class="m-doc">unary_<wbr />num_<wbr />reverse</a>.</p>
           </div></section>
           <section class="m-doc-details" id="aa1b9c319bfa892d38ceefe99bc787c16"><div>
             <h3>
@@ -393,6 +397,12 @@
               int base) -&gt; std::string</span></span>
             </h3>
 <p>@breif Convert int to string in the given base.</p><p>Uses character 0-9 and A-Z. So base has to be between 2 and 36.</p>
+          </div></section>
+          <section class="m-doc-details" id="a74d69f5050e669eca9f59c5f45423af5"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a74d69f5050e669eca9f59c5f45423af5" class="m-doc-self">create_math_table</a>(</span><span class="m-doc-wrap"><a href="classminilua_1_1MemoryAllocator.html" class="m-doc">MemoryAllocator</a>* allocator) -&gt; Table</span></span>
+            </h3>
+<p>Returns a table with all the math functions.</p>
           </div></section>
           <section class="m-doc-details" id="a71dd5e7b9d9a278153df4b5ff003a686"><div>
             <h3>
