@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Architecture Overview | MiniLua Value tracing lua interpreter</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
+  <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
+  <link rel="icon" href="favicon-dark.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#22272e" />
+</head>
+<body>
+<header><nav id="navigation">
+  <div class="m-container">
+    <div class="m-row">
+      <span id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">
+        <a href="https://sp-uulm.github.io/MiniLua/">MiniLua</a> <span class="m-breadcrumb">|</span> <a href="index.html" class="m-thin">Value tracing lua interpreter</a>
+      </span>
+      <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
+        <a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+          <path id="m-doc-search-icon-path" d="m6 0c-3.31 0-6 2.69-6 6 0 3.31 2.69 6 6 6 1.49 0 2.85-0.541 3.89-1.44-0.0164 0.338 0.147 0.759 0.5 1.15l3.22 3.79c0.552 0.614 1.45 0.665 2 0.115 0.55-0.55 0.499-1.45-0.115-2l-3.79-3.22c-0.392-0.353-0.812-0.515-1.15-0.5 0.895-1.05 1.44-2.41 1.44-3.89 0-3.31-2.69-6-6-6zm0 1.56a4.44 4.44 0 0 1 4.44 4.44 4.44 4.44 0 0 1-4.44 4.44 4.44 4.44 0 0 1-4.44-4.44 4.44 4.44 0 0 1 4.44-4.44z"/>
+        </svg></a>
+        <a id="m-navbar-show" href="#navigation" title="Show navigation"></a>
+        <a id="m-navbar-hide" href="#" title="Hide navigation"></a>
+      </div>
+      <div id="m-navbar-collapse" class="m-col-t-12 m-show-m m-col-m-none m-right-m">
+        <div class="m-row">
+          <ol class="m-col-t-6 m-col-m-none">
+            <li><a href="pages.html">Pages</a></li>
+            <li>
+              <a href="namespaces.html">Namespaces</a>
+              <ol>
+                <li><a href="namespaceminilua.html">minilua</a></li>
+                <li><a href="namespacets.html">ts</a></li>
+              </ol>
+            </li>
+          </ol>
+          <ol class="m-col-t-6 m-col-m-none" start="3">
+            <li><a href="annotated.html">Classes</a></li>
+            <li><a href="https://github.com/sp-uulm/MiniLua/">GitHub</a></li>
+            <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+              <use href="#m-doc-search-icon-path" />
+            </svg></a></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav></header>
+<main><article>
+  <div class="m-container m-container-inflatable">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <h1>
+          Architecture Overview
+        </h1>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li><a href="#parser">Parser</a></li>
+            <li><a href="#ast">Abstract Syntax Tree</a></li>
+            <li><a href="#interpreter">Interpreter</a></li>
+            <li><a href="#autotoc_md3">Allocator</a></li>
+            <li>
+              <a href="#autotoc_md4">Implementation</a>
+              <ul>
+                <li><a href="#pimpl">PImpl Technique</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+<p>The following will give a short overview of the architecture used in the parser, AST and Interpreter.</p><p>The library is divided into the public API (everything accessible through the public headers in <code>include/MiniLua/</code>) and the private API (everything that is not accessible by the user of the library). To properly separate the public and private API we use the <em>PImpl technique</em> in the public API to hide the implementation details. See <a href="architecture.html#pimpl" class="m-doc">below</a>.</p><p>The library is overall divided into three parts:</p><ol><li><a href="architecture.html#parser" class="m-doc">Parser</a></li><li><a href="architecture.html#ast" class="m-doc">Abstract Syntax Tree</a> (AST)</li><li><a href="architecture.html#interpreter" class="m-doc">Interpreter</a></li></ol><div class="m-graph"><svg style="width: 35.600rem; height: 28.000rem;" viewBox="0.00 0.00 356.00 280.00">
+<g transform="scale(1 1) rotate(0) translate(4 276)">
+<title>%3</title>
+<g class="m-cluster">
+<title>cluster</title>
+<polygon points="8,-138 8,-209 284,-209 284,-138 8,-138"/>
+<text text-anchor="middle" x="146" y="-197" font-family="Helvetica,sans-Serif" font-size="10.00">Created by User</text>
+</g>
+<g class="m-node m-flat">
+<title>SourceCode</title>
+<ellipse cx="61" cy="-164" rx="45.15" ry="18"/>
+<text text-anchor="middle" x="61" y="-161.5" font-family="Helvetica,sans-Serif" font-size="10.00">Source Code</text>
+</g>
+<g class="m-node m-flat">
+<title>Parser</title>
+<ellipse cx="190" cy="-254" rx="27.84" ry="18"/>
+<text text-anchor="middle" x="190" y="-251.5" font-family="Helvetica,sans-Serif" font-size="10.00">Parser</text>
+</g>
+<g class="m-edge">
+<title>SourceCode&#45;&gt;Parser</title>
+<path d="M78.95,-180.79C89.21,-189.51 102.49,-200.31 115,-209 129.44,-219.03 146.27,-229.04 160.32,-236.98"/>
+<polygon points="158.66,-240.06 169.1,-241.87 162.07,-233.95 158.66,-240.06"/>
+</g>
+<g class="m-node m-flat">
+<title>Environment</title>
+<ellipse cx="200" cy="-164" rx="75.88" ry="18"/>
+<text text-anchor="middle" x="200" y="-161.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pre&#45;Setup Environment</text>
+</g>
+<g class="m-node m-flat">
+<title>Interpreter</title>
+<ellipse cx="200" cy="-91" rx="40.06" ry="18"/>
+<text text-anchor="middle" x="200" y="-88.5" font-family="Helvetica,sans-Serif" font-size="10.00">Interpreter</text>
+</g>
+<g class="m-edge">
+<title>Environment&#45;&gt;Interpreter</title>
+<path d="M200,-145.81C200,-137.79 200,-128.05 200,-119.07"/>
+<polygon points="203.5,-119.03 200,-109.03 196.5,-119.03 203.5,-119.03"/>
+</g>
+<g class="m-node m-flat">
+<title>ReturnValue</title>
+<ellipse cx="200" cy="-18" rx="46.51" ry="18"/>
+<text text-anchor="middle" x="200" y="-15.5" font-family="Helvetica,sans-Serif" font-size="10.00">Return Value</text>
+</g>
+<g class="m-node m-flat">
+<title>AST</title>
+<ellipse cx="321" cy="-164" rx="27" ry="18"/>
+<text text-anchor="middle" x="321" y="-161.5" font-family="Helvetica,sans-Serif" font-size="10.00">AST</text>
+</g>
+<g class="m-edge">
+<title>Parser&#45;&gt;AST</title>
+<path d="M214.84,-245.74C235.86,-238.74 266.01,-226.59 288,-209 294.71,-203.63 300.78,-196.6 305.83,-189.74"/>
+<polygon points="308.87,-191.5 311.66,-181.27 303.11,-187.53 308.87,-191.5"/>
+</g>
+<g class="m-edge">
+<title>AST&#45;&gt;Interpreter</title>
+<path d="M304.26,-149.47C299.16,-145.58 293.46,-141.46 288,-138 271.45,-127.51 252.24,-117.26 236,-109.11"/>
+<polygon points="237.34,-105.87 226.83,-104.57 234.24,-112.14 237.34,-105.87"/>
+</g>
+<g class="m-edge">
+<title>Interpreter&#45;&gt;ReturnValue</title>
+<path d="M200,-72.81C200,-64.79 200,-55.05 200,-46.07"/>
+<polygon points="203.5,-46.03 200,-36.03 196.5,-46.03 203.5,-46.03"/>
+</g>
+<g class="m-node m-flat">
+<title>SourceChanges</title>
+<ellipse cx="77" cy="-18" rx="54.31" ry="18"/>
+<text text-anchor="middle" x="77" y="-15.5" font-family="Helvetica,sans-Serif" font-size="10.00">SourceChanges</text>
+</g>
+<g class="m-edge">
+<title>Interpreter&#45;&gt;SourceChanges</title>
+<path d="M176.28,-76.31C157.92,-65.71 132.22,-50.87 111.56,-38.95"/>
+<polygon points="113.18,-35.84 102.77,-33.87 109.68,-41.9 113.18,-35.84"/>
+</g>
+<g class="m-edge">
+<title>SourceChanges&#45;&gt;SourceCode</title>
+<path stroke-dasharray="5,2" d="M75.1,-36.06C72.36,-60.73 67.27,-106.61 64.01,-135.93"/>
+<polygon points="60.52,-135.59 62.9,-145.92 67.48,-136.36 60.52,-135.59"/>
+<text text-anchor="middle" x="104.5" y="-88.5" font-family="Helvetica,sans-Serif" font-size="10.00">Apply to Code</text>
+</g>
+</g>
+</svg>
+</div><section id="parser"><h2><a href="#parser">Parser</a></h2><p>This library uses <a href="https://tree-sitter.github.io/tree-sitter/">Tree-Sitter</a> as the parser. Tree-Sitter is only a parser generator library and we use <a href="https://github.com/sp-uulm/tree-sitter-lua">our own grammar definition</a> for Lua which is a fork of <a href="https://github.com/Azganoth/tree-sitter-lua">Azganoth/<wbr />tree-sitter-lua</a>.</p><p>The tree-sitter parser takes the source code provided by the user and creates a tree of nodes. We then convert this tree into our own abstract syntax tree.</p></section><section id="ast"><h2><a href="#ast">Abstract Syntax Tree</a></h2><p>The abstract syntax tree (AST) makes it a bit more convenient for the interpreter to navigate through the tree. The AST also takes care of <em>desugaring</em> some of the syntax. Desugaring converts more complicated syntax to simpler syntax. E.g. for loops get desugared into while loops and method definitions and calls get desugared into normal function definitions and calls.</p></section><section id="interpreter"><h2><a href="#interpreter">Interpreter</a></h2><p>The interpreter walks through the AST, generates <a href="classminilua_1_1Value.html" class="m-doc">Values</a> for the literals and executes the code. It also takes care of handling and combining the <a href="structminilua_1_1SourceChange.html" class="m-doc">SourceChanges</a>.</p><p>For (almost) every AST node there is one <code>visit_*</code> method in the internal <a href="structminilua_1_1details_1_1Interpreter.html" class="m-doc">Interpreter</a>. The methods take the AST node and the current environment (in form of the internal <a href="classminilua_1_1Env.html" class="m-doc">Env</a>). We need this environment to correctly scope local variables. We create a new environment whenever there is a new block/scope and the local variable declarations are then only added to this environment. When we leave the block/scope we switch back to the outer environment.</p></section><section id="autotoc_md3"><h2><a href="#autotoc_md3">Allocator</a></h2><p>The interpreter keeps track of all <a href="classminilua_1_1Value.html" class="m-doc">Values</a> and the <a href="classminilua_1_1Environment.html" class="m-doc">Environments</a> that are created. We do this to prevent memory leaks.</p><aside class="m-note m-info"><h4>Note</h4><p>In the future it would also be possible to implement a garbage collector.</p></aside><p><a href="classminilua_1_1MemoryAllocator.html" class="m-doc">MemoryAllocator</a> is the class that handles all allocation and keeps track of the values. Actually the allocator only keeps track of the tables because they are the only type that can create reference cycles, which would lead to a memory leak. Cycles can happen in the following ways:</p><ul><li><p>Direct or indirect cycles in tables. I.e.</p><pre class="m-code"><span class="c1">-- Lua Code</span>
+<span class="n">t1</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">t2</span> <span class="o">=</span> <span class="p">{</span><span class="n">table1</span> <span class="o">=</span> <span class="n">t1</span><span class="p">}</span>
+<span class="n">t1</span><span class="p">[</span><span class="s2">&quot;table2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">t2</span></pre></li><li>Functions capture their environment but are also stored in the environment. Which also creates a cycle.</li></ul></section><section id="autotoc_md4"><h2><a href="#autotoc_md4">Implementation</a></h2><p>The following sections describe some implementation details/techniques.</p><section id="pimpl"><h3><a href="#pimpl">PImpl Technique</a></h3><p>Also see: <a href="https://en.cppreference.com/w/cpp/language/pimpl">https:/<wbr />/<wbr />en.cppreference.com/<wbr />w/<wbr />cpp/<wbr />language/<wbr />pimpl</a></p><p>With the PImpl technique we hide all behaviour using a (private) nested forward declaration of a struct or class. This has two important uses:</p><ol><li>hiding the implementation details from the user</li><li>breaking up cycles of incomplete types (this works because the cyclic reference are now in the cpp instead of the header)</li></ol><p>For this to work classes using the PImpl technique can&#x27;t <em>use</em> the private nested forward declaration. This means we have to declare but not define the methods in the header. This includes special member functions like copy-constructor and destructor. Then these methods have to be implemented in the cpp file and the only difference is basically instead of using <code>this-&gt;</code> they have to use <code>this-&gt;impl-&gt;</code> or just <code>impl-&gt;</code>.</p><p>A class with the PImpl technique usually looks like this:</p><pre class="m-code"><span class="c1">// in the header</span>
+<span class="k">class</span> <span class="nc">Something</span> <span class="p">{</span>
+  <span class="k">struct</span> <span class="n">Impl</span><span class="p">;</span>
+  <span class="n">owning_ptr</span><span class="o">&lt;</span><span class="n">Impl</span><span class="o">&gt;</span> <span class="n">impl</span><span class="p">;</span> <span class="c1">// any pointer type is ok here</span>
+
+<span class="k">public</span><span class="o">:</span>
+  <span class="c1">// normal constructor declarations</span>
+  <span class="n">Something</span><span class="p">(</span><span class="k">const</span> <span class="n">Something</span><span class="o">&amp;</span><span class="p">);</span>
+  <span class="n">Something</span><span class="p">(</span><span class="n">Something</span><span class="o">&amp;&amp;</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
+  <span class="n">Something</span><span class="o">&amp;</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">Something</span><span class="o">&amp;</span> <span class="n">other</span><span class="p">);</span>
+  <span class="n">Something</span><span class="o">&amp;</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="n">Something</span><span class="o">&amp;&amp;</span> <span class="n">other</span><span class="p">);</span>
+  <span class="k">friend</span> <span class="kt">void</span> <span class="nf">swap</span><span class="p">(</span><span class="n">Something</span><span class="o">&amp;</span> <span class="n">self</span><span class="p">,</span> <span class="n">Something</span><span class="o">&amp;</span> <span class="n">other</span><span class="p">);</span>
+<span class="p">};</span>
+
+<span class="c1">// in the cpp</span>
+<span class="k">struct</span> <span class="n">Something</span><span class="o">::</span><span class="n">Impl</span> <span class="p">{</span>
+  <span class="c1">// fields you would have put in class Something</span>
+<span class="p">};</span>
+<span class="n">Something</span><span class="o">::</span><span class="n">Something</span><span class="p">(</span><span class="k">const</span> <span class="n">Something</span><span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+<span class="n">Something</span><span class="p">(</span><span class="n">Something</span><span class="o">&amp;&amp;</span><span class="p">)</span> <span class="k">noexcept</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+<span class="n">Something</span><span class="o">&amp;</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">Something</span><span class="o">&amp;</span> <span class="n">other</span><span class="p">)</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+<span class="n">Something</span><span class="o">&amp;</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="n">Something</span><span class="o">&amp;&amp;</span> <span class="n">other</span><span class="p">)</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+<span class="kt">void</span> <span class="nf">swap</span><span class="p">(</span><span class="n">Something</span><span class="o">&amp;</span> <span class="n">self</span><span class="p">,</span> <span class="n">Something</span><span class="o">&amp;</span> <span class="n">other</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">swap</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">impl</span><span class="p">,</span> <span class="n">other</span><span class="p">.</span><span class="n">impl</span><span class="p">);</span>
+<span class="p">}</span></pre><p>If the nested <code>struct Impl</code> is not default constructible you have to provide the implementation of the copy-/move-constructors and -operators manually and can&#x27;t use <code>= default</code>.</p><p><a href="classminilua_1_1owning__ptr.html" class="m-doc">owning_<wbr />ptr&lt;T&gt;</a> was chosen for the pointer type because it behaves like a normal <code>T</code> (but lives on the heap). It&#x27;s move, copy and lifetime semantics are identical to the one of <code>T</code>.</p><p>It is also possible to choose another pointer type like <code>std::unique_ptr</code> or <code>std::shared_ptr</code>. You should probably avoid using raw pointer <code>T*</code> because lifetime management is hard with raw pointers.</p></section></section>
+      </div>
+    </div>
+  </div>
+</article></main>
+<div class="m-doc-search" id="search">
+  <a href="#!" onclick="return hideSearch()"></a>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-m-8 m-push-m-2">
+        <div class="m-doc-search-header m-text m-small">
+          <div><span class="m-label m-default">Tab</span> / <span class="m-label m-default">T</span> to search, <span class="m-label m-default">Esc</span> to close</div>
+          <div id="search-symbolcount">&hellip;</div>
+        </div>
+        <div class="m-doc-search-content">
+          <form>
+            <input type="search" name="q" id="search-input" placeholder="Loading &hellip;" disabled="disabled" autofocus="autofocus" autocomplete="off" spellcheck="false" />
+          </form>
+          <noscript class="m-text m-danger m-text-center">Unlike everything else in the docs, the search functionality <em>requires</em> JavaScript.</noscript>
+          <div id="search-help" class="m-text m-dim m-text-center">
+            <p class="m-noindent">Search for symbols, directories, files, pages or
+            modules. You can omit any prefix from the symbol or file path; adding a
+            <code>:</code> or <code>/</code> suffix lists all members of given symbol or
+            directory.</p>
+            <p class="m-noindent">Use <span class="m-label m-dim">&darr;</span>
+            / <span class="m-label m-dim">&uarr;</span> to navigate through the list,
+            <span class="m-label m-dim">Enter</span> to go.
+            <span class="m-label m-dim">Tab</span> autocompletes common prefix, you can
+            copy a link to the result using <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">L</span> while <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">M</span> produces a Markdown link.</p>
+          </div>
+          <div id="search-notfound" class="m-text m-warning m-text-center">Sorry, nothing was found.</div>
+          <ul id="search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="search-v1.js"></script>
+<script src="searchdata-v1.js" async="async"></script>
+<footer><nav>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <p>MiniLua Value tracing lua interpreter. Created with <a href="https://doxygen.org/">Doxygen</a> 1.8.17 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+      </div>
+    </div>
+  </div>
+</nav></footer>
+</body>
+</html>

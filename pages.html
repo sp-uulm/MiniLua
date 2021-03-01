@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>minilua::details::ast::BinaryOperation class | MiniLua Value tracing lua interpreter</title>
+  <title>MiniLua Value tracing lua interpreter</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -26,7 +26,7 @@
       <div id="m-navbar-collapse" class="m-col-t-12 m-show-m m-col-m-none m-right-m">
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
-            <li><a href="pages.html">Pages</a></li>
+            <li><a href="pages.html" id="m-navbar-current">Pages</a></li>
             <li>
               <a href="namespaces.html">Namespaces</a>
               <ol>
@@ -51,80 +51,27 @@
   <div class="m-container m-container-inflatable">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <h1>
-          <span class="m-breadcrumb"><a href="namespaceminilua.html">minilua</a>::<wbr/></span><span class="m-breadcrumb"><a href="namespaceminilua_1_1details.html">details</a>::<wbr/></span><span class="m-breadcrumb"><a href="namespaceminilua_1_1details_1_1ast.html">ast</a>::<wbr/></span>BinaryOperation <span class="m-thin">class</span>
-        </h1>
-        <div class="m-block m-default">
-          <h3>Contents</h3>
-          <ul>
-            <li>
-              Reference
-              <ul>
-                <li><a href="#pub-methods">Public functions</a></li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-<p>class for binary_operation nodes</p>
-        <section id="pub-methods">
-          <h2><a href="#pub-methods">Public functions</a></h2>
-          <dl class="m-doc">
-            <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a4ba4974741593a213cfb05d656346e1b" class="m-doc">left</a>(</span><span class="m-doc-wrap">) const -&gt; Expression -&gt; auto</span>
-            </dt>
-            <dd></dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a8018539d9aba435eb876fc3663db5492" class="m-doc">right</a>(</span><span class="m-doc-wrap">) const -&gt; Expression -&gt; auto</span>
-            </dt>
-            <dd></dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#ad62e4c1f5f05a5a6cd184753632b9fc2" class="m-doc">binary_operator</a>(</span><span class="m-doc-wrap">) const -&gt; BinOpEnum -&gt; auto</span>
-            </dt>
-            <dd></dd>
-          </dl>
-        </section>
-        <section>
-          <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a4ba4974741593a213cfb05d656346e1b"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">auto minilua::<wbr />details::<wbr />ast::<wbr />BinaryOperation::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a4ba4974741593a213cfb05d656346e1b" class="m-doc-self">left</a>(</span><span class="m-doc-wrap">) const -&gt; Expression</span></span>
-            </h3>
-            <table class="m-table m-fullwidth m-flat">
-              <tfoot>
-                <tr>
-                  <th style="width: 1%">Returns</th>
-                  <td>The left operand</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="a8018539d9aba435eb876fc3663db5492"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">auto minilua::<wbr />details::<wbr />ast::<wbr />BinaryOperation::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a8018539d9aba435eb876fc3663db5492" class="m-doc-self">right</a>(</span><span class="m-doc-wrap">) const -&gt; Expression</span></span>
-            </h3>
-            <table class="m-table m-fullwidth m-flat">
-              <tfoot>
-                <tr>
-                  <th style="width: 1%">Returns</th>
-                  <td>The right operand</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="ad62e4c1f5f05a5a6cd184753632b9fc2"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">auto minilua::<wbr />details::<wbr />ast::<wbr />BinaryOperation::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad62e4c1f5f05a5a6cd184753632b9fc2" class="m-doc-self">binary_operator</a>(</span><span class="m-doc-wrap">) const -&gt; BinOpEnum</span></span>
-            </h3>
-            <table class="m-table m-fullwidth m-flat">
-              <tfoot>
-                <tr>
-                  <th style="width: 1%">Returns</th>
-                  <td>the operator of the operation</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div></section>
-        </section>
+        <h1>Pages</h1>
+        <ul class="m-doc">
+          <li><a href="architecture.html" class="m-doc">Architecture Overview</a> <span class="m-doc"></span></li>
+          <li><a href="todo.html" class="m-doc">Todo List</a> <span class="m-doc"></span></li>
+        </ul>
+        <script>
+        function toggle(e) {
+            e.parentElement.className = e.parentElement.className == 'm-doc-collapsible' ?
+                'm-doc-expansible' : 'm-doc-collapsible';
+            return false;
+        }
+        /* Collapse all nodes marked as such. Doing it via JS instead of
+           directly in markup so disabling it doesn't harm usability. The list
+           is somehow regenerated on every iteration and shrinks as I change
+           the classes. It's not documented anywhere and I'm not sure if this
+           is the same across browsers, so I am going backwards in that list to
+           be sure. */
+        var collapsed = document.getElementsByClassName("collapsed");
+        for(var i = collapsed.length - 1; i >= 0; --i)
+            collapsed[i].className = 'm-doc-expansible';
+        </script>
       </div>
     </div>
   </div>
