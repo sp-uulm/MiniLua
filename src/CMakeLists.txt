@@ -69,7 +69,7 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_EXTRACT_ALL YES)
     set(DOXYGEN_EXTRACT_PRIVATE YES)
     set(DOXYGEN_EXTRACT_STATIC YES)
-    set(DOXYGEN_PLANTUML_JAR_PATH /usr/share/java/plantuml/plantuml.jar)
+    set(DOXYGEN_PLANTUML_JAR_PATH ${PLANTUML_JAR_PATH})
     set(DOXYGEN_EXAMPLE_PATH ${PROJECT_SOURCE_DIR}/tests/docs)
 
     doxygen_add_docs(${PROJECT_NAME}-docs

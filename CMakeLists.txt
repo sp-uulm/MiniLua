@@ -26,6 +26,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 # documentation
 find_package(Doxygen)
+find_package(Plantuml)
 
 # dependencies
 find_package(TreeSitter)
