@@ -16,5 +16,5 @@ find_package_handle_standard_args(TreeSitterLua
 add_library(TreeSitterLua STATIC
     "${TreeSitterLua_SOURCE_DIR}/parser.c"
     "${TreeSitterLua_SOURCE_DIR}/scanner.cc")
-target_link_libraries(TreeSitterLua PUBLIC TreeSitter)
+target_link_libraries(TreeSitterLua PUBLIC TreeSitterWrapper)
 set_property(TARGET TreeSitterLua PROPERTY POSITION_INDEPENDENT_CODE ON)

@@ -1,5 +1,6 @@
 #include "details/ast.hpp"
 #include "tree_sitter/tree_sitter.hpp"
+#include "tree_sitter_lua.hpp"
 #include <catch2/catch.hpp>
 #include <iostream>
 #include <string>
@@ -10,7 +11,7 @@ namespace minilua::details::ast {
 using namespace std::string_literals;
 
 TEST_CASE("statements", "[tree-sitter]") {
-    ts::Parser parser;
+    ts::Parser parser(ts::LUA_LANGUAGE);
     std::string source = "i,t,l = 5\n"
                          "do\n"
                          "z = i+k\n"
@@ -59,7 +60,7 @@ TEST_CASE("statements", "[tree-sitter]") {
 }
 TEST_CASE("expressions", "[tree-sitter]") {
     uint exp_count = 29;
-    ts::Parser parser;
+    ts::Parser parser(ts::LUA_LANGUAGE);
     std::string source = "...\n"
                          "next\n"
                          "function (a,b)\n"
@@ -164,7 +165,7 @@ TEST_CASE("expressions", "[tree-sitter]") {
 }
 
 TEST_CASE("do_statements", "[tree-sitter]") {
-    ts::Parser parser;
+    ts::Parser parser(ts::LUA_LANGUAGE);
     std::string source = "do\n"
                          "end\n"
                          "do\n"
@@ -207,7 +208,7 @@ TEST_CASE("do_statements", "[tree-sitter]") {
     CHECK(dos[4].body().return_statement().has_value());
 }
 TEST_CASE("if_statements", "[tree-sitter]") {
-    ts::Parser parser;
+    ts::Parser parser(ts::LUA_LANGUAGE);
     std::string source = "if c<d then\n"
                          "elseif i then\n"
                          "1+1\n"
@@ -301,7 +302,7 @@ TEST_CASE("if_statements", "[tree-sitter]") {
     CHECK(!ifs[5].else_statement().has_value());
 }
 TEST_CASE("for_statements", "[tree-sitter]") {
-    ts::Parser parser;
+    ts::Parser parser(ts::LUA_LANGUAGE);
     std::string source = "for i = 1,2 do\n"
                          "  foo(12)\n"
                          "end\n"
@@ -366,7 +367,7 @@ TEST_CASE("for_statements", "[tree-sitter]") {
     CHECK(end3->content() == "42"s);
 }
 TEST_CASE("for_in_statements", "[tree-sitter]") {
-    ts::Parser parser;
+    ts::Parser parser(ts::LUA_LANGUAGE);
     std::string source = "for k, v in next, t, nil do\n"
                          "  print(k, v)\n"
                          "end\n"
@@ -403,7 +404,7 @@ TEST_CASE("for_in_statements", "[tree-sitter]") {
     CHECK(std::holds_alternative<FunctionCall>(pref_opt));
 }
 TEST_CASE("function_statements", "[tree-sitter]") {
-    ts::Parser parser;
+    ts::Parser parser(ts::LUA_LANGUAGE);
     std::string source = "function foo (a,b,c)\n"
                          "  1+1\n"
                          "  return 3+3,2+2,a,b,c,d \n"
@@ -500,7 +501,7 @@ TEST_CASE("function_statements", "[tree-sitter]") {
     CHECK(func[9].parameters().params().empty());
 }
 TEST_CASE("while_and_repeat_statements", "[tree-sitter]") {
-    ts::Parser parser;
+    ts::Parser parser(ts::LUA_LANGUAGE);
     std::string source = "while i<#table do\n"
                          "  i=i+1\n"
                          "end\n"
@@ -545,7 +546,7 @@ TEST_CASE("while_and_repeat_statements", "[tree-sitter]") {
     CHECK(repeat_stat->body().return_statement().has_value());
 }
 TEST_CASE("return_statements", "[tree-sitter]") {
-    ts::Parser parser;
+    ts::Parser parser(ts::LUA_LANGUAGE);
     std::string source = "do\n"
                          "return a,b,c,d;\n"
                          "end\n"
@@ -579,7 +580,7 @@ TEST_CASE("return_statements", "[tree-sitter]") {
     CHECK(std::holds_alternative<Identifier>(returns[2].exp_list()[0].options()));
 }
 TEST_CASE("var_dec_statements", "[tree-sitter]") {
-    ts::Parser parser;
+    ts::Parser parser(ts::LUA_LANGUAGE);
     std::string source = "a = 1\n"
                          "a,b,c,d = 1+2,5+7,a\n"
                          "local e\n"
@@ -709,7 +710,7 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     CHECK(index1->string() == "table2");
 }
 TEST_CASE("table_statements", "[tree-sitter]") {
-    ts::Parser parser;
+    ts::Parser parser(ts::LUA_LANGUAGE);
     std::string source = "{\n"
                          "field1 = \"name\";\n"
                          "[2+2] = {1,2,3};\n"
@@ -755,7 +756,7 @@ TEST_CASE("table_statements", "[tree-sitter]") {
     CHECK(func_def->body().return_statement().has_value());
 }
 TEST_CASE("function_calls", "[tree-sitter]") {
-    ts::Parser parser;
+    ts::Parser parser(ts::LUA_LANGUAGE);
     std::string source = "foo(a,b)\n"
                          "table.foo()\n"
                          "table:foo()\n"
@@ -815,7 +816,7 @@ TEST_CASE("comment_test", "[tree-sitter]") {
      * only unary- and binary- operations are checked because every other class only uses
      * named nodes and comments are anonymus nodes
      */
-    ts::Parser parser;
+    ts::Parser parser(ts::LUA_LANGUAGE);
     std::string source = "i,j = --[[abc]]#--[[alfs]]table,"
                          " --[[a comment]] a --[[a dumb comment]]+--[[abc]]b\n"
                          "--[[asd]]";

@@ -3,13 +3,11 @@ find_package(Boost REQUIRED)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} PUBLIC_INTERFACE_IMPL)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/details PRIVATE_IMPL)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/core CORE_SRC_LIST)
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/tree_sitter TREE_SITTER_WRAPPER_SRC_LIST)
 
 set(LIB_SRC_LIST
     ${PUBLIC_INTERFACE_IMPL}
     ${PRIVATE_IMPL}
-    ${CORE_SRC_LIST}
-    ${TREE_SITTER_WRAPPER_SRC_LIST})
+    ${CORE_SRC_LIST})
 
 # statically link the stdlib lua files
 add_custom_command(OUTPUT stdlib.lua.o
@@ -40,7 +38,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(${PROJECT_NAME}
-    PRIVATE TreeSitter
+    PRIVATE TreeSitterWrapper
     PRIVATE TreeSitterLua
     PRIVATE lua_stdlib)
 

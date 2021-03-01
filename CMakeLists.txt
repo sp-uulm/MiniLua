@@ -29,8 +29,11 @@ find_package(Doxygen)
 find_package(Plantuml)
 
 # dependencies
-find_package(TreeSitter)
+find_package(TreeSitterWrapper)
 find_package(TreeSitterLua)
+
+# include(CMakePrintHelpers)
+# cmake_print_properties(TARGETS TreeSitterWrapper::TreeSitter TreeSitter TreeSitterWrapper PROPERTIES INTERFACE_INCLUDE_DIRECTORIES)
 
 # library
 add_subdirectory(src)
