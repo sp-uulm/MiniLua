@@ -15,7 +15,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
-          submodules: true
+          submodules: recursive
       - name: Setup VM
         run: ./.github/workflows/install_packages.sh
       - name: Setup CMake
@@ -39,7 +39,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
-          submodules: true
+          submodules: recursive
       - name: Setup VM
         run: ./.github/workflows/install_packages.sh
       - name: Setup CMake
@@ -62,7 +62,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
-          submodules: true
+          submodules: recursive
       - name: Setup VM
         run: ./.github/workflows/install_packages.sh
       - name: Setup CMake
@@ -85,7 +85,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
-          submodules: true
+          submodules: recursive
       - name: Setup VM
         run: ./.github/workflows/install_packages.sh
       - name: Setup CMake
@@ -107,7 +107,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
-          submodules: true
+          submodules: recursive
       - name: Setup VM
         run: ./.github/workflows/install_packages.sh
       - name: Setup CMake
@@ -125,7 +125,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
-          submodules: true
+          submodules: recursive
       - name: Setup VM
         run: ./.github/workflows/install_packages.sh
       - name: Setup CMake
@@ -154,7 +154,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
-          submodules: true
+          submodules: recursive
       - name: Setup VM
         run: |
           ./.github/workflows/install_packages.sh
@@ -179,7 +179,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
-          submodules: true
+          submodules: recursive
       - name: Setup VM
         run: |
           ./.github/workflows/install_packages.sh
