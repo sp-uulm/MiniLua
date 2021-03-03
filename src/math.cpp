@@ -120,24 +120,16 @@ auto static math_helper(
 // That is the reason why everywhere to_number is called.
 
 auto abs(const CallContext& ctx) -> Value {
-    auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(ctx.arguments().get(0)),
-        .location = ctx.call_location(),
-        .reverse = [](const Value& new_value,
-                      const Value& old_value) -> std::optional<SourceChangeTree> {
-            if (!new_value.is_number()) {
-                return std::nullopt;
-            }
-            Number n = std::get<Number>(new_value);
-            if (n >= 0) {
-                return old_value.force(n); // just guess that it was a positive number
+    return UnaryNumericFunctionHelper{
+        [](Number value) { return std::abs(value.as_float()); },
+        [](Number new_value) -> std::optional<Number> {
+            if (new_value >= 0) {
+                return new_value;
             } else {
                 return std::nullopt;
             }
-        }});
-    return math_helper(
-               ctx, [](Number value) -> Number { return std::abs(value.as_float()); }, "abs")
-        .with_origin(origin);
+        },
+    }(ctx);
 }
 
 auto acos(const CallContext& ctx) -> Value {

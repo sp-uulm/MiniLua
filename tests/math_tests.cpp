@@ -82,7 +82,7 @@ TEST_CASE("math.abs(x)") {
             minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
             ctx = ctx.make_new(list);
             CHECK_THROWS_WITH(
-                minilua::math::abs(ctx), "bad argument #1 to 'abs' (number expected, got string)");
+                minilua::math::abs(ctx), "bad argument #1 (number expected, got string)");
         }
     }
 }

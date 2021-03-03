@@ -278,11 +278,26 @@ auto CallContext::environment() const -> Environment& { return *impl->env; }
 auto CallContext::get(const std::string& name) const -> Value { return impl->env->get(name); }
 auto CallContext::arguments() const -> const Vallist& { return impl->args; }
 
+static auto
+expect_number(const Value& value, std::optional<Range> call_location, const std::string& index)
+    -> Number {
+    auto number = value.to_number(Nil(), std::move(call_location));
+    if (number.is_nil()) {
+        // NOTE lua errors also mention the function name here but this is not
+        // really necessary, because we will add that later
+        throw std::runtime_error(
+            "bad argument #" + index + " (number expected, got " + value.type() + ")");
+    }
+    return std::get<Number>(number);
+}
+
 [[nodiscard]] auto CallContext::unary_numeric_arg_helper() const
     -> std::tuple<Number, UnaryOrigin> {
     auto arg = this->arguments().get(0);
-    auto num = std::get<Number>(arg.to_number(Nil(), this->call_location()));
 
+    auto num = expect_number(arg, this->call_location(), "1");
+
+    // TODO not sure if we need to use arg or the result of calling to_number
     auto origin = minilua::UnaryOrigin{
         .val = minilua::make_owning<minilua::Value>(arg),
         .location = this->call_location(),
@@ -296,9 +311,11 @@ auto CallContext::arguments() const -> const Vallist& { return impl->args; }
     auto arg1 = this->arguments().get(0);
     auto arg2 = this->arguments().get(1);
 
-    auto num1 = std::get<Number>(arg1.to_number(Nil(), this->call_location()));
-    auto num2 = std::get<Number>(arg2.to_number(Nil(), this->call_location()));
+    auto num1 = expect_number(arg1, this->call_location(), "1");
+    auto num2 = expect_number(arg2, this->call_location(), "2");
 
+    // TODO not sure if we need to use arg1 and arg2 here or the results of
+    // calling to_number
     auto origin = minilua::BinaryOrigin{
         .lhs = minilua::make_owning<minilua::Value>(arg1),
         .rhs = minilua::make_owning<minilua::Value>(arg2),

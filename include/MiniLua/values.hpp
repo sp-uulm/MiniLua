@@ -1785,14 +1785,21 @@ namespace minilua {
  * See also: @ref binary_num_reverse.
  */
 template <typename Fn> auto unary_num_reverse(Fn fn) -> decltype(auto) {
-    static_assert(std::is_invocable_r_v<Number, Fn, Number>);
+    static_assert(std::is_convertible_v<std::invoke_result_t<Fn, Number>, std::optional<Number>>);
 
     return [fn](const Value& new_value, const Value& old_value) -> std::optional<SourceChangeTree> {
         if (!new_value.is_number() || !old_value.is_number()) {
             return std::nullopt;
         }
+
         auto num = std::get<Number>(new_value);
-        return old_value.force(fn(num));
+
+        std::optional<Number> reverse_value = fn(num);
+        if (reverse_value.has_value()) {
+            return old_value.force(reverse_value.value());
+        } else {
+            return std::nullopt;
+        }
     };
 }
 
@@ -1810,8 +1817,10 @@ template <typename Fn> auto unary_num_reverse(Fn fn) -> decltype(auto) {
 template <typename FnLeft, typename FnRight>
 auto binary_num_reverse(FnLeft fn_left, FnRight fn_right, std::string origin = "")
     -> decltype(auto) {
-    static_assert(std::is_invocable_r_v<Number, FnLeft, Number, Number>);
-    static_assert(std::is_invocable_r_v<Number, FnRight, Number, Number>);
+    static_assert(
+        std::is_convertible_v<std::invoke_result_t<FnLeft, Number, Number>, std::optional<Number>>);
+    static_assert(std::is_convertible_v<
+                  std::invoke_result_t<FnRight, Number, Number>, std::optional<Number>>);
 
     return [fn_left, fn_right, origin = std::move(origin)](
                const Value& new_value, const Value& old_lhs,
@@ -1823,12 +1832,20 @@ auto binary_num_reverse(FnLeft fn_left, FnRight fn_right, std::string origin = "
         auto lhs_num = std::get<Number>(old_lhs);
         auto rhs_num = std::get<Number>(old_rhs);
 
-        auto lhs_change = old_lhs.force(fn_left(num, rhs_num));
-        auto rhs_change = old_rhs.force(fn_right(num, lhs_num));
-
         SourceChangeAlternative change;
-        change.add_if_some(lhs_change);
-        change.add_if_some(rhs_change);
+
+        std::optional<Number> reverse_left_result = fn_left(num, rhs_num);
+        if (reverse_left_result.has_value()) {
+            std::optional<SourceChangeTree> lhs_change = old_lhs.force(reverse_left_result.value());
+            change.add_if_some(lhs_change);
+        }
+
+        std::optional<Number> reverse_right_result = fn_right(num, lhs_num);
+        if (reverse_right_result.has_value()) {
+            std::optional<SourceChangeTree> rhs_change =
+                old_rhs.force(reverse_right_result.value());
+            change.add_if_some(rhs_change);
+        }
 
         change.origin = origin;
         return change;
