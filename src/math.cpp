@@ -133,38 +133,17 @@ auto abs(const CallContext& ctx) -> Value {
 }
 
 auto acos(const CallContext& ctx) -> Value {
-    auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(ctx.arguments().get(0)),
-        .location = ctx.call_location(),
-        .reverse = [](const Value& new_value,
-                      const Value& old_value) -> std::optional<SourceChangeTree> {
-            if (!new_value.is_number()) {
-                return std::nullopt;
-            }
-            Number n = std::get<Number>(new_value);
-            return old_value.force(std::cos(n.as_float()));
-        }});
-
-    return math_helper(
-               ctx, [](Number value) -> Number { return std::acos(value.as_float()); }, "acos")
-        .with_origin(origin);
+    return UnaryNumericFunctionHelper{
+        [](Number value) { return std::acos(value.as_float()); },
+        [](Number new_value) -> std::optional<Number> { return std::cos(new_value.as_float()); },
+    }(ctx);
 }
 
 auto asin(const CallContext& ctx) -> Value {
-    auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(ctx.arguments().get(0)),
-        .location = ctx.call_location(),
-        .reverse = [](const Value& new_value,
-                      const Value& old_value) -> std::optional<SourceChangeTree> {
-            if (!new_value.is_number()) {
-                return std::nullopt;
-            }
-            Number n = std::get<Number>(new_value);
-            return old_value.force(std::sin(n.as_float()));
-        }});
-    return math_helper(
-               ctx, [](Number value) -> Number { return std::asin(value.as_float()); }, "asin")
-        .with_origin(origin);
+    return UnaryNumericFunctionHelper{
+        [](Number value) { return std::asin(value.as_float()); },
+        [](Number new_value) -> std::optional<Number> { return std::sin(new_value.as_float()); },
+    }(ctx);
 }
 
 auto atan(const CallContext& ctx) -> Value {

@@ -280,7 +280,7 @@ auto CallContext::arguments() const -> const Vallist& { return impl->args; }
 
 static auto
 expect_number(const Value& value, std::optional<Range> call_location, const std::string& index)
-    -> Number {
+    -> Value {
     auto number = value.to_number(Nil(), std::move(call_location));
     if (number.is_nil()) {
         // NOTE lua errors also mention the function name here but this is not
@@ -288,7 +288,7 @@ expect_number(const Value& value, std::optional<Range> call_location, const std:
         throw std::runtime_error(
             "bad argument #" + index + " (number expected, got " + value.type() + ")");
     }
-    return std::get<Number>(number);
+    return number;
 }
 
 [[nodiscard]] auto CallContext::unary_numeric_arg_helper() const
@@ -299,11 +299,11 @@ expect_number(const Value& value, std::optional<Range> call_location, const std:
 
     // TODO not sure if we need to use arg or the result of calling to_number
     auto origin = minilua::UnaryOrigin{
-        .val = minilua::make_owning<minilua::Value>(arg),
+        .val = minilua::make_owning<minilua::Value>(num),
         .location = this->call_location(),
     };
 
-    return std::make_tuple(num, origin);
+    return std::make_tuple(std::get<Number>(num), origin);
 }
 
 [[nodiscard]] auto CallContext::binary_numeric_args_helper() const
@@ -317,12 +317,12 @@ expect_number(const Value& value, std::optional<Range> call_location, const std:
     // TODO not sure if we need to use arg1 and arg2 here or the results of
     // calling to_number
     auto origin = minilua::BinaryOrigin{
-        .lhs = minilua::make_owning<minilua::Value>(arg1),
-        .rhs = minilua::make_owning<minilua::Value>(arg2),
+        .lhs = minilua::make_owning<minilua::Value>(num1),
+        .rhs = minilua::make_owning<minilua::Value>(num2),
         .location = this->call_location(),
     };
 
-    return std::make_tuple(num1, num2, origin);
+    return std::make_tuple(std::get<Number>(num1), std::get<Number>(num2), origin);
 }
 
 auto operator<<(std::ostream& os, const CallContext& self) -> std::ostream& {
@@ -791,7 +791,7 @@ auto Value::to_number(const Value base, std::optional<Range> location) const -> 
                     return Nil();
                 }
             },
-            [](const Number& number, const Nil& /*unused*/) -> Value { return number; },
+            [this](const Number& /*number*/, const Nil& /*unused*/) -> Value { return *this; },
             [](const auto& /*a*/, const auto& /*b*/) -> Value { return Nil(); }},
         this->raw(), base.raw());
 }

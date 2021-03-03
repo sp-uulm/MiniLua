@@ -61,6 +61,7 @@ TEST_CASE("define correct origin for unary math functions and force value") {
     REQUIRE(res == 5);
 
     REQUIRE(res.has_origin());
+    INFO(res.origin());
     auto source_change_tree = res.force(3).value(); // NOLINT
     auto source_changes = source_change_tree.collect_first_alternative();
     CHECK(source_changes[0].replacement == "9.0");

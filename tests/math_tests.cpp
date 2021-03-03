@@ -154,7 +154,7 @@ TEST_CASE("math.acos(x)") {
         minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
         ctx = ctx.make_new(list);
         CHECK_THROWS_WITH(
-            minilua::math::acos(ctx), "bad argument #1 to 'acos' (number expected, got string)");
+            minilua::math::acos(ctx), "bad argument #1 (number expected, got string)");
     }
 }
 
@@ -237,7 +237,7 @@ TEST_CASE("math.asin(x)") {
         minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
         ctx = ctx.make_new(list);
         CHECK_THROWS_WITH(
-            minilua::math::asin(ctx), "bad argument #1 to 'asin' (number expected, got string)");
+            minilua::math::asin(ctx), "bad argument #1 (number expected, got string)");
     }
 }
 
@@ -2601,12 +2601,13 @@ TEST_CASE("reverse asin") {
         n = std::get<minilua::Number>(res);
         REQUIRE(n.as_float() == Approx(-0.5235987755983));
 
+        INFO(res.origin());
         result = res.force(minilua::Value(0));
         REQUIRE(result.has_value());
 
         CHECK(
             result.value().collect_first_alternative()[0] ==
-            minilua::SourceChange(minilua::Range(), "0.0"));
+            minilua::SourceChange(minilua::Range(), "\"0.0\""));
 
         x = 2;
         value = minilua::Value(x).with_origin(minilua::LiteralOrigin());
