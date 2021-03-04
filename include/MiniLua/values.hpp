@@ -1050,12 +1050,21 @@ template <> struct hash<minilua::Function> {
 
 namespace minilua {
 
+class Origin;
+
 /**
  * @brief Default origin for `Value`s.
  *
  * Supports equality operators.
  */
-struct NoOrigin {};
+struct NoOrigin {
+    /**
+     * Simplify the origin.
+     *
+     * Removes unusable origins from the tree.
+     */
+    [[nodiscard]] auto simplify() const -> Origin;
+};
 auto operator==(const NoOrigin&, const NoOrigin&) noexcept -> bool;
 auto operator!=(const NoOrigin&, const NoOrigin&) noexcept -> bool;
 auto operator<<(std::ostream&, const NoOrigin&) -> std::ostream&;
@@ -1069,7 +1078,14 @@ auto operator<<(std::ostream&, const NoOrigin&) -> std::ostream&;
  *
  * Support equality operators.
  */
-struct ExternalOrigin {};
+struct ExternalOrigin {
+    /**
+     * Simplify the origin.
+     *
+     * Removes unusable origins from the tree.
+     */
+    [[nodiscard]] auto simplify() const -> Origin;
+};
 auto operator==(const ExternalOrigin&, const ExternalOrigin&) noexcept -> bool;
 auto operator!=(const ExternalOrigin&, const ExternalOrigin&) noexcept -> bool;
 auto operator<<(std::ostream&, const ExternalOrigin&) -> std::ostream&;
@@ -1084,6 +1100,13 @@ struct LiteralOrigin {
      * @brief The range of the literal.
      */
     Range location;
+
+    /**
+     * Simplify the origin.
+     *
+     * Removes unusable origins from the tree.
+     */
+    [[nodiscard]] auto simplify() const -> Origin;
 };
 
 auto operator==(const LiteralOrigin&, const LiteralOrigin&) noexcept -> bool;
@@ -1118,6 +1141,13 @@ struct BinaryOrigin {
      * `std::optional<SourceChangeTree>`.
      */
     std::function<ReverseFn> reverse;
+
+    /**
+     * Simplify the origin.
+     *
+     * Removes unusable origins from the tree.
+     */
+    [[nodiscard]] auto simplify() const -> Origin;
 };
 
 auto operator==(const BinaryOrigin&, const BinaryOrigin&) noexcept -> bool;
@@ -1148,6 +1178,13 @@ struct UnaryOrigin {
      * `std::optional<SourceChangeTree>`.
      */
     std::function<ReverseFn> reverse;
+
+    /**
+     * Simplify the origin.
+     *
+     * Removes unusable origins from the tree.
+     */
+    [[nodiscard]] auto simplify() const -> Origin;
 };
 
 auto operator==(const UnaryOrigin&, const UnaryOrigin&) noexcept -> bool;
@@ -1165,6 +1202,13 @@ struct MultipleArgsOrigin {
     std::optional<Range> location;
     // new_value, old_values
     std::function<ReverseFn> reverse;
+
+    /**
+     * Simplify the origin.
+     *
+     * Removes unusable origins from the tree.
+     */
+    [[nodiscard]] auto simplify() const -> Origin;
 };
 
 auto operator==(const MultipleArgsOrigin&, const MultipleArgsOrigin&) noexcept -> bool;
@@ -1262,6 +1306,13 @@ public:
      * Sets the file of the underlying origin type (if possible).
      */
     void set_file(std::optional<std::shared_ptr<std::string>> file);
+
+    /**
+     * Simplify the origin.
+     *
+     * Removes unusable origins from the tree.
+     */
+    [[nodiscard]] auto simplify() const -> Origin;
 };
 
 auto operator==(const Origin&, const Origin&) noexcept -> bool;

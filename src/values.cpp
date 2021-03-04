@@ -3,6 +3,7 @@
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/utils.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <iomanip>
 #include <iostream>
@@ -413,7 +414,7 @@ auto Origin::raw() -> Type& { return this->origin; }
 }
 
 [[nodiscard]] auto Origin::force(const Value& new_value) const -> std::optional<SourceChangeTree> {
-    return std::visit(
+    return ::minilua::simplify(std::visit(
         overloaded{
             [&new_value](const BinaryOrigin& origin) -> std::optional<SourceChangeTree> {
                 return origin.reverse(new_value, *origin.lhs, *origin.rhs);
@@ -434,7 +435,7 @@ auto Origin::raw() -> Type& { return this->origin; }
                 return std::nullopt;
             },
         },
-        this->origin);
+        this->origin));
 }
 void Origin::set_file(std::optional<std::shared_ptr<std::string>> file) {
     std::visit(
@@ -455,6 +456,10 @@ void Origin::set_file(std::optional<std::shared_ptr<std::string>> file) {
         this->origin);
 }
 
+auto Origin::simplify() const -> Origin {
+    return std::visit([](const auto& origin) -> Origin { return origin.simplify(); }, this->raw());
+}
+
 auto operator==(const Origin& lhs, const Origin& rhs) noexcept -> bool {
     return lhs.raw() == rhs.raw();
 }
@@ -466,11 +471,15 @@ auto operator<<(std::ostream& os, const Origin& self) -> std::ostream& {
 }
 
 // struct NoOrigin
+auto NoOrigin::simplify() const -> Origin { return *this; }
+
 auto operator==(const NoOrigin&, const NoOrigin&) noexcept -> bool { return true; }
 auto operator!=(const NoOrigin&, const NoOrigin&) noexcept -> bool { return false; }
 auto operator<<(std::ostream& os, const NoOrigin&) -> std::ostream& { return os << "NoOrigin{}"; }
 
 // struct ExternalOrigin
+auto ExternalOrigin::simplify() const -> Origin { return *this; }
+
 auto operator==(const ExternalOrigin&, const ExternalOrigin&) noexcept -> bool { return true; }
 auto operator!=(const ExternalOrigin&, const ExternalOrigin&) noexcept -> bool { return true; }
 auto operator<<(std::ostream& os, const ExternalOrigin&) -> std::ostream& {
@@ -478,6 +487,8 @@ auto operator<<(std::ostream& os, const ExternalOrigin&) -> std::ostream& {
 }
 
 // struct LiteralOrigin
+auto LiteralOrigin::simplify() const -> Origin { return *this; }
+
 auto operator==(const LiteralOrigin& lhs, const LiteralOrigin& rhs) noexcept -> bool {
     return lhs.location == rhs.location;
 }
@@ -489,6 +500,14 @@ auto operator<<(std::ostream& os, const LiteralOrigin& self) -> std::ostream& {
 }
 
 // struct BinaryOrigin
+auto BinaryOrigin::simplify() const -> Origin {
+    if (this->lhs->has_origin() && this->rhs->has_origin()) {
+        return *this;
+    } else {
+        return NoOrigin();
+    }
+}
+
 auto operator==(const BinaryOrigin& lhs, const BinaryOrigin& rhs) noexcept -> bool {
     return lhs.lhs == rhs.lhs && lhs.rhs == rhs.rhs && lhs.location == rhs.location;
 }
@@ -511,6 +530,14 @@ auto operator<<(std::ostream& os, const BinaryOrigin& self) -> std::ostream& {
 }
 
 // struct UnaryOrigin
+auto UnaryOrigin::simplify() const -> Origin {
+    if (this->val->has_origin()) {
+        return *this;
+    } else {
+        return NoOrigin();
+    }
+}
+
 auto operator==(const UnaryOrigin& lhs, const UnaryOrigin& rhs) noexcept -> bool {
     return lhs.val == rhs.val && lhs.location == rhs.location;
 }
@@ -532,6 +559,16 @@ auto operator<<(std::ostream& os, const UnaryOrigin& self) -> std::ostream& {
 }
 
 // struct MultipleArgsOrigin
+auto MultipleArgsOrigin::simplify() const -> Origin {
+    if (std::all_of(this->values.begin(), this->values.end(), [](const auto& value) {
+            return value.has_origin();
+        })) {
+        return *this;
+    } else {
+        return NoOrigin();
+    }
+}
+
 auto operator==(const MultipleArgsOrigin& lhs, const MultipleArgsOrigin& rhs) noexcept -> bool {
     return lhs.values == rhs.values && lhs.location == rhs.location;
 }

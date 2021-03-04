@@ -122,6 +122,11 @@ struct SourceChange : public CommonSCInfo {
      * Create a single SourceChange with empty origin and hint.
      */
     SourceChange(Range range, std::string replacement);
+
+    /**
+     * Only here for convenience. Simply returns a copy of this object.
+     */
+    [[nodiscard]] auto simplify() const -> SourceChange;
 };
 
 auto operator==(const SourceChange& lhs, const SourceChange& rhs) noexcept -> bool;
@@ -153,6 +158,13 @@ struct SourceChangeCombination : public CommonSCInfo {
      * @brief Add any source change to the combination.
      */
     void add(SourceChangeTree);
+
+    /**
+     * (Recursively) simplifies the tree.
+     *
+     * Empty combinations will be converted to nullopts.
+     */
+    [[nodiscard]] auto simplify() const -> std::optional<SourceChangeCombination>;
 };
 
 auto operator==(const SourceChangeCombination& lhs, const SourceChangeCombination& rhs) noexcept
@@ -190,6 +202,13 @@ struct SourceChangeAlternative : public CommonSCInfo {
      * @brief Only add the source change if it is not `std::nullopt`.
      */
     void add_if_some(std::optional<SourceChangeTree>);
+
+    /**
+     * (Recursively) simplifies the tree.
+     *
+     * Empty alternatives will be converted to nullopts.
+     */
+    [[nodiscard]] auto simplify() const -> std::optional<SourceChangeAlternative>;
 };
 
 auto operator==(const SourceChangeAlternative& lhs, const SourceChangeAlternative& rhs) noexcept
@@ -381,6 +400,15 @@ public:
     [[nodiscard]] auto collect_first_alternative() const -> std::vector<SourceChange>;
 
     /**
+     * Simplify the source change tree removing all redundant nodes.
+     *
+     * This is recursive.
+     *
+     * Empty alternatives and combinations will be converted to nullopts.
+     */
+    [[nodiscard]] auto simplify() const -> std::optional<SourceChangeTree>;
+
+    /**
      * @brief Derefernce to the underlying variant type.
      *
      * Returns a reference to the variant type.
@@ -403,6 +431,11 @@ public:
 auto operator==(const SourceChangeTree& lhs, const SourceChangeTree& rhs) noexcept -> bool;
 auto operator!=(const SourceChangeTree& lhs, const SourceChangeTree& rhs) noexcept -> bool;
 auto operator<<(std::ostream&, const SourceChangeTree&) -> std::ostream&;
+
+/**
+ * @brief See SourceChangeTree::simplify.
+ */
+auto simplify(const std::optional<SourceChangeTree>& tree) -> std::optional<SourceChangeTree>;
 
 } // namespace minilua
 
