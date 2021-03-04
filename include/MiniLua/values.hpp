@@ -1769,6 +1769,23 @@ template <typename T> auto get(const minilua::Value& value) -> const T& {
 
 namespace minilua {
 
+inline auto _ignore_nan_and_infinity(std::optional<Number> value) -> std::optional<Number> {
+    if (value.has_value()) {
+        return value.value().visit(overloaded{
+            [](Number::Int value) -> std::optional<Number> { return value; },
+            [](Number::Float value) -> std::optional<Number> {
+                if (std::isnan(value) || std::isinf(value)) {
+                    return std::nullopt;
+                } else {
+                    return value;
+                }
+            },
+        });
+    } else {
+        return std::nullopt;
+    }
+}
+
 /*
  * Helper functions for writing functions that should be forcable.
  */
@@ -1794,7 +1811,7 @@ template <typename Fn> auto unary_num_reverse(Fn fn) -> decltype(auto) {
 
         auto num = std::get<Number>(new_value);
 
-        std::optional<Number> reverse_value = fn(num);
+        std::optional<Number> reverse_value = _ignore_nan_and_infinity(fn(num));
         if (reverse_value.has_value()) {
             return old_value.force(reverse_value.value());
         } else {
@@ -1834,13 +1851,14 @@ auto binary_num_reverse(FnLeft fn_left, FnRight fn_right, std::string origin = "
 
         SourceChangeAlternative change;
 
-        std::optional<Number> reverse_left_result = fn_left(num, rhs_num);
+        std::optional<Number> reverse_left_result = _ignore_nan_and_infinity(fn_left(num, rhs_num));
         if (reverse_left_result.has_value()) {
             std::optional<SourceChangeTree> lhs_change = old_lhs.force(reverse_left_result.value());
             change.add_if_some(lhs_change);
         }
 
-        std::optional<Number> reverse_right_result = fn_right(num, lhs_num);
+        std::optional<Number> reverse_right_result =
+            _ignore_nan_and_infinity(fn_right(num, lhs_num));
         if (reverse_right_result.has_value()) {
             std::optional<SourceChangeTree> rhs_change =
                 old_rhs.force(reverse_right_result.value());

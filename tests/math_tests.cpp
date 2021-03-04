@@ -2566,11 +2566,7 @@ TEST_CASE("reverse acos") {
 
             // force value to nan, directly insert nan doesn't work
             auto result = res.force(minilua::Value(std::asin(2)));
-            REQUIRE(result.has_value());
-
-            CHECK(
-                result.value().collect_first_alternative()[0] ==
-                minilua::SourceChange(minilua::Range(), "nan"));
+            REQUIRE(!result.has_value());
         }
     }
 
@@ -2657,11 +2653,7 @@ TEST_CASE("reverse asin") {
 
             // force value to nan, directly insert nan doesn't work
             auto result = res.force(minilua::Value(std::asin(2)));
-            REQUIRE(result.has_value());
-
-            CHECK(
-                result.value().collect_first_alternative()[0] ==
-                minilua::SourceChange(minilua::Range(), "nan"));
+            REQUIRE(!result.has_value());
         }
     }
 
@@ -2824,11 +2816,7 @@ TEST_CASE("reverse cos") {
             minilua::SourceChange(minilua::Range(), "1.5708"));
 
         result = res.force(3);
-        REQUIRE(result.has_value());
-
-        CHECK(
-            result.value().collect_first_alternative()[0] ==
-            minilua::SourceChange(minilua::Range(), "nan"));
+        REQUIRE(!result.has_value());
     }
 
     SECTION("invalid force") {
@@ -3147,13 +3135,6 @@ TEST_CASE("reverse sin") {
         CHECK(
             result.value().collect_first_alternative()[0] ==
             minilua::SourceChange(minilua::Range(), "1.5708"));
-
-        result = res.force(3);
-        REQUIRE(result.has_value());
-
-        CHECK(
-            result.value().collect_first_alternative()[0] ==
-            minilua::SourceChange(minilua::Range(), "nan"));
     }
 
     SECTION("invalid force") {
@@ -3168,6 +3149,9 @@ TEST_CASE("reverse sin") {
         // formated like a Number
         auto result = res.force("1");
         CHECK_FALSE(result.has_value());
+
+        result = res.force(3);
+        CHECK(!result.has_value());
     }
 }
 
