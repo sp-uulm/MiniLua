@@ -164,7 +164,7 @@ struct SourceChangeCombination : public CommonSCInfo {
      *
      * Empty combinations will be converted to nullopts.
      */
-    [[nodiscard]] auto simplify() const -> std::optional<SourceChangeCombination>;
+    [[nodiscard]] auto simplify() const -> std::optional<SourceChangeTree>;
 };
 
 auto operator==(const SourceChangeCombination& lhs, const SourceChangeCombination& rhs) noexcept
@@ -208,7 +208,7 @@ struct SourceChangeAlternative : public CommonSCInfo {
      *
      * Empty alternatives will be converted to nullopts.
      */
-    [[nodiscard]] auto simplify() const -> std::optional<SourceChangeAlternative>;
+    [[nodiscard]] auto simplify() const -> std::optional<SourceChangeTree>;
 };
 
 auto operator==(const SourceChangeAlternative& lhs, const SourceChangeAlternative& rhs) noexcept
@@ -431,6 +431,7 @@ public:
 auto operator==(const SourceChangeTree& lhs, const SourceChangeTree& rhs) noexcept -> bool;
 auto operator!=(const SourceChangeTree& lhs, const SourceChangeTree& rhs) noexcept -> bool;
 auto operator<<(std::ostream&, const SourceChangeTree&) -> std::ostream&;
+auto operator<<(std::ostream&, const std::optional<SourceChangeTree>&) -> std::ostream&;
 
 /**
  * @brief See SourceChangeTree::simplify.

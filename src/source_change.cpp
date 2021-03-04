@@ -89,6 +89,13 @@ auto operator<<(std::ostream& os, const SourceChangeTree& self) -> std::ostream&
     self.visit([&os](const auto& change) { os << change; });
     return os << " }";
 }
+auto operator<<(std::ostream& os, const std::optional<SourceChangeTree>& self) -> std::ostream& {
+    if (self.has_value()) {
+        return os << *self;
+    } else {
+        return os << "nullopt";
+    }
+}
 
 auto simplify(const std::optional<SourceChangeTree>& tree) -> std::optional<SourceChangeTree> {
     if (tree.has_value()) {
@@ -123,7 +130,7 @@ SourceChangeCombination::SourceChangeCombination(std::vector<SourceChangeTree> c
 
 void SourceChangeCombination::add(SourceChangeTree change) { changes.push_back(std::move(change)); }
 
-auto SourceChangeCombination::simplify() const -> std::optional<SourceChangeCombination> {
+auto SourceChangeCombination::simplify() const -> std::optional<SourceChangeTree> {
     if (this->changes.empty()) {
         return std::nullopt;
     } else {
@@ -139,6 +146,18 @@ auto SourceChangeCombination::simplify() const -> std::optional<SourceChangeComb
 
         if (changes.empty()) {
             return std::nullopt;
+        } else if (changes.size() == 1) {
+            auto change = changes[0];
+
+            // set hints only if they are empty
+            if (change.origin().empty()) {
+                change.origin() = this->origin;
+            }
+            if (change.hint().empty()) {
+                change.hint() = this->hint;
+            }
+
+            return change;
         } else {
             auto change = SourceChangeCombination(changes);
             change.origin = this->origin;
@@ -178,7 +197,7 @@ void SourceChangeAlternative::add_if_some(std::optional<SourceChangeTree> change
     }
 }
 
-auto SourceChangeAlternative::simplify() const -> std::optional<SourceChangeAlternative> {
+auto SourceChangeAlternative::simplify() const -> std::optional<SourceChangeTree> {
     if (this->changes.empty()) {
         return std::nullopt;
     } else {
@@ -194,6 +213,18 @@ auto SourceChangeAlternative::simplify() const -> std::optional<SourceChangeAlte
 
         if (changes.empty()) {
             return std::nullopt;
+        } else if (changes.size() == 1) {
+            auto change = changes[0];
+
+            // set hints only if they are empty
+            if (change.origin().empty()) {
+                change.origin() = this->origin;
+            }
+            if (change.hint().empty()) {
+                change.hint() = this->hint;
+            }
+
+            return change;
         } else {
             auto change = SourceChangeAlternative(changes);
             change.origin = this->origin;
