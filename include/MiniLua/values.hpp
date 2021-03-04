@@ -1127,13 +1127,13 @@ struct BinaryOrigin {
      *
      * \note This is a shared_ptr to avoid **a lot* of unnecessary copying.
      */
-    std::shared_ptr<Value> lhs;
+    std::shared_ptr<Value> lhs = std::make_shared<Value>(Nil());
     /**
      * @brief The second value used to call the binary operator or function.
      *
      * \note This is a shared_ptr to avoid **a lot* of unnecessary copying.
      */
-    std::shared_ptr<Value> rhs;
+    std::shared_ptr<Value> rhs = std::make_shared<Value>(Nil());
     /**
      * @brief The range of the operator or function call.
      */
@@ -1172,7 +1172,7 @@ struct UnaryOrigin {
      *
      * \note This is a shared_ptr to avoid **a lot* of unnecessary copying.
      */
-    std::shared_ptr<Value> val;
+    std::shared_ptr<Value> val = std::make_shared<Value>(Nil());
     /**
      * @brief The range of the operator or function call.
      */
@@ -1319,6 +1319,8 @@ public:
      * Simplify the origin.
      *
      * Removes unusable origins from the tree.
+     *
+     * \note This is not recursive. It will only look at the first level.
      */
     [[nodiscard]] auto simplify() const -> Origin;
 };

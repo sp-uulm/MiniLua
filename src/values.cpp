@@ -560,7 +560,8 @@ auto operator<<(std::ostream& os, const UnaryOrigin& self) -> std::ostream& {
 
 // struct MultipleArgsOrigin
 auto MultipleArgsOrigin::simplify() const -> Origin {
-    if (std::all_of(this->values.begin(), this->values.end(), [](const auto& value) {
+    if (this->values.size() != 0 &&
+        std::all_of(this->values.begin(), this->values.end(), [](const auto& value) {
             return value.has_origin();
         })) {
         return *this;
