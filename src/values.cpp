@@ -299,8 +299,8 @@ expect_number(const Value& value, std::optional<Range> call_location, const std:
     auto num = expect_number(arg, this->call_location(), "1");
 
     // TODO not sure if we need to use arg or the result of calling to_number
-    auto origin = minilua::UnaryOrigin{
-        .val = minilua::make_owning<minilua::Value>(num),
+    auto origin = UnaryOrigin{
+        .val = std::make_shared<minilua::Value>(num),
         .location = this->call_location(),
     };
 
@@ -317,9 +317,9 @@ expect_number(const Value& value, std::optional<Range> call_location, const std:
 
     // TODO not sure if we need to use arg1 and arg2 here or the results of
     // calling to_number
-    auto origin = minilua::BinaryOrigin{
-        .lhs = minilua::make_owning<minilua::Value>(num1),
-        .rhs = minilua::make_owning<minilua::Value>(num2),
+    auto origin = BinaryOrigin{
+        .lhs = std::make_shared<Value>(num1),
+        .rhs = std::make_shared<Value>(num2),
         .location = this->call_location(),
     };
 
@@ -757,7 +757,7 @@ auto Value::to_number(const Value base, std::optional<Range> location) const -> 
             [this, &location](const String& number, const Nil& /*nil*/) -> Value {
                 // same behaviour as number literal parsing but add a different origin
                 auto origin = UnaryOrigin{
-                    .val = make_owning<Value>(*this),
+                    .val = std::make_shared<Value>(*this),
                     .location = location,
                     .reverse = [](const Value& new_value,
                                   const Value& old_value) -> std::optional<SourceChangeTree> {
@@ -790,8 +790,8 @@ auto Value::to_number(const Value base, std::optional<Range> location) const -> 
                 if (std::regex_match(number.value, to_number_int_pattern)) {
                     try {
                         auto origin = BinaryOrigin{
-                            .lhs = make_owning<Value>(*this),
-                            .rhs = make_owning<Value>(base_value),
+                            .lhs = std::make_shared<Value>(*this),
+                            .rhs = std::make_shared<Value>(base_value),
                             .location = location,
                             .reverse =
                                 [](const Value& new_value, const Value& old_lhs,
@@ -866,8 +866,8 @@ static inline auto num_op_helper(
         std::is_invocable_v<Fn, Number, Number>, "op is not invocable with two Number arguments");
 
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(lhs),
-        .rhs = make_owning<Value>(rhs),
+        .lhs = std::make_shared<Value>(lhs),
+        .rhs = std::make_shared<Value>(rhs),
         .location = location,
         .reverse = reverse,
     });
@@ -896,7 +896,7 @@ static inline auto num_op_helper(
 
 [[nodiscard]] auto Value::negate(std::optional<Range> location) const -> Value {
     auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(*this),
+        .val = std::make_shared<Value>(*this),
         .location = location,
         .reverse = [](const Value& new_value, const Value& old_value)
             -> std::optional<SourceChangeTree> { return old_value.force(-new_value); }});
@@ -1008,7 +1008,7 @@ auto Value::bit_not(std::optional<Range> location) const -> Value {
         overloaded{
             [this, &location](Number number) {
                 auto origin = Origin(UnaryOrigin{
-                    .val = make_owning<Value>(*this),
+                    .val = std::make_shared<Value>(*this),
                     .location = location,
                     .reverse = [](const Value& new_value,
                                   const Value& old_value) -> std::optional<SourceChangeTree> {
@@ -1033,8 +1033,8 @@ auto Value::bit_not(std::optional<Range> location) const -> Value {
     -> Value {
     // return lhs if it is falsey and rhs otherwise
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(*this),
-        .rhs = make_owning<Value>(rhs),
+        .lhs = std::make_shared<Value>(*this),
+        .rhs = std::make_shared<Value>(rhs),
         .location = location,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {
@@ -1055,8 +1055,8 @@ auto Value::bit_not(std::optional<Range> location) const -> Value {
 [[nodiscard]] auto Value::logic_or(const Value& rhs, std::optional<Range> location) const -> Value {
     // return lhs if it is truthy and rhs otherwise
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(*this),
-        .rhs = make_owning<Value>(rhs),
+        .lhs = std::make_shared<Value>(*this),
+        .rhs = std::make_shared<Value>(rhs),
         .location = location,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {
@@ -1076,7 +1076,7 @@ auto Value::bit_not(std::optional<Range> location) const -> Value {
 }
 [[nodiscard]] auto Value::invert(std::optional<Range> location) const -> Value {
     auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(*this),
+        .val = std::make_shared<Value>(*this),
         .location = location,
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
@@ -1096,7 +1096,7 @@ auto Value::bit_not(std::optional<Range> location) const -> Value {
 }
 [[nodiscard]] auto Value::len(std::optional<Range> location) const -> Value {
     auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(*this),
+        .val = std::make_shared<Value>(*this),
         .location = location,
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
@@ -1118,8 +1118,8 @@ auto Value::bit_not(std::optional<Range> location) const -> Value {
 }
 [[nodiscard]] auto Value::equals(const Value& rhs, std::optional<Range> location) const -> Value {
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(*this),
-        .rhs = make_owning<Value>(rhs),
+        .lhs = std::make_shared<Value>(*this),
+        .rhs = std::make_shared<Value>(rhs),
         .location = location,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {
@@ -1132,8 +1132,8 @@ auto Value::bit_not(std::optional<Range> location) const -> Value {
 }
 [[nodiscard]] auto Value::unequals(const Value& rhs, std::optional<Range> location) const -> Value {
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(*this),
-        .rhs = make_owning<Value>(rhs),
+        .lhs = std::make_shared<Value>(*this),
+        .rhs = std::make_shared<Value>(rhs),
         .location = location,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {
@@ -1147,8 +1147,8 @@ auto Value::bit_not(std::optional<Range> location) const -> Value {
 [[nodiscard]] auto Value::less_than(const Value& rhs, std::optional<Range> location) const
     -> Value {
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(*this),
-        .rhs = make_owning<Value>(rhs),
+        .lhs = std::make_shared<Value>(*this),
+        .rhs = std::make_shared<Value>(rhs),
         .location = location,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {
@@ -1174,8 +1174,8 @@ auto Value::bit_not(std::optional<Range> location) const -> Value {
 [[nodiscard]] auto Value::less_than_or_equal(const Value& rhs, std::optional<Range> location) const
     -> Value {
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(*this),
-        .rhs = make_owning<Value>(rhs),
+        .lhs = std::make_shared<Value>(*this),
+        .rhs = std::make_shared<Value>(rhs),
         .location = location,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {
@@ -1201,8 +1201,8 @@ auto Value::bit_not(std::optional<Range> location) const -> Value {
 [[nodiscard]] auto Value::greater_than(const Value& rhs, std::optional<Range> location) const
     -> Value {
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(*this),
-        .rhs = make_owning<Value>(rhs),
+        .lhs = std::make_shared<Value>(*this),
+        .rhs = std::make_shared<Value>(rhs),
         .location = location,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {
@@ -1228,8 +1228,8 @@ auto Value::bit_not(std::optional<Range> location) const -> Value {
 [[nodiscard]] auto
 Value::greater_than_or_equal(const Value& rhs, std::optional<Range> location) const -> Value {
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(*this),
-        .rhs = make_owning<Value>(rhs),
+        .lhs = std::make_shared<Value>(*this),
+        .rhs = std::make_shared<Value>(rhs),
         .location = location,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {
@@ -1254,8 +1254,8 @@ Value::greater_than_or_equal(const Value& rhs, std::optional<Range> location) co
 }
 [[nodiscard]] auto Value::concat(const Value& rhs, std::optional<Range> location) const -> Value {
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(*this),
-        .rhs = make_owning<Value>(rhs),
+        .lhs = std::make_shared<Value>(*this),
+        .rhs = std::make_shared<Value>(rhs),
         .location = location,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {

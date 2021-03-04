@@ -149,8 +149,8 @@ auto asin(const CallContext& ctx) -> Value {
 auto atan(const CallContext& ctx) -> Value {
     double len = -1;
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(ctx.arguments().get(0)),
-        .rhs = make_owning<Value>(ctx.arguments().get(1)),
+        .lhs = std::make_shared<Value>(ctx.arguments().get(0)),
+        .rhs = std::make_shared<Value>(ctx.arguments().get(1)),
         .location = ctx.call_location(),
         .reverse = [len](const Value& new_value, const Value& old_value1, const Value& old_value2)
             -> std::optional<SourceChangeTree> {
@@ -357,8 +357,8 @@ auto fmod(const CallContext& ctx) -> Value {
 
 auto log(const CallContext& ctx) -> Value {
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(ctx.arguments().get(0)),
-        .rhs = make_owning<Value>(ctx.arguments().get(1)),
+        .lhs = std::make_shared<Value>(ctx.arguments().get(0)),
+        .rhs = std::make_shared<Value>(ctx.arguments().get(1)),
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value, const Value& old_value1,
                       const Value& old_value2) -> std::optional<SourceChangeTree> {
@@ -462,14 +462,14 @@ auto modf(const CallContext& ctx) -> Vallist {
         num = std::modf(num.as_float(), &iptr);
 
         auto origin1 = Origin(UnaryOrigin{
-            .val = make_owning<Value>(Value(iptr)),
+            .val = std::make_shared<Value>(Value(iptr)),
             .location = ctx.call_location(), // is that the correct location?
             .reverse = [](const Value& new_value,
                           const Value& old_value) -> std::optional<SourceChangeTree> {
                 return std::nullopt; // TODO: add real reverse. this is only temporary
             }});
         auto origin2 = Origin(UnaryOrigin{
-            .val = make_owning<Value>(num),
+            .val = std::make_shared<Value>(num),
             .location = ctx.call_location(), // is that the correct location?
             .reverse = [](const Value& new_value,
                           const Value& old_value) -> std::optional<SourceChangeTree> {
@@ -570,7 +570,7 @@ auto tan(const CallContext& ctx) -> Value {
 
 auto to_integer(const CallContext& ctx) -> Value {
     auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(ctx.arguments().get(0)),
+        .val = std::make_shared<Value>(ctx.arguments().get(0)),
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {

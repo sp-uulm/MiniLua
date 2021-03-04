@@ -1124,12 +1124,16 @@ struct BinaryOrigin {
 
     /**
      * @brief The first value used to call the binary operator or function.
+     *
+     * \note This is a shared_ptr to avoid **a lot* of unnecessary copying.
      */
-    owning_ptr<Value> lhs;
+    std::shared_ptr<Value> lhs;
     /**
      * @brief The second value used to call the binary operator or function.
+     *
+     * \note This is a shared_ptr to avoid **a lot* of unnecessary copying.
      */
-    owning_ptr<Value> rhs;
+    std::shared_ptr<Value> rhs;
     /**
      * @brief The range of the operator or function call.
      */
@@ -1165,8 +1169,10 @@ struct UnaryOrigin {
 
     /**
      * @brief The value used to call the unary operator or function.
+     *
+     * \note This is a shared_ptr to avoid **a lot* of unnecessary copying.
      */
-    owning_ptr<Value> val;
+    std::shared_ptr<Value> val;
     /**
      * @brief The range of the operator or function call.
      */
@@ -1198,6 +1204,8 @@ auto operator<<(std::ostream&, const UnaryOrigin&) -> std::ostream&;
 struct MultipleArgsOrigin {
     using ReverseFn = std::optional<SourceChangeTree>(const Value&, const Vallist&);
 
+    // TODO this can be made more efficient using shared_ptr (see the other
+    // origins) but this is not used very much
     Vallist values;
     std::optional<Range> location;
     // new_value, old_values
