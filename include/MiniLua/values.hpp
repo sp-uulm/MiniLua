@@ -1912,7 +1912,7 @@ template <typename... Ts> UnaryNumericFunctionHelper(Ts...) -> UnaryNumericFunct
  * ```cpp
  * function pow_impl(const CallContext& ctx) -> Value {
  *     return minilua::BinaryNumericFunctionHelper{
- *         [](Number lhs, double rhs) { return std::pow(lhs.as_float(), rhs.as_float()); },
+ *         [](Number lhs, Number rhs) { return std::pow(lhs.as_float(), rhs.as_float()); },
  *         [](Number new_value, Number old_rhs) { return std::pow(new_value.as_float(), 1 /
  * old_rhs.as_float()); },
  *         [](Number new_value, Number old_lhs) { return std::log(new_value.as_float()) /
