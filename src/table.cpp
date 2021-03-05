@@ -150,6 +150,11 @@ void swap(Table& self, Table& other) {
 
 auto Table::border() const -> int { return this->impl->calc_border(); }
 
+auto Table::contains_function() const -> bool {
+    return std::any_of(
+        this->begin(), this->end(), [](const auto& kv) { return kv.second.is_function(); });
+}
+
 auto Table::get(const Value& key) -> Value {
     auto value = impl->value.find(key);
     if (value == impl->value.end()) {

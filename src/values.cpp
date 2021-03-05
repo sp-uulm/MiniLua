@@ -610,6 +610,15 @@ auto Value::raw() const -> const Value::Type& { return impl->val; }
 [[nodiscard]] auto Value::is_function() const -> bool {
     return std::holds_alternative<Function>(this->raw());
 }
+auto Value::contains_function() const -> bool {
+    if (this->is_function()) {
+        return true;
+    } else if (this->is_table()) {
+        return std::get<Table>(*this).contains_function();
+    } else {
+        return false;
+    }
+}
 
 [[nodiscard]] auto Value::has_origin() const -> bool { return !this->impl->origin.is_none(); }
 
