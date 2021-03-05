@@ -292,4 +292,9 @@ auto Table::next(const Value& key) const -> Vallist {
         key.raw());
 }
 
+auto Table::get_metatable() const -> std::optional<Table> { return this->impl->metatable; }
+void Table::set_metatable(std::optional<Table> metatable) {
+    this->impl->metatable = std::move(metatable);
+}
+
 } // namespace minilua

@@ -57,6 +57,20 @@ void print(const CallContext& ctx);
  */
 auto discard_origin(const CallContext& ctx) -> Vallist;
 
+/**
+ * Returns the metatable of the first parameter or nil if there is none.
+ */
+auto get_metatable(const CallContext& ctx) -> Value;
+
+/**
+ * Sets the metatable (second parameter) for the table (first parameter) and
+ * return the table.
+ *
+ * Will error if the first value is not a table or second value is not a table
+ * or nil.
+ */
+auto set_metatable(const CallContext& ctx) -> Value;
+
 } // namespace minilua
 
 #endif

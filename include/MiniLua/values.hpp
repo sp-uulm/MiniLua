@@ -682,6 +682,15 @@ public:
     [[nodiscard]] auto next(const Value& key) const -> Vallist;
 
     /**
+     * @brief Returns the current metatable of this table.
+     */
+    [[nodiscard]] auto get_metatable() const -> std::optional<Table>;
+    /**
+     * @brief Sets the metatable of this table.
+     */
+    void set_metatable(std::optional<Table> metatable);
+
+    /**
      * @brief Equality comparions.
      *
      * Does not compare the content of two tables, only if the table actually

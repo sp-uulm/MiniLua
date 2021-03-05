@@ -58,6 +58,11 @@ void add_stdlib(Table& table) {
     table.set("select", select);
     table.set("print", print);
     table.set("error", error);
+
+    table.set("getmetatable", get_metatable);
+    table.set("setmetatable", set_metatable);
+
+    // non official lua stdlib items
     table.set("discard_origin", discard_origin);
 }
 
@@ -183,6 +188,45 @@ auto discard_origin(const CallContext& ctx) -> Vallist {
     });
 
     return Vallist(values);
+}
+
+auto get_metatable(const CallContext& ctx) -> Value {
+    auto arg = ctx.arguments().get(0);
+    if (arg.is_table()) {
+        auto metatable = std::get<Table>(arg).get_metatable();
+        if (metatable.has_value()) {
+            return metatable.value();
+        }
+    }
+
+    return Nil();
+}
+
+auto set_metatable(const CallContext& ctx) -> Value {
+    if (ctx.arguments().size() == 0) {
+        throw std::runtime_error("bad argument #1 (table expected, got no value)");
+    }
+    auto arg1 = ctx.arguments().get(0);
+    if (!arg1.is_table()) {
+        throw std::runtime_error("bad argument #1 (table expected, got "s + arg1.type() + ")");
+    }
+    auto table = std::get<Table>(arg1);
+
+    if (ctx.arguments().size() == 1) {
+        throw std::runtime_error("bad argument #2 (nil or table expected, got no value)");
+    }
+    auto arg2 = ctx.arguments().get(1);
+    if (arg2.is_nil()) {
+        table.set_metatable(std::nullopt);
+    } else if (arg2.is_table()) {
+        auto metatable = std::get<Table>(arg2);
+        table.set_metatable(metatable);
+    } else {
+        throw std::runtime_error(
+            "bad argument #2 (nil or table expected, got "s + arg2.type() + ")");
+    }
+
+    return table;
 }
 
 } // namespace minilua
