@@ -216,19 +216,8 @@ auto get_metatable(const CallContext& ctx) -> Value {
 }
 
 auto set_metatable(const CallContext& ctx) -> Value {
-    if (ctx.arguments().size() == 0) {
-        throw std::runtime_error("bad argument #1 (table expected, got no value)");
-    }
-    auto arg1 = ctx.arguments().get(0);
-    if (!arg1.is_table()) {
-        throw std::runtime_error("bad argument #1 (table expected, got "s + arg1.type() + ")");
-    }
-    auto table = std::get<Table>(arg1);
-
-    if (ctx.arguments().size() == 1) {
-        throw std::runtime_error("bad argument #2 (nil or table expected, got no value)");
-    }
-    auto arg2 = ctx.arguments().get(1);
+    auto table = std::get<Table>(ctx.expect_argument<Table>(0));
+    const auto& arg2 = ctx.expect_argument<Nil, Table>(1);
 
     if (table.get_metatable().has_value() && !table.get_metatable()->get("__metatable").is_nil()) {
         throw std::runtime_error("cannot change a protected metatable");
@@ -239,53 +228,24 @@ auto set_metatable(const CallContext& ctx) -> Value {
     } else if (arg2.is_table()) {
         auto metatable = std::get<Table>(arg2);
         table.set_metatable(metatable);
-    } else {
-        throw std::runtime_error(
-            "bad argument #2 (nil or table expected, got "s + arg2.type() + ")");
     }
 
     return table;
 }
 
 auto rawget(const CallContext& ctx) -> Value {
-    if (ctx.arguments().size() == 0) {
-        throw std::runtime_error("bad argument #1 (table expected, got no value)");
-    }
-    auto arg1 = ctx.arguments().get(0);
-    if (!arg1.is_table()) {
-        throw std::runtime_error("bad argument #1 (table expected, got "s + arg1.type() + ")");
-    }
-    auto table = std::get<Table>(arg1);
-
-    if (ctx.arguments().size() == 1) {
-        throw std::runtime_error("bad argument #2 (value expected)");
-    }
-    auto arg2 = ctx.arguments().get(1);
+    const auto& table = std::get<Table>(ctx.expect_argument<Table>(0));
+    const auto& arg2 = ctx.expect_argument<>(1);
 
     return table.get(arg2);
 }
 
 auto rawset(const CallContext& ctx) -> Value {
-    if (ctx.arguments().size() == 0) {
-        throw std::runtime_error("bad argument #1 (table expected, got no value)");
-    }
-    auto arg1 = ctx.arguments().get(0);
-    if (!arg1.is_table()) {
-        throw std::runtime_error("bad argument #1 (table expected, got "s + arg1.type() + ")");
-    }
-    auto table = std::get<Table>(arg1);
+    auto table = std::get<Table>(ctx.expect_argument<Table>(0));
+    const auto& key = ctx.expect_argument<>(1);
+    const auto& value = ctx.expect_argument<>(1);
 
-    if (ctx.arguments().size() == 1) {
-        throw std::runtime_error("bad argument #2 (value expected)");
-    }
-    auto arg2 = ctx.arguments().get(1);
-
-    if (ctx.arguments().size() == 2) {
-        throw std::runtime_error("bad argument #3 (value expected)");
-    }
-    auto arg3 = ctx.arguments().get(2);
-
-    table.set(arg2, arg3);
+    table.set(key, value);
 
     return table;
 }

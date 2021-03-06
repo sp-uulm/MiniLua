@@ -837,6 +837,38 @@ public:
      */
     [[nodiscard]] auto arguments() const -> const Vallist&;
 
+private:
+    [[nodiscard]] auto
+    _expect_argument(size_t index, std::vector<std::string_view> expected_types) const
+        -> const Value&;
+
+public:
+    /**
+     * @brief Helper to check required arguments.
+     *
+     * Usage:
+     *
+     * ```cpp
+     * Value table = ctx.expect_argument<Table>(0);
+     * Value nil_or_table = ctx.expect_argument<Nil, Table>(1);
+     * Value string_or_number = ctx.expect_argument<String, Number>(2);
+     * ```
+     *
+     * If the type does not match or the value is not present this method will
+     * throw a lua appropriate exception that looks something like this:
+     *
+     * ```
+     * bad argument #1 (table expected, got no value)
+     * ```
+     */
+    template <typename... Ts>
+    [[nodiscard]] auto expect_argument(size_t index) const -> const Value& {
+        std::vector<std::string_view> type_names;
+        (type_names.push_back(Ts::TYPE), ...);
+
+        return _expect_argument(index, type_names);
+    }
+
     /**
      * @brief Convenience method for writing unary numeric functions.
      *

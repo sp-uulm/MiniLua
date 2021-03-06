@@ -3,6 +3,7 @@
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/utils.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <iomanip>
 #include <iostream>
@@ -277,6 +278,40 @@ auto CallContext::call_location() const -> std::optional<Range> { return impl->l
 auto CallContext::environment() const -> Environment& { return *impl->env; }
 auto CallContext::get(const std::string& name) const -> Value { return impl->env->get(name); }
 auto CallContext::arguments() const -> const Vallist& { return impl->args; }
+
+auto CallContext::_expect_argument(size_t index, std::vector<std::string_view> expected_types) const
+    -> const Value& {
+    std::string expected_types_string;
+    const char* sep = "";
+
+    if (expected_types.empty()) {
+        expected_types_string = "value";
+    } else {
+        for (const auto& type : expected_types) {
+            expected_types_string.append(sep);
+            expected_types_string.append(type);
+            sep = " or ";
+        }
+    }
+
+    if (this->arguments().size() <= index) {
+        throw std::runtime_error(
+            std::string("bad argument #") + std::to_string(index) + " (" + expected_types_string +
+            " expected, got no value)");
+    }
+
+    const Value& value = this->arguments().get(index);
+    auto actual_type = value.type();
+
+    if (std::find(expected_types.begin(), expected_types.end(), actual_type) ==
+        expected_types.end()) {
+        throw std::runtime_error(
+            std::string("bad argument #") + std::to_string(index) + " (" + expected_types_string +
+            " expected, got " + actual_type + ")");
+    }
+
+    return this->arguments().get(index);
+}
 
 [[nodiscard]] auto CallContext::unary_numeric_arg_helper() const
     -> std::tuple<Number, UnaryOrigin> {
