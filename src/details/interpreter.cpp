@@ -553,7 +553,7 @@ auto Interpreter::visit_variable_declaration(ast::VariableDeclaration decl, Env&
                         throw InterpreterException(
                             "Field expression not allowed as target of local declaration");
                     },
-                    [](ast::TableIndex /*node*/) {
+                    [](ast::TableIndex node) {
                         throw InterpreterException(
                             "Table access not allowed as target of local declaration");
                     },
@@ -565,7 +565,40 @@ auto Interpreter::visit_variable_declaration(ast::VariableDeclaration decl, Env&
                     [this, &env, &value](ast::Identifier ident) {
                         env.set_var(this->visit_identifier(ident, env), value);
                     },
-                    [](auto node) { throw UNIMPLEMENTED(node.raw().type()); }},
+                    [this, &env, &value, &result](ast::TableIndex table_index) {
+                        // evaluate the prefix (i.e. the part before the square brackets)
+                        auto prefix_result = this->visit_prefix(table_index.table(), env);
+                        result.combine(prefix_result);
+                        auto table = prefix_result.values.get(0);
+
+                        // evaluate the index (i.e. the part inside the square brackets)
+                        auto index_result = this->visit_expression(table_index.index(), env);
+                        result.combine(index_result);
+                        auto index = index_result.values.get(0);
+
+                        Environment environment(env);
+                        CallContext ctx(&environment);
+
+                        auto newindex_call_result =
+                            mt::newindex(ctx.make_new({table, index, value}));
+                        result.combine(EvalResult(newindex_call_result));
+                    },
+                    [this, &env, &value, &result](ast::FieldExpression field_expr) {
+                        // evaluate the prefix (i.e. the part before the dot)
+                        auto prefix_result = this->visit_prefix(field_expr.table_id(), env);
+                        result.combine(prefix_result);
+                        auto table = prefix_result.values.get(0);
+
+                        // get the property identifier (i.e. the part after the dot)
+                        auto index = field_expr.property_id().string();
+
+                        Environment environment(env);
+                        CallContext ctx(&environment);
+
+                        auto newindex_call_result =
+                            mt::newindex(ctx.make_new({table, index, value}));
+                        result.combine(EvalResult(newindex_call_result));
+                    }},
                 target);
         }
     }

@@ -58,6 +58,11 @@ void print(const CallContext& ctx);
 auto discard_origin(const CallContext& ctx) -> Vallist;
 
 /**
+ * Debug print the values (this will also print tables but not functions).
+ */
+void debug_print(const CallContext& ctx);
+
+/**
  * Returns the metatable of the first parameter or nil if there is none.
  */
 auto get_metatable(const CallContext& ctx) -> Value;

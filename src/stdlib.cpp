@@ -64,6 +64,7 @@ void add_stdlib(Table& table) {
 
     // non official lua stdlib items
     table.set("discard_origin", discard_origin);
+    table.set("debug_print", debug_print);
 }
 
 } // namespace details
@@ -188,6 +189,13 @@ auto discard_origin(const CallContext& ctx) -> Vallist {
     });
 
     return Vallist(values);
+}
+
+void debug_print(const CallContext& ctx) {
+    auto& err = *ctx.environment().get_stderr();
+    for (const auto& value : ctx.arguments()) {
+        err << value << "\n";
+    }
 }
 
 auto get_metatable(const CallContext& ctx) -> Value {
