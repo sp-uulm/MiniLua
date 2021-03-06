@@ -337,6 +337,16 @@ CallResult::CallResult(Vallist vallist, std::optional<SourceChangeTree> sc)
     return this->_source_change;
 }
 
+[[nodiscard]] auto CallResult::one_value() const -> CallResult {
+    if (this->vallist.size() > 1) {
+        CallResult result = *this;
+        result.vallist = Vallist(this->vallist.get(0));
+        return result;
+    } else {
+        return *this;
+    }
+}
+
 auto operator==(const CallResult& lhs, const CallResult& rhs) -> bool {
     return lhs.values() == rhs.values(); // && lhs.source_change() == rhs.source_change();
 }

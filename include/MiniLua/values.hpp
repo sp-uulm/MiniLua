@@ -612,8 +612,12 @@ public:
      * @brief Try to get the value with the given key.
      *
      * If the value does not exist this will return `Nil`.
+     *
+     * \note This ignores metatables. If you want to consider metatables use
+     * `Value::index` and `Value::newindex`.
      */
-    auto get(const Value& key) -> Value;
+    [[nodiscard]] auto get(const Value& key) const -> Value;
+
     /**
      * @brief Check if the table has a value for the given key.
      *
@@ -622,6 +626,9 @@ public:
     auto has(const Value& key) -> bool;
     /**
      * @brief Sets the key to value.
+     *
+     * \note This ignores metatables. If you want to consider metatables use
+     * `Value::index` and `Value::newindex`.
      */
     void set(const Value& key, Value value);
     /**
@@ -927,6 +934,11 @@ public:
      * @brief Get the source change.
      */
     [[nodiscard]] auto source_change() const -> const std::optional<SourceChangeTree>&;
+
+    /**
+     * @brief Truncate the CallResult to max one value.
+     */
+    [[nodiscard]] auto one_value() const -> CallResult;
 };
 
 auto operator==(const CallResult&, const CallResult&) -> bool;
@@ -1571,12 +1583,16 @@ public:
      * @brief Access the value of a Table.
      *
      * If the value is not a Table this throws an exception.
+     *
+     * \note This will ignore metatables. See `mt:index`.
      */
     auto operator[](const Value&) -> Value&;
     /**
      * @brief Access the value of a Table.
      *
      * If the value is not a Table this throws an exception.
+     *
+     * \note This will ignore metatables. See `mt::index`.
      */
     auto operator[](const Value&) const -> const Value&;
 

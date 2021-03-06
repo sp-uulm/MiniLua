@@ -1,6 +1,7 @@
 #include "interpreter.hpp"
 #include "MiniLua/environment.hpp"
 #include "MiniLua/interpreter.hpp"
+#include "MiniLua/metatables.hpp"
 #include "MiniLua/stdlib.hpp"
 #include "ast.hpp"
 #include "tree_sitter/tree_sitter.hpp"
@@ -787,7 +788,12 @@ auto Interpreter::visit_table_index(ast::TableIndex table_index, Env& env) -> Ev
     result.combine(index_result);
     auto index = index_result.values.get(0);
 
-    result.values = Vallist(table[index]);
+    Environment environment(env);
+    CallContext ctx(&environment);
+
+    auto index_call_result = mt::index(ctx.make_new({table, index}));
+    result.combine(EvalResult(index_call_result));
+
     return result;
 }
 
@@ -800,10 +806,16 @@ auto Interpreter::visit_field_expression(ast::FieldExpression field_expression, 
     // evaluate the prefix (i.e. the part before the dot)
     auto table_result = this->visit_prefix(field_expression.table_id(), env);
     result.combine(table_result);
+    auto table = table_result.values.get(0);
 
     std::string key = this->visit_identifier(field_expression.property_id(), env);
 
-    result.values = Vallist(table_result.values.get(0)[key]);
+    Environment environment(env);
+    CallContext ctx(&environment);
+
+    auto index_call_result = mt::index(ctx.make_new({table, key}));
+    result.combine(EvalResult(index_call_result));
+
     return result;
 }
 

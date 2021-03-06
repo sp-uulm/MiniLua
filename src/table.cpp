@@ -150,7 +150,7 @@ void swap(Table& self, Table& other) {
 
 auto Table::border() const -> int { return this->impl->calc_border(); }
 
-auto Table::get(const Value& key) -> Value {
+auto Table::get(const Value& key) const -> Value {
     auto value = impl->value.find(key);
     if (value == impl->value.end()) {
         return Nil();

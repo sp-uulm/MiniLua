@@ -71,6 +71,26 @@ auto get_metatable(const CallContext& ctx) -> Value;
  */
 auto set_metatable(const CallContext& ctx) -> Value;
 
+/**
+ * Gets the real value of table[index], without invoking any metamethod.
+ *
+ * First param is the table, second param is the index.
+ *
+ * Will error if the table is not a Table.
+ */
+auto rawget(const CallContext& ctx) -> Value;
+
+/**
+ * Sets the real value of table[index] to value, without invoking any metamethod.
+ *
+ * First param is the table, second param is the index and third param is the value.
+ *
+ * Will error if the table is not a Table or if the index is invalid.
+ *
+ * This function returns table.
+ */
+auto rawset(const CallContext& ctx) -> Value;
+
 } // namespace minilua
 
 #endif
