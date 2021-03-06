@@ -963,8 +963,27 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
         impl_operator(&Value::method);                                                             \
         break;
 
+    Environment environment(env);
+    CallContext ctx(&environment);
+
+    auto impl_mt_operator = [&ctx, &result, &lhs_result, &rhs_result, &origin](auto f) {
+        auto lhs = lhs_result.values.get(0);
+        auto rhs = rhs_result.values.get(0);
+        auto call_result = f(ctx.make_new({lhs, rhs}), origin);
+        result.combine(EvalResult(call_result.one_value()));
+
+        // Value value = std::invoke(f, lhs_result.values.get(0), rhs_result.values.get(0), origin);
+        // result.combine(rhs_result);
+        // result.values = Vallist(value);
+    };
+
+#define IMPL_MT(op, function)                                                                      \
+    case ast::BinOpEnum::op:                                                                       \
+        impl_mt_operator(function);                                                                \
+        break;
+
     switch (bin_op.binary_operator()) {
-        IMPL(ADD, add)
+        IMPL_MT(ADD, mt::add)
         IMPL(SUB, sub)
         IMPL(MUL, mul)
         IMPL(DIV, div)

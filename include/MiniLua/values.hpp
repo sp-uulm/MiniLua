@@ -698,6 +698,13 @@ public:
     void set_metatable(std::optional<Table> metatable);
 
     /**
+     * @brief Returns the metamethod or `Nil` if it or the metatable is not present.
+     *
+     * This will not check if the value is actually a function.
+     */
+    [[nodiscard]] auto get_metamethod(const std::string& metamethod) const -> Value;
+
+    /**
      * @brief Equality comparions.
      *
      * Does not compare the content of two tables, only if the table actually

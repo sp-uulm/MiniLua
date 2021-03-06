@@ -297,4 +297,11 @@ void Table::set_metatable(std::optional<Table> metatable) {
     this->impl->metatable = std::move(metatable);
 }
 
+auto Table::get_metamethod(const std::string& metamethod) const -> Value {
+    if (this->get_metatable().has_value()) {
+        return this->get_metatable()->get(metamethod);
+    }
+    return Nil();
+}
+
 } // namespace minilua

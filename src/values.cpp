@@ -868,10 +868,6 @@ static inline auto num_op_helper(
             [op, &origin](const Number& lhs, const Number& rhs) -> Value {
                 return Value(op(lhs, rhs)).with_origin(origin);
             },
-            [&origin](const Table& lhs, const Table& rhs) -> Value {
-                // TODO tables with metatables
-                throw std::runtime_error("unimplemented");
-            },
             [&err_info](const auto& lhs, const auto& rhs) -> Value {
                 std::string msg = "Can not ";
                 msg.append(err_info);

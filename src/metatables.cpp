@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "MiniLua/metatables.hpp"
 
 namespace minilua::mt {
@@ -66,6 +68,64 @@ auto newindex(const CallContext& ctx) -> CallResult {
             },
         },
         arg1.raw());
+}
+
+// NOTE: This abomination means:
+// pointer to a method of class Value with the signature
+// auto method(const Value&, std::optional<Range>) const -> Value;
+using BinaryValueMethod = Value (Value::*)(const Value&, std::optional<Range>) const;
+
+static auto _binary_metamethod(
+    const CallContext& ctx, std::optional<Range> location, const std::string& metamethod,
+    BinaryValueMethod method) -> CallResult {
+    auto arg1 = ctx.arguments().get(0);
+    auto arg2 = ctx.arguments().get(1);
+
+    return std::visit(
+        overloaded{
+            [&ctx, &metamethod](const Table& arg1, const Table& arg2) -> CallResult {
+                {
+                    auto meta_left = arg1.get_metamethod(metamethod);
+                    if (meta_left.is_function()) {
+                        return meta_left.call(ctx);
+                    }
+                }
+
+                {
+                    auto meta_right = arg2.get_metamethod(metamethod);
+                    if (meta_right.is_function()) {
+                        return meta_right.call(ctx);
+                    }
+                }
+
+                throw std::runtime_error("attempt to perform arithmetic on a table value");
+            },
+            [&ctx, &metamethod](const Table& arg1, const auto& /*arg2*/) -> CallResult {
+                auto meta_left = arg1.get_metamethod(metamethod);
+                if (meta_left.is_function()) {
+                    return meta_left.call(ctx);
+                }
+
+                throw std::runtime_error("attempt to perform arithmetic on a table value");
+            },
+            [&ctx, &metamethod](const auto& /*arg1*/, const Table& arg2) -> CallResult {
+                auto meta_right = arg2.get_metamethod(metamethod);
+                if (meta_right.is_function()) {
+                    return meta_right.call(ctx);
+                }
+
+                throw std::runtime_error("attempt to perform arithmetic on a table value");
+            },
+            [&location, &method](const auto& arg1, const auto& arg2) -> CallResult {
+                Value value = (Value(arg1).*method)(arg2, location);
+                return CallResult({value});
+            },
+        },
+        arg1.raw(), arg2.raw());
+}
+
+auto add(const CallContext& ctx, std::optional<Range> location) -> CallResult {
+    return _binary_metamethod(ctx, std::move(location), "__add", &Value::add);
 }
 
 } // namespace minilua::mt
