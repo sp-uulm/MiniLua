@@ -203,7 +203,12 @@ auto get_metatable(const CallContext& ctx) -> Value {
     if (arg.is_table()) {
         auto metatable = std::get<Table>(arg).get_metatable();
         if (metatable.has_value()) {
-            return metatable.value();
+            auto __metatable = metatable->get("__metatable");
+            if (!__metatable.is_nil()) {
+                return __metatable;
+            } else {
+                return metatable.value();
+            }
         }
     }
 
@@ -224,6 +229,11 @@ auto set_metatable(const CallContext& ctx) -> Value {
         throw std::runtime_error("bad argument #2 (nil or table expected, got no value)");
     }
     auto arg2 = ctx.arguments().get(1);
+
+    if (table.get_metatable().has_value() && !table.get_metatable()->get("__metatable").is_nil()) {
+        throw std::runtime_error("cannot change a protected metatable");
+    }
+
     if (arg2.is_nil()) {
         table.set_metatable(std::nullopt);
     } else if (arg2.is_table()) {
