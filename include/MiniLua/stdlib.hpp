@@ -26,7 +26,14 @@ auto force(const CallContext& ctx) -> CallResult;
 
 void error(const CallContext& ctx);
 
-auto to_string(const CallContext& ctx) -> Value;
+/**
+ * @brief Converts the value to a string.
+ *
+ * Tables and functions will not return a meaningful string.
+ *
+ * Will respect the metamethod `__tostring`.
+ */
+auto to_string(const CallContext& ctx) -> CallResult;
 
 auto to_number(const CallContext& ctx) -> Value;
 
@@ -48,7 +55,7 @@ auto next(const CallContext& ctx) -> Vallist;
  */
 auto select(const CallContext& ctx) -> Vallist;
 
-void print(const CallContext& ctx);
+auto print(const CallContext& ctx) -> CallResult;
 
 /**
  * Remove the origin of all passed in values and return them.

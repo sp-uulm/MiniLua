@@ -47,21 +47,6 @@ EvalResult::EvalResult(const CallResult& call_result)
     : values(call_result.values()), do_break(false), do_return(false),
       source_change(call_result.source_change()) {}
 
-/**
- * Helper function to combine two optional source changes.
- */
-static auto combine_source_changes(
-    const std::optional<SourceChangeTree>& lhs, const std::optional<SourceChangeTree>& rhs)
-    -> std::optional<SourceChangeTree> {
-    if (lhs.has_value() && rhs.has_value()) {
-        return SourceChangeCombination({*lhs, *rhs});
-    } else if (lhs.has_value()) {
-        return lhs;
-    } else {
-        return rhs;
-    }
-}
-
 void EvalResult::combine(const EvalResult& other) {
     this->values = other.values;
     this->do_break = other.do_break;
@@ -1000,11 +985,12 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
         IMPL_MT(LT, mt::lt)
         IMPL_MT(LEQ, mt::le)
 
-        // TODO desugar these and then call events
+        // TODO desugar these and then call metamethods
         IMPL(GT, greater_than)
         IMPL(GEQ, greater_than_or_equal)
         IMPL(NEQ, unequals)
 
+        // these don't have metamethods
         IMPL(OR, logic_or)
         IMPL(AND, logic_and)
     }

@@ -84,6 +84,18 @@ auto operator<<(std::ostream& os, const SourceChangeTree& self) -> std::ostream&
     return os << " }";
 }
 
+auto combine_source_changes(
+    const std::optional<SourceChangeTree>& lhs, const std::optional<SourceChangeTree>& rhs)
+    -> std::optional<SourceChangeTree> {
+    if (lhs.has_value() && rhs.has_value()) {
+        return SourceChangeCombination({*lhs, *rhs});
+    } else if (lhs.has_value()) {
+        return lhs;
+    } else {
+        return rhs;
+    }
+}
+
 // struct SCSingle
 SourceChange::SourceChange(Range range, std::string replacement)
     : range(range), replacement(std::move(replacement)) {}

@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "MiniLua/environment.hpp"
+#include "MiniLua/source_change.hpp"
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/utils.hpp"
 #include "internal_env.hpp"
@@ -75,10 +76,23 @@ void error(const CallContext& ctx) {
     throw std::runtime_error(std::get<String>(message.to_string()).value);
 }
 
-auto to_string(const CallContext& ctx) -> Value {
+auto to_string(const CallContext& ctx) -> CallResult {
     auto arg = ctx.arguments().get(0);
 
-    return arg.to_string(ctx.call_location());
+    return std::visit(
+        overloaded{
+            [&arg, &ctx](const Table& table) -> CallResult {
+                auto metamethod = table.get_metamethod("__tostring");
+                if (metamethod.is_function()) {
+                    return metamethod.call(ctx);
+                } else {
+                    return CallResult({arg.to_string(ctx.call_location())});
+                }
+            },
+            [&arg, &ctx](const auto& /*unused*/) -> CallResult {
+                return CallResult({arg.to_string(ctx.call_location())});
+            }},
+        arg.raw());
 }
 
 auto to_number(const CallContext& ctx) -> Value {
@@ -164,19 +178,24 @@ auto select(const CallContext& ctx) -> Vallist {
         index.raw());
 }
 
-void print(const CallContext& ctx) {
+auto print(const CallContext& ctx) -> CallResult {
     auto* const stdout = ctx.environment().get_stdout();
     std::string gap;
 
-    for (const auto& arg : ctx.arguments()) {
-        const Value v = to_string(ctx.make_new({arg}));
+    std::optional<SourceChangeTree> source_changes;
 
-        if (v.is_string()) {
-            *stdout << gap << std::get<String>(v).value;
+    for (const auto& arg : ctx.arguments()) {
+        const CallResult result = to_string(ctx.make_new({arg}));
+        source_changes = combine_source_changes(source_changes, result.source_change());
+
+        if (result.values().get(0).is_string()) {
+            *stdout << gap << std::get<String>(result.values().get(0)).value;
             gap = "\t";
         }
     }
     *stdout << std::endl;
+
+    return CallResult(source_changes);
 }
 
 auto discard_origin(const CallContext& ctx) -> Vallist {
