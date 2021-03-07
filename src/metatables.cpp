@@ -1,8 +1,11 @@
+#include <string>
 #include <utility>
 
 #include "MiniLua/metatables.hpp"
 
 namespace minilua::mt {
+
+using namespace std::string_literals;
 
 auto index(const CallContext& ctx) -> CallResult {
     auto arg1 = ctx.arguments().get(0);
@@ -77,13 +80,13 @@ using BinaryValueMethod = Value (Value::*)(const Value&, std::optional<Range>) c
 
 static auto _binary_metamethod(
     const CallContext& ctx, std::optional<Range> location, const std::string& metamethod,
-    BinaryValueMethod method) -> CallResult {
+    BinaryValueMethod method, const std::string& op_kind = "arithmetic") -> CallResult {
     auto arg1 = ctx.arguments().get(0);
     auto arg2 = ctx.arguments().get(1);
 
     return std::visit(
         overloaded{
-            [&ctx, &metamethod](const Table& arg1, const Table& arg2) -> CallResult {
+            [&ctx, &metamethod, &op_kind](const Table& arg1, const Table& arg2) -> CallResult {
                 {
                     auto meta_left = arg1.get_metamethod(metamethod);
                     if (meta_left.is_function()) {
@@ -98,23 +101,26 @@ static auto _binary_metamethod(
                     }
                 }
 
-                throw std::runtime_error("attempt to perform arithmetic on a table value");
+                throw std::runtime_error(
+                    "attempt to perform "s + op_kind + " on a table value (both)");
             },
-            [&ctx, &metamethod](const Table& arg1, const auto& /*arg2*/) -> CallResult {
+            [&ctx, &metamethod, &op_kind](const Table& arg1, const auto& /*arg2*/) -> CallResult {
                 auto meta_left = arg1.get_metamethod(metamethod);
                 if (meta_left.is_function()) {
                     return meta_left.call(ctx);
                 }
 
-                throw std::runtime_error("attempt to perform arithmetic on a table value");
+                throw std::runtime_error(
+                    "attempt to perform "s + op_kind + " on a table value (light)");
             },
-            [&ctx, &metamethod](const auto& /*arg1*/, const Table& arg2) -> CallResult {
+            [&ctx, &metamethod, &op_kind](const auto& /*arg1*/, const Table& arg2) -> CallResult {
                 auto meta_right = arg2.get_metamethod(metamethod);
                 if (meta_right.is_function()) {
                     return meta_right.call(ctx);
                 }
 
-                throw std::runtime_error("attempt to perform arithmetic on a table value");
+                throw std::runtime_error(
+                    "attempt to perform "s + op_kind + " on a table value (right)");
             },
             [&location, &method](const auto& arg1, const auto& arg2) -> CallResult {
                 Value value = (Value(arg1).*method)(arg2, location);
@@ -126,6 +132,176 @@ static auto _binary_metamethod(
 
 auto add(const CallContext& ctx, std::optional<Range> location) -> CallResult {
     return _binary_metamethod(ctx, std::move(location), "__add", &Value::add);
+}
+
+auto sub(const CallContext& ctx, std::optional<Range> location) -> CallResult {
+    return _binary_metamethod(ctx, std::move(location), "__sub", &Value::sub);
+}
+
+auto mul(const CallContext& ctx, std::optional<Range> location) -> CallResult {
+    return _binary_metamethod(ctx, std::move(location), "__mul", &Value::mul);
+}
+
+auto div(const CallContext& ctx, std::optional<Range> location) -> CallResult {
+    return _binary_metamethod(ctx, std::move(location), "__div", &Value::div);
+}
+
+auto mod(const CallContext& ctx, std::optional<Range> location) -> CallResult {
+    return _binary_metamethod(ctx, std::move(location), "__mod", &Value::mod);
+}
+
+auto pow(const CallContext& ctx, std::optional<Range> location) -> CallResult {
+    return _binary_metamethod(ctx, std::move(location), "__pow", &Value::pow);
+}
+
+auto idiv(const CallContext& ctx, std::optional<Range> location) -> CallResult {
+    return _binary_metamethod(ctx, std::move(location), "__idiv", &Value::int_div);
+}
+
+auto band(const CallContext& ctx, std::optional<Range> location) -> CallResult {
+    return _binary_metamethod(
+        ctx, std::move(location), "__band", &Value::bit_and, "bitwise operation");
+}
+
+auto bor(const CallContext& ctx, std::optional<Range> location) -> CallResult {
+    return _binary_metamethod(
+        ctx, std::move(location), "__bor", &Value::bit_or, "bitwise operation");
+}
+
+auto bxor(const CallContext& ctx, std::optional<Range> location) -> CallResult {
+    return _binary_metamethod(
+        ctx, std::move(location), "__bxor", &Value::bit_xor, "bitwise operation");
+}
+
+auto shl(const CallContext& ctx, std::optional<Range> location) -> CallResult {
+    return _binary_metamethod(
+        ctx, std::move(location), "__shl", &Value::bit_shl, "bitwise operation");
+}
+
+auto shr(const CallContext& ctx, std::optional<Range> location) -> CallResult {
+    return _binary_metamethod(
+        ctx, std::move(location), "__shr", &Value::bit_shr, "bitwise operation");
+}
+
+auto concat(const CallContext& ctx, std::optional<Range> location) -> CallResult {
+    return _binary_metamethod(ctx, std::move(location), "__concat", &Value::concat, "concatenate");
+}
+
+static auto _force_bool(const CallResult& result) -> CallResult {
+    auto value = Vallist({result.values().get(0)});
+    return CallResult(value, result.source_change());
+}
+
+auto eq(const CallContext& ctx, std::optional<Range> location) -> CallResult {
+    auto arg1 = ctx.arguments().get(0);
+    auto arg2 = ctx.arguments().get(1);
+
+    auto result = std::visit(
+        overloaded{
+            [&ctx](const Table& arg1, const Table& arg2) -> CallResult {
+                // first check if they are trivially equal
+                if (arg1 == arg2) {
+                    return CallResult({true});
+                }
+
+                {
+                    auto meta_left = arg1.get_metamethod("__eq");
+                    if (meta_left.is_function()) {
+                        return meta_left.call(ctx);
+                    }
+                }
+
+                {
+                    auto meta_right = arg2.get_metamethod("__eq");
+                    if (meta_right.is_function()) {
+                        return meta_right.call(ctx);
+                    }
+                }
+
+                return CallResult({false});
+            },
+            [&location](const auto& arg1, const auto& arg2) -> CallResult {
+                Value value = Value(arg1).equals(arg2, location);
+                return CallResult({value});
+            },
+        },
+        arg1.raw(), arg2.raw());
+
+    return _force_bool(result);
+}
+
+auto lt(const CallContext& ctx, std::optional<Range> location) -> CallResult {
+    return _force_bool(_binary_metamethod(ctx, std::move(location), "__lt", &Value::less_than));
+}
+
+auto le(const CallContext& ctx, std::optional<Range> location) -> CallResult {
+    // TODO also check __lt with reversed arguments
+    return _force_bool(
+        _binary_metamethod(ctx, std::move(location), "__le", &Value::less_than_or_equal));
+}
+
+// NOTE: This abomination means:
+// pointer to a method of class Value with the signature
+// auto method(std::optional<Range>) const -> Value;
+using UnaryValueMethod = Value (Value::*)(std::optional<Range>) const;
+
+static auto _unary_metamethod(
+    const CallContext& ctx, std::optional<Range> location, const std::string& metamethod,
+    UnaryValueMethod method, const std::string& op_kind = "arithmetic") -> CallResult {
+    auto arg1 = ctx.arguments().get(0);
+
+    return std::visit(
+        overloaded{
+            [&ctx, &metamethod, &op_kind](const Table& arg1) -> CallResult {
+                auto meta_left = arg1.get_metamethod(metamethod);
+                if (meta_left.is_function()) {
+                    return meta_left.call(ctx);
+                }
+
+                throw std::runtime_error("attempt to perform "s + op_kind + " on a table value");
+            },
+            [&location, &method](const auto& arg1) -> CallResult {
+                Value value = (Value(arg1).*method)(location);
+                return CallResult({value});
+            },
+        },
+        arg1.raw());
+}
+
+auto unm(const CallContext& ctx, std::optional<Range> location) -> CallResult {
+    return _unary_metamethod(ctx, std::move(location), "__unm", &Value::negate);
+}
+
+auto bnot(const CallContext& ctx, std::optional<Range> location) -> CallResult {
+    return _unary_metamethod(
+        ctx, std::move(location), "__bnot", &Value::bit_not, "bitwise operation");
+}
+
+auto len(const CallContext& ctx, std::optional<Range> location) -> CallResult {
+    auto arg1 = ctx.arguments().get(0);
+
+    return std::visit(
+        overloaded{
+            [&ctx](const Table& arg1) -> CallResult {
+                auto meta_left = arg1.get_metamethod("__len");
+                if (meta_left.is_function()) {
+                    return meta_left.call(ctx);
+                }
+
+                return CallResult({arg1.border()});
+            },
+            [&location](const auto& arg1) -> CallResult {
+                Value value = Value(arg1).len(location);
+                return CallResult({value});
+            },
+        },
+        arg1.raw());
+}
+
+auto call(const CallContext& ctx, std::optional<Range> location) -> CallResult {
+    // TODO
+    // return _binary_metamethod(ctx, std::move(location), "__le", &Value::less_than_or_equal);
+    return {};
 }
 
 } // namespace minilua::mt

@@ -952,6 +952,7 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
     auto lhs_result = this->visit_expression(bin_op.left(), env);
     auto rhs_result = this->visit_expression(bin_op.right(), env);
 
+    // raw operators
     auto impl_operator = [&result, &lhs_result, &rhs_result, &origin](auto f) {
         Value value = std::invoke(f, lhs_result.values.get(0), rhs_result.values.get(0), origin);
         result.combine(rhs_result);
@@ -966,15 +967,12 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
     Environment environment(env);
     CallContext ctx(&environment);
 
+    // operators supporting metamethods
     auto impl_mt_operator = [&ctx, &result, &lhs_result, &rhs_result, &origin](auto f) {
         auto lhs = lhs_result.values.get(0);
         auto rhs = rhs_result.values.get(0);
         auto call_result = f(ctx.make_new({lhs, rhs}), origin);
         result.combine(EvalResult(call_result.one_value()));
-
-        // Value value = std::invoke(f, lhs_result.values.get(0), rhs_result.values.get(0), origin);
-        // result.combine(rhs_result);
-        // result.values = Vallist(value);
     };
 
 #define IMPL_MT(op, function)                                                                      \
@@ -984,29 +982,35 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
 
     switch (bin_op.binary_operator()) {
         IMPL_MT(ADD, mt::add)
-        IMPL(SUB, sub)
-        IMPL(MUL, mul)
-        IMPL(DIV, div)
-        IMPL(MOD, mod)
-        IMPL(POW, pow)
-        IMPL(LT, less_than)
-        IMPL(LEQ, less_than_or_equal)
+        IMPL_MT(SUB, mt::sub)
+        IMPL_MT(MUL, mt::mul)
+        IMPL_MT(DIV, mt::div)
+        IMPL_MT(MOD, mt::mod)
+        IMPL_MT(POW, mt::pow)
+        IMPL_MT(INT_DIV, mt::idiv)
+
+        IMPL_MT(BIT_AND, mt::band)
+        IMPL_MT(BIT_OR, mt::bor)
+        IMPL_MT(BIT_XOR, mt::bxor)
+        IMPL_MT(SHIFT_LEFT, mt::shl)
+        IMPL_MT(SHIFT_RIGHT, mt::shr)
+        IMPL_MT(CONCAT, mt::concat)
+
+        IMPL_MT(EQ, mt::eq)
+        IMPL_MT(LT, mt::lt)
+        IMPL_MT(LEQ, mt::le)
+
+        // TODO desugar these and then call events
         IMPL(GT, greater_than)
         IMPL(GEQ, greater_than_or_equal)
-        IMPL(EQ, equals)
         IMPL(NEQ, unequals)
-        IMPL(CONCAT, concat)
+
         IMPL(OR, logic_or)
         IMPL(AND, logic_and)
-        IMPL(BIT_OR, bit_or)
-        IMPL(BIT_AND, bit_and)
-        IMPL(SHIFT_LEFT, bit_shl)
-        IMPL(SHIFT_RIGHT, bit_shr)
-        IMPL(BIT_XOR, bit_xor)
-        IMPL(INT_DIV, int_div)
     }
 
 #undef IMPL
+#undef IMPL_MT
 
     return result;
 }
@@ -1019,19 +1023,32 @@ auto Interpreter::visit_unary_operation(ast::UnaryOperation unary_op, Env& env) 
     auto range = convert_range(unary_op.raw().range());
     range.file = env.get_file();
 
-#define IMPL(op, method)                                                                           \
+    Environment environment(env);
+    CallContext ctx(&environment);
+
+    auto impl_mt_operator = [&ctx, &result, &range](auto f) {
+        auto value = result.values.get(0);
+        auto call_result = f(ctx.make_new({value}), range);
+        result.combine(EvalResult(call_result.one_value()));
+    };
+
+#define IMPL_MT(op, method)                                                                        \
     case ast::UnOpEnum::op:                                                                        \
-        result.values = Vallist(result.values.get(0).method(range));                               \
+        impl_mt_operator(method);                                                                  \
         break;
 
     switch (unary_op.unary_operator()) {
-        IMPL(NOT, invert)
-        IMPL(NEG, negate)
-        IMPL(LEN, len)
-        IMPL(BWNOT, bit_not)
+        IMPL_MT(NEG, mt::unm)
+        IMPL_MT(BWNOT, mt::bnot)
+        IMPL_MT(LEN, mt::len)
+
+    case ast::UnOpEnum::NOT:
+        result.values = Vallist(result.values.get(0).invert(range));
+        break;
     }
 
 #undef IMPL
+#undef IMPL_MT
 
     return result;
 }

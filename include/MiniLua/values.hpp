@@ -1660,6 +1660,11 @@ public:
      */
     [[nodiscard]] auto to_string(std::optional<Range> location = std::nullopt) const -> Value;
 
+    /**
+     * @brief Converts the value to a `Bool`.
+     */
+    [[nodiscard]] auto to_bool(std::optional<Range> location = std::nullopt) const -> Value;
+
     /*
      * @name Source location tracking versions of the c++ operators.
      *

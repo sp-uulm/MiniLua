@@ -849,6 +849,11 @@ auto Value::to_string(std::optional<Range> location) const -> Value {
         this->raw());
 }
 
+auto Value::to_bool(std::optional<Range> location) const -> Value {
+    // TODO origin
+    return bool(*this);
+}
+
 template <typename Fn, typename FnRev>
 static inline auto num_op_helper(
     const Value& lhs, const Value& rhs, Fn op, std::string err_info, FnRev reverse,
