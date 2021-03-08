@@ -235,9 +235,94 @@ auto lt(const CallContext& ctx, std::optional<Range> location) -> CallResult {
 }
 
 auto le(const CallContext& ctx, std::optional<Range> location) -> CallResult {
-    // TODO also check __lt with reversed arguments
-    return _force_bool(
-        _binary_metamethod(ctx, std::move(location), "__le", &Value::less_than_or_equal));
+    auto arg1 = ctx.arguments().get(0);
+    auto arg2 = ctx.arguments().get(1);
+
+    return _force_bool(std::visit(
+        overloaded{
+            [&ctx](const Table& arg1, const Table& arg2) -> CallResult {
+                {
+                    auto meta_left = arg1.get_metamethod("__le");
+                    if (meta_left.is_function()) {
+                        return meta_left.call(ctx);
+                    }
+                }
+
+                {
+                    auto meta_right = arg2.get_metamethod("__le");
+                    if (meta_right.is_function()) {
+                        return meta_right.call(ctx);
+                    }
+                }
+
+                auto new_ctx = ctx.make_new({ctx.arguments().get(1), ctx.arguments().get(0)});
+
+                {
+                    auto meta_left = arg1.get_metamethod("__lt");
+                    if (meta_left.is_function()) {
+                        auto result = meta_left.call(new_ctx);
+                        auto value = result.values().get(0).invert();
+                        return CallResult(Vallist(value), result.source_change());
+                    }
+                }
+
+                {
+                    auto meta_right = arg2.get_metamethod("__lt");
+                    if (meta_right.is_function()) {
+                        auto result = meta_right.call(new_ctx);
+                        auto value = result.values().get(0).invert();
+                        return CallResult(Vallist(value), result.source_change());
+                    }
+                }
+
+                throw std::runtime_error("attempt to perform arithmetic on a table value (both)");
+            },
+            [&ctx](const Table& arg1, const auto& /*arg2*/) -> CallResult {
+                {
+                    auto meta_left = arg1.get_metamethod("__le");
+                    if (meta_left.is_function()) {
+                        return meta_left.call(ctx);
+                    }
+                }
+
+                {
+                    auto new_ctx = ctx.make_new({ctx.arguments().get(1), ctx.arguments().get(0)});
+                    auto meta_left = arg1.get_metamethod("__lt");
+                    if (meta_left.is_function()) {
+                        auto result = meta_left.call(new_ctx);
+                        auto value = result.values().get(0).invert();
+                        return CallResult(Vallist(value), result.source_change());
+                    }
+                }
+
+                throw std::runtime_error("attempt to perform arithmetic on a table value (light)");
+            },
+            [&ctx](const auto& /*arg1*/, const Table& arg2) -> CallResult {
+                {
+                    auto meta_right = arg2.get_metamethod("__le");
+                    if (meta_right.is_function()) {
+                        return meta_right.call(ctx);
+                    }
+                }
+
+                {
+                    auto new_ctx = ctx.make_new({ctx.arguments().get(1), ctx.arguments().get(0)});
+                    auto meta_right = arg2.get_metamethod("__lt");
+                    if (meta_right.is_function()) {
+                        auto result = meta_right.call(new_ctx);
+                        auto value = result.values().get(0).invert();
+                        return CallResult(Vallist(value), result.source_change());
+                    }
+                }
+
+                throw std::runtime_error("attempt to perform arithmetic on a table value (right)");
+            },
+            [&location](const auto& arg1, const auto& arg2) -> CallResult {
+                Value value = Value(arg1).less_than_or_equal(arg2, location);
+                return CallResult({value});
+            },
+        },
+        arg1.raw(), arg2.raw()));
 }
 
 // NOTE: This abomination means:
