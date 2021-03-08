@@ -1109,13 +1109,19 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
     // this will produce an error if the obj is not callable
     auto obj = function_obj_result.values.get(0);
 
-    // move the Env to the CallContext
+    // metamethod __call gets the called object as first argument
+    std::vector<Value> meta_arguments;
+    meta_arguments.reserve(arguments.size() + 1);
+    meta_arguments.push_back(obj);
+    std::move(arguments.begin(), arguments.end(), std::back_inserter(meta_arguments));
+
+    // move the Env to the CallContext (and move it back later)
     auto environment = Environment(env);
     auto ctx =
-        CallContext(&environment).make_new(arguments, call.range().with_file(env.get_file()));
+        CallContext(&environment).make_new(meta_arguments, call.range().with_file(env.get_file()));
 
     try {
-        CallResult call_result = obj.call(ctx);
+        CallResult call_result = mt::call(ctx);
         result.combine(EvalResult(call_result));
 
         this->trace_function_call_result(call.id(), call_result);

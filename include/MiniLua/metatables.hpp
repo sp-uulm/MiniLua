@@ -167,7 +167,7 @@ auto len(const CallContext& ctx, std::optional<Range> location = std::nullopt) -
  *
  * This metamethod allows multiple results.
  */
-auto call(const CallContext& ctx, std::optional<Range> location = std::nullopt) -> CallResult;
+auto call(const CallContext& ctx) -> CallResult;
 
 } // namespace minilua::mt
 

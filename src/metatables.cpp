@@ -66,8 +66,34 @@ auto newindex(const CallContext& ctx) -> CallResult {
 
                 return CallResult();
             },
-            [](auto value) -> CallResult {
+            [](const auto& value) -> CallResult {
                 throw std::runtime_error("can't index into " + std::string(value.TYPE));
+            },
+        },
+        arg1.raw());
+}
+
+auto call(const CallContext& ctx) -> CallResult {
+    auto arg1 = ctx.arguments().get(0);
+
+    return std::visit(
+        overloaded{
+            [&ctx](const Table& table) -> CallResult {
+                auto metamethod = table.get_metamethod("__call");
+                if (metamethod.is_function()) {
+                    return metamethod.call(ctx);
+                }
+
+                throw std::runtime_error("attempted to call a table value");
+            },
+            [&ctx](const Function& value) -> CallResult {
+                std::vector<Value> arguments(ctx.arguments().begin() + 1, ctx.arguments().end());
+                auto new_ctx = ctx.make_new(arguments, ctx.call_location());
+                return value.call(new_ctx);
+            },
+            [](const auto& value) -> CallResult {
+                throw std::runtime_error(
+                    "attempted to call a "s + std::string(value.TYPE) + " value");
             },
         },
         arg1.raw());
@@ -381,12 +407,6 @@ auto len(const CallContext& ctx, std::optional<Range> location) -> CallResult {
             },
         },
         arg1.raw());
-}
-
-auto call(const CallContext& ctx, std::optional<Range> location) -> CallResult {
-    // TODO
-    // return _binary_metamethod(ctx, std::move(location), "__le", &Value::less_than_or_equal);
-    return {};
 }
 
 } // namespace minilua::mt

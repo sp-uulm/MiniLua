@@ -112,6 +112,8 @@ TEST_CASE("unit_tests lua files") {
         "metatables/general.lua",
         "metatables/add.lua",
         "metatables/tostring.lua",
+        "metatables/comparison.lua",
+        "metatables/call.lua",
     };
     // NOTE: exptects to be run from build directory
     for (const auto& file : test_files) {
