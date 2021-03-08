@@ -935,37 +935,42 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
     origin.file = env.get_file();
 
     auto lhs_result = this->visit_expression(bin_op.left(), env);
+    auto lhs = lhs_result.values.get(0);
+    result.combine(lhs_result);
+
     auto rhs_result = this->visit_expression(bin_op.right(), env);
+    auto rhs = rhs_result.values.get(0);
+    result.combine(rhs_result);
 
     // raw operators
-    auto impl_operator = [&result, &lhs_result, &rhs_result, &origin](auto f) {
-        Value value = std::invoke(f, lhs_result.values.get(0), rhs_result.values.get(0), origin);
-        result.combine(rhs_result);
+    auto impl_operator = [&result, &origin](auto f, Value lhs, Value rhs) {
+        Value value = std::invoke(f, lhs, rhs, origin);
         result.values = Vallist(value);
     };
 
 #define IMPL(op, method)                                                                           \
     case ast::BinOpEnum::op:                                                                       \
-        impl_operator(&Value::method);                                                             \
+        impl_operator(&Value::method, lhs, rhs);                                                   \
         break;
 
     Environment environment(env);
     CallContext ctx(&environment);
 
     // operators supporting metamethods
-    auto impl_mt_operator = [&ctx, &result, &lhs_result, &rhs_result, &origin](auto f) {
-        auto lhs = lhs_result.values.get(0);
-        auto rhs = rhs_result.values.get(0);
-        auto call_result = f(ctx.make_new({lhs, rhs}), origin);
+    auto impl_mt_operator = [&ctx, &result, &origin](auto f, Value lhs, Value rhs) {
+        auto call_result = f(ctx.make_new({std::move(lhs), std::move(rhs)}), origin);
         result.combine(EvalResult(call_result.one_value()));
     };
 
 #define IMPL_MT(op, function)                                                                      \
     case ast::BinOpEnum::op:                                                                       \
-        impl_mt_operator(function);                                                                \
+        impl_mt_operator(function, lhs, rhs);                                                      \
         break;
 
     switch (bin_op.binary_operator()) {
+        // operators with metamethods
+
+        // arithmetic
         IMPL_MT(ADD, mt::add)
         IMPL_MT(SUB, mt::sub)
         IMPL_MT(MUL, mt::mul)
@@ -974,6 +979,7 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
         IMPL_MT(POW, mt::pow)
         IMPL_MT(INT_DIV, mt::idiv)
 
+        // bitwise
         IMPL_MT(BIT_AND, mt::band)
         IMPL_MT(BIT_OR, mt::bor)
         IMPL_MT(BIT_XOR, mt::bxor)
@@ -981,16 +987,28 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
         IMPL_MT(SHIFT_RIGHT, mt::shr)
         IMPL_MT(CONCAT, mt::concat)
 
+        // comparison
         IMPL_MT(EQ, mt::eq)
         IMPL_MT(LT, mt::lt)
         IMPL_MT(LEQ, mt::le)
 
-        // TODO desugar these and then call metamethods
-        IMPL(GT, greater_than)
-        IMPL(GEQ, greater_than_or_equal)
-        IMPL(NEQ, unequals)
+        // the following operators have to be converted to other metamethods
+    case ast::BinOpEnum::GT:
+        // gt: "x > y" == "y < x"
+        impl_mt_operator(mt::lt, rhs, lhs);
+        break;
+    case ast::BinOpEnum::GEQ:
+        // geq: "x >= y" == "y <= x"
+        impl_mt_operator(mt::le, rhs, lhs);
+        break;
+    case ast::BinOpEnum::NEQ:
+        // neq: "x ~= y" == "not (x == y)"
+        impl_mt_operator(mt::eq, lhs, rhs);
+        result.values = Vallist(result.values.get(0).invert());
+        break;
 
         // these don't have metamethods
+        // TODO do short circuiting
         IMPL(OR, logic_or)
         IMPL(AND, logic_and)
     }
