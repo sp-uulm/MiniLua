@@ -609,6 +609,11 @@ public:
     [[nodiscard]] auto border() const -> int;
 
     /**
+     * Checks if the table contains a Function.
+     */
+    [[nodiscard]] auto contains_function() const -> bool;
+
+    /**
      * @brief Try to get the value with the given key.
      *
      * If the value does not exist this will return `Nil`.
@@ -1480,6 +1485,11 @@ public:
      * @brief Check if the value is a Function.
      */
     [[nodiscard]] auto is_function() const -> bool;
+
+    /**
+     * @brief Check if the value is or contains a Function.
+     */
+    [[nodiscard]] auto contains_function() const -> bool;
 
     /**
      * @brief Check if the value has an Origin.
