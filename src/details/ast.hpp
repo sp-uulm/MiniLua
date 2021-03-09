@@ -45,6 +45,7 @@ public:
     auto body() const -> Body;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for do_statement nodes
@@ -64,6 +65,7 @@ public:
     auto body() const -> Body;
     auto range() const -> minilua::Range;
     auto raw() const -> std::optional<ts::Node>;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for identifier_nodes
@@ -83,6 +85,7 @@ public:
     auto string() const -> std::string;
     auto range() const -> minilua::Range;
     auto raw() const -> std::optional<ts::Node>;
+    auto debug_print() const -> std::string;
 };
 /**
  * this enum holds all possible BinaryOperators in lua
@@ -139,6 +142,7 @@ public:
     auto binary_operator() const -> BinOpEnum;
     auto range() const -> minilua::Range;
     auto raw() const -> std::optional<ts::Node>;
+    auto debug_print() const -> std::string;
 };
 /**
  * This enum holds all unary Operators of lua
@@ -172,6 +176,7 @@ public:
     auto expression() const -> Expression;
     auto range() const -> minilua::Range;
     auto raw() const -> std::optional<ts::Node>;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for loop_expression  nodes
@@ -204,6 +209,7 @@ public:
     auto end() const -> Expression;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for for_statement nodes
@@ -225,6 +231,7 @@ public:
     auto body() const -> Body;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
     auto desugar() const -> DoStatement;
 };
 /**
@@ -247,6 +254,7 @@ public:
     auto loop_exps() const -> std::vector<Expression>;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for for_in_statement nodes
@@ -269,6 +277,7 @@ public:
     auto desugar() const -> DoStatement;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for while_statement nodes
@@ -293,6 +302,7 @@ public:
     auto body() const -> Body;
     auto range() const -> minilua::Range;
     auto raw() const -> std::optional<ts::Node>;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for repeat_statement nodes
@@ -313,6 +323,7 @@ public:
     auto body() const -> Body;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for else_if nodes
@@ -334,6 +345,7 @@ public:
     auto condition() const -> Expression;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for else nodes
@@ -389,6 +401,7 @@ public:
     auto else_statement() const -> std::optional<Else>;
     auto range() const -> minilua::Range;
     auto raw() const -> std::optional<ts::Node>;
+    auto debug_print() const -> std::string;
 };
 /**
  * a class for return_statement nodes
@@ -406,6 +419,7 @@ public:
     auto exp_list() const -> std::vector<Expression>;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for table_index nodes
@@ -427,6 +441,7 @@ public:
     auto index() const -> Expression;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for field_expression nodes
@@ -451,6 +466,7 @@ public:
     auto property_id() const -> Identifier;
     auto range() const -> minilua::Range;
     auto raw() const -> std::optional<ts::Node>;
+    auto debug_print() const -> std::string;
 };
 using VarDecVariant = std::variant<Identifier, FieldExpression, TableIndex>;
 /**
@@ -472,6 +488,7 @@ public:
     auto options() const -> VarDecVariant;
     auto range() const -> minilua::Range;
     auto raw() const -> std::optional<ts::Node>;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for variable_declaration and local_variable_declaration nodes
@@ -505,6 +522,7 @@ public:
     auto declarations() const -> std::vector<Expression>;
     auto range() const -> minilua::Range;
     auto raw() const -> std::optional<ts::Node>;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for go_to_statements
@@ -521,6 +539,7 @@ public:
     auto label() const -> Identifier;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for label_statements
@@ -537,6 +556,7 @@ public:
     auto id() const -> Identifier;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for function_name nodes
@@ -564,6 +584,7 @@ public:
     auto method() const -> std::optional<Identifier>;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * a class for parameter nodes
@@ -587,6 +608,7 @@ public:
     auto spread() const -> bool;
     auto range() const -> minilua::Range;
     auto raw() const -> std::optional<ts::Node>;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for function_definition nodes
@@ -611,6 +633,7 @@ public:
     auto parameters() const -> Parameters;
     auto range() const -> minilua::Range;
     auto raw() const -> std::optional<ts::Node>;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for function_statements
@@ -639,6 +662,7 @@ public:
     auto local() const -> bool;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
     auto desugar() const -> VariableDeclaration;
 };
 class FunctionCall {
@@ -670,6 +694,7 @@ const      *
     auto args() const -> std::vector<Expression>;
     auto range() const -> minilua::Range;
     auto raw() const -> std::optional<ts::Node>;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for field_nodes
@@ -690,6 +715,7 @@ public:
     auto content() const -> std::variant<IndexField, IdentifierField, Expression>;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for table nodes
@@ -706,6 +732,7 @@ public:
     auto fields() const -> std::vector<Field>;
     auto range() const -> minilua::Range;
     auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 // a few empty classes that are just used as additional return types
 class Spread {};
@@ -733,6 +760,7 @@ public:
     auto options() const -> PrefixVariant;
     auto range() const -> minilua::Range;
     auto raw() const -> std::optional<ts::Node>;
+    auto debug_print() const -> std::string;
 };
 using ExpressionVariant = std::variant<
     Spread, Prefix, FunctionDefinition, Table, BinaryOperation, UnaryOperation, Literal,
@@ -760,6 +788,7 @@ public:
     auto options() const -> ExpressionVariant;
     auto range() const -> minilua::Range;
     auto raw() const -> std::optional<ts::Node>;
+    auto debug_print() const -> std::string;
 };
 using StatementVariant = std::variant<
     VariableDeclaration, DoStatement, IfStatement, WhileStatement, RepeatStatement, ForStatement,
@@ -784,6 +813,7 @@ public:
     auto options() const -> StatementVariant;
     auto range() const -> minilua::Range;
     auto raw() const -> std::optional<ts::Node>;
+    auto debug_print() const -> std::string;
 };
 /**
  * The Body class groups a variable amount of statements together

@@ -584,7 +584,7 @@ auto Interpreter::visit_function_expression(ast::FunctionDefinition function_def
             [this, &env](auto ident) { return this->visit_identifier(ident, env); });
     }
 
-    bool vararg = parameters.spread() != ast::NO_SPREAD;
+    bool vararg = parameters.spread();
 
     auto body = function_definition.body();
 
@@ -649,7 +649,7 @@ auto Interpreter::visit_function_statement(ast::FunctionStatement function_state
             [this, &env](auto ident) { return this->visit_identifier(ident, env); });
     }
 
-    bool vararg = parameters.spread() != ast::NO_SPREAD;
+    bool vararg = parameters.spread();
 
     auto body = function_statement.body();
 
