@@ -304,6 +304,19 @@ TEST_CASE("table is iterable") {
     }
 }
 
+TEST_CASE("nil keys are not allowed") {
+    CHECK_THROWS(minilua::Table{{minilua::Nil(), 22}});
+    CHECK_THROWS(minilua::Table({{minilua::Nil(), 22}}));
+    CHECK_THROWS(
+        minilua::Table(std::unordered_map<minilua::Value, minilua::Value>{{minilua::Nil(), 22}}));
+
+    minilua::Table table;
+    CHECK_THROWS(table.set(minilua::Nil(), 22));
+
+    minilua::Value key = minilua::Nil();
+    CHECK_THROWS(table.set(key, 22));
+}
+
 TEST_CASE("function Value is constructable") {
     static_assert(std::is_nothrow_move_constructible<minilua::Function>());
     static_assert(std::is_nothrow_move_assignable<minilua::Function>());
