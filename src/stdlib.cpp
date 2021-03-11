@@ -54,7 +54,7 @@ namespace details {
 
 void add_stdlib(Table& table) {
     table.set("tostring", to_string);
-    table.set("to_number", to_number);
+    table.set("tonumber", to_number);
     table.set("type", type);
     table.set("next", next);
     table.set("select", select);
@@ -64,6 +64,7 @@ void add_stdlib(Table& table) {
 
     // non official lua stdlib items
     table.set("discard_origin", discard_origin);
+    table.set("force", force);
 }
 
 } // namespace details
