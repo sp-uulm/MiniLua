@@ -7,6 +7,7 @@ add_executable(MiniLua-tests
     public_api/values.cpp
     public_api/origin.cpp
     public_api/environment.cpp
+    public_api/source_changes.cpp
     stdlib_tests.cpp
     math_tests.cpp
     tree_sitter_ast_tests.cpp
