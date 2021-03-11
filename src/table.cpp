@@ -113,20 +113,20 @@ Table::Table(MemoryAllocator* allocator)
 Table::Table(std::unordered_map<Value, Value> values, MemoryAllocator* allocator)
     : Table(allocator) {
     for (const auto& [key, value] : values) {
-        this->impl->value.insert_or_assign(key, value);
+        this->set(key, value);
     }
 }
 Table::Table(
     std::initializer_list<std::pair<const Value, Value>> values, MemoryAllocator* allocator)
     : Table(allocator) {
     for (const auto& [key, value] : values) {
-        this->impl->value.insert_or_assign(key, value);
+        this->set(key, value);
     }
 }
 
 Table::Table(const Table& other, MemoryAllocator* allocator) : Table(allocator) {
     for (const auto& [key, value] : other) {
-        this->impl->value.insert_or_assign(Value(key, allocator), Value(value, allocator));
+        this->set(Value(key, allocator), Value(value, allocator));
     }
 }
 
@@ -150,6 +150,11 @@ void swap(Table& self, Table& other) {
 
 auto Table::border() const -> int { return this->impl->calc_border(); }
 
+auto Table::contains_function() const -> bool {
+    return std::any_of(
+        this->begin(), this->end(), [](const auto& kv) { return kv.second.is_function(); });
+}
+
 auto Table::get(const Value& key) const -> Value {
     auto value = impl->value.find(key);
     if (value == impl->value.end()) {
@@ -159,8 +164,18 @@ auto Table::get(const Value& key) const -> Value {
     }
 }
 auto Table::has(const Value& key) -> bool { return impl->value.find(key) != impl->value.end(); }
-void Table::set(const Value& key, Value value) { impl->set(key, std::move(value)); }
-void Table::set(Value&& key, Value value) { impl->set(key, std::move(value)); }
+void Table::set(const Value& key, Value value) {
+    if (key.is_nil()) {
+        throw std::runtime_error("table index is nil");
+    }
+    impl->set(key, std::move(value));
+}
+void Table::set(Value&& key, Value value) {
+    if (key.is_nil()) {
+        throw std::runtime_error("table index is nil");
+    }
+    impl->set(key, std::move(value));
+}
 void Table::set_all(const Table& other) {
     for (const auto& [key, value] : other) {
         this->set(key, value);

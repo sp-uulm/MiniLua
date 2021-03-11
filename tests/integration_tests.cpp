@@ -148,6 +148,22 @@ TEST_CASE("unit_tests lua files") {
     }
 }
 
+TEST_CASE("interpreter does not return functions") {
+    SECTION("plain function") {
+        minilua::Interpreter interpreter;
+        interpreter.parse("return print");
+        auto result = interpreter.evaluate();
+        REQUIRE(result.value.is_nil());
+    }
+
+    SECTION("function in table") {
+        minilua::Interpreter interpreter;
+        interpreter.parse(R"(return {print = print})");
+        auto result = interpreter.evaluate();
+        REQUIRE(result.value.is_nil());
+    }
+}
+
 TEST_CASE("whole lua-programs", "[.hide]") {
     SECTION("programs with function calls") {
         std::vector<std::string> test_files{

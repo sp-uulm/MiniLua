@@ -85,7 +85,24 @@ auto Interpreter::run(const ts::Tree& tree, Env& user_env) -> EvalResult {
     // execute the actual program
     std::shared_ptr<std::string> root_filename = std::make_shared<std::string>("__root__");
     env.set_file(root_filename);
-    return this->run_file(tree, env);
+
+    auto result = this->run_file(tree, env);
+
+    if (result.values.size() != 0) {
+        // don't return functions (or tables that contains functions)
+        // this prevents crashes because it is not allwed to call lua functions
+        // after the interpreter finishes
+        //
+        // also ignore everything except the first value because the public api
+        // only returns one value
+        if (result.values.get(0).contains_function()) {
+            result.values = Vallist();
+        } else {
+            result.values = Vallist(result.values.get(0));
+        }
+    }
+
+    return result;
 }
 
 auto Interpreter::setup_environment(Env& user_env) -> Env {

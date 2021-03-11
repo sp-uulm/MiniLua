@@ -6,8 +6,8 @@ LINKS_NAVBAR1 = [
     (None, 'pages', []),
     (None, 'namespaces', [
         (None, 'namespaceminilua'),
-        (None, 'namespacets'),
     ]),
+    ("<a href=\"https://lythenas.github.io/tree-sitter-cpp-api/\">Tree-Sitter</a>", [])
 ]
 
 LINKS_NAVBAR2 = [
