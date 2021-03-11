@@ -208,6 +208,15 @@ void Interpreter::trace_function_call_result(ast::Prefix prefix, const CallResul
         this->tracer() << "\n";
     }
 }
+void Interpreter::trace_metamethod_call(const std::string& name, const Vallist& arguments) const {
+    if (this->config.trace_metamethod_calls) {
+        this->tracer() << "Calling Metamethod: " << name << " with arguments (";
+        for (const auto& arg : arguments) {
+            this->tracer() << arg << ", ";
+        }
+        this->tracer() << ")\n";
+    }
+}
 void Interpreter::trace_exprlists(
     std::vector<ast::Expression>& exprlist, const Vallist& result) const {
     if (this->config.trace_exprlists) {
@@ -957,53 +966,56 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
     CallContext ctx(&environment);
 
     // operators supporting metamethods
-    auto impl_mt_operator = [&ctx, &result, &origin](auto f, Value lhs, Value rhs) {
-        auto call_result = f(ctx.make_new({std::move(lhs), std::move(rhs)}), origin);
+    auto impl_mt_operator = [this, &ctx, &result,
+                             &origin](auto f, Value lhs, Value rhs, const std::string& name) {
+        auto args = Vallist{std::move(lhs), std::move(rhs)};
+        this->trace_metamethod_call(name, args);
+        auto call_result = f(ctx.make_new(args), origin);
         result.combine(EvalResult(call_result.one_value()));
     };
 
-#define IMPL_MT(op, function)                                                                      \
+#define IMPL_MT(op, function, name)                                                                \
     case ast::BinOpEnum::op:                                                                       \
-        impl_mt_operator(function, lhs, rhs);                                                      \
+        impl_mt_operator(function, lhs, rhs, name);                                                \
         break;
 
     switch (bin_op.binary_operator()) {
         // operators with metamethods
 
         // arithmetic
-        IMPL_MT(ADD, mt::add)
-        IMPL_MT(SUB, mt::sub)
-        IMPL_MT(MUL, mt::mul)
-        IMPL_MT(DIV, mt::div)
-        IMPL_MT(MOD, mt::mod)
-        IMPL_MT(POW, mt::pow)
-        IMPL_MT(INT_DIV, mt::idiv)
+        IMPL_MT(ADD, mt::add, "add")
+        IMPL_MT(SUB, mt::sub, "sub")
+        IMPL_MT(MUL, mt::mul, "mul")
+        IMPL_MT(DIV, mt::div, "div")
+        IMPL_MT(MOD, mt::mod, "mod")
+        IMPL_MT(POW, mt::pow, "pow")
+        IMPL_MT(INT_DIV, mt::idiv, "idiv")
 
         // bitwise
-        IMPL_MT(BIT_AND, mt::band)
-        IMPL_MT(BIT_OR, mt::bor)
-        IMPL_MT(BIT_XOR, mt::bxor)
-        IMPL_MT(SHIFT_LEFT, mt::shl)
-        IMPL_MT(SHIFT_RIGHT, mt::shr)
-        IMPL_MT(CONCAT, mt::concat)
+        IMPL_MT(BIT_AND, mt::band, "band")
+        IMPL_MT(BIT_OR, mt::bor, "bor")
+        IMPL_MT(BIT_XOR, mt::bxor, "bxor")
+        IMPL_MT(SHIFT_LEFT, mt::shl, "shl")
+        IMPL_MT(SHIFT_RIGHT, mt::shr, "shr")
+        IMPL_MT(CONCAT, mt::concat, "concat")
 
         // comparison
-        IMPL_MT(EQ, mt::eq)
-        IMPL_MT(LT, mt::lt)
-        IMPL_MT(LEQ, mt::le)
+        IMPL_MT(EQ, mt::eq, "eq")
+        IMPL_MT(LT, mt::lt, "lt")
+        IMPL_MT(LEQ, mt::le, "le")
 
         // the following operators have to be converted to other metamethods
     case ast::BinOpEnum::GT:
         // gt: "x > y" == "y < x"
-        impl_mt_operator(mt::lt, rhs, lhs);
+        impl_mt_operator(mt::lt, rhs, lhs, "gt");
         break;
     case ast::BinOpEnum::GEQ:
         // geq: "x >= y" == "y <= x"
-        impl_mt_operator(mt::le, rhs, lhs);
+        impl_mt_operator(mt::le, rhs, lhs, "geq");
         break;
     case ast::BinOpEnum::NEQ:
         // neq: "x ~= y" == "not (x == y)"
-        impl_mt_operator(mt::eq, lhs, rhs);
+        impl_mt_operator(mt::eq, lhs, rhs, "eq");
         result.values = Vallist(result.values.get(0).invert());
         break;
 
@@ -1030,21 +1042,22 @@ auto Interpreter::visit_unary_operation(ast::UnaryOperation unary_op, Env& env) 
     Environment environment(env);
     CallContext ctx(&environment);
 
-    auto impl_mt_operator = [&ctx, &result, &range](auto f) {
-        auto value = result.values.get(0);
-        auto call_result = f(ctx.make_new({value}), range);
+    auto impl_mt_operator = [this, &ctx, &result, &range](auto f, const std::string& name) {
+        auto args = Vallist{result.values.get(0)};
+        this->trace_metamethod_call(name, args);
+        auto call_result = f(ctx.make_new(args), range);
         result.combine(EvalResult(call_result.one_value()));
     };
 
-#define IMPL_MT(op, method)                                                                        \
+#define IMPL_MT(op, method, name)                                                                  \
     case ast::UnOpEnum::op:                                                                        \
-        impl_mt_operator(method);                                                                  \
+        impl_mt_operator(method, name);                                                            \
         break;
 
     switch (unary_op.unary_operator()) {
-        IMPL_MT(NEG, mt::unm)
-        IMPL_MT(BWNOT, mt::bnot)
-        IMPL_MT(LEN, mt::len)
+        IMPL_MT(NEG, mt::unm, "unm")
+        IMPL_MT(BWNOT, mt::bnot, "bnot")
+        IMPL_MT(LEN, mt::len, "len")
 
     case ast::UnOpEnum::NOT:
         result.values = Vallist(result.values.get(0).invert(range));

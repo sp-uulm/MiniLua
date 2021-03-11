@@ -73,6 +73,10 @@ struct InterpreterConfig {
      */
     bool trace_calls;
     /**
+     * @brief Trace metamethod cals.
+     */
+    bool trace_metamethod_calls;
+    /**
      * @brief Trace entering blocks.
      */
     bool trace_enter_block;
