@@ -61,17 +61,27 @@
             <li>
               Reference
               <ul>
+                <li><a href="#pub-methods">Public functions</a></li>
                 <li><a href="#pub-attribs">Public variables</a></li>
               </ul>
             </li>
           </ul>
         </div>
 <p>Support equality operators.</p>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a96a6f4f1c38d8d6b5044e034749dee5f" class="m-doc">simplify</a>(</span><span class="m-doc-wrap">) const -&gt; Origin -&gt; auto</span>
+            </dt>
+            <dd></dd>
+          </dl>
+        </section>
         <section id="pub-attribs">
           <h2><a href="#pub-attribs">Public variables</a></h2>
           <dl class="m-doc">
-            <dt id="abf262bf841373a565a5af5fe949fea94">
-              <a href="classminilua_1_1owning__ptr.html" class="m-doc">owning_<wbr />ptr</a>&lt;<a href="classminilua_1_1Value.html" class="m-doc">Value</a>&gt; <a href="#abf262bf841373a565a5af5fe949fea94" class="m-doc-self">val</a>
+            <dt>
+              std::shared_ptr&lt;<a href="classminilua_1_1Value.html" class="m-doc">Value</a>&gt; <a href="#a51ea0e910d11d6342e1af7454614037a" class="m-doc">val</a>
             </dt>
             <dd>The value used to call the unary operator or function.</dd>
             <dt id="afd5bfd8d0a9beab931ce8ac16a5cb17d">
@@ -85,7 +95,23 @@
           </dl>
         </section>
         <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a96a6f4f1c38d8d6b5044e034749dee5f"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />UnaryOrigin::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a96a6f4f1c38d8d6b5044e034749dee5f" class="m-doc-self">simplify</a>(</span><span class="m-doc-wrap">) const -&gt; Origin</span></span>
+            </h3>
+<p>Simplify the origin.</p><p>Removes unusable origins from the tree.</p>
+          </div></section>
+        </section>
+        <section>
           <h2>Variable documentation</h2>
+          <section class="m-doc-details" id="a51ea0e910d11d6342e1af7454614037a"><div>
+            <h3>
+              std::shared_ptr&lt;<a href="classminilua_1_1Value.html" class="m-doc">Value</a>&gt; minilua::<wbr />UnaryOrigin::<wbr /><a href="#a51ea0e910d11d6342e1af7454614037a" class="m-doc-self">val</a>
+            </h3>
+            <p>The value used to call the unary operator or function.</p>
+<aside class="m-note m-info"><h4>Note</h4><p>This is a shared_ptr to avoid **a lot* of unnecessary copying.</p></aside>
+          </div></section>
           <section class="m-doc-details" id="aa5e5d7efe4254e7b2956741b17682733"><div>
             <h3>
               std::function&lt;<a href="structminilua_1_1UnaryOrigin.html#a3752fc1164677468263fe50f70567d57" class="m-doc">ReverseFn</a>&gt; minilua::<wbr />UnaryOrigin::<wbr /><a href="#aa5e5d7efe4254e7b2956741b17682733" class="m-doc-self">reverse</a>

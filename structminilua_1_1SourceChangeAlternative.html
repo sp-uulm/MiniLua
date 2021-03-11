@@ -103,6 +103,10 @@
               <span class="m-doc-wrap-bumper">void <a href="#ae2f10955a9ae263b6289c44bb93854ff" class="m-doc-self">add_if_some</a>(</span><span class="m-doc-wrap">std::optional&lt;<a href="classminilua_1_1SourceChangeTree.html" class="m-doc">SourceChangeTree</a>&gt;)</span>
             </dt>
             <dd>Only add the source change if it is not <code>std::nullopt</code>.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ad1667679613a02d95a7ebadbceee1c6c" class="m-doc">simplify</a>(</span><span class="m-doc-wrap">) const -&gt; std::optional&lt; SourceChangeTree &gt; -&gt; auto</span>
+            </dt>
+            <dd></dd>
           </dl>
         </section>
         <section id="pub-attribs">
@@ -113,6 +117,15 @@
             </dt>
             <dd>The alternatives.</dd>
           </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="ad1667679613a02d95a7ebadbceee1c6c"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />SourceChangeAlternative::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad1667679613a02d95a7ebadbceee1c6c" class="m-doc-self">simplify</a>(</span><span class="m-doc-wrap">) const -&gt; std::optional&lt; SourceChangeTree &gt;</span></span>
+            </h3>
+<p>(Recursively) simplifies the tree.</p><p>Empty alternatives will be converted to nullopts.</p>
+          </div></section>
         </section>
       </div>
     </div>

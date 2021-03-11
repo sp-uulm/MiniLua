@@ -140,6 +140,10 @@
               <span class="m-doc-wrap-bumper">void <a href="#a63c4891933e57c7cd855052d938601cf" class="m-doc">set_file</a>(</span><span class="m-doc-wrap">std::optional&lt;std::shared_ptr&lt;std::string&gt;&gt; file)</span>
             </dt>
             <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#af20efcc8f41e982e6b7cadd522b7e2e2" class="m-doc">simplify</a>(</span><span class="m-doc-wrap">) const -&gt; Origin -&gt; auto</span>
+            </dt>
+            <dd></dd>
           </dl>
         </section>
         <section>
@@ -149,6 +153,12 @@
               <span class="m-doc-wrap-bumper">void minilua::<wbr />Origin::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a63c4891933e57c7cd855052d938601cf" class="m-doc-self">set_file</a>(</span><span class="m-doc-wrap">std::optional&lt;std::shared_ptr&lt;std::string&gt;&gt; file)</span></span>
             </h3>
 <p>Sets the file of the underlying origin type (if possible).</p>
+          </div></section>
+          <section class="m-doc-details" id="af20efcc8f41e982e6b7cadd522b7e2e2"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />Origin::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#af20efcc8f41e982e6b7cadd522b7e2e2" class="m-doc-self">simplify</a>(</span><span class="m-doc-wrap">) const -&gt; Origin</span></span>
+            </h3>
+<p>Simplify the origin.</p><p>Removes unusable origins from the tree.</p><aside class="m-note m-info"><h4>Note</h4><p>This is not recursive. It will only look at the first level.</p></aside>
           </div></section>
         </section>
       </div>

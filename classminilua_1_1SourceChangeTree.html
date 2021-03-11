@@ -147,6 +147,10 @@
             </dt>
             <dd>Collect only the left side of <a href="structminilua_1_1SourceChangeAlternative.html" class="m-doc">SourceChangeAlternative</a> branches.</dd>
             <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a72f2bfd137b96f01d395dfa987ce31ea" class="m-doc">simplify</a>(</span><span class="m-doc-wrap">) const -&gt; std::optional&lt; SourceChangeTree &gt; -&gt; auto</span>
+            </dt>
+            <dd></dd>
+            <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#aec470980a60b2e43edf12c5e20119368" class="m-doc">operator*</a>(</span><span class="m-doc-wrap">) -&gt; Type &amp; -&gt; auto</span>
             </dt>
             <dd>Derefernce to the underlying variant type.</dd>
@@ -207,6 +211,12 @@
             </h3>
             <p>Visits only the first child (left) of an <a href="structminilua_1_1SourceChangeAlternative.html" class="m-doc">SourceChangeAlternative</a> node.</p>
 <p><a href="structminilua_1_1SourceChangeCombination.html" class="m-doc">SourceChangeCombination</a> nodes are completely visited.</p>
+          </div></section>
+          <section class="m-doc-details" id="a72f2bfd137b96f01d395dfa987ce31ea"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />SourceChangeTree::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a72f2bfd137b96f01d395dfa987ce31ea" class="m-doc-self">simplify</a>(</span><span class="m-doc-wrap">) const -&gt; std::optional&lt; SourceChangeTree &gt;</span></span>
+            </h3>
+<p>Simplify the source change tree removing all redundant nodes.</p><p>This is recursive.</p><p>Empty alternatives and combinations will be converted to nullopts.</p>
           </div></section>
           <section class="m-doc-details" id="aec470980a60b2e43edf12c5e20119368"><div>
             <h3>

@@ -61,21 +61,31 @@
             <li>
               Reference
               <ul>
+                <li><a href="#pub-methods">Public functions</a></li>
                 <li><a href="#pub-attribs">Public variables</a></li>
               </ul>
             </li>
           </ul>
         </div>
 <p>Support equality operators.</p>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a1c4a662018a87bae855ff249051eabb1" class="m-doc">simplify</a>(</span><span class="m-doc-wrap">) const -&gt; Origin -&gt; auto</span>
+            </dt>
+            <dd></dd>
+          </dl>
+        </section>
         <section id="pub-attribs">
           <h2><a href="#pub-attribs">Public variables</a></h2>
           <dl class="m-doc">
-            <dt id="ab5190d94d2619b5d7814948a1686e256">
-              <a href="classminilua_1_1owning__ptr.html" class="m-doc">owning_<wbr />ptr</a>&lt;<a href="classminilua_1_1Value.html" class="m-doc">Value</a>&gt; <a href="#ab5190d94d2619b5d7814948a1686e256" class="m-doc-self">lhs</a>
+            <dt>
+              std::shared_ptr&lt;<a href="classminilua_1_1Value.html" class="m-doc">Value</a>&gt; <a href="#aa0a12d61ef96ba788011c790a2bb3fb5" class="m-doc">lhs</a>
             </dt>
             <dd>The first value used to call the binary operator or function.</dd>
-            <dt id="a1847d476b0d065c6739c35eab3d151b3">
-              <a href="classminilua_1_1owning__ptr.html" class="m-doc">owning_<wbr />ptr</a>&lt;<a href="classminilua_1_1Value.html" class="m-doc">Value</a>&gt; <a href="#a1847d476b0d065c6739c35eab3d151b3" class="m-doc-self">rhs</a>
+            <dt>
+              std::shared_ptr&lt;<a href="classminilua_1_1Value.html" class="m-doc">Value</a>&gt; <a href="#a4b4dd3af15866e4dd674d2cb8da7dfe9" class="m-doc">rhs</a>
             </dt>
             <dd>The second value used to call the binary operator or function.</dd>
             <dt id="a55a7e8afeb09d109faca0cc0c42bf2ae">
@@ -89,7 +99,30 @@
           </dl>
         </section>
         <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a1c4a662018a87bae855ff249051eabb1"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />BinaryOrigin::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1c4a662018a87bae855ff249051eabb1" class="m-doc-self">simplify</a>(</span><span class="m-doc-wrap">) const -&gt; Origin</span></span>
+            </h3>
+<p>Simplify the origin.</p><p>Removes unusable origins from the tree.</p>
+          </div></section>
+        </section>
+        <section>
           <h2>Variable documentation</h2>
+          <section class="m-doc-details" id="aa0a12d61ef96ba788011c790a2bb3fb5"><div>
+            <h3>
+              std::shared_ptr&lt;<a href="classminilua_1_1Value.html" class="m-doc">Value</a>&gt; minilua::<wbr />BinaryOrigin::<wbr /><a href="#aa0a12d61ef96ba788011c790a2bb3fb5" class="m-doc-self">lhs</a>
+            </h3>
+            <p>The first value used to call the binary operator or function.</p>
+<aside class="m-note m-info"><h4>Note</h4><p>This is a shared_ptr to avoid **a lot* of unnecessary copying.</p></aside>
+          </div></section>
+          <section class="m-doc-details" id="a4b4dd3af15866e4dd674d2cb8da7dfe9"><div>
+            <h3>
+              std::shared_ptr&lt;<a href="classminilua_1_1Value.html" class="m-doc">Value</a>&gt; minilua::<wbr />BinaryOrigin::<wbr /><a href="#a4b4dd3af15866e4dd674d2cb8da7dfe9" class="m-doc-self">rhs</a>
+            </h3>
+            <p>The second value used to call the binary operator or function.</p>
+<aside class="m-note m-info"><h4>Note</h4><p>This is a shared_ptr to avoid **a lot* of unnecessary copying.</p></aside>
+          </div></section>
           <section class="m-doc-details" id="af6f6e09e4101528cc1150d04727c5974"><div>
             <h3>
               std::function&lt;<a href="structminilua_1_1BinaryOrigin.html#a26d29cdd4b864d97db9d974877496877" class="m-doc">ReverseFn</a>&gt; minilua::<wbr />BinaryOrigin::<wbr /><a href="#af6f6e09e4101528cc1150d04727c5974" class="m-doc-self">reverse</a>
