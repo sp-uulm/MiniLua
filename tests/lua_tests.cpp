@@ -9,6 +9,7 @@
 #include <MiniLua/MiniLua.hpp>
 #include <regex>
 #include <string>
+#include <utility>
 
 static const char* DIR = "../luaprograms/unit_tests/";
 
@@ -67,8 +68,8 @@ auto operator==(const ExpectedChange& expected, const minilua::SourceChange& act
 }
 
 auto operator<<(std::ostream& o, const ExpectedChange& self) -> std::ostream& {
-    return o << "ExpectedChange{ .row = " << self.row << ", .column = " << self.column
-             << ", .replacement = " << self.replacement << " }";
+    return o << "ExpectedChange{ " << self.row << ":" << self.column << " " << self.replacement
+             << " }";
 }
 
 static const std::string COMMENT_PREFIX = "-- EXPECT ";
@@ -106,12 +107,75 @@ auto find_expect_strings(const std::string& source) -> std::vector<std::string> 
     return expect_strings;
 }
 
-static const std::regex source_change_regex("SOURCE_CHANGE (\\d+):(\\d+) (.*)");
-
 template <typename Iterable, typename Item>
 auto any_of(const Iterable& iterable, const Item& item) -> bool {
     return std::any_of(
         iterable.cbegin(), iterable.cend(), [item](const auto& actual) { return item == actual; });
+}
+
+struct BaseTest {
+    std::regex regex;
+
+    BaseTest(std::regex regex) : regex(std::move(regex)) {}
+    virtual ~BaseTest() = default;
+
+    virtual void collect_metadata(const std::string& str) = 0;
+
+    virtual auto expect_source_changes() -> bool { return false; }
+
+    virtual void run(const minilua::EvalResult& result) = 0;
+};
+
+static const std::regex source_change_regex("SOURCE_CHANGE (\\d+):(\\d+) (.*)");
+
+struct SourceChangeTest : BaseTest {
+    std::vector<ExpectedChange> expected_changes;
+
+    SourceChangeTest() : BaseTest(source_change_regex) {}
+    ~SourceChangeTest() override = default;
+
+    void collect_metadata(const std::string& str) override {
+        std::smatch match;
+        if (std::regex_match(str, match, this->regex)) {
+            this->expected_changes.emplace_back(match);
+        }
+    }
+
+    auto expect_source_changes() -> bool override { return !expected_changes.empty(); }
+
+    void run(const minilua::EvalResult& result) override {
+        CAPTURE(expected_changes);
+        // if we found source change tests we require to get source changes
+        if (expected_changes.empty()) {
+            CAPTURE(result.source_change);
+            REQUIRE(!result.source_change.has_value());
+        } else {
+            REQUIRE(result.source_change.has_value());
+            // check that the expected source changes are in the actual source
+            // changes
+            std::vector<minilua::SourceChange> actual_changes;
+            result.source_change.value().visit_all(
+                [&actual_changes](const auto& c) { actual_changes.push_back(c); });
+
+            CAPTURE(actual_changes);
+
+            for (const auto& expected_change : expected_changes) {
+                bool is_in_actual_changes = any_of(actual_changes, expected_change);
+                if (!is_in_actual_changes) {
+                    CAPTURE(expected_change);
+                    FAIL("Could not find expected_change in actual_changes");
+                }
+            }
+        }
+    }
+};
+
+auto get_tests() -> std::vector<std::unique_ptr<BaseTest>> {
+    std::vector<std::unique_ptr<BaseTest>> tests;
+    tests.push_back(std::make_unique<SourceChangeTest>());
+    // TODO add other tests
+
+    return tests;
 }
 
 void test_file(const std::string& file) {
@@ -119,16 +183,12 @@ void test_file(const std::string& file) {
 
     auto expect_strings = find_expect_strings(program);
 
-    std::vector<ExpectedChange> expected_changes;
-
-    std::smatch match;
-    for (const auto& expect_str : expect_strings) {
-        if (std::regex_match(expect_str, match, source_change_regex)) {
-            ExpectedChange e(match);
-
-            expected_changes.push_back(e);
+    // setup tests
+    auto tests = get_tests();
+    for (auto& test : tests) {
+        for (const auto& str : expect_strings) {
+            test->collect_metadata(str);
         }
-        // TODO other expect kinds
     }
 
     // parse
@@ -141,23 +201,8 @@ void test_file(const std::string& file) {
     auto result = interpreter.evaluate();
 
     // check
-    if (expected_changes.empty()) {
-        CAPTURE(result.source_change);
-        REQUIRE(!result.source_change.has_value());
-    } else {
-        std::vector<minilua::SourceChange> actual_changes;
-        result.source_change.value().visit_all(
-            [&actual_changes](const auto& c) { actual_changes.push_back(c); });
-
-        CAPTURE(actual_changes);
-
-        for (const auto& expected_change : expected_changes) {
-            bool is_in_actual_changes = any_of(actual_changes, expected_change);
-            if (!is_in_actual_changes) {
-                CAPTURE(expected_change);
-                FAIL("Could not find expected_change in actual_changes");
-            }
-        }
+    for (auto& test : tests) {
+        test->run(result);
     }
 }
 
