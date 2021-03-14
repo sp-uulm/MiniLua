@@ -3,6 +3,7 @@ add_executable(MiniLua-tests
     unit_tests.cpp
     integration_tests.cpp
     lua_tests.cpp
+    lua_test_driver.cpp
     public_api/integration_tests.cpp
     public_api/owning_ptr.cpp
     public_api/values.cpp
