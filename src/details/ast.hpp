@@ -18,6 +18,7 @@ class FieldExpression;
 using IndexField = std::pair<Expression, Expression>;
 using IdentifierField = std::pair<Identifier, Expression>;
 
+enum GEN_CAUSE { FOR_LOOP_DESUGAR, FOR_IN_LOOP_DESUGAR, FUNCTION_STATEMENT_DESUGAR, PLACEHOLDER };
 enum class LiteralType { TRUE, FALSE, NIL, NUMBER, STRING };
 class Literal {
     std::string literal_content;
@@ -44,7 +45,6 @@ public:
      */
     auto body() const -> Body;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
     auto debug_print() const -> std::string;
 };
 /**
@@ -53,6 +53,11 @@ public:
 class DoStatement {
     using DoTuple = std::tuple<std::shared_ptr<Body>, minilua::Range>;
     enum TupleIndex { BODY, RANGE };
+    struct DoStruct {
+        std::shared_ptr<Body> body;
+        minilua::Range range;
+        GEN_CAUSE cause;
+    };
     std::variant<ts::Node, DoTuple> content;
 
 public:
@@ -64,7 +69,6 @@ public:
      */
     auto body() const -> Body;
     auto range() const -> minilua::Range;
-    auto raw() const -> std::optional<ts::Node>;
     auto debug_print() const -> std::string;
 };
 /**
@@ -77,14 +81,13 @@ class Identifier {
 
 public:
     explicit Identifier(ts::Node);
-    explicit Identifier(const std::string&, Range);
+    explicit Identifier(const std::string&, minilua::Range);
     /**
      * get the identifier name as a string
      * @return the identifer as a string
      */
     auto string() const -> std::string;
     auto range() const -> minilua::Range;
-    auto raw() const -> std::optional<ts::Node>;
     auto debug_print() const -> std::string;
 };
 /**
@@ -141,7 +144,6 @@ public:
      */
     auto binary_operator() const -> BinOpEnum;
     auto range() const -> minilua::Range;
-    auto raw() const -> std::optional<ts::Node>;
     auto debug_print() const -> std::string;
 };
 /**
@@ -175,7 +177,6 @@ public:
      */
     auto expression() const -> Expression;
     auto range() const -> minilua::Range;
-    auto raw() const -> std::optional<ts::Node>;
     auto debug_print() const -> std::string;
 };
 /**
@@ -208,7 +209,6 @@ public:
      */
     auto end() const -> Expression;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
     auto debug_print() const -> std::string;
 };
 /**
@@ -230,7 +230,6 @@ public:
      */
     auto body() const -> Body;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
     auto debug_print() const -> std::string;
     auto desugar() const -> DoStatement;
 };
@@ -253,7 +252,6 @@ public:
      */
     auto loop_exps() const -> std::vector<Expression>;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
     auto debug_print() const -> std::string;
 };
 /**
@@ -276,7 +274,6 @@ public:
     auto loop_expression() const -> InLoopExpression;
     auto desugar() const -> DoStatement;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
     auto debug_print() const -> std::string;
 };
 /**
@@ -301,7 +298,6 @@ public:
      */
     auto body() const -> Body;
     auto range() const -> minilua::Range;
-    auto raw() const -> std::optional<ts::Node>;
     auto debug_print() const -> std::string;
 };
 /**
@@ -322,7 +318,6 @@ public:
      */
     auto body() const -> Body;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
     auto debug_print() const -> std::string;
 };
 /**
@@ -344,7 +339,6 @@ public:
      */
     auto condition() const -> Expression;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
     auto debug_print() const -> std::string;
 };
 /**
@@ -361,7 +355,7 @@ public:
      */
     auto body() const -> Body;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for if_statement nodes
@@ -400,7 +394,6 @@ public:
      */
     auto else_statement() const -> std::optional<Else>;
     auto range() const -> minilua::Range;
-    auto raw() const -> std::optional<ts::Node>;
     auto debug_print() const -> std::string;
 };
 /**
@@ -418,7 +411,6 @@ public:
      */
     auto exp_list() const -> std::vector<Expression>;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
     auto debug_print() const -> std::string;
 };
 /**
@@ -440,7 +432,6 @@ public:
      */
     auto index() const -> Expression;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
     auto debug_print() const -> std::string;
 };
 /**
@@ -465,7 +456,6 @@ public:
      */
     auto property_id() const -> Identifier;
     auto range() const -> minilua::Range;
-    auto raw() const -> std::optional<ts::Node>;
     auto debug_print() const -> std::string;
 };
 using VarDecVariant = std::variant<Identifier, FieldExpression, TableIndex>;
@@ -487,7 +477,6 @@ public:
      */
     auto options() const -> VarDecVariant;
     auto range() const -> minilua::Range;
-    auto raw() const -> std::optional<ts::Node>;
     auto debug_print() const -> std::string;
 };
 /**
@@ -521,7 +510,6 @@ public:
      */
     auto declarations() const -> std::vector<Expression>;
     auto range() const -> minilua::Range;
-    auto raw() const -> std::optional<ts::Node>;
     auto debug_print() const -> std::string;
 };
 /**
@@ -538,7 +526,6 @@ public:
      */
     auto label() const -> Identifier;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
     auto debug_print() const -> std::string;
 };
 /**
@@ -555,7 +542,6 @@ public:
      */
     auto id() const -> Identifier;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
     auto debug_print() const -> std::string;
 };
 /**
@@ -583,7 +569,6 @@ public:
      */
     auto method() const -> std::optional<Identifier>;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
     auto debug_print() const -> std::string;
 };
 /**
@@ -596,7 +581,7 @@ class Parameters {
 
 public:
     explicit Parameters(ts::Node);
-    explicit Parameters(std::vector<Identifier>, bool, minilua::Range);
+    explicit Parameters(const std::vector<Identifier>&, bool, minilua::Range);
     /**
      *
      * @return a vector containing all parameters excluding a potential spread
@@ -607,7 +592,6 @@ public:
      */
     auto spread() const -> bool;
     auto range() const -> minilua::Range;
-    auto raw() const -> std::optional<ts::Node>;
     auto debug_print() const -> std::string;
 };
 /**
@@ -632,7 +616,6 @@ public:
      */
     auto parameters() const -> Parameters;
     auto range() const -> minilua::Range;
-    auto raw() const -> std::optional<ts::Node>;
     auto debug_print() const -> std::string;
 };
 /**
@@ -661,7 +644,6 @@ public:
     auto parameters() const -> Parameters;
     auto local() const -> bool;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
     auto debug_print() const -> std::string;
     auto desugar() const -> VariableDeclaration;
 };
@@ -693,7 +675,6 @@ const      *
     auto method() const -> std::optional<Identifier>;
     auto args() const -> std::vector<Expression>;
     auto range() const -> minilua::Range;
-    auto raw() const -> std::optional<ts::Node>;
     auto debug_print() const -> std::string;
 };
 /**
@@ -714,7 +695,6 @@ public:
      */
     auto content() const -> std::variant<IndexField, IdentifierField, Expression>;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
     auto debug_print() const -> std::string;
 };
 /**
@@ -731,7 +711,6 @@ public:
      */
     auto fields() const -> std::vector<Field>;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
     auto debug_print() const -> std::string;
 };
 // a few empty classes that are just used as additional return types
@@ -751,7 +730,7 @@ class Prefix {
 
 public:
     explicit Prefix(ts::Node);
-    explicit Prefix(const VariableDeclarator&, minilua::Range);
+    explicit Prefix(const VariableDeclarator&);
     explicit Prefix(const FunctionCall&);
     /**
      *
@@ -759,8 +738,8 @@ public:
      */
     auto options() const -> PrefixVariant;
     auto range() const -> minilua::Range;
-    auto raw() const -> std::optional<ts::Node>;
     auto debug_print() const -> std::string;
+    auto to_string() const -> std::string;
 };
 using ExpressionVariant = std::variant<
     Spread, Prefix, FunctionDefinition, Table, BinaryOperation, UnaryOperation, Literal,
@@ -775,20 +754,20 @@ class Expression {
 
 public:
     explicit Expression(ts::Node);
-    explicit Expression(const BinaryOperation&, minilua::Range);
-    explicit Expression(const UnaryOperation&, minilua::Range);
-    explicit Expression(const FunctionDefinition&, minilua::Range);
+    explicit Expression(const BinaryOperation&);
+    explicit Expression(const UnaryOperation&);
+    explicit Expression(const FunctionDefinition&);
     explicit Expression(const Prefix&);
-    explicit Expression(const Literal&, minilua::Range);
-    explicit Expression(const Identifier&, minilua::Range);
+    explicit Expression(const Literal&);
+    explicit Expression(const Identifier&);
     /**
      *
      * @return a variant containing the class this expression gets resolved to
      */
     auto options() const -> ExpressionVariant;
     auto range() const -> minilua::Range;
-    auto raw() const -> std::optional<ts::Node>;
     auto debug_print() const -> std::string;
+    auto to_string() const -> std::string;
 };
 using StatementVariant = std::variant<
     VariableDeclaration, DoStatement, IfStatement, WhileStatement, RepeatStatement, ForStatement,
@@ -800,11 +779,11 @@ class Statement {
 
 public:
     explicit Statement(ts::Node);
-    explicit Statement(const VariableDeclaration&, minilua::Range);
-    explicit Statement(const FunctionCall&, minilua::Range);
-    explicit Statement(const WhileStatement&, minilua::Range);
-    explicit Statement(const IfStatement&, minilua::Range);
-    explicit Statement(const DoStatement&, minilua::Range);
+    explicit Statement(const VariableDeclaration&);
+    explicit Statement(const FunctionCall&);
+    explicit Statement(const WhileStatement&);
+    explicit Statement(const IfStatement&);
+    explicit Statement(const DoStatement&);
     explicit Statement(const Break&, minilua::Range);
     /**
      *
@@ -812,7 +791,6 @@ public:
      */
     auto options() const -> StatementVariant;
     auto range() const -> minilua::Range;
-    auto raw() const -> std::optional<ts::Node>;
     auto debug_print() const -> std::string;
 };
 /**

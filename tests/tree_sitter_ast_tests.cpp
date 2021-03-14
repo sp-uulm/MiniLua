@@ -49,10 +49,10 @@ TEST_CASE("statements", "[tree-sitter]") {
     CHECK(statement.size() == 14);
     long unsigned int statement_count = statement.size();
     // this loop tests if each statement got parsed to the right Class
-    for (long unsigned int i = 0; i < statement_count-1; i++) {
+    for (long unsigned int i = 0; i < statement_count - 1; i++) {
         CHECK(statement.at(i).options().index() == i);
     }
-    CHECK(std::holds_alternative<FunctionStatement>(statement.at(statement_count-1).options()));
+    CHECK(std::holds_alternative<FunctionStatement>(statement.at(statement_count - 1).options()));
 }
 TEST_CASE("expressions", "[tree-sitter]") {
     uint exp_count = 29;
@@ -353,14 +353,14 @@ TEST_CASE("for_statements", "[tree-sitter]") {
     CHECK(start3->string() == "a"s);
     CHECK(fors[2].loop_expression().step().has_value());
     auto step3_opt = fors[2].loop_expression().step()->options();
-    CHECK(holds_alternative<Identifier>(step3_opt));
-    auto step3 = get_if<Identifier>(&step3_opt);
-    CHECK(step3->string() == "b"s);
+    CHECK(holds_alternative<Literal>(step3_opt));
+    auto step3 = get_if<Literal>(&step3_opt);
+    CHECK(step3->type() == LiteralType::NUMBER);
+    CHECK(step3->content() == "42"s);
     auto end3_opt = fors[2].loop_expression().end().options();
-    CHECK(holds_alternative<Literal>(end3_opt));
-    auto end3 = get_if<Literal>(&end3_opt);
-    CHECK(end3->type() == LiteralType::NUMBER);
-    CHECK(end3->content() == "42"s);
+    CHECK(holds_alternative<Identifier>(end3_opt));
+    auto end3 = get_if<Identifier>(&end3_opt);
+    CHECK(end3->string() == "b"s);
 }
 TEST_CASE("for_in_statements", "[tree-sitter]") {
     ts::Parser parser;
@@ -387,12 +387,12 @@ TEST_CASE("for_in_statements", "[tree-sitter]") {
     CHECK(fors.size() == 2);
     CHECK(fors[0].loop_expression().loop_vars().size() == 2);
     CHECK(fors[0].loop_expression().loop_exps().size() == 3);
-    CHECK(fors[0].body().statements().size()==1);
+    CHECK(fors[0].body().statements().size() == 1);
     CHECK(fors[1].loop_expression().loop_vars().size() == 5);
     CHECK(fors[1].loop_expression().loop_exps().size() == 1);
     CHECK(fors[1].body().return_statement().has_value());
     auto ret = fors[1].body().return_statement().value();
-    CHECK(ret.exp_list().size()==1);
+    CHECK(ret.exp_list().size() == 1);
     auto expr = ret.exp_list().begin()->options();
     CHECK(std::holds_alternative<Prefix>(expr));
     auto pref = std::get_if<Prefix>(&expr);
@@ -401,35 +401,24 @@ TEST_CASE("for_in_statements", "[tree-sitter]") {
 }
 TEST_CASE("function_statements", "[tree-sitter]") {
     ts::Parser parser;
-    std::string source = "function foo (a,b,c)\n"
-                         "  1+1\n"
+    std::string source = "function foo.foo.foo (a,b,c)\n"
+                         "  i = 1+1\n"
                          "  return 3+3,2+2,a,b,c,d \n"
                          "end\n"
-                         "function table.prop1.prop2.prop3:method (a,b,c)\n"
-                         "  return true\n"
-                         "end\n"
-                         "function foo(self,...)\n"
-                         "end\n"
-                         "function foo(...)\n"
+                         "function foo:foo(...)\n"
                          "end\n"
                          "function foo(self)\n"
                          "end\n"
-                         "function foo (self,a,b,c)\n"
-                         "end\n"
-                         "function foo (a,b,c,...)\n"
-                         "end\n"
-                         "function foo (...,a,b,c)\n"
+                         "function foo:foo(self,a,b,c)\n"
                          "end\n"
                          "function foo(self,a,b,c,...)\n"
-                         "end\n"
-                         "function foo()\n"
-                         "end";
+                         "end\n";
     ts::Tree tree = parser.parse_string(source);
     ts::Node root = tree.root_node();
     auto prog = Program(root);
     Body body = prog.body();
     auto stats = body.statements();
-    CHECK(stats.size() == 10);
+    CHECK(stats.size() == 5);
     CHECK(!body.return_statement().has_value());
     std::vector<FunctionStatement> func;
     std::transform(stats.begin(), stats.end(), std::back_inserter(func), [](Statement stat) {
@@ -437,64 +426,15 @@ TEST_CASE("function_statements", "[tree-sitter]") {
         CHECK(std::holds_alternative<FunctionStatement>(opt));
         return *std::get_if<FunctionStatement>(&opt);
     });
-    CHECK(func.size() == 10);
-    CHECK(func[1].name().method().has_value());
-    CHECK(func[1].name().identifier().size() == 4);
-    CHECK(func[0].name().identifier().size() == 1);
+    CHECK(func.size() == 5);
     CHECK(func[0].body().return_statement().has_value());
-    auto ret = func[0].body().return_statement().value();
-    CHECK(ret.exp_list().size()==6);
-    std::vector<string> vec{"a", "b", "c"};
-    std::vector<string> params;
-    vector<Identifier> identifiers;
-    for (uint i = 0; i < 9; i++) {
-        if (i < 2 || i > 4) {
-            CHECK(func[i].parameters().params().size() == 3);
-            params.clear();
-            identifiers = func[i].parameters().params();
-            std::transform(
-                identifiers.begin(), identifiers.end(), std::back_inserter(params),
-                [](Identifier id) { return id.string(); });
-            CHECK(params == vec);
-        } else {
-            CHECK(func[i].parameters().params().empty());
-        }
-        switch (i) {
-        case 0:
-        case 1:
-            CHECK(!func[i].parameters().leading_self());
-            CHECK(func[i].parameters().spread() == NO_SPREAD);
-            break;
-        case 2:
-            CHECK(func[i].parameters().leading_self());
-            CHECK(func[i].parameters().spread() == END);
-            break;
-        case 3:
-            CHECK(!func[i].parameters().leading_self());
-            CHECK(func[i].parameters().spread() == BEGIN);
-            break;
-        case 4:
-        case 5:
-            CHECK(func[i].parameters().leading_self());
-            CHECK(func[i].parameters().spread() == NO_SPREAD);
-            break;
-        case 6:
-            CHECK(!func[i].parameters().leading_self());
-            CHECK(func[i].parameters().spread() == END);
-            break;
-        case 7:
-            CHECK(!func[i].parameters().leading_self());
-            CHECK(func[i].parameters().spread() == BEGIN);
-            break;
-        case 8:
-            CHECK(func[i].parameters().leading_self());
-            CHECK(func[i].parameters().spread() == END);
-            break;
-        }
-    }
-    CHECK(!func[9].parameters().leading_self());
-    CHECK(func[9].parameters().spread() == NO_SPREAD);
-    CHECK(func[9].parameters().params().empty());
+    CHECK(func[0].body().return_statement().value().exp_list().size() == 6);
+    CHECK(func[0].body().statements().size() == 1);
+    CHECK(func[0].name().identifier().size() == 3);
+    CHECK(!func[0].name().method().has_value());
+    auto b = func[0].parameters().params();
+    CHECK(b.size() == 3);
+    // CHECK(!func[0].parameters().spread());
 }
 TEST_CASE("while_and_repeat_statements", "[tree-sitter]") {
     ts::Parser parser;
@@ -684,7 +624,7 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     CHECK(holds_alternative<Identifier>(dec_opt3));
     auto table_id = std::get_if<Identifier>(&dec_opt3);
     CHECK(table_id->string() == "table1"s);
-    //7th statement
+    // 7th statement
     auto opt7 = stats[6].options();
     CHECK(std::holds_alternative<VariableDeclaration>(opt7));
     auto var_dec7 = std::get_if<VariableDeclaration>(&opt7);
@@ -699,11 +639,11 @@ TEST_CASE("var_dec_statements", "[tree-sitter]") {
     auto pref_opt1 = pref_dec1->options();
     CHECK(std::holds_alternative<Identifier>(pref_opt1));
     auto id7 = std::get_if<Identifier>(&pref_opt1);
-    CHECK(id7->string()=="table1");
+    CHECK(id7->string() == "table1");
     auto index1_opt = ti1->index().options();
     CHECK(std::holds_alternative<Identifier>(index1_opt));
     auto index1 = std::get_if<Identifier>(&index1_opt);
-    CHECK(index1->string()=="table2");
+    CHECK(index1->string() == "table2");
 }
 TEST_CASE("table_statements", "[tree-sitter]") {
     ts::Parser parser;
@@ -827,11 +767,11 @@ TEST_CASE("comment_test", "[tree-sitter]") {
     CHECK(std::holds_alternative<UnaryOperation>(exps[0].options()));
     auto exp1_opt = exps[0].options();
     auto un1 = std::get_if<UnaryOperation>(&exp1_opt);
-    CHECK(un1->unary_operator()==UnOpEnum::LEN);
+    CHECK(un1->unary_operator() == UnOpEnum::LEN);
     CHECK(std::holds_alternative<Identifier>(un1->expression().options()));
     auto operand1_opt = un1->expression().options();
     auto operand1 = std::get_if<Identifier>(&operand1_opt);
-    CHECK(operand1->string()=="table"s);
+    CHECK(operand1->string() == "table"s);
 
     CHECK(std::holds_alternative<BinaryOperation>(exps[1].options()));
     auto exp2_opt = exps[1].options();
@@ -840,11 +780,11 @@ TEST_CASE("comment_test", "[tree-sitter]") {
     CHECK(std::holds_alternative<Identifier>(bin1->left().options()));
     auto operand_left_opt = bin1->left().options();
     auto operand_left = std::get_if<Identifier>(&operand_left_opt);
-    CHECK(operand_left->string()=="a"s);
+    CHECK(operand_left->string() == "a"s);
     CHECK(std::holds_alternative<Identifier>(bin1->right().options()));
     auto operand_right_opt = bin1->right().options();
     auto operand_right = std::get_if<Identifier>(&operand_right_opt);
-    CHECK(operand_right->string()=="b"s);
+    CHECK(operand_right->string() == "b"s);
 }
 
 } // namespace minilua::details::ast

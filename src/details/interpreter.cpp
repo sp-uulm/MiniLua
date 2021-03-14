@@ -90,9 +90,10 @@ auto Interpreter::run(const ts::Tree& tree, Env& env) -> EvalResult {
 }
 
 auto Interpreter::tracer() const -> std::ostream& { return *this->config.target; }
-void Interpreter::trace_enter_node(ts::Node node, std::optional<std::string> method_name) const {
+void Interpreter::trace_enter_node(
+    std::string ast_class, std::optional<std::string> method_name) const {
     if (this->config.trace_nodes) {
-        this->tracer() << "Enter node: " << ts::debug_print_node(node);
+        this->tracer() << "Enter node: " << ast_class;
         if (method_name) {
             this->tracer() << " (method: " << method_name.value() << ")";
         }
@@ -100,10 +101,10 @@ void Interpreter::trace_enter_node(ts::Node node, std::optional<std::string> met
     }
 }
 void Interpreter::trace_exit_node(
-    ts::Node node, std::optional<std::string> method_name,
+    std::string ast_class, std::optional<std::string> method_name,
     std::optional<std::string> reason) const {
     if (this->config.trace_nodes) {
-        this->tracer() << "Exit node: " << ts::debug_print_node(node);
+        this->tracer() << "Exit node: " << ast_class;
         if (method_name) {
             this->tracer() << " (method: " << method_name.value() << ")";
         }
@@ -115,7 +116,7 @@ void Interpreter::trace_exit_node(
 }
 void Interpreter::trace_function_call(
     ast::Prefix prefix, const std::vector<Value>& arguments) const {
-    auto function_name = std::string(prefix.raw().value().text());
+    auto function_name = std::string(prefix.to_string());
     if (this->config.trace_calls) {
         this->tracer() << "Calling function: " << function_name << " with arguments (";
         for (const auto& arg : arguments) {
@@ -126,7 +127,7 @@ void Interpreter::trace_function_call(
 }
 void Interpreter::trace_function_call_result(ast::Prefix prefix, const CallResult& result) const {
     if (this->config.trace_calls) {
-        auto function_name = std::string(prefix.raw().value().text());
+        auto function_name = std::string(prefix.to_string());
         this->tracer() << "Function call to: " << function_name << " resulted in "
                        << result.values();
         if (result.source_change().has_value()) {
@@ -141,7 +142,7 @@ void Interpreter::trace_exprlists(
         this->tracer() << "Exprlist: (";
         const auto* sep = "";
         for (auto& expr : exprlist) {
-            this->tracer() << sep << expr.raw().value().text();
+            this->tracer() << sep << expr.to_string();
             sep = ", ";
         }
         this->tracer() << ") resulted in (";
@@ -172,7 +173,7 @@ static auto convert_range(ts::Range range) -> Range {
 
 // interpreter implementation
 auto Interpreter::visit_root(ast::Program program, Env& env) -> EvalResult {
-    this->trace_enter_node(program.raw());
+    this->trace_enter_node(program.debug_print());
 
     EvalResult result;
 
@@ -188,12 +189,12 @@ auto Interpreter::visit_root(ast::Program program, Env& env) -> EvalResult {
         // TODO properly return the vallist
     }
 
-    this->trace_exit_node(program.raw());
+    this->trace_exit_node(program.debug_print());
     return result;
 }
 
 auto Interpreter::visit_statement(ast::Statement statement, Env& env) -> EvalResult {
-    this->trace_enter_node(statement.raw().value());
+    this->trace_enter_node(statement.debug_print());
 
     auto result = std::visit(
         overloaded{
@@ -230,7 +231,7 @@ auto Interpreter::visit_statement(ast::Statement statement, Env& env) -> EvalRes
         },
         statement.options());
 
-    this->trace_exit_node(statement.raw().value());
+    this->trace_exit_node(statement.debug_print());
 
     if (!result.do_return) {
         result.values = Vallist();
@@ -240,11 +241,11 @@ auto Interpreter::visit_statement(ast::Statement statement, Env& env) -> EvalRes
 }
 
 auto Interpreter::visit_do_statement(ast::DoStatement do_stmt, Env& env) -> EvalResult {
-    this->trace_enter_node(do_stmt.raw().value());
+    this->trace_enter_node(do_stmt.debug_print());
 
     auto result = this->visit_block(do_stmt.body(), env);
 
-    this->trace_exit_node(do_stmt.raw().value());
+    this->trace_exit_node(do_stmt.debug_print());
     return result;
 }
 
@@ -260,11 +261,11 @@ auto Interpreter::visit_block_with_local_env(ast::Body block, Env& block_env) ->
         result.combine(sub_result);
 
         if (result.do_break) {
-            this->trace_exit_node(stmt.raw().value(), std::nullopt, "break");
+            this->trace_exit_node(stmt.debug_print(), std::nullopt, "break");
             return result;
         }
         if (result.do_return) {
-            this->trace_exit_node(stmt.raw().value(), std::nullopt, "return");
+            this->trace_exit_node(stmt.debug_print(), std::nullopt, "return");
             return result;
         }
     }
@@ -279,7 +280,7 @@ auto Interpreter::visit_block_with_local_env(ast::Body block, Env& block_env) ->
 }
 
 auto Interpreter::visit_if_statement(ast::IfStatement if_stmt, Env& env) -> EvalResult {
-    this->trace_enter_node(if_stmt.raw().value());
+    this->trace_enter_node(if_stmt.debug_print());
 
     EvalResult result;
 
@@ -294,7 +295,7 @@ auto Interpreter::visit_if_statement(ast::IfStatement if_stmt, Env& env) -> Eval
             auto body_result = this->visit_block(if_stmt.body(), env);
             result.combine(body_result);
 
-            this->trace_exit_node(if_stmt.raw().value());
+            this->trace_exit_node(if_stmt.debug_print());
             return result;
         }
     }
@@ -310,7 +311,7 @@ auto Interpreter::visit_if_statement(ast::IfStatement if_stmt, Env& env) -> Eval
             auto body_result = this->visit_block(elseif_stmt.body(), env);
             result.combine(body_result);
 
-            this->trace_exit_node(if_stmt.raw().value());
+            this->trace_exit_node(if_stmt.debug_print());
             return result;
         }
     }
@@ -322,12 +323,12 @@ auto Interpreter::visit_if_statement(ast::IfStatement if_stmt, Env& env) -> Eval
         result.combine(body_result);
     }
 
-    this->trace_exit_node(if_stmt.raw().value());
+    this->trace_exit_node(if_stmt.debug_print());
     return result;
 }
 
 auto Interpreter::visit_while_statement(ast::WhileStatement while_stmt, Env& env) -> EvalResult {
-    this->trace_enter_node(while_stmt.raw().value());
+    this->trace_enter_node(while_stmt.debug_print());
 
     EvalResult result;
 
@@ -338,7 +339,7 @@ auto Interpreter::visit_while_statement(ast::WhileStatement while_stmt, Env& env
         result.combine(condition_result);
 
         if (!condition_result.values.get(0)) {
-            this->trace_exit_node(while_stmt.raw().value());
+            this->trace_exit_node(while_stmt.debug_print());
             return result;
         }
 
@@ -346,23 +347,23 @@ auto Interpreter::visit_while_statement(ast::WhileStatement while_stmt, Env& env
         result.combine(block_result);
 
         if (result.do_break) {
-            this->trace_exit_node(while_stmt.raw().value(), std::nullopt, "break");
+            this->trace_exit_node(while_stmt.debug_print(), std::nullopt, "break");
             result.do_break = false;
             return result;
         }
         if (result.do_return) {
-            this->trace_exit_node(while_stmt.raw().value(), std::nullopt, "return");
+            this->trace_exit_node(while_stmt.debug_print(), std::nullopt, "return");
             return result;
         }
     }
 
-    this->trace_exit_node(while_stmt.raw().value());
+    this->trace_exit_node(while_stmt.debug_print());
     return result;
 }
 
 auto Interpreter::visit_repeat_until_statement(ast::RepeatStatement repeat_stmt, Env& env)
     -> EvalResult {
-    this->trace_enter_node(repeat_stmt.raw());
+    this->trace_enter_node(repeat_stmt.debug_print());
 
     EvalResult result;
 
@@ -376,12 +377,12 @@ auto Interpreter::visit_repeat_until_statement(ast::RepeatStatement repeat_stmt,
         result.combine(block_result);
 
         if (result.do_break) {
-            this->trace_exit_node(repeat_stmt.raw(), std::nullopt, "break");
+            this->trace_exit_node(repeat_stmt.debug_print(), std::nullopt, "break");
             result.do_break = false;
             return result;
         }
         if (result.do_return) {
-            this->trace_exit_node(repeat_stmt.raw(), std::nullopt, "return");
+            this->trace_exit_node(repeat_stmt.debug_print(), std::nullopt, "return");
             return result;
         }
 
@@ -395,7 +396,7 @@ auto Interpreter::visit_repeat_until_statement(ast::RepeatStatement repeat_stmt,
         }
     }
 
-    this->trace_exit_node(repeat_stmt.raw());
+    this->trace_exit_node(repeat_stmt.debug_print());
     return result;
 }
 
@@ -435,18 +436,18 @@ auto Interpreter::visit_expression_list(std::vector<ast::Expression> expressions
 }
 
 auto Interpreter::visit_return_statement(ast::Return return_stmt, Env& env) -> EvalResult {
-    this->trace_enter_node(return_stmt.raw());
+    this->trace_enter_node(return_stmt.debug_print());
 
     auto result = this->visit_expression_list(return_stmt.exp_list(), env);
     result.do_return = true;
 
-    this->trace_exit_node(return_stmt.raw());
+    this->trace_exit_node(return_stmt.debug_print());
     return result;
 }
 
 auto Interpreter::visit_variable_declaration(ast::VariableDeclaration decl, Env& env)
     -> EvalResult {
-    this->trace_enter_node(decl.raw().value());
+    this->trace_enter_node(decl.debug_print());
 
     EvalResult result = this->visit_expression_list(decl.declarations(), env);
     const auto vallist = result.values;
@@ -479,25 +480,23 @@ auto Interpreter::visit_variable_declaration(ast::VariableDeclaration decl, Env&
                     [this, &env, &value](ast::Identifier ident) {
                         env.set_var(this->visit_identifier(ident, env), value);
                     },
-                    [](auto node) { throw UNIMPLEMENTED(node.raw().type()); }},
+                    [](auto node) { throw UNIMPLEMENTED("variable_declarator"); }},
                 target);
         }
     }
 
-    this->trace_exit_node(decl.raw().value());
+    this->trace_exit_node(decl.debug_print());
     return result;
 }
 
 auto Interpreter::visit_identifier(ast::Identifier ident, Env& env) -> std::string {
-    this->trace_enter_node(ident.raw().value());
-    this->trace_exit_node(ident.raw().value());
+    this->trace_enter_node(ident.debug_print());
+    this->trace_exit_node(ident.debug_print());
     return ident.string();
 }
 
 auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult {
-    this->trace_enter_node(expr.raw().value());
-
-    auto node = expr.raw();
+    this->trace_enter_node(expr.debug_print());
 
     EvalResult result = std::visit(
         overloaded{
@@ -513,7 +512,7 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
             [this, &env](ast::UnaryOperation unary_op) {
                 return this->visit_unary_operation(unary_op, env);
             },
-            [&node](ast::Literal literal) {
+            [](ast::Literal literal) {
                 EvalResult result;
                 Value value;
                 switch (literal.type()) {
@@ -546,7 +545,7 @@ auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult
         },
         expr.options());
 
-    this->trace_exit_node(expr.raw().value());
+    this->trace_exit_node(expr.debug_print());
     return result;
 }
 
@@ -565,15 +564,11 @@ auto Interpreter::visit_vararg_expression(Env& env) -> EvalResult {
 
 auto Interpreter::visit_function_expression(ast::FunctionDefinition function_definition, Env& env)
     -> EvalResult {
-    this->trace_enter_node(function_definition.raw());
+    this->trace_enter_node(function_definition.debug_print());
 
     EvalResult result;
 
     auto parameters = function_definition.parameters();
-
-    if (parameters.leading_self()) {
-        throw UNIMPLEMENTED("self as function parameter");
-    }
 
     std::vector<std::string> actual_parameters;
     {
@@ -623,22 +618,18 @@ auto Interpreter::visit_function_expression(ast::FunctionDefinition function_def
 
     result.values = Vallist(func);
 
-    this->trace_exit_node(function_definition.raw());
+    this->trace_exit_node(function_definition.debug_print());
     return result;
 }
 
 // TODO remove once we can desugar function statements
 auto Interpreter::visit_function_statement(ast::FunctionStatement function_statement, Env& env)
     -> EvalResult {
-    this->trace_enter_node(function_statement.raw());
+    this->trace_enter_node(function_statement.debug_print());
 
     EvalResult result;
 
     auto parameters = function_statement.parameters();
-
-    if (parameters.leading_self()) {
-        throw UNIMPLEMENTED("self as function parameter");
-    }
 
     std::vector<std::string> actual_parameters;
     {
@@ -696,12 +687,12 @@ auto Interpreter::visit_function_statement(ast::FunctionStatement function_state
     auto ident = this->visit_identifier(identifiers[0], env);
     env.set_global(ident, func);
 
-    this->trace_exit_node(function_statement.raw());
+    this->trace_exit_node(function_statement.debug_print());
     return result;
 }
 
 auto Interpreter::visit_table_index(ast::TableIndex table_index, Env& env) -> EvalResult {
-    this->trace_enter_node(table_index.raw());
+    this->trace_enter_node(table_index.debug_print());
 
     EvalResult result;
 
@@ -717,13 +708,13 @@ auto Interpreter::visit_table_index(ast::TableIndex table_index, Env& env) -> Ev
 
     result.values = Vallist(table[index]);
 
-    this->trace_exit_node(table_index.raw());
+    this->trace_exit_node(table_index.debug_print());
     return result;
 }
 
 auto Interpreter::visit_field_expression(ast::FieldExpression field_expression, Env& env)
     -> EvalResult {
-    this->trace_enter_node(field_expression.raw());
+    this->trace_enter_node(field_expression.debug_print());
 
     EvalResult result;
 
@@ -734,12 +725,12 @@ auto Interpreter::visit_field_expression(ast::FieldExpression field_expression, 
 
     result.values = Vallist(table_result.values.get(0)[key]);
 
-    this->trace_exit_node(field_expression.raw());
+    this->trace_exit_node(field_expression.debug_print());
     return result;
 }
 
 auto Interpreter::visit_table_constructor(ast::Table table_constructor, Env& env) -> EvalResult {
-    this->trace_enter_node(table_constructor.raw());
+    this->trace_enter_node(table_constructor.debug_print());
 
     EvalResult result;
 
@@ -824,16 +815,16 @@ auto Interpreter::visit_table_constructor(ast::Table table_constructor, Env& env
 
     result.values = Vallist(table);
 
-    this->trace_exit_node(table_constructor.raw());
+    this->trace_exit_node(table_constructor.debug_print());
     return result;
 }
 
 auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) -> EvalResult {
-    this->trace_enter_node(bin_op.raw().value());
+    this->trace_enter_node(bin_op.debug_print());
 
     EvalResult result;
 
-    auto origin = convert_range(bin_op.raw().value().range());
+    auto origin = bin_op.range();
 
     auto lhs_result = this->visit_expression(bin_op.left(), env);
     auto rhs_result = this->visit_expression(bin_op.right(), env);
@@ -910,16 +901,16 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
         break;
     }
 
-    this->trace_exit_node(bin_op.raw().value());
+    this->trace_exit_node(bin_op.debug_print());
     return result;
 }
 
 auto Interpreter::visit_unary_operation(ast::UnaryOperation unary_op, Env& env) -> EvalResult {
-    this->trace_enter_node(unary_op.raw().value());
+    this->trace_enter_node(unary_op.debug_print());
 
     EvalResult result = this->visit_expression(unary_op.expression(), env);
 
-    auto range = convert_range(unary_op.raw().value().range());
+    auto range = unary_op.range();
 
     switch (unary_op.unary_operator()) {
     case ast::UnOpEnum::NOT:
@@ -936,12 +927,12 @@ auto Interpreter::visit_unary_operation(ast::UnaryOperation unary_op, Env& env) 
         break;
     }
 
-    this->trace_exit_node(unary_op.raw().value());
+    this->trace_exit_node(unary_op.debug_print());
     return result;
 }
 
 auto Interpreter::visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult {
-    this->trace_enter_node(prefix.raw().value());
+    this->trace_enter_node(prefix.debug_print());
 
     EvalResult result = std::visit(
         overloaded{
@@ -968,12 +959,12 @@ auto Interpreter::visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult {
             [this, &env](ast::Expression expr) { return this->visit_expression(expr, env); }},
         prefix.options());
 
-    this->trace_exit_node(prefix.raw().value());
+    this->trace_exit_node(prefix.debug_print());
     return result;
 }
 
 auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalResult {
-    this->trace_enter_node(call.raw().value());
+    this->trace_enter_node(call.debug_print());
 
     EvalResult result;
 
@@ -1001,11 +992,13 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
 
         this->trace_function_call_result(call.id(), call_result);
     } catch (const std::runtime_error& e) {
-        std::string pos = call.raw().value().range().start.point.pretty(true);
+        stringstream ss;
+        ss << call.range().start;
+        std::string pos = ss.str();
         throw InterpreterException("failed to call function  ("s + pos + ") : " + e.what());
     }
 
-    this->trace_exit_node(call.raw().value());
+    this->trace_exit_node(call.debug_print());
     return result;
 }
 
