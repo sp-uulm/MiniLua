@@ -33,7 +33,6 @@ auto main(int argc, char* argv[]) -> int {
     }
 
     minilua::Interpreter interpreter;
-    interpreter.environment().add_default_stdlib();
     interpreter.config().all(trace);
 
     if (auto result = interpreter.parse(source_code); !result) {
@@ -51,6 +50,9 @@ auto main(int argc, char* argv[]) -> int {
         if (result.source_change.has_value()) {
             std::cerr << "and source changes:\n\t" << result.source_change.value() << "\n";
         }
+
+        // TODO pretty print
+        std::cerr << "\nThe value had origin: " << result.value.origin() << "\n";
     } catch (const minilua::InterpreterException& e) {
         std::cerr << "Evaluation failed with: " << e.what() << "\n";
         return 4;

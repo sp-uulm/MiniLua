@@ -1,24 +1,59 @@
 #include "MiniLua/values.hpp"
 
+#include <iterator>
 #include <regex>
 #include <sstream>
+#include <stdexcept>
 
 namespace minilua {
 
-// helper functions
+static std::string pattern_decimal = R"((\s*-?\d+\.?\d*))";
+static std::string pattern_hex = R"((\s*-?0[xX][\dA-Fa-f]+\.?[\dA-Fa-f]*))";
+static std::string pattern_scientific_notation = R"((\s*-?\d+\.?\d*[eE]-?\d+))";
+static std::regex to_number_general_pattern(
+    pattern_decimal + "|" + pattern_hex + "|" + pattern_scientific_notation,
+    std::regex::ECMAScript | std::regex::optimize);
+static std::regex to_number_int_pattern(R"(\s*-?([0-9]+|(0[xX][a-fA-F0-9]+)))");
 
 auto parse_number_literal(const std::string& str) -> Value {
-    std::regex pattern_number(R"(\s*\d+\.?\d*)");
-    std::regex pattern_hex(R"(\s*0[xX][\dA-Fa-f]+\.?[\dA-Fa-f]*)");
-    std::regex pattern_exp(R"(\s*\d+\.?\d*[eE]-?\d+)");
+    // if the string matches the expected format we parse it otherwise return nil
+    if (std::regex_match(str, to_number_int_pattern)) {
+        // parse as int and check if whole input is consumed
+        try {
+            char* last_pos;
+            // we need to parse as unsigned long to retain the same behaviour as lua
+            auto value = static_cast<Number::Int>(std::strtoul(str.c_str(), &last_pos, 0));
+            // NOTE this sets `errno` to `ERANGE` if the result is out of range but
+            // we ignore this to automatically truncate the result
+            if (std::distance(str.c_str(), static_cast<const char*>(last_pos)) != str.length()) {
+                throw std::runtime_error(
+                    "Could not completely parse integer literal. This is a bug.");
+            }
 
-    if (std::regex_match(str, pattern_number) || std::regex_match(str, pattern_hex) ||
-        std::regex_match(str, pattern_exp)) {
-        return std::stod(str);
+            return Value(value);
+        } catch (const std::out_of_range& e) {
+            throw std::runtime_error("integer is out of range");
+        }
+    } else if (std::regex_match(str, to_number_general_pattern)) {
+        // parse as double and check if whole input is consumed
+        try {
+            char* last_pos;
+            auto value = std::strtod(str.c_str(), &last_pos);
+            // NOTE if the value is out of range HUGE_VAL is returned
+            if (std::distance(str.c_str(), static_cast<const char*>(last_pos)) != str.length()) {
+                throw std::runtime_error(
+                    "Could not completely parse float literal. This is a bug.");
+            }
+            return Value(value);
+        } catch (const std::out_of_range& e) {
+            throw std::runtime_error("float is out of range");
+        }
     } else {
         return Nil();
     }
 }
+
+// helper functions
 
 /**
  * Helper function to check if the string literal "delimiters" are correct and get their length.

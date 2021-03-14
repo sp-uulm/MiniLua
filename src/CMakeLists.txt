@@ -1,16 +1,36 @@
 find_package(Boost REQUIRED)
 
-# core
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} PUBLIC_INTERFACE_IMPL)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/details PRIVATE_IMPL)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/core CORE_SRC_LIST)
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/tree_sitter TREE_SITTER_WRAPPER_SRC_LIST)
 
 set(LIB_SRC_LIST
     ${PUBLIC_INTERFACE_IMPL}
     ${PRIVATE_IMPL}
-    ${CORE_SRC_LIST}
-    ${TREE_SITTER_WRAPPER_SRC_LIST})
+    ${CORE_SRC_LIST})
+
+# statically link the stdlib lua files
+add_custom_command(OUTPUT stdlib.lua.o
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/lua/stdlib.lua
+    COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/lua && ld -r -b binary -o ${CMAKE_CURRENT_BINARY_DIR}/stdlib.lua.o stdlib.lua
+    COMMAND objcopy --rename-section .data=.rodata,alloc,load,readonly,data,contents ${CMAKE_CURRENT_BINARY_DIR}/stdlib.lua.o ${CMAKE_CURRENT_BINARY_DIR}/stdlib.lua.o)
+
+add_library(lua_stdlib
+    STATIC
+    stdlib.lua.o)
+
+# tell CMake to not compile the file
+SET_SOURCE_FILES_PROPERTIES(
+    stdlib.lua.o
+    PROPERTIES
+    EXTERNAL_OBJECT true
+    GENERATED true)
+
+# tell CMake to use the C linker
+SET_TARGET_PROPERTIES(
+    lua_stdlib
+    PROPERTIES
+    LINKER_LANGUAGE C)
 
 add_library(${PROJECT_NAME} SHARED ${LIB_SRC_LIST})
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -18,8 +38,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(${PROJECT_NAME}
-    PRIVATE TreeSitter
-    PRIVATE TreeSitterLua)
+    PRIVATE TreeSitterWrapper
+    PRIVATE TreeSitterLua
+    PRIVATE lua_stdlib)
 
 install(TARGETS ${PROJECT_NAME}
         EXPORT ${PROJECT_NAME}
@@ -44,13 +65,10 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_TEMPLATE_RELATIONS YES)
     set(DOXYGEN_DOT_IMAGE_FORMAT svg)
     set(DOXYGEN_EXTRACT_ALL YES)
-    set(DOXYGEN_HTML_EXTRA_STYLESHEET
-        ${PROJECT_SOURCE_DIR}/extern/doxygen-dark-theme/custom.css
-        ${PROJECT_SOURCE_DIR}/extern/doxygen-dark-theme/custom_dark_theme.css)
-    set(DOXYGEN_HTML_HEADER
-        ${PROJECT_SOURCE_DIR}/extern/doxygen-dark-theme/html_header.html)
-    set(DOXYGEN_HTML_FOOTER
-        ${PROJECT_SOURCE_DIR}/extern/doxygen-dark-theme/html_footer.html)
+    set(DOXYGEN_EXTRACT_PRIVATE YES)
+    set(DOXYGEN_EXTRACT_STATIC YES)
+    set(DOXYGEN_PLANTUML_JAR_PATH ${PLANTUML_JAR_PATH})
+    set(DOXYGEN_EXAMPLE_PATH ${PROJECT_SOURCE_DIR}/tests/docs)
 
     doxygen_add_docs(${PROJECT_NAME}-docs
         ${CMAKE_CURRENT_SOURCE_DIR}

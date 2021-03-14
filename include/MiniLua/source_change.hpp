@@ -4,6 +4,7 @@
 #include "MiniLua/utils.hpp"
 #include <cstdint>
 #include <iostream>
+#include <memory>
 #include <numeric>
 #include <optional>
 #include <variant>
@@ -12,15 +13,25 @@
 namespace minilua {
 
 /**
- * Represents a location in source code.
+ * @brief A location in source code.
  *
- * NOTE: The comparison operators only consider the byte field. If you want
- * correct results you should only compare locations that were generated from
- * the same source code.
+ * \note The comparison operators only consider the byte field. You should only
+ * compare locations that were generated from the same source code.
+ *
+ * Supports the comparison operators.
  */
 struct Location {
+    /**
+     * @brief The line.
+     */
     uint32_t line;
+    /**
+     * @brief The column.
+     */
     uint32_t column;
+    /**
+     * @brief The absolute byte offset.
+     */
     uint32_t byte;
 };
 
@@ -43,37 +54,79 @@ constexpr auto operator>=(Location lhs, Location rhs) noexcept -> bool {
 auto operator<<(std::ostream&, const Location&) -> std::ostream&;
 
 /**
- * Represents a range/span in source code.
+ * @brief A range (sometimes called span) in source code.
+ *
+ * Supports equality operators.
  */
 struct Range {
+    /**
+     * @brief Start of the range.
+     */
     Location start;
+    /**
+     * @brief End of the range (exclusive).
+     */
     Location end;
+
+    /**
+     * Optional filename where the Range is located.
+     *
+     * The filename is behind a shared_ptr to avoid unnecessary copies.
+     */
+    std::optional<std::shared_ptr<const std::string>> file;
+
+    /**
+     * Returns a copy of this range with the filename changed.
+     */
+    [[nodiscard]] auto with_file(std::optional<std::shared_ptr<const std::string>> file) const
+        -> Range;
 };
 
-constexpr auto operator==(Range lhs, Range rhs) noexcept -> bool {
-    return lhs.start == rhs.start && lhs.end == rhs.end;
-}
-constexpr auto operator!=(Range lhs, Range rhs) noexcept -> bool { return !(lhs == rhs); }
+auto operator==(const Range& lhs, const Range& rhs) noexcept -> bool;
+auto operator!=(const Range& lhs, const Range& rhs) noexcept -> bool;
 auto operator<<(std::ostream&, const Range&) -> std::ostream&;
 
 class SourceChangeTree;
 
-// common information for source changes
+/**
+ * @brief Common information for source changes.
+ */
 struct CommonSCInfo {
-    // can be filled in by the function creating the suggestion
+    /**
+     * @brief Can be filled in by the function creating the suggestion.
+     */
     std::string origin;
-    // hint for the source locations that would be modified (e.g. variable name/line number)
+    /**
+     * @brief Hint for the source locations that would be modified (e.g.
+     * variable name/line number).
+     */
     std::string hint;
 };
 
 /**
- * A source change for a single location.
+ * @brief A source change for a single location.
+ *
+ * Supports equality operators.
  */
 struct SourceChange : public CommonSCInfo {
+    /**
+     * @brief The range to replace.
+     */
     Range range;
+    /**
+     * The replacement.
+     */
     std::string replacement;
 
+    /**
+     * Create a single SourceChange with empty origin and hint.
+     */
     SourceChange(Range range, std::string replacement);
+
+    /**
+     * Only here for convenience. Simply returns a copy of this object.
+     */
+    [[nodiscard]] auto simplify() const -> SourceChange;
 };
 
 auto operator==(const SourceChange& lhs, const SourceChange& rhs) noexcept -> bool;
@@ -81,15 +134,37 @@ auto operator!=(const SourceChange& lhs, const SourceChange& rhs) noexcept -> bo
 auto operator<<(std::ostream&, const SourceChange&) -> std::ostream&;
 
 /**
- * Multiple source changes that has to all be applied together.
+ * @brief Multiple source changes that all need to be applied together (i.e. in
+ * combination).
+ *
+ * Supports equality operators.
  */
 struct SourceChangeCombination : public CommonSCInfo {
+    /**
+     * @brief The changes to apply together.
+     */
     std::vector<SourceChangeTree> changes;
 
+    /**
+     * @brief Default constructor.
+     */
     SourceChangeCombination();
+    /**
+     * @brief Constructor with data.
+     */
     SourceChangeCombination(std::vector<SourceChangeTree> changes);
 
+    /**
+     * @brief Add any source change to the combination.
+     */
     void add(SourceChangeTree);
+
+    /**
+     * (Recursively) simplifies the tree.
+     *
+     * Empty combinations will be converted to nullopts.
+     */
+    [[nodiscard]] auto simplify() const -> std::optional<SourceChangeTree>;
 };
 
 auto operator==(const SourceChangeCombination& lhs, const SourceChangeCombination& rhs) noexcept
@@ -99,16 +174,41 @@ auto operator!=(const SourceChangeCombination& lhs, const SourceChangeCombinatio
 auto operator<<(std::ostream&, const SourceChangeCombination&) -> std::ostream&;
 
 /**
- * Multiple source changes where only one can be applied.
+ * @brief Multiple source changes where only one can be applied (i.e.
+ * alternatives).
+ *
+ * Supports equality operators.
  */
 struct SourceChangeAlternative : public CommonSCInfo {
+    /**
+     * @brief The alternatives.
+     */
     std::vector<SourceChangeTree> changes;
 
+    /**
+     * @brief Default constructor.
+     */
     SourceChangeAlternative();
+    /**
+     * @brief Constructor with data.
+     */
     SourceChangeAlternative(std::vector<SourceChangeTree> changes);
 
+    /**
+     * @brief Add any source change to the alternative.
+     */
     void add(SourceChangeTree);
+    /**
+     * @brief Only add the source change if it is not `std::nullopt`.
+     */
     void add_if_some(std::optional<SourceChangeTree>);
+
+    /**
+     * (Recursively) simplifies the tree.
+     *
+     * Empty alternatives will be converted to nullopts.
+     */
+    [[nodiscard]] auto simplify() const -> std::optional<SourceChangeTree>;
 };
 
 auto operator==(const SourceChangeAlternative& lhs, const SourceChangeAlternative& rhs) noexcept
@@ -118,7 +218,15 @@ auto operator!=(const SourceChangeAlternative& lhs, const SourceChangeAlternativ
 auto operator<<(std::ostream&, const SourceChangeAlternative&) -> std::ostream&;
 
 /**
- * Wrapper for a source change tree.
+ * @brief Wrapper for the source change tree.
+ *
+ * Walk the tree with `SourceChangeTree::visit`,
+ * `SourceChangeTree::visit_first_alternative`, `SourceChangeTree::visit_all`.
+ *
+ * To simply get the first complete source change use
+ * `SourceChangeTree::collect_first_alternative`.
+ *
+ * Supports equality operators.
  */
 class SourceChangeTree {
 public:
@@ -128,31 +236,55 @@ private:
     Type change;
 
 public:
+    /**
+     * @brief Constructor taking a single `SourceChange`.
+     */
     SourceChangeTree(SourceChange);
+    /**
+     * @brief Constructor taking a `SourceChangeCombination`.
+     */
     SourceChangeTree(SourceChangeCombination);
+    /**
+     * @brief Constructor taking a `SourceChangeAlternative`.
+     */
     SourceChangeTree(SourceChangeAlternative);
+    /**
+     * @brief Constructor taking the internal `std::variant`.
+     */
     SourceChangeTree(Type);
 
     /**
-     * Returns the origin of the root source change.
+     * @brief The origin of the root source change.
      */
     [[nodiscard]] auto origin() const -> const std::string&;
+    /**
+     * @brief The origin of the root source change.
+     */
     auto origin() -> std::string&;
     /**
-     * Returns the hint of the root source change.
+     * @brief The hint of the root source change.
      */
     [[nodiscard]] auto hint() const -> const std::string&;
+    /**
+     * @brief The hint of the root source change.
+     */
     auto hint() -> std::string&;
 
     /**
-     * Visit the root node of the tree of source changes.
+     * Removes the filename from the ranges in the tree.
+     */
+    void remove_filename();
+
+    /**
+     * @brief Visit the root node of the tree of source changes.
      *
-     * You have to manually navigate the tree.
+     * \note You have to manually navigate through the tree.
      *
-     * Visitor has to be callable with SCSingle&, SCAnd&, SCOr& (or with const
-     * references for the const version of the method).
+     * `Visitor` has to be callable with `SourceChange&`,
+     * `SourceChangeCombination&` and `SourceChangeAlternative&`.
      *
-     * For possible implementations see visit_left.
+     * For possible implementations see
+     * `SourceChangeTree::visit_first_alternative`.
      */
     template <typename Visitor> decltype(auto) visit(Visitor visitor) {
         static_assert(std::is_invocable_v<Visitor, SourceChange&>);
@@ -160,17 +292,31 @@ public:
         static_assert(std::is_invocable_v<Visitor, SourceChangeAlternative&>);
         return std::visit(visitor, change);
     }
+    /**
+     * @brief Visit the root node of the tree of source changes.
+     *
+     * \note You have to manually navigate through the tree.
+     *
+     * `Visitor` has to be callable with `const SourceChange&`,
+     * `const SourceChangeCombination&` and `const SourceChangeAlternative&`.
+     *
+     * For possible usage see implementation of
+     * `SourceChangeTree::visit_first_alternative`.
+     */
     template <typename Visitor> decltype(auto) visit(Visitor visitor) const {
-        static_assert(std::is_invocable_v<Visitor, SourceChange&>);
-        static_assert(std::is_invocable_v<Visitor, SourceChangeCombination&>);
-        static_assert(std::is_invocable_v<Visitor, SourceChangeAlternative&>);
+        static_assert(std::is_invocable_v<Visitor, const SourceChange&>);
+        static_assert(std::is_invocable_v<Visitor, const SourceChangeCombination&>);
+        static_assert(std::is_invocable_v<Visitor, const SourceChangeAlternative&>);
         return std::visit(visitor, change);
     }
 
     // TODO this could be an iterator
 
     /**
-     * Visits only the first child (left) of an or node. And nodes are completely visited.
+     * @brief Visits only the first child (left) of an SourceChangeAlternative
+     * node.
+     *
+     * SourceChangeCombination nodes are completely visited.
      */
     template <typename Visitor> void visit_first_alternative(Visitor visitor) {
         static_assert(std::is_invocable_v<Visitor, SourceChange&>);
@@ -187,6 +333,12 @@ public:
                 }
             }});
     }
+    /**
+     * @brief Visits only the first child (left) of an SourceChangeAlternative
+     * node.
+     *
+     * SourceChangeCombination nodes are completely visited.
+     */
     template <typename Visitor> void visit_first_alternative(Visitor visitor) const {
         static_assert(std::is_invocable_v<Visitor, const SourceChange&>);
         this->visit(overloaded{
@@ -204,7 +356,7 @@ public:
     }
 
     /**
-     * Visit all leaf nodes (SCSingle).
+     * @brief Visit all leaf SourceChange nodes.
      */
     template <typename Visitor> void visit_all(Visitor visitor) {
         static_assert(std::is_invocable_v<Visitor, SourceChange&>);
@@ -222,6 +374,9 @@ public:
             },
         });
     }
+    /**
+     * @brief Visit all leaf SourceChange nodes.
+     */
     template <typename Visitor> void visit_all(Visitor visitor) const {
         static_assert(std::is_invocable_v<Visitor, const SourceChange&>);
         this->visit(overloaded{
@@ -240,20 +395,48 @@ public:
     }
 
     /**
-     * Collect only the left side of or-branches.
+     * @brief Collect only the left side of SourceChangeAlternative branches.
      */
     [[nodiscard]] auto collect_first_alternative() const -> std::vector<SourceChange>;
 
-    // dereference to the underlying variant type
-    auto operator*() -> Type&;
-    auto operator*() const -> const Type&;
+    /**
+     * Simplify the source change tree removing all redundant nodes.
+     *
+     * This is recursive.
+     *
+     * Empty alternatives and combinations will be converted to nullopts.
+     */
+    [[nodiscard]] auto simplify() const -> std::optional<SourceChangeTree>;
 
+    /**
+     * @brief Derefernce to the underlying variant type.
+     *
+     * Returns a reference to the variant type.
+     */
+    auto operator*() -> Type&;
+    /**
+     * @brief Derefernce to the underlying variant type.
+     *
+     * Returns a reference to the variant type.
+     */
+    auto operator*() const -> const Type&;
+    /**
+     * @brief Derefernce to the underlying variant type.
+     *
+     * Returns a pointer to the variant type.
+     */
     auto operator->() -> Type*;
 };
 
 auto operator==(const SourceChangeTree& lhs, const SourceChangeTree& rhs) noexcept -> bool;
 auto operator!=(const SourceChangeTree& lhs, const SourceChangeTree& rhs) noexcept -> bool;
 auto operator<<(std::ostream&, const SourceChangeTree&) -> std::ostream&;
+auto operator<<(std::ostream&, const std::optional<SourceChangeTree>&) -> std::ostream&;
+
+/**
+ * @brief See SourceChangeTree::simplify.
+ */
+auto simplify(const std::optional<SourceChangeTree>& tree) -> std::optional<SourceChangeTree>;
 
 } // namespace minilua
 

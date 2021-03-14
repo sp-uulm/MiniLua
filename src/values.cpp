@@ -1,8 +1,11 @@
 #include "MiniLua/values.hpp"
+#include "MiniLua/environment.hpp"
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/utils.hpp"
 
+#include <algorithm>
 #include <cmath>
+#include <iomanip>
 #include <iostream>
 #include <regex>
 #include <set>
@@ -35,52 +38,124 @@ auto operator<<(std::ostream& os, Bool self) -> std::ostream& {
 }
 Bool::operator bool() const { return this->value; }
 
-// struct Number
+// class Number
 [[nodiscard]] auto Number::to_literal() const -> std::string {
     // NOTE: use stringstream so we get better formatting than with std::to_string
     std::ostringstream result;
-    if (this->value == std::floor(this->value)) {
-        result << static_cast<long>(this->value);
-    } else {
-        // TODO maybe we can use a better float representation algorithm than the default c++
-        // (not sure what c++ uses by default)
-
-        result << this->value;
-    }
+    this->visit(overloaded{
+        [&result](Number::Int value) { result << value; },
+        [&result](Number::Float value) {
+            if (ceil(value) == value) {
+                // always output the .0 for whole numbers
+                result << std::setprecision(1) << std::fixed;
+            }
+            result << value;
+        },
+    });
+    // TODO maybe we can use a better float representation algorithm than the default c++
+    // (not sure what c++ uses by default or if it is the same on all compilers)
     return result.str();
 }
 auto operator<<(std::ostream& os, Number self) -> std::ostream& {
-    return os << "Number(" << self.value << ")";
+    os << "Number(";
+    self.visit(overloaded{
+        [&os](Number::Int value) { os << value; },
+        [&os](Number::Float value) { os << value; },
+    });
+    return os << ")";
 }
 Number::operator bool() const { return true; }
-auto operator-(Number self) -> Number { return -self.value; }
-auto operator^(Number lhs, Number rhs) -> Number { return std::pow(lhs.value, rhs.value); }
-auto operator%(Number lhs, Number rhs) -> Number { return Number(std::fmod(lhs.value, rhs.value)); }
-auto operator&(Number lhs, Number rhs) -> Number {
-    if (lhs.value != std::floor(lhs.value)) {
-        throw std::runtime_error("lhs of bitwise and is not an integer");
-    }
-    if (rhs.value != std::floor(rhs.value)) {
-        throw std::runtime_error("rhs of bitwise and is not an integer");
-    }
-    // TODO is int big enough or do we need long?
-    int lhs_int = lhs.value;
-    int rhs_int = rhs.value;
-
-    return Number(lhs_int & rhs_int);
+auto Number::as_float() const -> Number::Float {
+    return this->visit(overloaded{
+        [](Number::Int value) { return static_cast<Number::Float>(value); },
+        [](Number::Float value) { return value; },
+    });
 }
-auto operator|(Number lhs, Number rhs) -> Number {
-    if (lhs.value != std::floor(lhs.value)) {
-        throw std::runtime_error("lhs of bitwise or is not an integer");
-    }
-    if (rhs.value != std::floor(rhs.value)) {
-        throw std::runtime_error("rhs of bitwise or is not an integer");
-    }
-    // TODO is int big enough or do we need long?
-    int lhs_int = lhs.value;
-    int rhs_int = rhs.value;
+auto Number::try_as_int() const -> Number::Int {
+    return this->visit(overloaded{
+        [](Number::Int value) { return value; },
+        [](Number::Float value) -> Number::Int {
+            double num;
+            double fraction = std::modf(value, &num);
+            if (fraction != 0.0) {
+                throw std::runtime_error(
+                    std::string("number has no integer representation ") + std::to_string(value));
+            } else {
+                return (Number::Int)num;
+            }
+        },
+    });
+}
+auto Number::convert_to_int() const -> Int {
+    return this->visit(overloaded{
+        [](Number::Int value) { return value; },
+        [](Number::Float value) -> Number::Int { return static_cast<Number::Int>(value); },
+    });
+}
+auto Number::raw() const -> std::variant<Int, Float> { return this->value; }
+auto Number::is_int() const -> bool { return std::holds_alternative<Int>(this->value); }
+auto Number::is_float() const -> bool { return std::holds_alternative<Float>(this->value); }
 
-    return Number(lhs_int | rhs_int);
+auto operator-(Number self) -> Number {
+    return self.visit(overloaded{
+        [](Number::Int value) { return Number(-value); },
+        [](Number::Float value) { return Number(-value); },
+    });
+}
+
+auto operator+(const Number& lhs, const Number& rhs) -> Number {
+    return lhs.apply_with_number_rules(rhs, [](auto lhs, auto rhs) { return Number(lhs + rhs); });
+}
+auto operator-(const Number& lhs, const Number& rhs) -> Number {
+    return lhs.apply_with_number_rules(rhs, [](auto lhs, auto rhs) { return Number(lhs - rhs); });
+}
+auto operator*(const Number& lhs, const Number& rhs) -> Number {
+    return lhs.apply_with_number_rules(rhs, [](auto lhs, auto rhs) { return Number(lhs * rhs); });
+}
+auto operator/(const Number& lhs, const Number& rhs) -> Number {
+    return lhs.as_float() / rhs.as_float();
+}
+auto Number::int_div(const Number& rhs) const -> Number {
+    return static_cast<Number::Int>(this->as_float() / rhs.as_float());
+}
+auto Number::pow(const Number& rhs) const -> Number {
+    return std::pow(this->as_float(), rhs.as_float());
+}
+auto Number::mod(const Number& rhs) const -> Number {
+    return std::fmod(this->as_float(), rhs.as_float());
+}
+auto Number::bit_and(const Number& rhs) const -> Number {
+    return this->try_as_int() & rhs.try_as_int();
+}
+auto Number::bit_or(const Number& rhs) const -> Number {
+    return this->try_as_int() | rhs.try_as_int();
+}
+auto Number::bit_xor(const Number& rhs) const -> Number {
+    return this->try_as_int() ^ rhs.try_as_int();
+}
+auto Number::bit_shl(const Number& rhs) const -> Number {
+    return this->try_as_int() << rhs.try_as_int();
+}
+auto Number::bit_shr(const Number& rhs) const -> Number {
+    return this->try_as_int() >> rhs.try_as_int();
+}
+auto Number::bit_not() const -> Number { return ~this->try_as_int(); }
+
+auto operator==(Number lhs, Number rhs) noexcept -> bool {
+    return lhs.apply_with_number_rules(rhs, [](auto lhs, auto rhs) { return lhs == rhs; });
+}
+auto operator!=(Number lhs, Number rhs) noexcept -> bool { return !(lhs == rhs); }
+auto operator<(Number lhs, Number rhs) noexcept -> bool {
+    return lhs.apply_with_number_rules(rhs, [](auto lhs, auto rhs) { return lhs < rhs; });
+}
+auto operator>(Number lhs, Number rhs) noexcept -> bool {
+    return lhs.apply_with_number_rules(rhs, [](auto lhs, auto rhs) { return lhs > rhs; });
+}
+auto operator<=(Number lhs, Number rhs) noexcept -> bool {
+    return lhs.apply_with_number_rules(rhs, [](auto lhs, auto rhs) { return lhs <= rhs; });
+}
+auto operator>=(Number lhs, Number rhs) noexcept -> bool {
+    return lhs.apply_with_number_rules(rhs, [](auto lhs, auto rhs) { return lhs >= rhs; });
 }
 
 // helper function to escape characters in string literals
@@ -171,232 +246,6 @@ auto operator<<(std::ostream& os, const String& self) -> std::ostream& {
     return os << "String(\"" << self.value << "\")";
 }
 
-// struct Table
-struct Table::Impl {
-    std::unordered_map<Value, Value> value;
-};
-
-struct Table::iterator::Impl {
-    std::unordered_map<Value, Value>::iterator iter;
-};
-Table::iterator::iterator() = default;
-Table::iterator::iterator(const Table::iterator&) = default;
-Table::iterator::~iterator() = default;
-
-auto Table::iterator::operator=(const Table::iterator&) -> Table::iterator& = default;
-auto Table::iterator::operator==(const Table::iterator& other) const -> bool {
-    return this->impl->iter == other.impl->iter;
-}
-auto Table::iterator::operator!=(const Table::iterator& other) const -> bool {
-    return !(*this == other);
-}
-auto Table::iterator::operator++() -> Table::iterator& {
-    this->impl->iter++;
-    return *this;
-}
-auto Table::iterator::operator++(int) -> Table::iterator {
-    auto tmp = *this;
-    ++(this->impl->iter);
-    return tmp;
-}
-
-auto Table::iterator::operator*() const -> Table::iterator::reference { return *this->impl->iter; }
-auto Table::iterator::operator->() const -> Table::iterator::pointer {
-    return this->impl->iter.operator->();
-}
-
-struct Table::const_iterator::Impl {
-    std::unordered_map<Value, Value>::const_iterator iter;
-};
-Table::const_iterator::const_iterator() = default;
-Table::const_iterator::const_iterator(const Table::const_iterator&) = default;
-Table::const_iterator::~const_iterator() = default;
-
-auto Table::const_iterator::operator=(const Table::const_iterator&)
-    -> Table::const_iterator& = default;
-auto Table::const_iterator::operator==(const Table::const_iterator& other) const -> bool {
-    return this->impl->iter == other.impl->iter;
-}
-auto Table::const_iterator::operator!=(const Table::const_iterator& other) const -> bool {
-    return !(*this == other);
-}
-auto Table::const_iterator::operator++() -> Table::const_iterator& {
-    this->impl->iter++;
-    return *this;
-}
-auto Table::const_iterator::operator++(int) -> Table::const_iterator {
-    auto tmp = *this;
-    ++(this->impl->iter);
-    return tmp;
-}
-
-auto Table::const_iterator::operator*() const -> Table::const_iterator::reference {
-    return *this->impl->iter;
-}
-auto Table::const_iterator::operator->() const -> Table::const_iterator::pointer {
-    return this->impl->iter.operator->();
-}
-
-Table::Table() : impl(std::make_shared<Impl>()){};
-Table::Table(std::unordered_map<Value, Value> value)
-    : impl(std::make_shared<Impl>(Impl{.value = std::move(value)})) {}
-Table::Table(std::initializer_list<std::pair<const Value, Value>> values) : Table() {
-    for (const auto& [key, value] : values) {
-        this->impl->value.insert_or_assign(key, value);
-    }
-}
-
-Table::Table(const Table& other) = default;
-Table::Table(Table&& other) noexcept {
-    std::swap(this->impl, other.impl);
-    other.impl = std::make_shared<Table::Impl>();
-};
-Table::~Table() noexcept = default;
-auto Table::operator=(const Table& other) -> Table& = default;
-auto Table::operator=(Table&& other) noexcept -> Table& {
-    std::swap(this->impl, other.impl);
-    other.impl = std::make_shared<Table::Impl>();
-    return *this;
-};
-void swap(Table& self, Table& other) { std::swap(self.impl, other.impl); }
-
-auto Table::get(const Value& key) -> Value {
-    auto value = impl->value.find(key);
-    if (value == impl->value.end()) {
-        return Nil();
-    } else {
-        return Value(value->second);
-    }
-}
-auto Table::has(const Value& key) -> bool { return impl->value.find(key) != impl->value.end(); }
-void Table::set(const Value& key, Value value) { impl->value[key] = std::move(value); }
-void Table::set(Value&& key, Value value) { impl->value[key] = std::move(value); }
-[[nodiscard]] auto Table::size() const -> size_t { return impl->value.size(); }
-
-auto Table::begin() -> Table::iterator {
-    Table::iterator iterator;
-    iterator.impl->iter = this->impl->value.begin();
-    return iterator;
-}
-[[nodiscard]] auto Table::begin() const -> Table::const_iterator {
-    Table::const_iterator iterator;
-    iterator.impl->iter = this->impl->value.cbegin();
-    return iterator;
-}
-[[nodiscard]] auto Table::cbegin() const -> Table::const_iterator {
-    Table::const_iterator iterator;
-    iterator.impl->iter = this->impl->value.cbegin();
-    return iterator;
-}
-
-auto Table::end() -> Table::iterator { return Table::iterator(); }
-[[nodiscard]] auto Table::end() const -> Table::const_iterator { return Table::const_iterator(); }
-[[nodiscard]] auto Table::cend() const -> Table::const_iterator { return Table::const_iterator(); }
-
-[[nodiscard]] auto Table::to_literal() const -> std::string {
-    // NOTE: recursive table check needs to be in a lambda because Table::Impl is private and we
-    // don't want a helper function in the public interface
-    std::set<Table::Impl*> visited;
-    auto table_to_literal = [&visited](const Table& table, const auto& rec) -> std::string {
-        visited.insert(table.impl.get());
-        auto visit_nested = [&rec, &visited](const Value& value) -> std::string {
-            return std::visit(
-                overloaded{
-                    [&visited, &rec](const Table& nested) -> std::string {
-                        if (visited.find(nested.impl.get()) != visited.end()) {
-                            throw std::runtime_error(
-                                "self recursive table can't be converted to literal");
-                        }
-                        return rec(nested, rec);
-                    },
-                    [](const auto& nested) -> std::string { return nested.to_literal(); }},
-                value.raw());
-        };
-
-        // TODO should we sort keys for consistency?
-        std::string str;
-        str.append("{");
-
-        const char* sep = " ";
-
-        for (const auto& [key, value] : table.impl->value) {
-            if (value.is_nil()) {
-                continue;
-            }
-
-            str.append(sep);
-
-            // use strings directly as identifiers if possible
-            if (key.is_valid_identifier()) {
-                str.append(std::get<String>(key.raw()).value);
-            } else {
-                str.append("[");
-                str.append(visit_nested(key));
-                str.append("]");
-            }
-
-            str.append(" = ");
-            str.append(visit_nested(value));
-            sep = ", ";
-        }
-
-        if (!table.impl->value.empty()) {
-            str.append(" ");
-        }
-
-        str.append("}");
-        return str;
-    };
-
-    return table_to_literal(*this, table_to_literal);
-}
-
-auto Table::operator[](const Value& index) -> Value& { return impl->value[index]; }
-auto Table::operator[](const Value& index) const -> const Value& { return impl->value[index]; }
-
-Table::operator bool() const { return true; }
-
-auto operator==(const Table& a, const Table& b) noexcept -> bool { return a.impl == b.impl; }
-auto operator!=(const Table& a, const Table& b) noexcept -> bool { return !(a == b); }
-auto operator<<(std::ostream& os, const Table& self) -> std::ostream& {
-    os << "Table { ";
-    for (const auto& [key, value] : self.impl->value) {
-        os << "[" << key << "] = " << value << ", ";
-    }
-    return os << " }";
-}
-
-auto Table::next(const Value& key) const -> Vallist {
-    return std::visit(
-        overloaded{
-            [this](Nil /*unused*/) {
-                auto it = impl->value.begin();
-                if (it != impl->value.end()) {
-                    std::pair<Value, Value> p = *it;
-                    return Vallist({p.first, p.second});
-                } else {
-                    return Vallist();
-                }
-            },
-            [this](auto key) {
-                auto it = impl->value.find(key);
-                if (it != impl->value.end()) {
-                    // key in table, but last eleement of table
-                    if (++it == impl->value.end()) {
-                        return Vallist();
-                    } else {
-                        // key is somewhere in the table
-                        std::pair<Value, Value> p = *it;
-                        return Vallist({p.first, p.second});
-                    }
-                    // Key not in table
-                } else {
-                    throw std::runtime_error("Invalid key to 'next'");
-                }
-            }},
-        key.raw());
-}
-
 // class CallContext
 struct CallContext::Impl {
     std::optional<Range> location;
@@ -421,38 +270,60 @@ CallContext::~CallContext() = default;
     return new_cc;
 }
 
+[[nodiscard]] auto CallContext::make_table() const -> Table {
+    return this->environment().make_table();
+}
+
 auto CallContext::call_location() const -> std::optional<Range> { return impl->location; }
 auto CallContext::environment() const -> Environment& { return *impl->env; }
 auto CallContext::get(const std::string& name) const -> Value { return impl->env->get(name); }
 auto CallContext::arguments() const -> const Vallist& { return impl->args; }
 
-[[nodiscard]] auto CallContext::unary_numeric_arg_helper() const
-    -> std::tuple<double, UnaryOrigin> {
-    auto arg = this->arguments().get(0);
-    auto num = std::get<minilua::Number>(arg).value;
+static auto
+expect_number(const Value& value, std::optional<Range> call_location, const std::string& index)
+    -> Value {
+    auto number = value.to_number(Nil(), std::move(call_location));
+    if (number.is_nil()) {
+        // NOTE lua errors also mention the function name here but this is not
+        // really necessary, because we will add that later
+        throw std::runtime_error(
+            "bad argument #" + index + " (number expected, got " + value.type() + ")");
+    }
+    return number;
+}
 
-    auto origin = minilua::UnaryOrigin{
-        .val = minilua::make_owning<minilua::Value>(arg),
+[[nodiscard]] auto CallContext::unary_numeric_arg_helper() const
+    -> std::tuple<Number, UnaryOrigin> {
+    auto arg = this->arguments().get(0);
+
+    auto num = expect_number(arg, this->call_location(), "1");
+
+    // TODO not sure if we need to use arg or the result of calling to_number
+    auto origin = UnaryOrigin{
+        .val = std::make_shared<minilua::Value>(num),
         .location = this->call_location(),
     };
 
-    return std::make_tuple(num, origin);
+    return std::make_tuple(std::get<Number>(num), origin);
 }
 
 [[nodiscard]] auto CallContext::binary_numeric_args_helper() const
-    -> std::tuple<double, double, BinaryOrigin> {
+    -> std::tuple<Number, Number, BinaryOrigin> {
     auto arg1 = this->arguments().get(0);
     auto arg2 = this->arguments().get(1);
-    auto num1 = std::get<minilua::Number>(arg1).value;
-    auto num2 = std::get<minilua::Number>(arg2).value;
 
-    auto origin = minilua::BinaryOrigin{
-        .lhs = minilua::make_owning<minilua::Value>(arg1),
-        .rhs = minilua::make_owning<minilua::Value>(arg2),
+    auto num1 = expect_number(arg1, this->call_location(), "1");
+    auto num2 = expect_number(arg2, this->call_location(), "2");
+
+    // TODO not sure if we need to use arg1 and arg2 here or the results of
+    // calling to_number
+    auto origin = BinaryOrigin{
+        .lhs = std::make_shared<Value>(num1),
+        .rhs = std::make_shared<Value>(num2),
         .location = this->call_location(),
     };
 
-    return std::make_tuple(num1, num2, origin);
+    return std::make_tuple(std::get<Number>(num1), std::get<Number>(num2), origin);
 }
 
 auto operator<<(std::ostream& os, const CallContext& self) -> std::ostream& {
@@ -487,6 +358,7 @@ CallResult::CallResult(Vallist vallist, std::optional<SourceChangeTree> sc)
 auto operator==(const CallResult& lhs, const CallResult& rhs) -> bool {
     return lhs.values() == rhs.values(); // && lhs.source_change() == rhs.source_change();
 }
+auto operator!=(const CallResult& lhs, const CallResult& rhs) -> bool { return !(lhs == rhs); }
 auto operator<<(std::ostream& os, const CallResult& self) -> std::ostream& {
     os << "CallResult{ .values = " << self.values() << ", .source_change = ";
     if (self.source_change()) {
@@ -520,6 +392,7 @@ Origin::Origin(ExternalOrigin origin) : origin(origin) {}
 Origin::Origin(LiteralOrigin origin) : origin(origin) {}
 Origin::Origin(BinaryOrigin origin) : origin(origin) {}
 Origin::Origin(UnaryOrigin origin) : origin(origin) {}
+Origin::Origin(MultipleArgsOrigin origin) : origin(origin) {}
 
 [[nodiscard]] auto Origin::raw() const -> const Type& { return this->origin; }
 auto Origin::raw() -> Type& { return this->origin; }
@@ -541,18 +414,16 @@ auto Origin::raw() -> Type& { return this->origin; }
 }
 
 [[nodiscard]] auto Origin::force(const Value& new_value) const -> std::optional<SourceChangeTree> {
-    // TODO maybe also for non numeric/bool types?
-    if (!new_value.is_number() && !new_value.is_bool()) {
-        return std::nullopt;
-    }
-
-    return std::visit(
+    return ::minilua::simplify(std::visit(
         overloaded{
             [&new_value](const BinaryOrigin& origin) -> std::optional<SourceChangeTree> {
                 return origin.reverse(new_value, *origin.lhs, *origin.rhs);
             },
             [&new_value](const UnaryOrigin& origin) -> std::optional<SourceChangeTree> {
                 return origin.reverse(new_value, *origin.val);
+            },
+            [&new_value](const MultipleArgsOrigin& origin) -> std::optional<SourceChangeTree> {
+                return origin.reverse(new_value, origin.values);
             },
             [&new_value](const LiteralOrigin& origin) -> std::optional<SourceChangeTree> {
                 return SourceChange(origin.location, new_value.to_literal());
@@ -564,7 +435,29 @@ auto Origin::raw() -> Type& { return this->origin; }
                 return std::nullopt;
             },
         },
+        this->origin));
+}
+void Origin::set_file(std::optional<std::shared_ptr<std::string>> file) {
+    std::visit(
+        overloaded{
+            [&file](BinaryOrigin& origin) {
+                if (origin.location) {
+                    origin.location->file = file;
+                }
+            },
+            [&file](UnaryOrigin& origin) {
+                if (origin.location) {
+                    origin.location->file = file;
+                }
+            },
+            [&file](LiteralOrigin& origin) { origin.location.file = file; },
+            // TODO: fix formating
+            [](NoOrigin& /*unused*/) {}, [](ExternalOrigin& /*unused*/) {}, [](auto /*unused*/) {}},
         this->origin);
+}
+
+auto Origin::simplify() const -> Origin {
+    return std::visit([](const auto& origin) -> Origin { return origin.simplify(); }, this->raw());
 }
 
 auto operator==(const Origin& lhs, const Origin& rhs) noexcept -> bool {
@@ -578,11 +471,15 @@ auto operator<<(std::ostream& os, const Origin& self) -> std::ostream& {
 }
 
 // struct NoOrigin
+auto NoOrigin::simplify() const -> Origin { return *this; }
+
 auto operator==(const NoOrigin&, const NoOrigin&) noexcept -> bool { return true; }
 auto operator!=(const NoOrigin&, const NoOrigin&) noexcept -> bool { return false; }
 auto operator<<(std::ostream& os, const NoOrigin&) -> std::ostream& { return os << "NoOrigin{}"; }
 
 // struct ExternalOrigin
+auto ExternalOrigin::simplify() const -> Origin { return *this; }
+
 auto operator==(const ExternalOrigin&, const ExternalOrigin&) noexcept -> bool { return true; }
 auto operator!=(const ExternalOrigin&, const ExternalOrigin&) noexcept -> bool { return true; }
 auto operator<<(std::ostream& os, const ExternalOrigin&) -> std::ostream& {
@@ -590,6 +487,8 @@ auto operator<<(std::ostream& os, const ExternalOrigin&) -> std::ostream& {
 }
 
 // struct LiteralOrigin
+auto LiteralOrigin::simplify() const -> Origin { return *this; }
+
 auto operator==(const LiteralOrigin& lhs, const LiteralOrigin& rhs) noexcept -> bool {
     return lhs.location == rhs.location;
 }
@@ -601,6 +500,14 @@ auto operator<<(std::ostream& os, const LiteralOrigin& self) -> std::ostream& {
 }
 
 // struct BinaryOrigin
+auto BinaryOrigin::simplify() const -> Origin {
+    if (this->lhs->has_origin() && this->rhs->has_origin()) {
+        return *this;
+    } else {
+        return NoOrigin();
+    }
+}
+
 auto operator==(const BinaryOrigin& lhs, const BinaryOrigin& rhs) noexcept -> bool {
     return lhs.lhs == rhs.lhs && lhs.rhs == rhs.rhs && lhs.location == rhs.location;
 }
@@ -623,6 +530,14 @@ auto operator<<(std::ostream& os, const BinaryOrigin& self) -> std::ostream& {
 }
 
 // struct UnaryOrigin
+auto UnaryOrigin::simplify() const -> Origin {
+    if (this->val->has_origin()) {
+        return *this;
+    } else {
+        return NoOrigin();
+    }
+}
+
 auto operator==(const UnaryOrigin& lhs, const UnaryOrigin& rhs) noexcept -> bool {
     return lhs.val == rhs.val && lhs.location == rhs.location;
 }
@@ -643,6 +558,39 @@ auto operator<<(std::ostream& os, const UnaryOrigin& self) -> std::ostream& {
     return os;
 }
 
+// struct MultipleArgsOrigin
+auto MultipleArgsOrigin::simplify() const -> Origin {
+    if (this->values.size() != 0 &&
+        std::all_of(this->values.begin(), this->values.end(), [](const auto& value) {
+            return value.has_origin();
+        })) {
+        return *this;
+    } else {
+        return NoOrigin();
+    }
+}
+
+auto operator==(const MultipleArgsOrigin& lhs, const MultipleArgsOrigin& rhs) noexcept -> bool {
+    return lhs.values == rhs.values && lhs.location == rhs.location;
+}
+auto operator!=(const MultipleArgsOrigin& lhs, const MultipleArgsOrigin& rhs) noexcept -> bool {
+    return !(lhs == rhs);
+}
+auto operator<<(std::ostream& os, const MultipleArgsOrigin& self) -> std::ostream& {
+    os << "MultipleArgsOrigin{ "
+       << ".values = " << self.values << ", "
+       << ".location = ";
+    if (self.location) {
+        os << self.location.value();
+    } else {
+        os << "nullopt";
+    }
+    os << ", .reverse = "
+       << reinterpret_cast<void*>(self.reverse.target<MultipleArgsOrigin::ReverseFn>());
+    os << " }";
+    return os;
+}
+
 // class Value
 struct Value::Impl {
     Type val;
@@ -656,12 +604,23 @@ Value::Value(Bool val) : impl(make_owning<Impl>(Impl{.val = val})) {}
 Value::Value(bool val) : Value(Bool(val)) {}
 Value::Value(Number val) : impl(make_owning<Impl>(Impl{.val = val})) {}
 Value::Value(int val) : Value(Number(val)) {}
+Value::Value(long val) : Value(Number(val)) {}
 Value::Value(double val) : Value(Number(val)) {}
 Value::Value(String val) : impl(make_owning<Impl>(Impl{.val = val})) {}
 Value::Value(std::string val) : Value(String(std::move(val))) {}
 Value::Value(const char* val) : Value(String(val)) {}
 Value::Value(Table val) : impl(make_owning<Impl>(Impl{.val = val})) {}
 Value::Value(Function val) : impl(make_owning<Impl>(Impl{.val = val})) {}
+
+Value::Value(const Value& val, MemoryAllocator* allocator)
+    : impl(make_owning<Impl>(Impl{
+          .val = std::visit(
+              overloaded{
+                  [allocator](const Table& value) -> Value::Type {
+                      return Table(value, allocator);
+                  },
+                  [](const auto& value) -> Value::Type { return value; }},
+              val.raw())})) {}
 
 Value::Value(const Value& other) = default;
 // NOLINTNEXTLINE
@@ -706,10 +665,20 @@ auto Value::raw() const -> const Value::Type& { return impl->val; }
 [[nodiscard]] auto Value::is_function() const -> bool {
     return std::holds_alternative<Function>(this->raw());
 }
+auto Value::contains_function() const -> bool {
+    if (this->is_function()) {
+        return true;
+    } else if (this->is_table()) {
+        return std::get<Table>(*this).contains_function();
+    } else {
+        return false;
+    }
+}
 
 [[nodiscard]] auto Value::has_origin() const -> bool { return !this->impl->origin.is_none(); }
 
 [[nodiscard]] auto Value::origin() const -> const Origin& { return this->impl->origin; }
+[[nodiscard]] auto Value::origin() -> Origin& { return this->impl->origin; }
 
 [[nodiscard]] auto Value::remove_origin() const -> Value {
     return this->with_origin(Origin{NoOrigin()});
@@ -792,13 +761,123 @@ Value::operator bool() const {
     return std::visit([](const auto& value) { return bool(value); }, this->impl->val);
 }
 
+auto Value::to_number(const Value base, std::optional<Range> location) const -> Value {
+    return std::visit(
+        overloaded{
+            [this, &location](const String& number, const Nil& /*nil*/) -> Value {
+                // same behaviour as number literal parsing but add a different origin
+                auto origin = UnaryOrigin{
+                    .val = std::make_shared<Value>(*this),
+                    .location = location,
+                    .reverse = [](const Value& new_value,
+                                  const Value& old_value) -> std::optional<SourceChangeTree> {
+                        if (new_value.is_number()) {
+                            // TODO maybe produce the same format as the old value
+                            return old_value.force(new_value.to_string());
+                        } else {
+                            return std::nullopt;
+                        }
+                    },
+                };
+                return parse_number_literal(number.value).with_origin(origin);
+            },
+            [this, base_value = base,
+             &location](const String& number, const Number& base) -> Value {
+                static std::regex to_number_int_pattern(R"(\s*-?[a-zA-Z0-9]+)");
+
+                // NOTE: we only parse ints when we get a base
+                // the base has to be between 2 adn 35 (because numbers with other bases
+                // are not representable strings)
+                if (!base.is_int()) {
+                    throw std::runtime_error("base has no integer representation");
+                }
+                if (base < 2 || base > 36) { // NOLINT
+                    throw std::runtime_error(
+                        "base is to high or to low. base must be >= 2 and <= 36");
+                }
+
+                // number must be interpreted as an integer numeral in that base
+                if (std::regex_match(number.value, to_number_int_pattern)) {
+                    try {
+                        auto origin = BinaryOrigin{
+                            .lhs = std::make_shared<Value>(*this),
+                            .rhs = std::make_shared<Value>(base_value),
+                            .location = location,
+                            .reverse =
+                                [](const Value& new_value, const Value& old_lhs,
+                                   const Value& old_base) -> std::optional<SourceChangeTree> {
+                                if (new_value.is_number()) {
+                                    // old_base is a number because otherwise to_number throws an
+                                    // error
+                                    Number base = std::get<Number>(old_base);
+                                    Number new_number = std::get<Number>(new_value);
+                                    if (new_number.is_int()) {
+                                        return old_lhs.force(to_string_with_base(
+                                            new_number.try_as_int(), base.try_as_int()));
+                                    } else {
+                                        return std::nullopt;
+                                    }
+                                } else {
+                                    return std::nullopt;
+                                }
+                            }};
+
+                        // try to parse as int and check if whole input is consumed
+                        std::size_t last_pos;
+                        Number::Int value = std::stoi(number.value, &last_pos, base.try_as_int());
+                        if (last_pos != number.value.size()) {
+                            return Nil();
+                        }
+
+                        return Value(value).with_origin(origin);
+                    } catch (const std::invalid_argument& /*unused*/) {
+                        // invalid base returns nil
+                        return Nil();
+                    }
+                } else {
+                    return Nil();
+                }
+            },
+            [this](const Number& /*number*/, const Nil& /*unused*/) -> Value { return *this; },
+            [](const auto& /*a*/, const auto& /*b*/) -> Value { return Nil(); }},
+        this->raw(), base.raw());
+}
+
+auto Value::to_string(std::optional<Range> location) const -> Value {
+    // TODO origin
+    return std::visit(
+        overloaded{
+            [](Bool b) -> Value { return b.value ? "true" : "false"; },
+            [](Number n) -> Value { return n.to_literal(); },
+            [](const String& s) -> Value { return s.value; },
+            [](Table t) -> Value { // TODO: maybe improve the way to get the address.
+                // at the moment it could be that every time you call it the
+                // address has changed because of the change in the stack
+                ostringstream get_address;
+                get_address << &t;
+                return get_address.str();
+            },
+            [](Function f) -> Value {
+                ostringstream get_address;
+                get_address << &f;
+                return get_address.str();
+            },
+            [](Nil /*nil*/) -> Value { return "nil"; }
+            // TODO: add to_string for metatables
+        },
+        this->raw());
+}
+
 template <typename Fn, typename FnRev>
 static inline auto num_op_helper(
     const Value& lhs, const Value& rhs, Fn op, std::string err_info, FnRev reverse,
     std::optional<Range> location) -> Value {
+    static_assert(
+        std::is_invocable_v<Fn, Number, Number>, "op is not invocable with two Number arguments");
+
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(lhs),
-        .rhs = make_owning<Value>(rhs),
+        .lhs = std::make_shared<Value>(lhs),
+        .rhs = std::make_shared<Value>(rhs),
         .location = location,
         .reverse = reverse,
     });
@@ -806,7 +885,7 @@ static inline auto num_op_helper(
     return std::visit(
         overloaded{
             [op, &origin](const Number& lhs, const Number& rhs) -> Value {
-                return Value(op(lhs.value, rhs.value)).with_origin(origin);
+                return Value(op(lhs, rhs)).with_origin(origin);
             },
             [&origin](const Table& lhs, const Table& rhs) -> Value {
                 // TODO tables with metatables
@@ -827,7 +906,7 @@ static inline auto num_op_helper(
 
 [[nodiscard]] auto Value::negate(std::optional<Range> location) const -> Value {
     auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(*this),
+        .val = std::make_shared<Value>(*this),
         .location = location,
         .reverse = [](const Value& new_value, const Value& old_value)
             -> std::optional<SourceChangeTree> { return old_value.force(-new_value); }});
@@ -847,69 +926,125 @@ static inline auto num_op_helper(
 }
 [[nodiscard]] auto Value::add(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        *this, rhs, [](double lhs, double rhs) { return lhs + rhs; }, "add",
+        *this, rhs, [](Number lhs, Number rhs) { return lhs + rhs; }, "add",
         binary_num_reverse(
-            [](double new_value, double rhs) { return new_value - rhs; },
-            [](double new_value, double lhs) { return new_value - lhs; }, "add"),
+            [](Number new_value, Number rhs) { return new_value - rhs; },
+            [](Number new_value, Number lhs) { return new_value - lhs; }, "add"),
         location);
 }
 [[nodiscard]] auto Value::sub(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        *this, rhs, [](double lhs, double rhs) { return lhs - rhs; }, "subtract",
+        *this, rhs, [](Number lhs, Number rhs) { return lhs - rhs; }, "subtract",
         binary_num_reverse(
-            [](double new_value, double rhs) { return new_value + rhs; },
-            [](double new_value, double lhs) { return lhs - new_value; }, "sub"),
+            [](Number new_value, Number rhs) { return new_value + rhs; },
+            [](Number new_value, Number lhs) { return lhs - new_value; }, "sub"),
         location);
 }
 [[nodiscard]] auto Value::mul(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        *this, rhs, [](double lhs, double rhs) { return lhs * rhs; }, "multiply",
+        *this, rhs, [](Number lhs, Number rhs) { return lhs * rhs; }, "multiply",
         binary_num_reverse(
-            [](double new_value, double rhs) { return new_value / rhs; },
-            [](double new_value, double lhs) { return new_value / lhs; }, "mul"),
+            [](Number new_value, Number rhs) { return new_value / rhs; },
+            [](Number new_value, Number lhs) { return new_value / lhs; }, "mul"),
         location);
 }
 [[nodiscard]] auto Value::div(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        *this, rhs, [](double lhs, double rhs) { return lhs / rhs; }, "divide",
+        *this, rhs, [](Number lhs, Number rhs) { return lhs / rhs; }, "divide",
         binary_num_reverse(
-            [](double new_value, double rhs) { return new_value * rhs; },
-            [](double new_value, double lhs) { return lhs / new_value; }, "div"),
+            [](Number new_value, Number rhs) { return new_value * rhs; },
+            [](Number new_value, Number lhs) { return lhs / new_value; }, "div"),
+        location);
+}
+auto Value::int_div(const Value& rhs, std::optional<Range> location) const -> Value {
+    return num_op_helper(
+        *this, rhs, [](Number lhs, Number rhs) { return lhs.int_div(rhs); }, "int divide",
+        binary_num_reverse(
+            [](Number new_value, Number rhs) { return new_value * rhs; },
+            [](Number new_value, Number lhs) { return lhs.int_div(new_value); }, "intdiv"),
         location);
 }
 [[nodiscard]] auto Value::pow(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        *this, rhs, [](double lhs, double rhs) { return std::pow(lhs, rhs); }, "attempt to pow",
+        *this, rhs, [](Number lhs, Number rhs) { return lhs.pow(rhs); }, "attempt to pow",
         binary_num_reverse(
-            [](double new_value, double rhs) { return std::pow(new_value, 1 / rhs); },
-            [](double new_value, double lhs) { return std::log(new_value) / std::log(lhs); },
+            [](Number new_value, Number rhs) {
+                return std::pow(new_value.as_float(), 1 / rhs.as_float());
+            },
+            [](Number new_value, Number lhs) {
+                return std::log(new_value.as_float()) / std::log(lhs.as_float());
+            },
             "pow"),
         location);
 }
 [[nodiscard]] auto Value::mod(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        *this, rhs, [](Number lhs, Number rhs) { return lhs % rhs; }, "take modulo of",
+        *this, rhs, [](Number lhs, Number rhs) { return lhs.mod(rhs); }, "take modulo of",
         [](auto...) { return std::nullopt; },
         location); // TODO reverse
 }
 [[nodiscard]] auto Value::bit_and(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        *this, rhs, [](Number lhs, Number rhs) { return lhs & rhs; }, "bitwise and",
+        *this, rhs, [](Number lhs, Number rhs) { return lhs.bit_and(rhs); }, "bitwise and",
         [](auto...) { return std::nullopt; },
         location); // TODO reverse
 }
 [[nodiscard]] auto Value::bit_or(const Value& rhs, std::optional<Range> location) const -> Value {
     return num_op_helper(
-        *this, rhs, [](Number lhs, Number rhs) { return lhs | rhs; }, "bitwise or",
+        *this, rhs, [](Number lhs, Number rhs) { return lhs.bit_or(rhs); }, "bitwise or",
         [](auto...) { return std::nullopt; },
         location); // TODO reverse
 }
+auto Value::bit_xor(const Value& rhs, std::optional<Range> location) const -> Value {
+    return num_op_helper(
+        *this, rhs, [](Number lhs, Number rhs) { return lhs.bit_xor(rhs); }, "bitwise xor",
+        [](auto...) { return std::nullopt; },
+        location); // TODO reverse
+}
+auto Value::bit_shl(const Value& rhs, std::optional<Range> location) const -> Value {
+    return num_op_helper(
+        *this, rhs, [](Number lhs, Number rhs) { return lhs.bit_shl(rhs); }, "bitwise shift left",
+        [](auto...) { return std::nullopt; },
+        location); // TODO reverse
+}
+auto Value::bit_shr(const Value& rhs, std::optional<Range> location) const -> Value {
+    return num_op_helper(
+        *this, rhs, [](Number lhs, Number rhs) { return lhs.bit_shr(rhs); }, "bitwise shift right",
+        [](auto...) { return std::nullopt; },
+        location); // TODO reverse
+}
+auto Value::bit_not(std::optional<Range> location) const -> Value {
+    return std::visit(
+        overloaded{
+            [this, &location](Number number) {
+                auto origin = Origin(UnaryOrigin{
+                    .val = std::make_shared<Value>(*this),
+                    .location = location,
+                    .reverse = [](const Value& new_value,
+                                  const Value& old_value) -> std::optional<SourceChangeTree> {
+                        if (old_value.is_number() && new_value.is_number()) {
+                            Number new_number = std::get<Number>(new_value);
+                            return old_value.force(new_number.bit_not());
+                        }
+
+                        return std::nullopt;
+                    }});
+                return Value(number.bit_not()).with_origin(origin);
+            },
+            [](const auto& value) -> Value {
+                throw std::runtime_error(
+                    "attempt to get bitwise not for value of type " + std::string(value.TYPE));
+            },
+        },
+        this->raw());
+}
+
 [[nodiscard]] auto Value::logic_and(const Value& rhs, std::optional<Range> location) const
     -> Value {
     // return lhs if it is falsey and rhs otherwise
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(*this),
-        .rhs = make_owning<Value>(rhs),
+        .lhs = std::make_shared<Value>(*this),
+        .rhs = std::make_shared<Value>(rhs),
         .location = location,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {
@@ -930,8 +1065,8 @@ static inline auto num_op_helper(
 [[nodiscard]] auto Value::logic_or(const Value& rhs, std::optional<Range> location) const -> Value {
     // return lhs if it is truthy and rhs otherwise
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(*this),
-        .rhs = make_owning<Value>(rhs),
+        .lhs = std::make_shared<Value>(*this),
+        .rhs = std::make_shared<Value>(rhs),
         .location = location,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {
@@ -951,7 +1086,7 @@ static inline auto num_op_helper(
 }
 [[nodiscard]] auto Value::invert(std::optional<Range> location) const -> Value {
     auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(*this),
+        .val = std::make_shared<Value>(*this),
         .location = location,
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
@@ -971,7 +1106,7 @@ static inline auto num_op_helper(
 }
 [[nodiscard]] auto Value::len(std::optional<Range> location) const -> Value {
     auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(*this),
+        .val = std::make_shared<Value>(*this),
         .location = location,
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
@@ -983,9 +1118,7 @@ static inline auto num_op_helper(
     return std::visit(
                overloaded{
                    [](const String& value) -> Value { return (int)value.value.size(); },
-                   [](const Table& value) -> Value {
-                       return (int)std::distance(value.begin(), value.end());
-                   },
+                   [](const Table& value) -> Value { return value.border(); },
                    [](const auto& value) -> Value {
                        throw std::runtime_error(
                            "attempt to get length for value of type " + std::string(value.TYPE));
@@ -995,8 +1128,8 @@ static inline auto num_op_helper(
 }
 [[nodiscard]] auto Value::equals(const Value& rhs, std::optional<Range> location) const -> Value {
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(*this),
-        .rhs = make_owning<Value>(rhs),
+        .lhs = std::make_shared<Value>(*this),
+        .rhs = std::make_shared<Value>(rhs),
         .location = location,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {
@@ -1009,8 +1142,8 @@ static inline auto num_op_helper(
 }
 [[nodiscard]] auto Value::unequals(const Value& rhs, std::optional<Range> location) const -> Value {
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(*this),
-        .rhs = make_owning<Value>(rhs),
+        .lhs = std::make_shared<Value>(*this),
+        .rhs = std::make_shared<Value>(rhs),
         .location = location,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {
@@ -1024,8 +1157,8 @@ static inline auto num_op_helper(
 [[nodiscard]] auto Value::less_than(const Value& rhs, std::optional<Range> location) const
     -> Value {
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(*this),
-        .rhs = make_owning<Value>(rhs),
+        .lhs = std::make_shared<Value>(*this),
+        .rhs = std::make_shared<Value>(rhs),
         .location = location,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {
@@ -1036,9 +1169,7 @@ static inline auto num_op_helper(
 
     return std::visit(
                overloaded{
-                   [](const Number& lhs, const Number& rhs) -> Value {
-                       return lhs.value < rhs.value;
-                   },
+                   [](const Number& lhs, const Number& rhs) -> Value { return lhs < rhs; },
                    [](const String& lhs, const String& rhs) -> Value {
                        return lhs.value < rhs.value;
                    },
@@ -1053,8 +1184,8 @@ static inline auto num_op_helper(
 [[nodiscard]] auto Value::less_than_or_equal(const Value& rhs, std::optional<Range> location) const
     -> Value {
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(*this),
-        .rhs = make_owning<Value>(rhs),
+        .lhs = std::make_shared<Value>(*this),
+        .rhs = std::make_shared<Value>(rhs),
         .location = location,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {
@@ -1065,9 +1196,7 @@ static inline auto num_op_helper(
 
     return std::visit(
                overloaded{
-                   [](const Number& lhs, const Number& rhs) -> Value {
-                       return lhs.value <= rhs.value;
-                   },
+                   [](const Number& lhs, const Number& rhs) -> Value { return lhs <= rhs; },
                    [](const String& lhs, const String& rhs) -> Value {
                        return lhs.value <= rhs.value;
                    },
@@ -1082,8 +1211,8 @@ static inline auto num_op_helper(
 [[nodiscard]] auto Value::greater_than(const Value& rhs, std::optional<Range> location) const
     -> Value {
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(*this),
-        .rhs = make_owning<Value>(rhs),
+        .lhs = std::make_shared<Value>(*this),
+        .rhs = std::make_shared<Value>(rhs),
         .location = location,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {
@@ -1094,9 +1223,7 @@ static inline auto num_op_helper(
 
     return std::visit(
                overloaded{
-                   [](const Number& lhs, const Number& rhs) -> Value {
-                       return lhs.value > rhs.value;
-                   },
+                   [](const Number& lhs, const Number& rhs) -> Value { return lhs > rhs; },
                    [](const String& lhs, const String& rhs) -> Value {
                        return lhs.value > rhs.value;
                    },
@@ -1111,8 +1238,8 @@ static inline auto num_op_helper(
 [[nodiscard]] auto
 Value::greater_than_or_equal(const Value& rhs, std::optional<Range> location) const -> Value {
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(*this),
-        .rhs = make_owning<Value>(rhs),
+        .lhs = std::make_shared<Value>(*this),
+        .rhs = std::make_shared<Value>(rhs),
         .location = location,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {
@@ -1123,9 +1250,7 @@ Value::greater_than_or_equal(const Value& rhs, std::optional<Range> location) co
 
     return std::visit(
                overloaded{
-                   [](const Number& lhs, const Number& rhs) -> Value {
-                       return lhs.value >= rhs.value;
-                   },
+                   [](const Number& lhs, const Number& rhs) -> Value { return lhs >= rhs; },
                    [](const String& lhs, const String& rhs) -> Value {
                        return lhs.value >= rhs.value;
                    },
@@ -1139,8 +1264,8 @@ Value::greater_than_or_equal(const Value& rhs, std::optional<Range> location) co
 }
 [[nodiscard]] auto Value::concat(const Value& rhs, std::optional<Range> location) const -> Value {
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(*this),
-        .rhs = make_owning<Value>(rhs),
+        .lhs = std::make_shared<Value>(*this),
+        .rhs = std::make_shared<Value>(rhs),
         .location = location,
         .reverse = [](const Value& new_value, const Value& old_lhs,
                       const Value& old_rhs) -> std::optional<SourceChangeTree> {
@@ -1156,16 +1281,17 @@ Value::greater_than_or_equal(const Value& rhs, std::optional<Range> location) co
                    },
                    [](const String& lhs, const Number& rhs) -> Value {
                        Environment env;
-                       return lhs.value + to_string(CallContext(&env).make_new({rhs.value}));
+                       // TODO use the original value to correctly track the origin
+                       return lhs.value + Value(rhs).to_string().remove_origin();
                    },
                    [](const Number& lhs, const String& rhs) -> Value {
                        Environment env;
-                       return to_string(CallContext(&env).make_new({lhs.value})) + rhs.value;
+                       return Value(lhs).to_string().remove_origin() + rhs.value;
                    },
                    [](const Number& lhs, const Number& rhs) -> Value {
                        Environment env;
-                       return to_string(CallContext(&env).make_new({lhs.value})) +
-                              to_string(CallContext(&env).make_new({rhs.value}));
+                       return Value(lhs).to_string().remove_origin() +
+                              Value(rhs).to_string().remove_origin();
                    },
                    [](const auto& lhs, const auto& rhs) -> Value {
                        throw std::runtime_error(
@@ -1207,12 +1333,26 @@ auto std::hash<minilua::Bool>::operator()(const minilua::Bool& /*value*/) const 
     return 0;
 }
 auto std::hash<minilua::Number>::operator()(const minilua::Number& value) const -> size_t {
-    // lua does not allow using NaN as a table key
-    // but we are not allowed to throw inside of std::hash
-    if (std::isnan(value.value)) {
-        return 0;
-    }
-    return std::hash<double>()(value.value);
+    // we treat whole floats like their integer equivalent
+
+    // NOTE lua does not allow using NaN as a table key but we are not allowed
+    // to throw inside of std::hash
+    return std::visit(
+        minilua::overloaded{
+            [](minilua::Number::Int value) { return std::hash<minilua::Number::Int>()(value); },
+            [](minilua::Number::Float value) {
+                if (std::isnan(value) || std::isinf(value)) {
+                    return std::numeric_limits<size_t>::max();
+                }
+
+                if (ceil(value) == value) {
+                    return std::hash<minilua::Number::Int>()(
+                        static_cast<minilua::Number::Int>(value));
+                }
+
+                return std::hash<minilua::Number::Float>()(value);
+            }},
+        value.raw());
 }
 auto std::hash<minilua::String>::operator()(const minilua::String& value) const -> size_t {
     return std::hash<std::string>()(value.value);

@@ -108,6 +108,7 @@ TEST_CASE("unit_tests lua files") {
         "statements/repeat_until.lua",
         "statements/functions.lua",
         "local_variables.lua",
+        "counter.lua",
     };
     // NOTE: exptects to be run from build directory
     for (const auto& file : test_files) {
@@ -132,11 +133,26 @@ TEST_CASE("unit_tests lua files") {
             }
 
             minilua::Interpreter interpreter;
-            interpreter.environment().add_default_stdlib();
             REQUIRE(interpreter.parse(program));
             auto result = interpreter.evaluate();
             REQUIRE(!result.source_change.has_value());
         }
+    }
+}
+
+TEST_CASE("interpreter does not return functions") {
+    SECTION("plain function") {
+        minilua::Interpreter interpreter;
+        interpreter.parse("return print");
+        auto result = interpreter.evaluate();
+        REQUIRE(result.value.is_nil());
+    }
+
+    SECTION("function in table") {
+        minilua::Interpreter interpreter;
+        interpreter.parse(R"(return {print = print})");
+        auto result = interpreter.evaluate();
+        REQUIRE(result.value.is_nil());
     }
 }
 

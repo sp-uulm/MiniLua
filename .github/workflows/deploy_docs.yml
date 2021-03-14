@@ -14,11 +14,16 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
-          submodules: true
+          submodules: recursive
       - name: Setup VM
         run: |
           ./.github/workflows/install_packages.sh
-          sudo apt-get install doxygen
+          sudo apt-get install doxygen graphviz
+          pip3 install jinja2 Pygments
+          # need to download plantuml manually because the version in the repos is way to old
+          curl -L http://sourceforge.net/projects/plantuml/files/plantuml-nodot.1.2021.1.jar/download -o /tmp/plantuml.jar
+          sudo mkdir -p /usr/share/plantuml
+          sudo mv /tmp/plantuml.jar /usr/share/plantuml
       - name: Setup CMake
         run: ./scripts/setup_build.sh
       - name: Build Documentation

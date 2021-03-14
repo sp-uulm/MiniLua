@@ -29,9 +29,6 @@ TEST_CASE("Interpreter integration test") {
     minilua::Interpreter interpreter;
     interpreter.config().all(true);
 
-    // populate the environment
-    interpreter.environment().add_default_stdlib();
-
     auto lambda = [](minilua::CallContext /*unused*/) { // NOLINT
         return std::string{"force something"};
     };
@@ -56,14 +53,10 @@ TEST_CASE("Interpreter integration test") {
                       {std::string("key1"), 25.0}, // NOLINT
                       {std::string("key2"), std::string("value")},
                   })},
-         {"forceValue", [](minilua::CallContext ctx) -> minilua::CallResult {
-              // auto [arg1, arg2] = ctx.arguments();
+         {"forceValue", [](const minilua::CallContext& ctx) -> minilua::CallResult {
               auto arg1 = ctx.arguments().get(0);
               auto arg2 = ctx.arguments().get(1);
-              std::cerr << "arg1: " << arg1 << " ---- " << arg1.origin() << "\n";
-              std::cerr << "arg2: " << arg2 << " ---- " << arg2.origin() << "\n";
               auto change = arg1.force(arg2, "forceValue");
-              std::cerr << "change: " << *change << "\n";
               return minilua::CallResult(change);
           }}});
 
@@ -81,7 +74,9 @@ TEST_CASE("Interpreter integration test") {
         .end = {0, 12, 12}    // NOLINT
     };
     auto expected_source_changes = minilua::SourceChangeTree(minilua::SourceChange(range, "25"));
-    CHECK(result.source_change.value() == expected_source_changes);
+    auto actual_source_changes = result.source_change.value();
+    actual_source_changes.remove_filename();
+    CHECK(actual_source_changes == expected_source_changes);
 
     // choose source changes to apply
     // TODO do we need a vector here or is is ok to assume that one run of the

@@ -1,6 +1,7 @@
 #ifndef MINILUA_AST_HPP
 #define MINILUA_AST_HPP
 
+#include "../tree_sitter_lua.hpp"
 #include "MiniLua/values.hpp"
 #include <tree_sitter/tree_sitter.hpp>
 #include <variant>
@@ -15,6 +16,7 @@ class Statement;
 class Prefix;
 class Return;
 class FieldExpression;
+
 using IndexField = std::pair<Expression, Expression>;
 using IdentifierField = std::pair<Identifier, Expression>;
 

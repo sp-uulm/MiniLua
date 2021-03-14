@@ -1,11 +1,20 @@
 #include "internal_env.hpp"
+#include <MiniLua/allocator.hpp>
 
 #include <utility>
 
 namespace minilua {
 
-Env::Env() : in(&std::cin), out(&std::cout), err(&std::cerr) {}
+// struct Environment::Impl
+Environment::Impl::Impl(Env env) : inner(std::move(env)) {}
+Environment::Impl::Impl(MemoryAllocator* allocator) : inner(Env(allocator)) {}
+
+Env::Env() : Env(&GLOBAL_ALLOCATOR) {}
+Env::Env(MemoryAllocator* allocator)
+    : _allocator(allocator), in(&std::cin), out(&std::cout), err(&std::cerr) {}
 Env::operator Environment() const { return Environment(Environment::Impl{*this}); }
+
+auto Env::make_table() const -> Table { return Table(this->allocator()); }
 
 auto Env::global() -> Table& { return this->_global; }
 auto Env::global() const -> const Table& { return this->_global; }
@@ -76,6 +85,11 @@ auto Env::get_stdin() -> std::istream* { return this->in; }
 auto Env::get_stdout() -> std::ostream* { return this->out; }
 auto Env::get_stderr() -> std::ostream* { return this->err; }
 
+void Env::set_file(std::optional<std::shared_ptr<std::string>> file) { this->file = file; }
+auto Env::get_file() const -> std::optional<std::shared_ptr<std::string>> { return this->file; }
+
+auto Env::allocator() const -> MemoryAllocator* { return this->_allocator; }
+
 auto operator<<(std::ostream& os, const Env& self) -> std::ostream& {
     os << "Env{ .global = " << self.global() << ", .local = {";
 
@@ -83,6 +97,13 @@ auto operator<<(std::ostream& os, const Env& self) -> std::ostream& {
     for (const auto& [key, value] : self.local()) {
         os << sep << "\"" << key << "\": " << value;
         sep = ", ";
+    }
+
+    os << "}, .file = ";
+    if (self.get_file().has_value()) {
+        os << self.get_file().value();
+    } else {
+        os << "nullopt";
     }
 
     return os << "}\n";

@@ -1,4 +1,5 @@
 #include "MiniLua/source_change.hpp"
+#include <MiniLua/environment.hpp>
 #include <MiniLua/values.hpp>
 #include <catch2/catch.hpp>
 #include <cmath>
@@ -47,7 +48,8 @@ TEST_CASE("reversing Origin from addition") {
 
 auto sqrt_impl(const minilua::CallContext& ctx) -> minilua::Value {
     return minilua::UnaryNumericFunctionHelper{
-        [](double arg) { return std::sqrt(arg); }, [](double num) { return num * num; }}(ctx);
+        [](minilua::Number arg) { return std::sqrt(arg.as_float()); },
+        [](minilua::Number num) { return num.as_float() * num.as_float(); }}(ctx);
 }
 
 TEST_CASE("define correct origin for unary math functions and force value") {
@@ -59,17 +61,23 @@ TEST_CASE("define correct origin for unary math functions and force value") {
     REQUIRE(res == 5);
 
     REQUIRE(res.has_origin());
+    INFO(res.origin());
     auto source_change_tree = res.force(3).value(); // NOLINT
     auto source_changes = source_change_tree.collect_first_alternative();
-    CHECK(source_changes[0].replacement == "9");
+    CHECK(source_changes[0].replacement == "9.0");
 }
 
 auto pow_impl(const minilua::CallContext& ctx) -> minilua::Value {
     return minilua::BinaryNumericFunctionHelper{
-        [](double lhs, double rhs) { return std::pow(lhs, rhs); },
-        [](double new_value, double old_rhs) { return std::pow(new_value, 1 / old_rhs); },
-        [](double new_value, double old_lhs) { return std::log(new_value) / std::log(old_lhs); }}(
-        ctx);
+        [](minilua::Number lhs, minilua::Number rhs) {
+            return std::pow(lhs.as_float(), rhs.as_float());
+        },
+        [](minilua::Number new_value, minilua::Number old_rhs) {
+            return std::pow(new_value.as_float(), 1 / old_rhs.as_float());
+        },
+        [](minilua::Number new_value, minilua::Number old_lhs) {
+            return std::log(new_value.as_float()) / std::log(old_lhs.as_float());
+        }}(ctx);
 }
 
 TEST_CASE("define correct origin for binary math functions and force value") {
@@ -95,7 +103,7 @@ TEST_CASE("define correct origin for binary math functions and force value") {
                 [](const auto&) { FAIL("unexpected inner element"); }});
             change.changes[1].visit(minilua::overloaded{
                 [](const minilua::SourceChange& inner_change) {
-                    CHECK(inner_change.replacement == "2"); // -> 8^2 = 64
+                    CHECK(inner_change.replacement == "2.0"); // -> 8^2 = 64
                 },
                 [](const auto&) { FAIL("unexpected inner element"); }});
         },
@@ -122,4 +130,41 @@ TEST_CASE("reversing Origin from not") {
             CHECK(change.replacement == "false"); // !false = true
         },
         [](const auto&) { FAIL("unexpected element"); }});
+}
+
+TEST_CASE("Simplify Origin") {
+    // note simplifying origin is not recursive
+
+    SECTION("Empty Origin tree") { REQUIRE(minilua::Origin().simplify() == minilua::NoOrigin()); }
+
+    SECTION("Single item tree") {
+        REQUIRE(minilua::Origin(minilua::ExternalOrigin()).simplify() == minilua::ExternalOrigin());
+
+        const auto item = minilua::LiteralOrigin{{{1, 2, 3}, {4, 5, 6}}};
+        REQUIRE(minilua::Origin(item).simplify() == item);
+    }
+
+    SECTION("Empty nested tree") {
+        REQUIRE(minilua::Origin(minilua::UnaryOrigin{}).simplify() == minilua::NoOrigin());
+        REQUIRE(minilua::Origin(minilua::BinaryOrigin{}).simplify() == minilua::NoOrigin());
+        REQUIRE(minilua::Origin(minilua::MultipleArgsOrigin{}).simplify() == minilua::NoOrigin());
+    }
+
+    SECTION("Incomplete branch") {
+        REQUIRE(
+            minilua::Origin(minilua::BinaryOrigin{
+                                .lhs = std::make_shared<minilua::Value>(
+                                    minilua::Value().with_origin(minilua::ExternalOrigin())),
+                                .rhs = std::make_shared<minilua::Value>(minilua::Nil()),
+                            })
+                .simplify() == minilua::NoOrigin());
+
+        REQUIRE(
+            minilua::Origin(
+                minilua::MultipleArgsOrigin{
+                    .values = minilua::Vallist(
+                        {minilua::Value().with_origin(minilua::ExternalOrigin()), minilua::Nil()}),
+                })
+                .simplify() == minilua::NoOrigin());
+    }
 }

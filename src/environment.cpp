@@ -9,7 +9,8 @@
 
 namespace minilua {
 
-Environment::Environment() : impl(make_owning<Impl>()) {}
+Environment::Environment() : Environment(&GLOBAL_ALLOCATOR) {}
+Environment::Environment(MemoryAllocator* allocator) : impl(make_owning<Impl>(allocator)) {}
 Environment::Environment(Impl impl) : impl(make_owning<Impl>(std::move(impl))) {}
 
 Environment::Environment(const Environment&) = default;
@@ -20,6 +21,8 @@ auto Environment::operator=(const Environment&) -> Environment& = default;
 // NOLINTNEXTLINE
 auto Environment::operator=(Environment&&) -> Environment& = default;
 void swap(Environment& a, Environment& b) { swap(a.impl, b.impl); }
+
+auto Environment::make_table() const -> Table { return this->impl->inner.make_table(); }
 
 void Environment::add(const std::string& name, Value value) {
     impl->inner.global().set(name, std::move(value));
@@ -39,6 +42,12 @@ static auto transform_values(I begin, I end) -> std::vector<std::pair<Value, Val
     });
 
     return to_insert;
+}
+
+auto Environment::add_table(const std::string& name) -> Table {
+    auto table = this->make_table();
+    this->add(name, table);
+    return table;
 }
 
 void Environment::add_all(std::unordered_map<std::string, Value> values) {

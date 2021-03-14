@@ -10,11 +10,15 @@
 
 #include "MiniLua/values.hpp"
 
+/**
+ * @brief Math functions in the lua standard library.
+ */
 namespace minilua::math {
-const long MAXINTEGER = LONG_MAX;
-const long MININTEGER = LONG_MIN;
-const double PI = M_PI;
-const double HUGE = HUGE_VAL;
+
+const Number::Int MAXINTEGER = LONG_MAX;
+const Number::Int MININTEGER = LONG_MIN;
+const Number::Float PI = M_PI;
+const Number::Float HUGE = HUGE_VAL;
 
 auto abs(const CallContext& ctx) -> Value;
 

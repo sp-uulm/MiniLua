@@ -1,6 +1,8 @@
+#include <algorithm>
 #include <cstdio>
 #include <exception>
 #include <iostream>
+#include <iterator>
 #include <regex>
 #include <sstream>
 #include <stdexcept>
@@ -12,17 +14,19 @@
 #include "MiniLua/environment.hpp"
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/utils.hpp"
+#include "internal_env.hpp"
 
 namespace minilua {
 
-void Environment::add_default_stdlib() {
-    this->add("tostring", to_string);
-    this->add("to_number", to_number);
-    this->add("type", type);
-    this->add("assert", assert_lua);
-    this->add("next", next);
-    this->add("select", select);
-    this->add("print", print);
+auto force(const CallContext& ctx) -> CallResult {
+    auto old_value = ctx.arguments().get(0);
+    auto new_value = ctx.arguments().get(1);
+
+    if (old_value.is_nil() || new_value.is_nil()) {
+        throw std::runtime_error("requires two arguments (old_value and new_value)");
+    }
+
+    return CallResult(old_value.force(new_value));
 }
 
 /**
@@ -42,99 +46,46 @@ split_string("123.456", '.') = (123, 456)
     std::getline(split, tmp, c);
     result.second = tmp;
     return result;
+    */
+
+namespace details {
+
+void add_stdlib(Table& table) {
+    table.set("tostring", to_string);
+    table.set("to_number", to_number);
+    table.set("type", type);
+    table.set("next", next);
+    table.set("select", select);
+    table.set("print", print);
+    table.set("error", error);
+    table.set("discard_origin", discard_origin);
 }
-*/
+
+} // namespace details
+
+void error(const CallContext& ctx) {
+    // TODO implement level (we need a proper call stack for that)
+    auto message = ctx.arguments().get(0);
+    throw std::runtime_error(std::get<String>(message.to_string()).value);
+}
 
 auto to_string(const CallContext& ctx) -> Value {
     auto arg = ctx.arguments().get(0);
-    return std::visit(
-        overloaded{
-            [](Bool b) -> Value { return b.value ? "true" : "false"; },
-            [](Number n) -> Value { return n.to_literal(); },
-            [](const String& s) -> Value { return s.value; },
-            [](Table t) -> Value { // TODO: maybe improve the way to get the address.
-                // at the moment it could be that every time you call it the
-                // address has changed because of the change in the stack
-                ostringstream get_address;
-                get_address << &t;
-                return get_address.str();
-            },
-            [](Function f) -> Value {
-                ostringstream get_address;
-                get_address << &f;
-                return get_address.str();
-            },
-            [](Nil /*nil*/) -> Value { return "nil"; }
-            // TODO: add to_string for metatables
-        },
-        arg.raw());
+
+    return arg.to_string(ctx.call_location());
 }
 
 auto to_number(const CallContext& ctx) -> Value {
     auto number = ctx.arguments().get(0);
     auto base = ctx.arguments().get(1);
 
-    return std::visit(
-        overloaded{
-            [](const String& number, Nil /*nil*/) -> Value {
-                // Yes: parse number to double
-                // No: return Nil
-                std::regex pattern_number(R"(\s*-?\d+\.?\d*)");
-                std::regex pattern_hex(R"(\s*-?0[xX][\dA-Fa-f]+\.?[\dA-Fa-f]*)");
-                std::regex pattern_exp(R"(\s*-?\d+\.?\d*[eE]-?\d+)");
-
-                if (std::regex_match(number.value, pattern_number) ||
-                    std::regex_match(number.value, pattern_hex) ||
-                    std::regex_match(number.value, pattern_exp)) {
-                    return std::stod(number.value);
-                } else {
-                    return Nil();
-                }
-            },
-            [](const String& number, Number base) -> Value {
-                // Interval of base, with strings only numbers between base 2 and base 36 are
-                // possible to show
-                if (base < 2 || base > 36) { // NOLINT
-                    throw std::runtime_error(
-                        "base is to high or to low. base must be >= 2 and <= 36");
-                } else {
-                    std::regex pattern_number(R"(\s*-?[a-zA-Z0-9]+)");
-                    // number must be interpreted as an integer numeral in that base
-                    if (std::regex_match(number.value, pattern_number)) {
-                        try {
-                            return std::stoi(number.value, nullptr, base.value);
-                        } catch (const std::invalid_argument& /*unused*/) {
-                            // invalid base returns nil
-                            return Nil();
-                        }
-
-                    } else {
-                        return Nil();
-                    }
-                }
-            },
-            [](Number number, Nil /*unused*/) -> Value { return number; },
-            [](auto /*a*/, auto /*b*/) -> Value { return Nil(); }},
-        number.raw(), base.raw());
+    return number.to_number(base, ctx.call_location());
 }
 
 auto type(const CallContext& ctx) -> Value {
     auto v = ctx.arguments().get(0);
 
     return v.type();
-}
-
-auto assert_lua(const CallContext& ctx) -> Vallist {
-    auto v = ctx.arguments().get(0);
-    auto message = ctx.arguments().get(1);
-
-    if (v) {
-        return ctx.arguments();
-    } else {
-        // TODO: improve error behaviour
-        throw std::runtime_error(
-            message == Nil() ? std::string("assertion failed") : get<String>(message).value);
-    }
 }
 
 auto next(const CallContext& ctx) -> Vallist {
@@ -221,4 +172,17 @@ void print(const CallContext& ctx) {
     }
     *stdout << std::endl;
 }
+
+auto discard_origin(const CallContext& ctx) -> Vallist {
+    const Vallist& args = ctx.arguments();
+    std::vector<Value> values;
+    values.reserve(args.size());
+
+    std::transform(args.begin(), args.end(), std::back_inserter(values), [](const Value& value) {
+        return value.remove_origin();
+    });
+
+    return Vallist(values);
+}
+
 } // namespace minilua
