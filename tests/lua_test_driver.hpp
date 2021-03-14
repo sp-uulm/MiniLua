@@ -77,30 +77,6 @@ struct BaseTest {
     virtual auto expect_source_changes() -> bool;
 };
 
-/**
- * Expect a source change.
- *
- * ```lua
- * -- EXPECT SOURCE_CHANGE <row>:<col> <replacement>
- * -- EXPECT SOURCE_CHANGE 2:7 25
- * -- EXPECT SOURCE_CHANGE 2:7 "string"
- * ```
- */
-struct SourceChangeTest : BaseTest {
-    std::vector<ExpectedChange> expected_changes;
-
-    SourceChangeTest();
-    ~SourceChangeTest() override = default;
-
-    void reset() override;
-
-    void collect_metadata(const std::string& str) override;
-
-    auto expect_source_changes() -> bool override;
-
-    void run(const minilua::EvalResult& result) override;
-};
-
 auto get_tests() -> std::vector<std::unique_ptr<BaseTest>>&;
 void register_test(BaseTest* test);
 
