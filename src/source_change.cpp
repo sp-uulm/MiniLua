@@ -1,3 +1,4 @@
+#include <iterator>
 #include <utility>
 
 #include "MiniLua/source_change.hpp"
@@ -68,6 +69,11 @@ void SourceChangeTree::remove_filename() {
     return changes;
 }
 
+auto SourceChangeTree::simplify() const -> std::optional<SourceChangeTree> {
+    return this->visit(
+        [](const auto& change) -> std::optional<SourceChangeTree> { return change.simplify(); });
+}
+
 auto SourceChangeTree::operator*() -> Type& { return change; }
 auto SourceChangeTree::operator*() const -> const Type& { return change; }
 auto SourceChangeTree::operator->() -> Type* { return &change; }
@@ -82,6 +88,21 @@ auto operator<<(std::ostream& os, const SourceChangeTree& self) -> std::ostream&
     os << "SourceChangeTree{ change = ";
     self.visit([&os](const auto& change) { os << change; });
     return os << " }";
+}
+auto operator<<(std::ostream& os, const std::optional<SourceChangeTree>& self) -> std::ostream& {
+    if (self.has_value()) {
+        return os << *self;
+    } else {
+        return os << "nullopt";
+    }
+}
+
+auto simplify(const std::optional<SourceChangeTree>& tree) -> std::optional<SourceChangeTree> {
+    if (tree.has_value()) {
+        return tree->simplify();
+    } else {
+        return std::nullopt;
+    }
 }
 
 auto combine_source_changes(
@@ -99,6 +120,8 @@ auto combine_source_changes(
 // struct SCSingle
 SourceChange::SourceChange(Range range, std::string replacement)
     : range(range), replacement(std::move(replacement)) {}
+
+auto SourceChange::simplify() const -> SourceChange { return *this; }
 
 auto operator==(const SourceChange& lhs, const SourceChange& rhs) noexcept -> bool {
     return lhs.range == rhs.range && lhs.replacement == rhs.replacement &&
@@ -118,6 +141,43 @@ SourceChangeCombination::SourceChangeCombination(std::vector<SourceChangeTree> c
     : changes(std::move(changes)) {}
 
 void SourceChangeCombination::add(SourceChangeTree change) { changes.push_back(std::move(change)); }
+
+auto SourceChangeCombination::simplify() const -> std::optional<SourceChangeTree> {
+    if (this->changes.empty()) {
+        return std::nullopt;
+    } else {
+        std::vector<SourceChangeTree> changes;
+        changes.reserve(this->changes.size());
+
+        for (const auto& change : this->changes) {
+            auto simplified = change.simplify();
+            if (simplified.has_value()) {
+                changes.push_back(simplified.value());
+            }
+        }
+
+        if (changes.empty()) {
+            return std::nullopt;
+        } else if (changes.size() == 1) {
+            auto change = changes[0];
+
+            // set hints only if they are empty
+            if (change.origin().empty()) {
+                change.origin() = this->origin;
+            }
+            if (change.hint().empty()) {
+                change.hint() = this->hint;
+            }
+
+            return change;
+        } else {
+            auto change = SourceChangeCombination(changes);
+            change.origin = this->origin;
+            change.hint = this->hint;
+            return change;
+        }
+    }
+}
 
 auto operator==(const SourceChangeCombination& lhs, const SourceChangeCombination& rhs) noexcept
     -> bool {
@@ -146,6 +206,43 @@ void SourceChangeAlternative::add(SourceChangeTree change) { changes.push_back(s
 void SourceChangeAlternative::add_if_some(std::optional<SourceChangeTree> change) {
     if (change) {
         this->add(change.value());
+    }
+}
+
+auto SourceChangeAlternative::simplify() const -> std::optional<SourceChangeTree> {
+    if (this->changes.empty()) {
+        return std::nullopt;
+    } else {
+        std::vector<SourceChangeTree> changes;
+        changes.reserve(this->changes.size());
+
+        for (const auto& change : this->changes) {
+            auto simplified = change.simplify();
+            if (simplified.has_value()) {
+                changes.push_back(simplified.value());
+            }
+        }
+
+        if (changes.empty()) {
+            return std::nullopt;
+        } else if (changes.size() == 1) {
+            auto change = changes[0];
+
+            // set hints only if they are empty
+            if (change.origin().empty()) {
+                change.origin() = this->origin;
+            }
+            if (change.hint().empty()) {
+                change.hint() = this->hint;
+            }
+
+            return change;
+        } else {
+            auto change = SourceChangeAlternative(changes);
+            change.origin = this->origin;
+            change.hint = this->hint;
+            return change;
+        }
     }
 }
 

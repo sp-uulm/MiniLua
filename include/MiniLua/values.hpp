@@ -1115,12 +1115,21 @@ template <> struct hash<minilua::Function> {
 
 namespace minilua {
 
+class Origin;
+
 /**
  * @brief Default origin for `Value`s.
  *
  * Supports equality operators.
  */
-struct NoOrigin {};
+struct NoOrigin {
+    /**
+     * Simplify the origin.
+     *
+     * Removes unusable origins from the tree.
+     */
+    [[nodiscard]] auto simplify() const -> Origin;
+};
 auto operator==(const NoOrigin&, const NoOrigin&) noexcept -> bool;
 auto operator!=(const NoOrigin&, const NoOrigin&) noexcept -> bool;
 auto operator<<(std::ostream&, const NoOrigin&) -> std::ostream&;
@@ -1134,7 +1143,14 @@ auto operator<<(std::ostream&, const NoOrigin&) -> std::ostream&;
  *
  * Support equality operators.
  */
-struct ExternalOrigin {};
+struct ExternalOrigin {
+    /**
+     * Simplify the origin.
+     *
+     * Removes unusable origins from the tree.
+     */
+    [[nodiscard]] auto simplify() const -> Origin;
+};
 auto operator==(const ExternalOrigin&, const ExternalOrigin&) noexcept -> bool;
 auto operator!=(const ExternalOrigin&, const ExternalOrigin&) noexcept -> bool;
 auto operator<<(std::ostream&, const ExternalOrigin&) -> std::ostream&;
@@ -1149,6 +1165,13 @@ struct LiteralOrigin {
      * @brief The range of the literal.
      */
     Range location;
+
+    /**
+     * Simplify the origin.
+     *
+     * Removes unusable origins from the tree.
+     */
+    [[nodiscard]] auto simplify() const -> Origin;
 };
 
 auto operator==(const LiteralOrigin&, const LiteralOrigin&) noexcept -> bool;
@@ -1166,12 +1189,16 @@ struct BinaryOrigin {
 
     /**
      * @brief The first value used to call the binary operator or function.
+     *
+     * \note This is a shared_ptr to avoid **a lot* of unnecessary copying.
      */
-    owning_ptr<Value> lhs;
+    std::shared_ptr<Value> lhs = std::make_shared<Value>(Nil());
     /**
      * @brief The second value used to call the binary operator or function.
+     *
+     * \note This is a shared_ptr to avoid **a lot* of unnecessary copying.
      */
-    owning_ptr<Value> rhs;
+    std::shared_ptr<Value> rhs = std::make_shared<Value>(Nil());
     /**
      * @brief The range of the operator or function call.
      */
@@ -1183,6 +1210,13 @@ struct BinaryOrigin {
      * `std::optional<SourceChangeTree>`.
      */
     std::function<ReverseFn> reverse;
+
+    /**
+     * Simplify the origin.
+     *
+     * Removes unusable origins from the tree.
+     */
+    [[nodiscard]] auto simplify() const -> Origin;
 };
 
 auto operator==(const BinaryOrigin&, const BinaryOrigin&) noexcept -> bool;
@@ -1200,8 +1234,10 @@ struct UnaryOrigin {
 
     /**
      * @brief The value used to call the unary operator or function.
+     *
+     * \note This is a shared_ptr to avoid **a lot* of unnecessary copying.
      */
-    owning_ptr<Value> val;
+    std::shared_ptr<Value> val = std::make_shared<Value>(Nil());
     /**
      * @brief The range of the operator or function call.
      */
@@ -1213,6 +1249,13 @@ struct UnaryOrigin {
      * `std::optional<SourceChangeTree>`.
      */
     std::function<ReverseFn> reverse;
+
+    /**
+     * Simplify the origin.
+     *
+     * Removes unusable origins from the tree.
+     */
+    [[nodiscard]] auto simplify() const -> Origin;
 };
 
 auto operator==(const UnaryOrigin&, const UnaryOrigin&) noexcept -> bool;
@@ -1226,10 +1269,19 @@ auto operator<<(std::ostream&, const UnaryOrigin&) -> std::ostream&;
 struct MultipleArgsOrigin {
     using ReverseFn = std::optional<SourceChangeTree>(const Value&, const Vallist&);
 
+    // TODO this can be made more efficient using shared_ptr (see the other
+    // origins) but this is not used very much
     Vallist values;
     std::optional<Range> location;
     // new_value, old_values
     std::function<ReverseFn> reverse;
+
+    /**
+     * Simplify the origin.
+     *
+     * Removes unusable origins from the tree.
+     */
+    [[nodiscard]] auto simplify() const -> Origin;
 };
 
 auto operator==(const MultipleArgsOrigin&, const MultipleArgsOrigin&) noexcept -> bool;
@@ -1327,6 +1379,15 @@ public:
      * Sets the file of the underlying origin type (if possible).
      */
     void set_file(std::optional<std::shared_ptr<std::string>> file);
+
+    /**
+     * Simplify the origin.
+     *
+     * Removes unusable origins from the tree.
+     *
+     * \note This is not recursive. It will only look at the first level.
+     */
+    [[nodiscard]] auto simplify() const -> Origin;
 };
 
 auto operator==(const Origin&, const Origin&) noexcept -> bool;
@@ -1848,6 +1909,23 @@ template <typename T> auto get(const minilua::Value& value) -> const T& {
 
 namespace minilua {
 
+inline auto _ignore_nan_and_infinity(std::optional<Number> value) -> std::optional<Number> {
+    if (value.has_value()) {
+        return value.value().visit(overloaded{
+            [](Number::Int value) -> std::optional<Number> { return value; },
+            [](Number::Float value) -> std::optional<Number> {
+                if (std::isnan(value) || std::isinf(value)) {
+                    return std::nullopt;
+                } else {
+                    return value;
+                }
+            },
+        });
+    } else {
+        return std::nullopt;
+    }
+}
+
 /*
  * Helper functions for writing functions that should be forcable.
  */
@@ -1864,14 +1942,21 @@ namespace minilua {
  * See also: @ref binary_num_reverse.
  */
 template <typename Fn> auto unary_num_reverse(Fn fn) -> decltype(auto) {
-    static_assert(std::is_invocable_r_v<Number, Fn, Number>);
+    static_assert(std::is_convertible_v<std::invoke_result_t<Fn, Number>, std::optional<Number>>);
 
     return [fn](const Value& new_value, const Value& old_value) -> std::optional<SourceChangeTree> {
         if (!new_value.is_number() || !old_value.is_number()) {
             return std::nullopt;
         }
+
         auto num = std::get<Number>(new_value);
-        return old_value.force(fn(num));
+
+        std::optional<Number> reverse_value = _ignore_nan_and_infinity(fn(num));
+        if (reverse_value.has_value()) {
+            return old_value.force(reverse_value.value());
+        } else {
+            return std::nullopt;
+        }
     };
 }
 
@@ -1889,8 +1974,10 @@ template <typename Fn> auto unary_num_reverse(Fn fn) -> decltype(auto) {
 template <typename FnLeft, typename FnRight>
 auto binary_num_reverse(FnLeft fn_left, FnRight fn_right, std::string origin = "")
     -> decltype(auto) {
-    static_assert(std::is_invocable_r_v<Number, FnLeft, Number, Number>);
-    static_assert(std::is_invocable_r_v<Number, FnRight, Number, Number>);
+    static_assert(
+        std::is_convertible_v<std::invoke_result_t<FnLeft, Number, Number>, std::optional<Number>>);
+    static_assert(std::is_convertible_v<
+                  std::invoke_result_t<FnRight, Number, Number>, std::optional<Number>>);
 
     return [fn_left, fn_right, origin = std::move(origin)](
                const Value& new_value, const Value& old_lhs,
@@ -1902,12 +1989,21 @@ auto binary_num_reverse(FnLeft fn_left, FnRight fn_right, std::string origin = "
         auto lhs_num = std::get<Number>(old_lhs);
         auto rhs_num = std::get<Number>(old_rhs);
 
-        auto lhs_change = old_lhs.force(fn_left(num, rhs_num));
-        auto rhs_change = old_rhs.force(fn_right(num, lhs_num));
-
         SourceChangeAlternative change;
-        change.add_if_some(lhs_change);
-        change.add_if_some(rhs_change);
+
+        std::optional<Number> reverse_left_result = _ignore_nan_and_infinity(fn_left(num, rhs_num));
+        if (reverse_left_result.has_value()) {
+            std::optional<SourceChangeTree> lhs_change = old_lhs.force(reverse_left_result.value());
+            change.add_if_some(lhs_change);
+        }
+
+        std::optional<Number> reverse_right_result =
+            _ignore_nan_and_infinity(fn_right(num, lhs_num));
+        if (reverse_right_result.has_value()) {
+            std::optional<SourceChangeTree> rhs_change =
+                old_rhs.force(reverse_right_result.value());
+            change.add_if_some(rhs_change);
+        }
 
         change.origin = origin;
         return change;
@@ -1974,7 +2070,7 @@ template <typename... Ts> UnaryNumericFunctionHelper(Ts...) -> UnaryNumericFunct
  * ```cpp
  * function pow_impl(const CallContext& ctx) -> Value {
  *     return minilua::BinaryNumericFunctionHelper{
- *         [](Number lhs, double rhs) { return std::pow(lhs.as_float(), rhs.as_float()); },
+ *         [](Number lhs, Number rhs) { return std::pow(lhs.as_float(), rhs.as_float()); },
  *         [](Number new_value, Number old_rhs) { return std::pow(new_value.as_float(), 1 /
  * old_rhs.as_float()); },
  *         [](Number new_value, Number old_lhs) { return std::log(new_value.as_float()) /

@@ -61,6 +61,7 @@ TEST_CASE("define correct origin for unary math functions and force value") {
     REQUIRE(res == 5);
 
     REQUIRE(res.has_origin());
+    INFO(res.origin());
     auto source_change_tree = res.force(3).value(); // NOLINT
     auto source_changes = source_change_tree.collect_first_alternative();
     CHECK(source_changes[0].replacement == "9.0");
@@ -129,4 +130,41 @@ TEST_CASE("reversing Origin from not") {
             CHECK(change.replacement == "false"); // !false = true
         },
         [](const auto&) { FAIL("unexpected element"); }});
+}
+
+TEST_CASE("Simplify Origin") {
+    // note simplifying origin is not recursive
+
+    SECTION("Empty Origin tree") { REQUIRE(minilua::Origin().simplify() == minilua::NoOrigin()); }
+
+    SECTION("Single item tree") {
+        REQUIRE(minilua::Origin(minilua::ExternalOrigin()).simplify() == minilua::ExternalOrigin());
+
+        const auto item = minilua::LiteralOrigin{{{1, 2, 3}, {4, 5, 6}}};
+        REQUIRE(minilua::Origin(item).simplify() == item);
+    }
+
+    SECTION("Empty nested tree") {
+        REQUIRE(minilua::Origin(minilua::UnaryOrigin{}).simplify() == minilua::NoOrigin());
+        REQUIRE(minilua::Origin(minilua::BinaryOrigin{}).simplify() == minilua::NoOrigin());
+        REQUIRE(minilua::Origin(minilua::MultipleArgsOrigin{}).simplify() == minilua::NoOrigin());
+    }
+
+    SECTION("Incomplete branch") {
+        REQUIRE(
+            minilua::Origin(minilua::BinaryOrigin{
+                                .lhs = std::make_shared<minilua::Value>(
+                                    minilua::Value().with_origin(minilua::ExternalOrigin())),
+                                .rhs = std::make_shared<minilua::Value>(minilua::Nil()),
+                            })
+                .simplify() == minilua::NoOrigin());
+
+        REQUIRE(
+            minilua::Origin(
+                minilua::MultipleArgsOrigin{
+                    .values = minilua::Vallist(
+                        {minilua::Value().with_origin(minilua::ExternalOrigin()), minilua::Nil()}),
+                })
+                .simplify() == minilua::NoOrigin());
+    }
 }

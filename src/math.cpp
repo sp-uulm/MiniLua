@@ -120,66 +120,37 @@ auto static math_helper(
 // That is the reason why everywhere to_number is called.
 
 auto abs(const CallContext& ctx) -> Value {
-    auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(ctx.arguments().get(0)),
-        .location = ctx.call_location(),
-        .reverse = [](const Value& new_value,
-                      const Value& old_value) -> std::optional<SourceChangeTree> {
-            if (!new_value.is_number()) {
-                return std::nullopt;
-            }
-            Number n = std::get<Number>(new_value);
-            if (n >= 0) {
-                return old_value.force(n); // just guess that it was a positive number
+    return UnaryNumericFunctionHelper{
+        [](Number value) { return std::abs(value.as_float()); },
+        [](Number new_value) -> std::optional<Number> {
+            if (new_value >= 0) {
+                return new_value;
             } else {
                 return std::nullopt;
             }
-        }});
-    return math_helper(
-               ctx, [](Number value) -> Number { return std::abs(value.as_float()); }, "abs")
-        .with_origin(origin);
+        },
+    }(ctx);
 }
 
 auto acos(const CallContext& ctx) -> Value {
-    auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(ctx.arguments().get(0)),
-        .location = ctx.call_location(),
-        .reverse = [](const Value& new_value,
-                      const Value& old_value) -> std::optional<SourceChangeTree> {
-            if (!new_value.is_number()) {
-                return std::nullopt;
-            }
-            Number n = std::get<Number>(new_value);
-            return old_value.force(std::cos(n.as_float()));
-        }});
-
-    return math_helper(
-               ctx, [](Number value) -> Number { return std::acos(value.as_float()); }, "acos")
-        .with_origin(origin);
+    return UnaryNumericFunctionHelper{
+        [](Number value) { return std::acos(value.as_float()); },
+        [](Number new_value) -> std::optional<Number> { return std::cos(new_value.as_float()); },
+    }(ctx);
 }
 
 auto asin(const CallContext& ctx) -> Value {
-    auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(ctx.arguments().get(0)),
-        .location = ctx.call_location(),
-        .reverse = [](const Value& new_value,
-                      const Value& old_value) -> std::optional<SourceChangeTree> {
-            if (!new_value.is_number()) {
-                return std::nullopt;
-            }
-            Number n = std::get<Number>(new_value);
-            return old_value.force(std::sin(n.as_float()));
-        }});
-    return math_helper(
-               ctx, [](Number value) -> Number { return std::asin(value.as_float()); }, "asin")
-        .with_origin(origin);
+    return UnaryNumericFunctionHelper{
+        [](Number value) { return std::asin(value.as_float()); },
+        [](Number new_value) -> std::optional<Number> { return std::sin(new_value.as_float()); },
+    }(ctx);
 }
 
 auto atan(const CallContext& ctx) -> Value {
     double len = -1;
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(ctx.arguments().get(0)),
-        .rhs = make_owning<Value>(ctx.arguments().get(1)),
+        .lhs = std::make_shared<Value>(ctx.arguments().get(0)),
+        .rhs = std::make_shared<Value>(ctx.arguments().get(1)),
         .location = ctx.call_location(),
         .reverse = [len](const Value& new_value, const Value& old_value1, const Value& old_value2)
             -> std::optional<SourceChangeTree> {
@@ -311,175 +282,83 @@ auto atan(const CallContext& ctx) -> Value {
 }
 
 auto ceil(const CallContext& ctx) -> Value {
-    auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(ctx.arguments().get(0)),
-        .location = ctx.call_location(),
-        .reverse = [](const Value& new_value,
-                      const Value& old_value) -> std::optional<SourceChangeTree> {
-            if (!new_value.is_number()) {
-                return std::nullopt;
-            }
-            Number n = std::get<Number>(new_value);
-            if (!n.is_float()) {
-                return old_value.force(
-                    new_value); // Just guessing that this is the right value because every
-                                // information about post-comma numbers is lost
+    return UnaryNumericFunctionHelper{
+        [](Number value) { return std::ceil(value.as_float()); },
+        [](Number new_value) -> std::optional<Number> {
+            if (!new_value.is_float()) {
+                return new_value;
             } else {
                 return std::nullopt;
             }
-        }});
-
-    return math_helper(
-               ctx, [](Number value) -> Number { return std::ceil(value.as_float()); }, "ceil")
-        .with_origin(origin);
+        },
+    }(ctx);
 }
 
 auto cos(const CallContext& ctx) -> Value {
-    auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(ctx.arguments().get(0)),
-        .location = ctx.call_location(),
-        .reverse = [](const Value& new_value,
-                      const Value& old_value) -> std::optional<SourceChangeTree> {
-            if (!new_value.is_number()) {
-                return std::nullopt;
-            }
-            Number n = std::get<Number>(new_value);
-            return old_value.force(std::acos(n.as_float()));
-        }});
-
-    return math_helper(
-               ctx, [](Number value) -> Number { return std::cos(value.as_float()); }, "cos")
-        .with_origin(origin);
+    return UnaryNumericFunctionHelper{
+        [](Number value) { return std::cos(value.as_float()); },
+        [](Number new_value) { return std::acos(new_value.as_float()); }}(ctx);
 }
 
 auto deg(const CallContext& ctx) -> Value {
-    auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(ctx.arguments().get(0)),
-        .location = ctx.call_location(),
-        .reverse = [](const Value& new_value,
-                      const Value& old_value) -> std::optional<SourceChangeTree> {
-            if (!new_value.is_number()) {
-                return std::nullopt;
-            }
-            Number n = std::get<Number>(new_value);
-            return old_value.force(n * PI / 180);
-        }});
-
-    return math_helper(
-               ctx, [](Number value) { return value.as_float() * 180 / PI; }, "deg")
-        .with_origin(origin);
+    return UnaryNumericFunctionHelper{
+        [](Number value) { return value.as_float() * 180.0 / PI; },
+        [](Number new_value) { return new_value * PI / 180.0; }}(ctx);
 }
 
 auto exp(const CallContext& ctx) -> Value {
-    auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(ctx.arguments().get(0)),
-        .location = ctx.call_location(),
-        .reverse = [](const Value& new_value,
-                      const Value& old_value) -> std::optional<SourceChangeTree> {
-            if (!new_value.is_number()) {
-                return std::nullopt;
-            }
-            Number n = std::get<Number>(new_value);
-            if (n > 0) {
-                return old_value.force(std::log(n.as_float()));
-            } else if (n < 0) {
-                return old_value.force(1 / std::log(-n.as_float()));
+    return UnaryNumericFunctionHelper{
+        [](Number value) { return std::exp(value.as_float()); },
+        [](Number new_value) -> std::optional<Number> {
+            if (new_value > 0) {
+                return std::log(new_value.as_float());
+            } else if (new_value < 0) {
+                return 1.0 / std::log(-new_value.as_float());
             } else {
                 return std::nullopt;
             }
-        }});
-    return math_helper(
-               ctx, [](Number value) -> Number { return std::exp(value.as_float()); }, "exp")
-        .with_origin(origin);
+        }}(ctx);
 }
 
 auto floor(const CallContext& ctx) -> Value {
-    auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(ctx.arguments().get(0)),
-        .location = ctx.call_location(),
-        .reverse = [](const Value& new_value,
-                      const Value& old_value) -> std::optional<SourceChangeTree> {
-            if (!new_value.is_number()) {
-                return std::nullopt;
-            }
-            Number n = std::get<Number>(new_value);
-            if (!n.is_float()) {
-                return old_value.force(new_value);
-                // Just guessing that this is the right value because every information about
-                // post-comma numbers is lost
+    return UnaryNumericFunctionHelper{
+        [](Number value) { return std::floor(value.as_float()); },
+        [](Number new_value) -> std::optional<Number> {
+            if (!new_value.is_float()) {
+                return new_value;
             } else {
                 return std::nullopt;
             }
-        }});
-
-    return math_helper(
-               ctx, [](Number value) -> Number { return std::floor(value.as_float()); }, "floor")
-        .with_origin(origin);
+        }}(ctx);
 }
 
 auto fmod(const CallContext& ctx) -> Value {
-    auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(ctx.arguments().get(0)),
-        .rhs = make_owning<Value>(ctx.arguments().get(1)),
-        .location = ctx.call_location(),
-        // returns the result of 'new_value + old_value2' because of 'new_value = old_value1 %
-        // old_value2' and the information about the concrete value of old_value1 is lost, so just
-        // guessing is possible
-        .reverse = [](const Value& new_value, const Value& old_value1,
-                      const Value& old_value2) -> std::optional<SourceChangeTree> {
-            if (!new_value.is_number()) {
+    return BinaryNumericFunctionHelper{
+        [](Number lhs, Number rhs) {
+            if (lhs == 0 && rhs == 0) {
+                throw std::runtime_error("bad argument #2 (zero)");
+            } else {
+                return std::fmod(lhs.as_float(), rhs.as_float());
+            }
+        },
+        // force old_lhs to 'new_value + old_rhs'
+        // becuase of 'new_value = old_lhs % old_rhs'
+        // information about old_lhs is lost so we can't generate a precise value
+        // the result is somewhat guessing anyway
+        [](Number new_value, Number old_rhs) -> std::optional<Number> {
+            if (new_value >= old_rhs) {
                 return std::nullopt;
             } else {
-                // old_value2 could be a string formated like a number or a number
-                // but can't be an invalid value because then fmod throws an exception
-                Number divisor = std::get<Number>(old_value2.to_number());
-                Number new_val = std::get<Number>(new_value);
-
-                // fmod is like modulo. and its not possible that the result of the operation is
-                // greater than or equal to the divisor
-                if (new_val >= divisor) {
-                    return std::nullopt;
-                } else {
-                    return old_value1.force(new_val + divisor);
-                }
+                return new_value + old_rhs;
             }
-        }});
-    // lua throws an error if x and y are 0 so i cant use the helper-function
-    Vallist list = Vallist({ctx.arguments().get(0)});
-    CallContext new_ctx = ctx.make_new(list);
-    auto res1 = to_number(new_ctx);
-
-    if (res1 != Nil()) {
-        list = Vallist({ctx.arguments().get(1)});
-        new_ctx = ctx.make_new(list);
-        auto res2 = to_number(new_ctx);
-
-        if (res2 != Nil()) {
-            auto num1 = std::get<Number>(res1);
-            auto num2 = std::get<Number>(res2);
-
-            if (num1.as_float() == 0 && num2.as_float() == 0) {
-                // case 0/0
-                throw std::runtime_error("bad argument #2 to 'fmod' (zero)");
-            } else {
-                return Value(std::fmod(num1.as_float(), num2.as_float())).with_origin(origin);
-            }
-        } else {
-            auto y = ctx.arguments().get(1);
-            throw std::runtime_error(
-                "bad argument #2 to 'fmod' (number expected, got " + y.type() + ")");
-        }
-    } else {
-        auto x = ctx.arguments().get(0);
-        throw std::runtime_error(
-            "bad argument #1 to 'fmod' (number expected, got " + x.type() + ")");
-    }
+        },
+        [](Number /*new_value*/, Number /*old_lhs*/) { return std::nullopt; }}(ctx);
 }
 
 auto log(const CallContext& ctx) -> Value {
     auto origin = Origin(BinaryOrigin{
-        .lhs = make_owning<Value>(ctx.arguments().get(0)),
-        .rhs = make_owning<Value>(ctx.arguments().get(1)),
+        .lhs = std::make_shared<Value>(ctx.arguments().get(0)),
+        .rhs = std::make_shared<Value>(ctx.arguments().get(1)),
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value, const Value& old_value1,
                       const Value& old_value2) -> std::optional<SourceChangeTree> {
@@ -539,7 +418,7 @@ auto max(const CallContext& ctx) -> Value {
     auto args = ctx.arguments();
 
     if (args.size() == 0) {
-        throw std::runtime_error("bad argument #1 to 'max' (value expected)");
+        throw std::runtime_error("bad argument #1 (value expected)");
     }
 
     Value max = *args.begin();
@@ -562,7 +441,7 @@ auto min(const CallContext& ctx) -> Value {
     auto args = ctx.arguments();
 
     if (args.size() == 0) {
-        throw std::runtime_error("bad argument #1 to 'min' (value expected)");
+        throw std::runtime_error("bad argument #1 (value expected)");
     }
 
     Value min = *args.begin();
@@ -583,14 +462,14 @@ auto modf(const CallContext& ctx) -> Vallist {
         num = std::modf(num.as_float(), &iptr);
 
         auto origin1 = Origin(UnaryOrigin{
-            .val = make_owning<Value>(Value(iptr)),
+            .val = std::make_shared<Value>(Value(iptr)),
             .location = ctx.call_location(), // is that the correct location?
             .reverse = [](const Value& new_value,
                           const Value& old_value) -> std::optional<SourceChangeTree> {
                 return std::nullopt; // TODO: add real reverse. this is only temporary
             }});
         auto origin2 = Origin(UnaryOrigin{
-            .val = make_owning<Value>(num),
+            .val = std::make_shared<Value>(num),
             .location = ctx.call_location(), // is that the correct location?
             .reverse = [](const Value& new_value,
                           const Value& old_value) -> std::optional<SourceChangeTree> {
@@ -599,27 +478,15 @@ auto modf(const CallContext& ctx) -> Vallist {
         return Vallist({Value(iptr).with_origin(origin1), Value(num).with_origin(origin2)});
     } else {
         auto x = ctx.arguments().get(0);
-        throw std::runtime_error(
-            "bad argument #1 to 'modf' (number expected, got " + x.type() + ")");
+        throw std::runtime_error("bad argument #1 (number expected, got " + x.type() + ")");
     }
 }
 
 auto rad(const CallContext& ctx) -> Value {
-    auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(ctx.arguments().get(0)),
-        .location = ctx.call_location(),
-        .reverse = [](const Value& new_value,
-                      const Value& old_value) -> std::optional<SourceChangeTree> {
-            if (!new_value.is_number()) {
-                return std::nullopt;
-            }
-            Number n = std::get<Number>(new_value);
-            return old_value.force(n * 180 / PI);
-        }});
-
-    return math_helper(
-               ctx, [](Number value) { return value.as_float() * PI / 180; }, "rad")
-        .with_origin(origin);
+    return UnaryNumericFunctionHelper{
+        [](Number value) { return value.as_float() * PI / 180.0; },
+        [](Number new_value) { return new_value * 180.0 / PI; },
+    }(ctx);
 }
 
 auto random(const CallContext& ctx) -> Value {
@@ -675,63 +542,35 @@ void randomseed(const CallContext& ctx) {
 }
 
 auto sin(const CallContext& ctx) -> Value {
-    auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(ctx.arguments().get(0)),
-        .location = ctx.call_location(),
-        .reverse = [](const Value& new_value,
-                      const Value& old_value) -> std::optional<SourceChangeTree> {
-            if (!new_value.is_number()) {
-                return std::nullopt;
-            }
-            Number n = std::get<Number>(new_value);
-            return old_value.force(std::asin(n.as_float()));
-        }});
-    return math_helper(
-               ctx, [](Number value) -> Number { return std::sin(value.as_float()); }, "sin")
-        .with_origin(origin);
+    return UnaryNumericFunctionHelper{
+        [](Number value) { return std::sin(value.as_float()); },
+        [](Number new_value) { return std::asin(new_value.as_float()); },
+    }(ctx);
 }
 
 auto sqrt(const CallContext& ctx) -> Value {
-    auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(ctx.arguments().get(0)),
-        .location = ctx.call_location(),
-        .reverse = [](const Value& new_value,
-                      const Value& old_value) -> std::optional<SourceChangeTree> {
-            if (!new_value.is_number()) {
-                return std::nullopt;
-            }
-            Number n = std::get<Number>(new_value);
-            if (n >= 0) {
-                return old_value.force(n.as_float() * n.as_float());
+    return UnaryNumericFunctionHelper{
+        [](Number value) { return std::sqrt(value.as_float()); },
+        [](Number new_value) -> std::optional<Number> {
+            if (new_value >= 0) {
+                return new_value.pow(2);
             } else {
                 return std::nullopt;
             }
-        }});
-    return math_helper(
-               ctx, [](Number value) -> Number { return std::sqrt(value.as_float()); }, "sqrt")
-        .with_origin(origin);
+        },
+    }(ctx);
 }
 
 auto tan(const CallContext& ctx) -> Value {
-    auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(ctx.arguments().get(0)),
-        .location = ctx.call_location(),
-        .reverse = [](const Value& new_value,
-                      const Value& old_value) -> std::optional<SourceChangeTree> {
-            if (!new_value.is_number()) {
-                return std::nullopt;
-            }
-            Number n = std::get<Number>(new_value);
-            return old_value.force(std::atan(n.as_float()));
-        }});
-    return math_helper(
-               ctx, [](Number value) -> Number { return std::tan(value.as_float()); }, "tan")
-        .with_origin(origin);
+    return UnaryNumericFunctionHelper{
+        [](Number value) { return std::tan(value.as_float()); },
+        [](Number new_value) { return std::atan(new_value.as_float()); },
+    }(ctx);
 }
 
 auto to_integer(const CallContext& ctx) -> Value {
     auto origin = Origin(UnaryOrigin{
-        .val = make_owning<Value>(ctx.arguments().get(0)),
+        .val = std::make_shared<Value>(ctx.arguments().get(0)),
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
@@ -788,40 +627,26 @@ auto type(const CallContext& ctx) -> Value {
 auto ult(const CallContext& ctx) -> Value {
     // Not reverseable because only an bool is available and with only the bool, its not
     // possible to correctly get the numbers back. So no origin is needed
-    return math_helper<bool>(
-        ctx,
-        [](Number m, Number n) -> bool {
-            unsigned long m_int;
-            if (m.is_int()) {
-                m_int = m.try_as_int();
-            } else {
-                double num_m;
-                double fraction = std::modf(m.as_float(), &num_m);
-                if (fraction != 0.0) {
-                    throw std::runtime_error(
-                        "bad argument #1 to 'ult' (number has no integer representation)");
-                }
-                m_int = (int)num_m;
-            }
+    auto [m, n, _origin] = ctx.binary_numeric_args_helper();
 
-            unsigned long n_int;
-            if (n.is_int()) {
-                n_int = n.try_as_int();
-            } else {
-                double num_n;
-                double fraction = std::modf(n.as_float(), &num_n);
-                if (fraction != 0.0) {
-                    throw std::runtime_error(
-                        "bad argument #2 to 'ult' (number has no integer representation)");
-                }
-                n_int = (int)num_n;
-            }
+    unsigned long m_int;
+    try {
+        m_int = m.try_as_int();
+    } catch (const std::runtime_error&) {
+        throw std::runtime_error("bad argument #1 (number has no integer representation)");
+    }
 
-            return m_int < n_int;
-        },
-        "ult");
+    unsigned long n_int;
+    try {
+        n_int = n.try_as_int();
+    } catch (const std::runtime_error&) {
+        throw std::runtime_error("bad argument #2 (number has no integer representation)");
+    }
+
+    return m_int < n_int;
 }
 
 auto get_random_seed() -> std::default_random_engine { return random_seed; }
+
 } // namespace math
 } // namespace minilua
