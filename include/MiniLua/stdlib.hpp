@@ -29,7 +29,8 @@ void error(const CallContext& ctx);
 /**
  * @brief Converts the value to a string.
  *
- * Tables and functions will not return a meaningful string.
+ * Tables and functions will not return a meaningful string. They will only be
+ * represented as their address.
  *
  * Will respect the metamethod `__tostring`.
  */
