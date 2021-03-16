@@ -320,12 +320,10 @@ auto Interpreter::visit_statement(ast::Statement statement, Env& env) -> EvalRes
                 return this->visit_repeat_until_statement(node, env);
             },
             [this, &env](ast::ForStatement node) -> EvalResult {
-                // TODO desugar this
-                throw UNIMPLEMENTED("for");
+                return this->visit_do_statement(node.desugar(), env);
             },
             [this, &env](ast::ForInStatement node) -> EvalResult {
-                // TODO desugar this
-                throw UNIMPLEMENTED("for in");
+                return this->visit_do_statement(node.desugar(), env);
             },
             [this, &env](ast::GoTo node) -> EvalResult { throw UNIMPLEMENTED("goto"); },
             [this, &env](ast::Break node) { return this->visit_break_statement(); },
@@ -377,7 +375,7 @@ auto Interpreter::visit_block_with_local_env(ast::Body block, Env& block_env) ->
 
     auto return_stmt = block.return_statement();
     if (return_stmt) {
-        auto sub_result = this->visit_return_statement(return_stmt.value().de, block_env);
+        auto sub_result = this->visit_return_statement(return_stmt.value(), block_env);
         result.combine(sub_result);
     }
 
@@ -981,7 +979,7 @@ auto Interpreter::visit_unary_operation(ast::UnaryOperation unary_op, Env& env) 
 }
 
 auto Interpreter::visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult {
-    auto _ = NodeTracer(this, prefix.raw(), "visit_prefix");
+    auto _ = NodeTracer(this, prefix.debug_print(), "visit_prefix");
 
     EvalResult result = std::visit(
         overloaded{
@@ -1012,7 +1010,7 @@ auto Interpreter::visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult {
 }
 
 auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalResult {
-    auto _ = NodeTracer(this, call.raw(), "visit_function_call");
+    auto _ = NodeTracer(this, call.debug_print(), "visit_function_call");
 
     EvalResult result;
 

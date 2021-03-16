@@ -53,18 +53,13 @@ public:
  * class for do_statement nodes
  */
 class DoStatement {
-    using DoTuple = std::tuple<std::shared_ptr<Body>, minilua::Range>;
-    enum TupleIndex { BODY, RANGE };
-    struct DoStruct {
-        std::shared_ptr<Body> body;
-        minilua::Range range;
-        GEN_CAUSE cause;
-    };
+    using DoTuple = std::tuple<std::shared_ptr<Body>, minilua::Range, GEN_CAUSE>;
+    enum TupleIndex { BODY, RANGE, CAUSE };
     std::variant<ts::Node, DoTuple> content;
 
 public:
     explicit DoStatement(ts::Node);
-    explicit DoStatement(const Body&, minilua::Range);
+    explicit DoStatement(const Body&, minilua::Range, GEN_CAUSE);
     /**
      *
      * @return a body containing all statements of the do block
@@ -77,13 +72,13 @@ public:
  * class for identifier_nodes
  */
 class Identifier {
-    using IdTuple = std::tuple<std::string, minilua::Range>;
-    enum TupleIndex { STRING, RANGE };
+    using IdTuple = std::tuple<std::string, minilua::Range, GEN_CAUSE>;
+    enum TupleIndex { STRING, RANGE, CAUSE };
     std::variant<ts::Node, IdTuple> content;
 
 public:
     explicit Identifier(ts::Node);
-    explicit Identifier(const std::string&, minilua::Range);
+    explicit Identifier(const std::string&, minilua::Range, GEN_CAUSE);
     /**
      * get the identifier name as a string
      * @return the identifer as a string
@@ -123,13 +118,15 @@ enum class BinOpEnum {
  */
 class BinaryOperation {
     using BinOpTuple = std::tuple<
-        std::shared_ptr<Expression>, BinOpEnum, std::shared_ptr<Expression>, minilua::Range>;
-    enum TupleIndex { LEFT, OPERATOR, RIGHT, RANGE };
+        std::shared_ptr<Expression>, BinOpEnum, std::shared_ptr<Expression>, minilua::Range,
+        GEN_CAUSE>;
+    enum TupleIndex { LEFT, OPERATOR, RIGHT, RANGE, CAUSE };
     std::variant<ts::Node, BinOpTuple> content;
 
 public:
     explicit BinaryOperation(ts::Node node);
-    explicit BinaryOperation(const Expression&, BinOpEnum, const Expression&, minilua::Range);
+    explicit BinaryOperation(
+        const Expression&, BinOpEnum, const Expression&, minilua::Range, GEN_CAUSE);
     /**
      *
      * @return The left operand
@@ -161,13 +158,13 @@ enum class UnOpEnum {
  * class for unary_operation nodes
  */
 class UnaryOperation {
-    using UnOpTuple = std::tuple<UnOpEnum, std::shared_ptr<Expression>, minilua::Range>;
-    enum TupleIndex { OPERATOR, OPERAND, RANGE };
+    using UnOpTuple = std::tuple<UnOpEnum, std::shared_ptr<Expression>, minilua::Range, GEN_CAUSE>;
+    enum TupleIndex { OPERATOR, OPERAND, RANGE, CAUSE };
     std::variant<ts::Node, UnOpTuple> content;
 
 public:
     explicit UnaryOperation(ts::Node node);
-    explicit UnaryOperation(UnOpEnum, const Expression&, minilua::Range);
+    explicit UnaryOperation(UnOpEnum, const Expression&, minilua::Range, GEN_CAUSE);
     /**
      *
      * @return the operator of the operation
@@ -283,13 +280,13 @@ public:
  */
 class WhileStatement {
     using WhileTuple =
-        std::tuple<std::shared_ptr<Expression>, std::shared_ptr<Body>, minilua::Range>;
-    enum TupleIndex { CONDITION, BODY, RANGE };
+        std::tuple<std::shared_ptr<Expression>, std::shared_ptr<Body>, minilua::Range, GEN_CAUSE>;
+    enum TupleIndex { CONDITION, BODY, RANGE, CAUSE };
     std::variant<ts::Node, WhileTuple> content;
 
 public:
     explicit WhileStatement(ts::Node node);
-    explicit WhileStatement(const Expression&, const Body&, minilua::Range);
+    explicit WhileStatement(const Expression&, const Body&, minilua::Range, GEN_CAUSE);
     /**
      * @return an expression containing the conditional expression of the loop
      */
@@ -363,8 +360,9 @@ public:
  * class for if_statement nodes
  */
 class IfStatement {
-    using IfTuple = std::tuple<std::shared_ptr<Expression>, std::shared_ptr<Body>, minilua::Range>;
-    enum TupleIndex { CONDITION, BODY, RANGE };
+    using IfTuple =
+        std::tuple<std::shared_ptr<Expression>, std::shared_ptr<Body>, minilua::Range, GEN_CAUSE>;
+    enum TupleIndex { CONDITION, BODY, RANGE, CAUSE };
     std::variant<ts::Node, IfTuple> content;
 
 public:
@@ -372,7 +370,7 @@ public:
     /**
      * constructs an if-statement without elseifs or an else
      */
-    explicit IfStatement(const Expression&, const Body&, minilua::Range);
+    explicit IfStatement(const Expression&, const Body&, minilua::Range, GEN_CAUSE);
     /**
      *
      * @return a body containing the statements of the if block excluding else_if and else
@@ -440,13 +438,14 @@ public:
  * class for field_expression nodes
  */
 class FieldExpression {
-    using FieldExpTuple = std::tuple<std::shared_ptr<Prefix>, Identifier, minilua::Range>;
-    enum TupleIndex { TABLE, PROPERTY, RANGE };
+    using FieldExpTuple =
+        std::tuple<std::shared_ptr<Prefix>, Identifier, minilua::Range, GEN_CAUSE>;
+    enum TupleIndex { TABLE, PROPERTY, RANGE, CAUSE };
     std::variant<ts::Node, FieldExpTuple> content;
 
 public:
     explicit FieldExpression(ts::Node);
-    explicit FieldExpression(const Prefix&, const Identifier&, minilua::Range);
+    explicit FieldExpression(const Prefix&, const Identifier&, minilua::Range, GEN_CAUSE);
     /**
      *
      * @return a Prefix containing the Identifier for the table
@@ -465,14 +464,14 @@ using VarDecVariant = std::variant<Identifier, FieldExpression, TableIndex>;
  * class for variable_declarator nodes
  */
 class VariableDeclarator {
-    using VDTuple = std::tuple<VarDecVariant, Range>;
-    enum TupleIndex { VD_VARIANT, RANGE };
+    using VDTuple = std::tuple<VarDecVariant, minilua::Range, GEN_CAUSE>;
+    enum TupleIndex { VD_VARIANT, RANGE, CAUSE };
     std::variant<ts::Node, VDTuple> content;
 
 public:
     explicit VariableDeclarator(ts::Node node);
-    explicit VariableDeclarator(const Identifier&);
-    explicit VariableDeclarator(const FieldExpression&);
+    explicit VariableDeclarator(const Identifier&, GEN_CAUSE);
+    explicit VariableDeclarator(const FieldExpression&, GEN_CAUSE);
     /**
      *
      * @return a variant containing the class this variable declarator gets resolved to
@@ -485,9 +484,9 @@ public:
  * class for variable_declaration and local_variable_declaration nodes
  */
 class VariableDeclaration {
-    using VDTuple =
-        std::tuple<std::vector<VariableDeclarator>, std::vector<Expression>, minilua::Range>;
-    enum TupleIndex { DECLARATORS, DECLARATIONS, RANGE };
+    using VDTuple = std::tuple<
+        std::vector<VariableDeclarator>, std::vector<Expression>, minilua::Range, GEN_CAUSE>;
+    enum TupleIndex { DECLARATORS, DECLARATIONS, RANGE, CAUSE };
     std::variant<ts::Node, VDTuple> content;
     bool local_dec;
 
@@ -495,7 +494,7 @@ public:
     explicit VariableDeclaration(ts::Node node);
     explicit VariableDeclaration(
         bool, const std::vector<VariableDeclarator>&, const std::vector<Expression>&,
-        minilua::Range);
+        minilua::Range, GEN_CAUSE);
     /**
      *
      * @return true if the declaration is local
@@ -577,13 +576,13 @@ public:
  * a class for parameter nodes
  */
 class Parameters {
-    using ParamTuple = std::tuple<std::vector<Identifier>, bool, minilua::Range>;
-    enum TupleIndex { IDENTIFIERS, SPREAD, RANGE };
+    using ParamTuple = std::tuple<std::vector<Identifier>, bool, minilua::Range, GEN_CAUSE>;
+    enum TupleIndex { IDENTIFIERS, SPREAD, RANGE, CAUSE };
     std::variant<ts::Node, ParamTuple> content;
 
 public:
     explicit Parameters(ts::Node);
-    explicit Parameters(const std::vector<Identifier>&, bool, minilua::Range);
+    explicit Parameters(const std::vector<Identifier>&, bool, minilua::Range, GEN_CAUSE);
     /**
      *
      * @return a vector containing all parameters excluding a potential spread
@@ -600,13 +599,13 @@ public:
  * class for function_definition nodes
  */
 class FunctionDefinition {
-    using FuncDefTuple = std::tuple<Parameters, std::shared_ptr<Body>, minilua::Range>;
-    enum TupleIndex { PARAMETERS, BODY, RANGE };
+    using FuncDefTuple = std::tuple<Parameters, std::shared_ptr<Body>, minilua::Range, GEN_CAUSE>;
+    enum TupleIndex { PARAMETERS, BODY, RANGE, CAUSE };
     std::variant<ts::Node, FuncDefTuple> content;
 
 public:
     explicit FunctionDefinition(ts::Node);
-    explicit FunctionDefinition(const Parameters&, const Body&, minilua::Range);
+    explicit FunctionDefinition(const Parameters&, const Body&, minilua::Range, GEN_CAUSE);
     /**
      *
      * @return a body containing all statements of this function
@@ -651,16 +650,16 @@ public:
 };
 class FunctionCall {
     using FuncCallTuple = std::tuple<
-        std::shared_ptr<Prefix>, std::optional<Identifier>, std::vector<Expression>,
-        minilua::Range>;
-    enum TupleIndex { PREFIX, METHOD, ARGS, RANGE };
+        std::shared_ptr<Prefix>, std::optional<Identifier>, std::vector<Expression>, minilua::Range,
+        GEN_CAUSE>;
+    enum TupleIndex { PREFIX, METHOD, ARGS, RANGE, CAUSE };
     std::variant<ts::Node, FuncCallTuple> content;
 
 public:
     explicit FunctionCall(ts::Node);
     explicit FunctionCall(
         const Prefix&, const std::optional<Identifier>&, const std::vector<Expression>&,
-        minilua::Range);
+        minilua::Range, GEN_CAUSE);
     /**
 const      *
      * @return
@@ -726,14 +725,14 @@ using PrefixVariant = std::variant<Self, VariableDeclarator, FunctionCall, Expre
 class Prefix {
     using modifiedPrefixVariant =
         std::variant<Self, VariableDeclarator, FunctionCall, std::shared_ptr<Expression>>;
-    using PrefixTuple = std::tuple<modifiedPrefixVariant, minilua::Range>;
-    enum TupleIndex { PFX_VARIANT, RANGE };
+    using PrefixTuple = std::tuple<modifiedPrefixVariant, minilua::Range, GEN_CAUSE>;
+    enum TupleIndex { PFX_VARIANT, RANGE, CAUSE };
     std::variant<ts::Node, PrefixTuple> content;
 
 public:
     explicit Prefix(ts::Node);
-    explicit Prefix(const VariableDeclarator&);
-    explicit Prefix(const FunctionCall&);
+    explicit Prefix(const VariableDeclarator&, GEN_CAUSE);
+    explicit Prefix(const FunctionCall&, GEN_CAUSE);
     /**
      *
      * @return a variant containing the class this Prefix gets resolved to

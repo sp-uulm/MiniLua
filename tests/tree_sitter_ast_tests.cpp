@@ -405,7 +405,7 @@ TEST_CASE("for_in_statements", "[tree-sitter]") {
 }
 TEST_CASE("function_statements", "[tree-sitter]") {
     ts::Parser parser(ts::LUA_LANGUAGE);
-    std::string source = "function foo (a,b,c)\n"
+    std::string source = "function foo.foo.foo (a,b,c)\n"
                          "  1+1\n"
                          "  return 3+3,2+2,a,b,c,d \n"
                          "end\n"

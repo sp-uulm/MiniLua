@@ -103,6 +103,7 @@ TEST_CASE("unit_tests lua files") {
         "literals/table.lua",
         "expressions/binary_operations.lua",
         "expressions/unary_operations.lua",
+        "statements/for_loops.lua",
         "statements/if.lua",
         "statements/while.lua",
         "statements/repeat_until.lua",
@@ -117,7 +118,7 @@ TEST_CASE("unit_tests lua files") {
             // TODO remove once comments work
             std::string program = read_input_from_file(path);
 
-            while (true) {
+            /*while (true) {
                 auto start_pos = program.find("--");
                 if (start_pos == std::string::npos) {
                     break;
@@ -130,7 +131,7 @@ TEST_CASE("unit_tests lua files") {
 
                 auto count = end_pos - start_pos + 1;
                 program.replace(start_pos, count, "");
-            }
+            }*/
 
             minilua::Interpreter interpreter;
             REQUIRE(interpreter.parse(program));

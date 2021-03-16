@@ -23,10 +23,13 @@ static auto convert_range(ts::Range range) -> Range {
 auto operator<<(std::ostream& os, const GEN_CAUSE& cause) -> std::ostream& {
     switch (cause) {
     case FOR_LOOP_DESUGAR:
-        os << "desugar";
+        os << "for_statement desugaring";
+        break;
     case FOR_IN_LOOP_DESUGAR:
+        os << "for_in_statement desugaring";
         break;
     case FUNCTION_STATEMENT_DESUGAR:
+        os << "function_statement desugaring";
         break;
     case PLACEHOLDER:
         break;
@@ -41,7 +44,7 @@ static auto ast_class_to_string(const std::string& name, minilua::Range range) -
 static auto ast_class_to_string(const std::string& name, minilua::Range range, GEN_CAUSE cause)
     -> std::string {
     std::stringstream ss;
-    ss << "(" << name << " " << range << "generated cause:" << cause << ")";
+    ss << "(" << name << " " << range << "generated for " << cause << ")";
     return ss.str();
 }
 static auto
@@ -108,8 +111,8 @@ Identifier::Identifier(ts::Node node) : content(node) {
         throw std::runtime_error("not an identifier node" + std::to_string(node.type_id()));
     }
 }
-Identifier::Identifier(const std::string& str, Range range)
-    : content(std::make_tuple(str, range)) {}
+Identifier::Identifier(const std::string& str, Range range, GEN_CAUSE cause)
+    : content(std::make_tuple(str, range, cause)) {}
 auto Identifier::string() const -> std::string {
     return std::visit(
         overloaded{
@@ -127,9 +130,9 @@ auto Identifier::range() const -> minilua::Range {
 auto Identifier::debug_print() const -> std::string {
     return std::visit(
         overloaded{
-            [this](const IdTuple& /*tuple*/) {
+            [this](const IdTuple& tuple) {
                 return ast_class_to_string(
-                    "identifier", this->range(), this->string(), GEN_CAUSE::FOR_LOOP_DESUGAR);
+                    "identifier", this->range(), this->string(), std::get<CAUSE>(tuple));
             },
             [this](ts::Node /*node*/) {
                 return ast_class_to_string("identifier", this->range(), this->string());
@@ -155,10 +158,11 @@ BinaryOperation::BinaryOperation(ts::Node node) : content(node) {
     assert(node.child_count() == 3);
 }
 BinaryOperation::BinaryOperation(
-    const Expression& left, BinOpEnum op_enum, const Expression& right, minilua::Range range)
+    const Expression& left, BinOpEnum op_enum, const Expression& right, minilua::Range range,
+    GEN_CAUSE cause)
     : content(std::make_tuple(
-          std::make_shared<Expression>(left), op_enum, std::make_shared<Expression>(right),
-          range)) {}
+          std::make_shared<Expression>(left), op_enum, std::make_shared<Expression>(right), range,
+          cause)) {}
 auto BinaryOperation::left() const -> Expression {
     return std::visit(
         overloaded{
@@ -237,9 +241,9 @@ auto BinaryOperation::range() const -> minilua::Range {
 auto BinaryOperation::debug_print() const -> std::string {
     return std::visit(
         overloaded{
-            [this](const BinOpTuple& /*tuple*/) {
+            [this](const BinOpTuple& tuple) {
                 return ast_class_to_string(
-                    "binary_operation", this->range(), GEN_CAUSE::PLACEHOLDER);
+                    "binary_operation", this->range(), std::get<CAUSE>(tuple));
             },
             [this](ts::Node /*node*/) {
                 return ast_class_to_string("binary_operation", this->range());
@@ -253,8 +257,9 @@ UnaryOperation::UnaryOperation(ts::Node node) : content(node) {
     }
     assert(node.child_count() == 2);
 }
-UnaryOperation::UnaryOperation(UnOpEnum op_enum, const Expression& exp, minilua::Range range)
-    : content(std::make_tuple(op_enum, std::make_shared<Expression>(exp), range)) {}
+UnaryOperation::UnaryOperation(
+    UnOpEnum op_enum, const Expression& exp, minilua::Range range, GEN_CAUSE cause)
+    : content(std::make_tuple(op_enum, std::make_shared<Expression>(exp), range, cause)) {}
 auto UnaryOperation::unary_operator() const -> UnOpEnum {
     return std::visit(
         overloaded{
@@ -295,7 +300,7 @@ auto UnaryOperation::debug_print() const -> std::string {
         overloaded{
             [class_name](UnOpTuple tuple) {
                 return ast_class_to_string(
-                    class_name, std::get<RANGE>(tuple), GEN_CAUSE::PLACEHOLDER);
+                    class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
             },
             [class_name](ts::Node node) {
                 return ast_class_to_string(class_name, convert_range(node.range()));
@@ -419,9 +424,10 @@ WhileStatement::WhileStatement(ts::Node node) : content(node) {
         node.named_child(0).has_value() &&
         node.named_child(0).value().type_id() == ts::NODE_CONDITION_EXPRESSION);
 }
-WhileStatement::WhileStatement(const Expression& cond, const Body& body, minilua::Range range)
+WhileStatement::WhileStatement(
+    const Expression& cond, const Body& body, minilua::Range range, GEN_CAUSE cause)
     : content(std::make_tuple(
-          std::make_shared<Expression>(cond), std::make_shared<Body>(body), range)) {}
+          std::make_shared<Expression>(cond), std::make_shared<Body>(body), range, cause)) {}
 auto WhileStatement::body() const -> Body {
     return std::visit(
         overloaded{
@@ -456,7 +462,7 @@ auto WhileStatement::debug_print() const -> std::string {
         overloaded{
             [class_name](WhileTuple tuple) {
                 return ast_class_to_string(
-                    class_name, std::get<RANGE>(tuple), GEN_CAUSE::PLACEHOLDER);
+                    class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
             },
             [class_name](ts::Node node) {
                 return ast_class_to_string(class_name, convert_range(node.range()));
@@ -500,9 +506,10 @@ IfStatement::IfStatement(ts::Node node) : content(node) {
         node.named_child(0).has_value() &&
         node.named_child(0).value().type_id() == ts::NODE_CONDITION_EXPRESSION);
 }
-IfStatement::IfStatement(const Expression& cond, const Body& body, minilua::Range range)
+IfStatement::IfStatement(
+    const Expression& cond, const Body& body, minilua::Range range, GEN_CAUSE cause)
     : content(std::make_tuple(
-          std::make_shared<Expression>(cond), std::make_shared<Body>(body), range)) {}
+          std::make_shared<Expression>(cond), std::make_shared<Body>(body), range, cause)) {}
 auto IfStatement::condition() const -> Expression {
     return std::visit(
         overloaded{
@@ -523,7 +530,7 @@ auto IfStatement::else_statement() const -> std::optional<Else> {
                     return std::nullopt;
                 }
             },
-            [](const IfTuple& /*tuple*/) -> std::optional<Else> { return nullopt; }},
+            [](const IfTuple& /*tuple*/) -> std::optional<Else> { return std::nullopt; }},
         this->content);
 }
 auto IfStatement::elseifs() const -> std::vector<ElseIf> {
@@ -595,7 +602,7 @@ auto IfStatement::debug_print() const -> std::string {
         overloaded{
             [class_name](IfTuple tuple) {
                 return ast_class_to_string(
-                    class_name, std::get<RANGE>(tuple), GEN_CAUSE::PLACEHOLDER);
+                    class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
             },
             [class_name](ts::Node node) {
                 return ast_class_to_string(class_name, convert_range(node.range()));
@@ -664,8 +671,8 @@ VariableDeclaration::VariableDeclaration(ts::Node node) : content(node) {
 }
 VariableDeclaration::VariableDeclaration(
     bool local, const std::vector<VariableDeclarator>& v_declarators,
-    const std::vector<Expression>& v_declarations, minilua::Range range)
-    : content(std::make_tuple(v_declarators, v_declarations, range)), local_dec(local) {}
+    const std::vector<Expression>& v_declarations, minilua::Range range, GEN_CAUSE cause)
+    : content(std::make_tuple(v_declarators, v_declarations, range, cause)), local_dec(local) {}
 auto VariableDeclaration::declarations() const -> std::vector<Expression> {
     return std::visit(
         overloaded{
@@ -739,7 +746,7 @@ auto VariableDeclaration::debug_print() const -> std::string {
         overloaded{
             [class_name](VDTuple tuple) {
                 return ast_class_to_string(
-                    class_name, std::get<RANGE>(tuple), GEN_CAUSE::PLACEHOLDER);
+                    class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
             },
             [class_name](ts::Node node) {
                 return ast_class_to_string(class_name, convert_range(node.range()));
@@ -754,10 +761,10 @@ VariableDeclarator::VariableDeclarator(ts::Node node) : content(node) {
         throw std::runtime_error("not a variable declarator");
     }
 }
-VariableDeclarator::VariableDeclarator(const Identifier& id)
-    : content(std::make_tuple(id, id.range())) {}
-VariableDeclarator::VariableDeclarator(const FieldExpression& fe)
-    : content(std::make_tuple(fe, fe.range())) {}
+VariableDeclarator::VariableDeclarator(const Identifier& id, GEN_CAUSE cause)
+    : content(std::make_tuple(id, id.range(), cause)) {}
+VariableDeclarator::VariableDeclarator(const FieldExpression& fe, GEN_CAUSE cause)
+    : content(std::make_tuple(fe, fe.range(), cause)) {}
 auto VariableDeclarator::options() const -> std::variant<Identifier, FieldExpression, TableIndex> {
     return std::visit(
         overloaded{
@@ -802,7 +809,7 @@ auto VariableDeclarator::debug_print() const -> std::string {
             overloaded{
                 [class_name, id_text](VDTuple tuple) {
                     return ast_class_to_string(
-                        class_name, std::get<RANGE>(tuple), id_text, GEN_CAUSE::PLACEHOLDER);
+                        class_name, std::get<RANGE>(tuple), id_text, std::get<CAUSE>(tuple));
                 },
                 [class_name, id_text](ts::Node node) {
                     return ast_class_to_string(class_name, convert_range(node.range()), id_text);
@@ -813,7 +820,7 @@ auto VariableDeclarator::debug_print() const -> std::string {
             overloaded{
                 [class_name](VDTuple tuple) {
                     return ast_class_to_string(
-                        class_name, std::get<RANGE>(tuple), GEN_CAUSE::PLACEHOLDER);
+                        class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
                 },
                 [class_name](ts::Node node) {
                     return ast_class_to_string(class_name, convert_range(node.range()));
@@ -848,8 +855,8 @@ DoStatement::DoStatement(ts::Node node) : content(node) {
         throw std::runtime_error("not a do_statement node");
     }
 }
-DoStatement::DoStatement(const Body& body, minilua::Range range)
-    : content(std::make_tuple(std::make_shared<Body>(body), range)) {}
+DoStatement::DoStatement(const Body& body, minilua::Range range, GEN_CAUSE cause)
+    : content(std::make_tuple(std::make_shared<Body>(body), range, cause)) {}
 auto DoStatement::body() const -> Body {
     return std::visit(
         overloaded{
@@ -865,14 +872,17 @@ auto DoStatement::range() const -> minilua::Range {
         this->content);
 }
 auto DoStatement::debug_print() const -> std::string {
-    stringstream ss;
-    ss << "(do_statement " << range();
-    if (holds_alternative<DoTuple>(this->content)) {
-        ss << " artificially generated"
-           << "desugar";
-    };
-    ss << ")";
-    return ss.str();
+    std::string class_name = "do_statement";
+    return std::visit(
+        overloaded{
+            [class_name](ts::Node node) {
+                return ast_class_to_string(class_name, convert_range(node.range()));
+            },
+            [class_name](DoTuple tuple) {
+                return ast_class_to_string(
+                    class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
+            }},
+        this->content);
 }
 
 // FieldExpression
@@ -883,8 +893,8 @@ FieldExpression::FieldExpression(ts::Node node) : content(node) {
     assert(node.named_child_count() == 2);
 }
 FieldExpression::FieldExpression(
-    const Prefix& prefix, const Identifier& identifier, minilua::Range range)
-    : content(std::make_tuple(std::make_shared<Prefix>(prefix), identifier, range)) {}
+    const Prefix& prefix, const Identifier& identifier, minilua::Range range, GEN_CAUSE cause)
+    : content(std::make_tuple(std::make_shared<Prefix>(prefix), identifier, range, cause)) {}
 auto FieldExpression::table_id() const -> Prefix {
     return std::visit(
         overloaded{
@@ -912,7 +922,7 @@ auto FieldExpression::debug_print() const -> std::string {
         overloaded{
             [class_name](FieldExpTuple tuple) {
                 return ast_class_to_string(
-                    class_name, std::get<RANGE>(tuple), GEN_CAUSE::PLACEHOLDER);
+                    class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
             },
             [class_name](ts::Node node) {
                 return ast_class_to_string(class_name, convert_range(node.range()));
@@ -951,8 +961,9 @@ Parameters::Parameters(ts::Node node) : content(node) {
         throw std::runtime_error("not a parameters node");
     }
 }
-Parameters::Parameters(const std::vector<Identifier>& params, bool spread, minilua::Range range)
-    : content(std::make_tuple(params, spread, range)) {}
+Parameters::Parameters(
+    const std::vector<Identifier>& params, bool spread, minilua::Range range, GEN_CAUSE cause)
+    : content(std::make_tuple(params, spread, range, cause)) {}
 auto Parameters::spread() const -> bool {
     return std::visit(
         overloaded{
@@ -1006,7 +1017,7 @@ auto Parameters::debug_print() const -> std::string {
         overloaded{
             [class_name](ParamTuple tuple) {
                 return ast_class_to_string(
-                    class_name, std::get<RANGE>(tuple), GEN_CAUSE::PLACEHOLDER);
+                    class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
             },
             [class_name](ts::Node node) {
                 return ast_class_to_string(class_name, convert_range(node.range()));
@@ -1062,8 +1073,8 @@ FunctionDefinition::FunctionDefinition(ts::Node node) : content(node) {
     }
 }
 FunctionDefinition::FunctionDefinition(
-    const Parameters& params, const Body& body, minilua::Range range)
-    : content(std::tuple(params, std::make_shared<Body>(body), range)) {}
+    const Parameters& params, const Body& body, minilua::Range range, GEN_CAUSE cause)
+    : content(std::tuple(params, std::make_shared<Body>(body), range, cause)) {}
 auto FunctionDefinition::parameters() const -> Parameters {
     return std::visit(
         overloaded{
@@ -1094,7 +1105,7 @@ auto FunctionDefinition::debug_print() const -> std::string {
         overloaded{
             [class_name](FuncDefTuple tuple) {
                 return ast_class_to_string(
-                    class_name, std::get<RANGE>(tuple), GEN_CAUSE::PLACEHOLDER);
+                    class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
             },
             [class_name](ts::Node node) {
                 return ast_class_to_string(class_name, convert_range(node.range()));
@@ -1136,8 +1147,8 @@ FunctionCall::FunctionCall(ts::Node node) : content(node) {
 }
 FunctionCall::FunctionCall(
     const Prefix& pfx, const std::optional<Identifier>& method, const std::vector<Expression>& args,
-    minilua::Range range)
-    : content(std::make_tuple(std::make_shared<Prefix>(pfx), method, args, range)) {}
+    minilua::Range range, GEN_CAUSE cause)
+    : content(std::make_tuple(std::make_shared<Prefix>(pfx), method, args, range, cause)) {}
 auto FunctionCall::method() const -> std::optional<Identifier> {
     return std::visit(
         overloaded{
@@ -1187,7 +1198,7 @@ auto FunctionCall::debug_print() const -> std::string {
         overloaded{
             [class_name](FuncCallTuple tuple) {
                 return ast_class_to_string(
-                    class_name, std::get<RANGE>(tuple), GEN_CAUSE::PLACEHOLDER);
+                    class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
             },
             [class_name](ts::Node node) {
                 return ast_class_to_string(class_name, convert_range(node.range()));
@@ -1252,8 +1263,10 @@ Prefix::Prefix(ts::Node node) : content(node) {
         throw std::runtime_error("Not a prefix-node");
     }
 }
-Prefix::Prefix(const VariableDeclarator& vd) : content(std::make_tuple(vd, vd.range())) {}
-Prefix::Prefix(const FunctionCall& fc) : content(std::make_tuple(fc, fc.range())) {}
+Prefix::Prefix(const VariableDeclarator& vd, GEN_CAUSE cause)
+    : content(std::make_tuple(vd, vd.range(), cause)) {}
+Prefix::Prefix(const FunctionCall& fc, GEN_CAUSE cause)
+    : content(std::make_tuple(fc, fc.range(), cause)) {}
 auto Prefix::options() const -> PrefixVariant {
     return std::visit(
         overloaded{
@@ -1300,7 +1313,7 @@ auto Prefix::debug_print() const -> std::string {
         overloaded{
             [class_name](PrefixTuple tuple) {
                 return ast_class_to_string(
-                    class_name, std::get<RANGE>(tuple), GEN_CAUSE::PLACEHOLDER);
+                    class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
             },
             [class_name](ts::Node node) {
                 return ast_class_to_string(class_name, convert_range(node.range()));
@@ -1340,12 +1353,13 @@ Expression::Expression(ts::Node node) : content(node) {
         throw std::runtime_error("Not an expression-node");
     }
 }
-Expression::Expression(const UnaryOperation& un) : content(make_tuple(un, un.range())) {}
-Expression::Expression(const BinaryOperation& bin) : content(make_tuple(bin, bin.range())) {}
-Expression::Expression(const FunctionDefinition& fd) : content(make_tuple(fd, fd.range())) {}
-Expression::Expression(const Literal& literal) : content(make_tuple(literal, literal.range())) {}
-Expression::Expression(const Identifier& id) : content(make_tuple(id, id.range())) {}
-Expression::Expression(const Prefix& pfx) : content(make_tuple(pfx, pfx.range())) {}
+Expression::Expression(const UnaryOperation& un) : content(std::make_tuple(un, un.range())) {}
+Expression::Expression(const BinaryOperation& bin) : content(std::make_tuple(bin, bin.range())) {}
+Expression::Expression(const FunctionDefinition& fd) : content(std::make_tuple(fd, fd.range())) {}
+Expression::Expression(const Literal& literal)
+    : content(std::make_tuple(literal, literal.range())) {}
+Expression::Expression(const Identifier& id) : content(std::make_tuple(id, id.range())) {}
+Expression::Expression(const Prefix& pfx) : content(std::make_tuple(pfx, pfx.range())) {}
 auto Expression::options() const -> ExpressionVariant {
     return std::visit(
         overloaded{
@@ -1477,16 +1491,16 @@ Statement::Statement(ts::Node node) : content(node) {
     }
 }
 Statement::Statement(const IfStatement& if_statement)
-    : content(make_tuple(if_statement, if_statement.range())) {}
+    : content(std::make_tuple(if_statement, if_statement.range())) {}
 Statement::Statement(const FunctionCall& func_call)
-    : content(make_tuple(func_call, func_call.range())) {}
+    : content(std::make_tuple(func_call, func_call.range())) {}
 Statement::Statement(const WhileStatement& while_statement)
-    : content(make_tuple(while_statement, while_statement.range())) {}
+    : content(std::make_tuple(while_statement, while_statement.range())) {}
 Statement::Statement(const VariableDeclaration& var_dec)
-    : content(make_tuple(var_dec, var_dec.range())) {}
+    : content(std::make_tuple(var_dec, var_dec.range())) {}
 Statement::Statement(const DoStatement& do_statement)
-    : content(make_tuple(do_statement, do_statement.range())) {}
-Statement::Statement(const Break& bk, minilua::Range range) : content(make_tuple(bk, range)) {}
+    : content(std::make_tuple(do_statement, do_statement.range())) {}
+Statement::Statement(const Break& bk, minilua::Range range) : content(std::make_tuple(bk, range)) {}
 auto Statement::options() const -> StatementVariant {
     return std::visit(
         overloaded{
