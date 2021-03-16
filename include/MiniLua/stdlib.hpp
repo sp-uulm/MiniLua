@@ -34,7 +34,7 @@ void error(const CallContext& ctx);
  *
  * If the function raise an error this function returns two values: `true` and
  * the error message. If the function does not raise an error this function will
- * return `true` and all return values of the called functions.
+ * return `false` and all return values of the called functions.
  *
  * \note The source changes from a called function will only be forwarded if no error
  * was raised.
