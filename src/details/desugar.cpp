@@ -15,26 +15,19 @@ auto ForStatement::desugar() const -> DoStatement {
     Prefix to_number_prefix = Prefix(
         VariableDeclarator(Identifier("to_number", le_range, gen_cause), gen_cause), gen_cause);
     FunctionCall start_to_number = FunctionCall(
-        to_number_prefix, std::nullopt,
-        std::vector<Expression>{
-            loop_exp.start()},
-        le_range, gen_cause);
+        to_number_prefix, std::nullopt, std::vector<Expression>{loop_exp.start()}, le_range,
+        gen_cause);
     auto start_exp = Expression(Prefix(start_to_number, gen_cause));
     FunctionCall end_to_number = FunctionCall(
-        to_number_prefix, std::nullopt,
-        std::vector<Expression>{
-            loop_exp.end()},
-        le_range, gen_cause);
+        to_number_prefix, std::nullopt, std::vector<Expression>{loop_exp.end()}, le_range,
+        gen_cause);
     auto end_exp = Expression(Prefix(end_to_number, gen_cause));
     if (loop_exp.step().has_value()) {
         FunctionCall step_to_number = FunctionCall(
-            to_number_prefix, std::nullopt,
-            std::vector<Expression>{
-                loop_exp.step().value()},
+            to_number_prefix, std::nullopt, std::vector<Expression>{loop_exp.step().value()},
             le_range, gen_cause);
         auto step_exp = Expression(Prefix(step_to_number, gen_cause));
-        declarations =
-            std::vector<Expression>{start_exp, end_exp, step_exp};
+        declarations = std::vector<Expression>{start_exp, end_exp, step_exp};
     } else {
         Literal lit = Literal(LiteralType::NUMBER, "1", loop_exp.range());
         declarations = std::vector<Expression>{start_exp, end_exp, Expression(lit)};
@@ -118,7 +111,7 @@ auto identifier_vector_to_variable_declarator(
             current_fe = FieldExpression(
                 Prefix(VariableDeclarator(current_fe, gen_cause), gen_cause), *iterator, range,
                 gen_cause);
-            iterator ++;
+            iterator++;
         }
         return VariableDeclarator(current_fe, gen_cause);
     }
