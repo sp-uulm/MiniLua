@@ -793,17 +793,18 @@ TEST_CASE("comment_test", "[tree-sitter]") {
     auto operand_right = std::get_if<Identifier>(&operand_right_opt);
     CHECK(operand_right->string() == "b"s);
 }
-static auto count_nested_fes(VariableDeclarator vd) -> int{
+// helper function
+static auto count_nested_fes(VariableDeclarator vd) -> int {
     int count = 0;
     auto current_vd = vd;
-    while(true){
+    while (true) {
         auto var1 = current_vd.options();
-        if(std::holds_alternative<Identifier>(var1)){
-            count ++;
+        if (std::holds_alternative<Identifier>(var1)) {
+            count++;
             return count;
         }
         auto fe = std::get_if<FieldExpression>(&var1);
-        count ++;
+        count++;
         auto pfx = fe->table_id();
         auto var2 = pfx.options();
         current_vd = *std::get_if<VariableDeclarator>(&var2);
@@ -837,19 +838,19 @@ TEST_CASE("desugar_function_statements", "[tree-sitter]") {
     std::vector<FunctionDefinition> func_defs;
     std::vector<VariableDeclaration> declarations;
 
-    for(auto it = func.begin();it!=func.end();it++){
+    for (auto it = func.begin(); it != func.end(); it++) {
         auto var_declaration = it->desugar();
         declarations.push_back(var_declaration);
-        CHECK(var_declaration.declarations().size()==1);
-        CHECK(var_declaration.declarators().size()==1);
+        CHECK(var_declaration.declarations().size() == 1);
+        CHECK(var_declaration.declarators().size() == 1);
         var_decs.push_back(var_declaration.declarators()[0]);
         auto exp_variant = var_declaration.declarations()[0].options();
         CHECK(std::holds_alternative<FunctionDefinition>(exp_variant));
         func_defs.push_back(*std::get_if<FunctionDefinition>(&exp_variant));
     }
-    //check local
-    for(int i = 0;i < 4;i++){
-        switch(i){
+    // check local
+    for (int i = 0; i < 4; i++) {
+        switch (i) {
         case 0:
         case 1:
         case 2:
@@ -860,15 +861,15 @@ TEST_CASE("desugar_function_statements", "[tree-sitter]") {
             break;
         }
     }
-    //check parameters
-    for(int i = 0;i < 4;i++){
-        switch(i){
+    // check parameters
+    for (int i = 0; i < 4; i++) {
+        switch (i) {
         case 0:
             CHECK(func_defs[i].parameters().params().size() == 1);
             break;
         case 1:
             CHECK(func_defs[i].parameters().params().size() == 1);
-            CHECK(func_defs[i].parameters().params()[0].string()=="self");
+            CHECK(func_defs[i].parameters().params()[0].string() == "self");
             break;
         case 2:
             CHECK(func_defs[i].parameters().params().size() == 4);
@@ -878,9 +879,9 @@ TEST_CASE("desugar_function_statements", "[tree-sitter]") {
             break;
         }
     }
-    //check spread
-    for(int i = 0;i < 4;i++){
-        switch(i){
+    // check spread
+    for (int i = 0; i < 4; i++) {
+        switch (i) {
         case 0:
         case 1:
             CHECK(!func_defs[i].parameters().spread());
@@ -891,9 +892,9 @@ TEST_CASE("desugar_function_statements", "[tree-sitter]") {
             break;
         }
     }
-    //check name
-    for(int i = 0;i < 4;i++){
-        switch(i){
+    // check name
+    for (int i = 0; i < 4; i++) {
+        switch (i) {
         case 0:
             CHECK(count_nested_fes(var_decs[i]) == 5);
             break;
