@@ -329,8 +329,7 @@ auto Interpreter::visit_statement(ast::Statement statement, Env& env) -> EvalRes
             [this, &env](ast::Break node) { return this->visit_break_statement(); },
             [this, &env](ast::Label node) -> EvalResult { throw UNIMPLEMENTED("label"); },
             [this, &env](ast::FunctionStatement node) {
-                // TODO desugar this to variable and assignment
-                return this->visit_function_statement(node, env);
+                return this->visit_variable_declaration(node.desugar(), env);
             },
             [this, &env](ast::FunctionCall node) -> EvalResult {
                 return this->visit_function_call(node, env);
@@ -742,7 +741,7 @@ auto Interpreter::visit_function_expression(ast::FunctionDefinition function_def
 }
 
 // TODO remove once we can desugar function statements
-auto Interpreter::visit_function_statement(ast::FunctionStatement function_statement, Env& env)
+/*auto Interpreter::visit_function_statement(ast::FunctionStatement function_statement, Env& env)
     -> EvalResult {
     auto _ = NodeTracer(this, function_statement.debug_print(), "visit_function_statement");
 
@@ -776,7 +775,7 @@ auto Interpreter::visit_function_statement(ast::FunctionStatement function_state
     env.set_global(ident, func);
 
     return result;
-}
+}*/
 
 auto Interpreter::visit_table_index(ast::TableIndex table_index, Env& env) -> EvalResult {
     auto _ = NodeTracer(this, table_index.debug_print(), "visit_table_index");

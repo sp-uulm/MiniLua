@@ -14,18 +14,30 @@ auto ForStatement::desugar() const -> DoStatement {
     std::vector<Expression> declarations;
     Prefix to_number_prefix = Prefix(
         VariableDeclarator(Identifier("to_number", le_range, gen_cause), gen_cause), gen_cause);
-    FunctionCall to_number = FunctionCall(
+    FunctionCall start_to_number = FunctionCall(
         to_number_prefix, std::nullopt,
         std::vector<Expression>{
-            loop_exp.start(), Expression(Literal(LiteralType::NUMBER, "10", le_range))},
+            loop_exp.start()},
         le_range, gen_cause);
-    auto start_exp = Expression(Prefix(to_number, gen_cause));
+    auto start_exp = Expression(Prefix(start_to_number, gen_cause));
+    FunctionCall end_to_number = FunctionCall(
+        to_number_prefix, std::nullopt,
+        std::vector<Expression>{
+            loop_exp.end()},
+        le_range, gen_cause);
+    auto end_exp = Expression(Prefix(end_to_number, gen_cause));
     if (loop_exp.step().has_value()) {
+        FunctionCall step_to_number = FunctionCall(
+            to_number_prefix, std::nullopt,
+            std::vector<Expression>{
+                loop_exp.step().value()},
+            le_range, gen_cause);
+        auto step_exp = Expression(Prefix(step_to_number, gen_cause));
         declarations =
-            std::vector<Expression>{loop_exp.start(), loop_exp.end(), loop_exp.step().value()};
+            std::vector<Expression>{start_exp, end_exp, step_exp};
     } else {
         Literal lit = Literal(LiteralType::NUMBER, "1", loop_exp.range());
-        declarations = std::vector<Expression>{loop_exp.start(), loop_exp.end(), Expression(lit)};
+        declarations = std::vector<Expression>{start_exp, end_exp, Expression(lit)};
     }
     auto declarators = std::vector<VariableDeclarator>{
         VariableDeclarator(id_var, gen_cause), VariableDeclarator(id_limit, gen_cause),
@@ -91,7 +103,7 @@ auto ForStatement::desugar() const -> DoStatement {
     return DoStatement(do_body, this->range(), gen_cause);
 }
 auto identifier_vector_to_variable_declarator(
-    std::vector<Identifier> id_vec, minilua::Range range, GEN_CAUSE gen_cause)
+    std::vector<Identifier> id_vec, const minilua::Range& range, GEN_CAUSE gen_cause)
     -> VariableDeclarator {
     if (id_vec.empty()) {
         throw std::runtime_error("no empty vectors allowed in this method");
@@ -106,14 +118,13 @@ auto identifier_vector_to_variable_declarator(
             current_fe = FieldExpression(
                 Prefix(VariableDeclarator(current_fe, gen_cause), gen_cause), *iterator, range,
                 gen_cause);
+            iterator ++;
         }
         return VariableDeclarator(current_fe, gen_cause);
     }
-};
+}
 auto FunctionStatement::desugar() const -> VariableDeclaration {
     GEN_CAUSE gen_cause = FUNCTION_STATEMENT_DESUGAR;
-    FunctionDefinition fd =
-        FunctionDefinition(this->parameters(), this->body(), this->range(), gen_cause);
     auto id_vector = this->name().identifier();
     auto method_optional = this->name().method();
     if (method_optional.has_value()) {
@@ -158,7 +169,7 @@ auto ForInStatement::desugar() const -> DoStatement {
     auto ids = loop_expression().loop_vars();
     std::transform(
         ids.begin(), ids.end(), std::back_inserter(declarators),
-        [gen_cause](Identifier id) { return VariableDeclarator(id, gen_cause); });
+        [gen_cause](const Identifier& id) { return VariableDeclarator(id, gen_cause); });
     /*W1*/ VariableDeclaration vd_2 = VariableDeclaration(
         true, declarators, std::vector<Expression>{Expression(Prefix(fc, gen_cause))}, le.range(),
         gen_cause);
