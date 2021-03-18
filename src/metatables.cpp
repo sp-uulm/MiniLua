@@ -89,10 +89,7 @@ auto call(const CallContext& ctx) -> CallResult {
             [&ctx](const Function& value) -> CallResult {
                 std::vector<Value> arguments(ctx.arguments().begin() + 1, ctx.arguments().end());
                 auto new_ctx = ctx.make_new(arguments, ctx.call_location());
-                auto x = value.call(new_ctx);
-                std::cerr << "mt::call: " << x << "\n";
-                std::cerr << "mt::call: " << x.values().get(0).origin() << "\n";
-                return x;
+                return value.call(new_ctx);
             },
             [](const auto& value) -> CallResult {
                 throw std::runtime_error(
