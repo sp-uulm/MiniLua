@@ -86,6 +86,7 @@ struct SourceChangeTest : BaseTest {
 TEST_CASE("lua file tests") {
     // collect files to test
     ftw(DIR, ftw_callback, 16); // NOLINT(readability-magic-numbers)
+    // test_files.push_back(DIR + "source_changes/3.lua"s);
 
     register_test(new SourceChangeTest());
     // TODO add other tests

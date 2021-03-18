@@ -89,7 +89,10 @@ auto call(const CallContext& ctx) -> CallResult {
             [&ctx](const Function& value) -> CallResult {
                 std::vector<Value> arguments(ctx.arguments().begin() + 1, ctx.arguments().end());
                 auto new_ctx = ctx.make_new(arguments, ctx.call_location());
-                return value.call(new_ctx);
+                auto x = value.call(new_ctx);
+                std::cerr << "mt::call: " << x << "\n";
+                std::cerr << "mt::call: " << x.values().get(0).origin() << "\n";
+                return x;
             },
             [](const auto& value) -> CallResult {
                 throw std::runtime_error(
@@ -148,8 +151,8 @@ static auto _binary_metamethod(
                 throw std::runtime_error(
                     "attempt to perform "s + op_kind + " on a table value (right)");
             },
-            [&location, &method](const auto& arg1, const auto& arg2) -> CallResult {
-                Value value = (Value(arg1).*method)(arg2, location);
+            [&location, &method, &arg1, &arg2](const auto&, const auto&) -> CallResult {
+                Value value = (arg1.*method)(arg2, location);
                 return CallResult({value});
             },
         },
