@@ -26,6 +26,28 @@ auto force(const CallContext& ctx) -> CallResult;
 
 void error(const CallContext& ctx);
 
+/**
+ * @brief Calls the given function with the given arguments and catches errors.
+ *
+ * Calls the given function (first argument) with the given arguments (rest of
+ * the arguments) and catches any errors.
+ *
+ * If the function raise an error this function returns two values: `false` and
+ * the error message. If the function does not raise an error this function will
+ * return `true` and all return values of the called functions.
+ *
+ * \note The source changes from a called function will only be forwarded if no error
+ * was raised.
+ */
+auto pcall(const CallContext& ctx) -> CallResult;
+
+/**
+ * @brief Converts the value to a string.
+ *
+ * Tables and functions will not return a meaningful string.
+ *
+ * Will respect the metamethod `__tostring`.
+ */
 auto to_string(const CallContext& ctx) -> Value;
 
 auto to_number(const CallContext& ctx) -> Value;

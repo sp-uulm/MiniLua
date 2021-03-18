@@ -12,6 +12,8 @@
 #include <vector>
 
 #include "MiniLua/environment.hpp"
+#include "MiniLua/interpreter.hpp"
+#include "MiniLua/source_change.hpp"
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/utils.hpp"
 #include "internal_env.hpp"
@@ -52,13 +54,17 @@ namespace details {
 
 void add_stdlib(Table& table) {
     table.set("tostring", to_string);
-    table.set("to_number", to_number);
+    table.set("tonumber", to_number);
     table.set("type", type);
     table.set("next", next);
     table.set("select", select);
     table.set("print", print);
     table.set("error", error);
+    table.set("pcall", pcall);
+
+    // non official lua stdlib items
     table.set("discard_origin", discard_origin);
+    table.set("force", force);
 }
 
 } // namespace details
@@ -67,6 +73,31 @@ void error(const CallContext& ctx) {
     // TODO implement level (we need a proper call stack for that)
     auto message = ctx.arguments().get(0);
     throw std::runtime_error(std::get<String>(message.to_string()).value);
+}
+
+auto pcall(const CallContext& ctx) -> CallResult {
+    // function to call
+    auto fun = ctx.arguments().get(0);
+
+    // rest of the arguments
+    std::vector<Value> args;
+    args.reserve(ctx.arguments().size() - 1);
+    std::move(ctx.arguments().begin() + 1, ctx.arguments().end(), std::back_inserter(args));
+
+    try {
+        auto call_result = fun.call(ctx.make_new(args));
+
+        // collect return values and put `true` in front of them
+        std::vector<Value> values;
+        values.reserve(call_result.values().size() + 1);
+        values.emplace_back(true);
+        std::move(
+            call_result.values().begin(), call_result.values().end(), std::back_inserter(values));
+
+        return CallResult(values, call_result.source_change());
+    } catch (const InterpreterException& e) {
+        return CallResult({false, String(e.what())});
+    }
 }
 
 auto to_string(const CallContext& ctx) -> Value {
