@@ -617,8 +617,12 @@ public:
      * @brief Try to get the value with the given key.
      *
      * If the value does not exist this will return `Nil`.
+     *
+     * \note This ignores metatables. If you want to consider metatables use
+     * `Value::index` and `Value::newindex`.
      */
-    auto get(const Value& key) -> Value;
+    [[nodiscard]] auto get(const Value& key) const -> Value;
+
     /**
      * @brief Check if the table has a value for the given key.
      *
@@ -627,6 +631,9 @@ public:
     auto has(const Value& key) -> bool;
     /**
      * @brief Sets the key to value.
+     *
+     * \note This ignores metatables. If you want to consider metatables use
+     * `Value::index` and `Value::newindex`.
      */
     void set(const Value& key, Value value);
     /**
@@ -685,6 +692,22 @@ public:
      * table. Else it returns the next index and its associated value.
      */
     [[nodiscard]] auto next(const Value& key) const -> Vallist;
+
+    /**
+     * @brief Returns the current metatable of this table.
+     */
+    [[nodiscard]] auto get_metatable() const -> std::optional<Table>;
+    /**
+     * @brief Sets the metatable of this table.
+     */
+    void set_metatable(std::optional<Table> metatable);
+
+    /**
+     * @brief Returns the metamethod or `Nil` if it or the metatable is not present.
+     *
+     * This will not check if the value is actually a function.
+     */
+    [[nodiscard]] auto get_metamethod(const std::string& metamethod) const -> Value;
 
     /**
      * @brief Equality comparions.
@@ -826,6 +849,38 @@ public:
      */
     [[nodiscard]] auto arguments() const -> const Vallist&;
 
+private:
+    [[nodiscard]] auto
+    _expect_argument(size_t index, std::vector<std::string_view> expected_types) const
+        -> const Value&;
+
+public:
+    /**
+     * @brief Helper to check required arguments.
+     *
+     * Usage:
+     *
+     * ```cpp
+     * Value table = ctx.expect_argument<Table>(0);
+     * Value nil_or_table = ctx.expect_argument<Nil, Table>(1);
+     * Value string_or_number = ctx.expect_argument<String, Number>(2);
+     * ```
+     *
+     * If the type does not match or the value is not present this method will
+     * throw a lua appropriate exception that looks something like this:
+     *
+     * ```
+     * bad argument #1 (table expected, got no value)
+     * ```
+     */
+    template <typename... Ts>
+    [[nodiscard]] auto expect_argument(size_t index) const -> const Value& {
+        std::vector<std::string_view> type_names;
+        (type_names.push_back(Ts::TYPE), ...);
+
+        return _expect_argument(index, type_names);
+    }
+
     /**
      * @brief Convenience method for writing unary numeric functions.
      *
@@ -923,6 +978,11 @@ public:
      * @brief Get the source change.
      */
     [[nodiscard]] auto source_change() const -> const std::optional<SourceChangeTree>&;
+
+    /**
+     * @brief Truncate the CallResult to max one value.
+     */
+    [[nodiscard]] auto one_value() const -> CallResult;
 };
 
 auto operator==(const CallResult&, const CallResult&) -> bool;
@@ -1633,12 +1693,16 @@ public:
      * @brief Access the value of a Table.
      *
      * If the value is not a Table this throws an exception.
+     *
+     * \note This will ignore metatables. See `mt:index`.
      */
     auto operator[](const Value&) -> Value&;
     /**
      * @brief Access the value of a Table.
      *
      * If the value is not a Table this throws an exception.
+     *
+     * \note This will ignore metatables. See `mt::index`.
      */
     auto operator[](const Value&) const -> const Value&;
 
@@ -1666,6 +1730,11 @@ public:
      * @brief Converts the value to a `String`.
      */
     [[nodiscard]] auto to_string(std::optional<Range> location = std::nullopt) const -> Value;
+
+    /**
+     * @brief Converts the value to a `Bool`.
+     */
+    [[nodiscard]] auto to_bool(std::optional<Range> location = std::nullopt) const -> Value;
 
     /*
      * @name Source location tracking versions of the c++ operators.

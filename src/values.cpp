@@ -279,6 +279,40 @@ auto CallContext::environment() const -> Environment& { return *impl->env; }
 auto CallContext::get(const std::string& name) const -> Value { return impl->env->get(name); }
 auto CallContext::arguments() const -> const Vallist& { return impl->args; }
 
+auto CallContext::_expect_argument(size_t index, std::vector<std::string_view> expected_types) const
+    -> const Value& {
+    std::string expected_types_string;
+    const char* sep = "";
+
+    if (expected_types.empty()) {
+        expected_types_string = "value";
+    } else {
+        for (const auto& type : expected_types) {
+            expected_types_string.append(sep);
+            expected_types_string.append(type);
+            sep = " or ";
+        }
+    }
+
+    if (this->arguments().size() <= index) {
+        throw std::runtime_error(
+            std::string("bad argument #") + std::to_string(index) + " (" + expected_types_string +
+            " expected, got no value)");
+    }
+
+    const Value& value = this->arguments().get(index);
+    auto actual_type = value.type();
+
+    if (std::find(expected_types.begin(), expected_types.end(), actual_type) ==
+        expected_types.end()) {
+        throw std::runtime_error(
+            std::string("bad argument #") + std::to_string(index) + " (" + expected_types_string +
+            " expected, got " + actual_type + ")");
+    }
+
+    return this->arguments().get(index);
+}
+
 static auto
 expect_number(const Value& value, std::optional<Range> call_location, const std::string& index)
     -> Value {
@@ -353,6 +387,16 @@ CallResult::CallResult(Vallist vallist, std::optional<SourceChangeTree> sc)
 [[nodiscard]] auto CallResult::values() const -> const Vallist& { return this->vallist; }
 [[nodiscard]] auto CallResult::source_change() const -> const std::optional<SourceChangeTree>& {
     return this->_source_change;
+}
+
+[[nodiscard]] auto CallResult::one_value() const -> CallResult {
+    if (this->vallist.size() > 1) {
+        CallResult result = *this;
+        result.vallist = Vallist(this->vallist.get(0));
+        return result;
+    } else {
+        return *this;
+    }
 }
 
 auto operator==(const CallResult& lhs, const CallResult& rhs) -> bool {
@@ -868,6 +912,11 @@ auto Value::to_string(std::optional<Range> location) const -> Value {
         this->raw());
 }
 
+auto Value::to_bool(std::optional<Range> location) const -> Value {
+    // TODO origin
+    return bool(*this);
+}
+
 template <typename Fn, typename FnRev>
 static inline auto num_op_helper(
     const Value& lhs, const Value& rhs, Fn op, std::string err_info, FnRev reverse,
@@ -886,10 +935,6 @@ static inline auto num_op_helper(
         overloaded{
             [op, &origin](const Number& lhs, const Number& rhs) -> Value {
                 return Value(op(lhs, rhs)).with_origin(origin);
-            },
-            [&origin](const Table& lhs, const Table& rhs) -> Value {
-                // TODO tables with metatables
-                throw std::runtime_error("unimplemented");
             },
             [&err_info](const auto& lhs, const auto& rhs) -> Value {
                 std::string msg = "Can not ";

@@ -7,8 +7,7 @@ namespace minilua {
 
 // struct Location
 auto operator<<(std::ostream& os, const Location& self) -> std::ostream& {
-    return os << "Location{ line = " << self.line << ", column = " << self.column
-              << ", byte = " << self.byte << " }";
+    return os << "Location{" << self.line << ":" << self.column << "(" << self.byte << ")}";
 }
 
 // struct Range
@@ -27,13 +26,12 @@ auto operator==(const Range& lhs, const Range& rhs) noexcept -> bool {
 }
 auto operator!=(const Range& lhs, const Range& rhs) noexcept -> bool { return !(lhs == rhs); }
 auto operator<<(std::ostream& os, const Range& self) -> std::ostream& {
-    os << "Range{ start = " << self.start << ", end = " << self.end << ", file = ";
+    os << "Range{" << self.start.line << ":" << self.start.column << "(" << self.start.byte << ")"
+       << "-" << self.end.line << ":" << self.end.column << "(" << self.end.byte << ")";
     if (self.file) {
-        os << "\"" << **self.file << "\"";
-    } else {
-        os << "nullopt";
+        os << " \"" << **self.file << "\"";
     }
-    return os << " }";
+    return os << "}";
 }
 
 // struct SourceChange
@@ -85,7 +83,7 @@ auto operator!=(const SourceChangeTree& lhs, const SourceChangeTree& rhs) noexce
     return !(lhs == rhs);
 }
 auto operator<<(std::ostream& os, const SourceChangeTree& self) -> std::ostream& {
-    os << "SourceChangeTree{ change = ";
+    os << "SourceChangeTree{";
     self.visit([&os](const auto& change) { os << change; });
     return os << " }";
 }
@@ -105,9 +103,21 @@ auto simplify(const std::optional<SourceChangeTree>& tree) -> std::optional<Sour
     }
 }
 
+auto combine_source_changes(
+    const std::optional<SourceChangeTree>& lhs, const std::optional<SourceChangeTree>& rhs)
+    -> std::optional<SourceChangeTree> {
+    if (lhs.has_value() && rhs.has_value()) {
+        return SourceChangeCombination({*lhs, *rhs});
+    } else if (lhs.has_value()) {
+        return lhs;
+    } else {
+        return rhs;
+    }
+}
+
 // struct SCSingle
 SourceChange::SourceChange(Range range, std::string replacement)
-    : range(range), replacement(std::move(replacement)) {}
+    : range(std::move(range)), replacement(std::move(replacement)) {}
 
 auto SourceChange::simplify() const -> SourceChange { return *this; }
 
@@ -119,8 +129,8 @@ auto operator!=(const SourceChange& lhs, const SourceChange& rhs) noexcept -> bo
     return !(lhs == rhs);
 }
 auto operator<<(std::ostream& os, const SourceChange& self) -> std::ostream& {
-    return os << "SourceChange{ range = " << self.range << ", replacement = \"" << self.replacement
-              << "\", origin = \"" << self.origin << "\", hint = \"" << self.hint << "\" }";
+    return os << "SourceChange{" << self.range << " => " << self.replacement << ", origin = \""
+              << self.origin << "\", hint = \"" << self.hint << "\"}";
 }
 
 // struct SCAnd
@@ -176,13 +186,13 @@ auto operator!=(const SourceChangeCombination& lhs, const SourceChangeCombinatio
     return !(lhs == rhs);
 }
 auto operator<<(std::ostream& os, const SourceChangeCombination& self) -> std::ostream& {
-    os << "SourceChangeCombination { ";
+    os << "SourceChangeCombination{";
     os << "origin = \"" << self.origin << "\", ";
     os << "hint = \"" << self.hint << "\"";
     for (const auto& change : self.changes) {
         os << ", " << change;
     }
-    return os << " }";
+    return os << "}";
 }
 
 // struct SCOr
@@ -243,13 +253,13 @@ auto operator!=(const SourceChangeAlternative& lhs, const SourceChangeAlternativ
     return !(lhs == rhs);
 }
 auto operator<<(std::ostream& os, const SourceChangeAlternative& self) -> std::ostream& {
-    os << "SourceChangeAlternative { ";
+    os << "SourceChangeAlternative{";
     os << "origin = \"" << self.origin << "\", ";
     os << "hint = \"" << self.hint << "\"";
     for (const auto& change : self.changes) {
         os << ", " << change;
     }
-    return os << " }";
+    return os << "}";
 }
 
 } // namespace minilua

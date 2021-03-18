@@ -62,8 +62,12 @@ void add_stdlib(Table& table) {
     table.set("error", error);
     table.set("pcall", pcall);
 
+    table.set("getmetatable", get_metatable);
+    table.set("setmetatable", set_metatable);
+
     // non official lua stdlib items
     table.set("discard_origin", discard_origin);
+    table.set("debug_print", debug_print);
     table.set("force", force);
 }
 
@@ -100,10 +104,23 @@ auto pcall(const CallContext& ctx) -> CallResult {
     }
 }
 
-auto to_string(const CallContext& ctx) -> Value {
+auto to_string(const CallContext& ctx) -> CallResult {
     auto arg = ctx.arguments().get(0);
 
-    return arg.to_string(ctx.call_location());
+    return std::visit(
+        overloaded{
+            [&arg, &ctx](const Table& table) -> CallResult {
+                auto metamethod = table.get_metamethod("__tostring");
+                if (metamethod.is_function()) {
+                    return metamethod.call(ctx);
+                } else {
+                    return CallResult({arg.to_string(ctx.call_location())});
+                }
+            },
+            [&arg, &ctx](const auto& /*unused*/) -> CallResult {
+                return CallResult({arg.to_string(ctx.call_location())});
+            }},
+        arg.raw());
 }
 
 auto to_number(const CallContext& ctx) -> Value {
@@ -189,19 +206,24 @@ auto select(const CallContext& ctx) -> Vallist {
         index.raw());
 }
 
-void print(const CallContext& ctx) {
+auto print(const CallContext& ctx) -> CallResult {
     auto* const stdout = ctx.environment().get_stdout();
     std::string gap;
 
-    for (const auto& arg : ctx.arguments()) {
-        const Value v = to_string(ctx.make_new({arg}));
+    std::optional<SourceChangeTree> source_changes;
 
-        if (v.is_string()) {
-            *stdout << gap << std::get<String>(v).value;
+    for (const auto& arg : ctx.arguments()) {
+        const CallResult result = to_string(ctx.make_new({arg}));
+        source_changes = combine_source_changes(source_changes, result.source_change());
+
+        if (result.values().get(0).is_string()) {
+            *stdout << gap << std::get<String>(result.values().get(0)).value;
             gap = "\t";
         }
     }
     *stdout << std::endl;
+
+    return CallResult(source_changes);
 }
 
 auto discard_origin(const CallContext& ctx) -> Vallist {
@@ -214,6 +236,65 @@ auto discard_origin(const CallContext& ctx) -> Vallist {
     });
 
     return Vallist(values);
+}
+
+void debug_print(const CallContext& ctx) {
+    auto& err = *ctx.environment().get_stderr();
+    for (const auto& value : ctx.arguments()) {
+        err << value << "\n";
+    }
+}
+
+auto get_metatable(const CallContext& ctx) -> Value {
+    auto arg = ctx.arguments().get(0);
+    if (arg.is_table()) {
+        auto metatable = std::get<Table>(arg).get_metatable();
+        if (metatable.has_value()) {
+            auto __metatable = metatable->get("__metatable");
+            if (!__metatable.is_nil()) {
+                return __metatable;
+            } else {
+                return metatable.value();
+            }
+        }
+    }
+
+    return Nil();
+}
+
+auto set_metatable(const CallContext& ctx) -> Value {
+    auto table = std::get<Table>(ctx.expect_argument<Table>(0));
+    const auto& arg2 = ctx.expect_argument<Nil, Table>(1);
+
+    if (table.get_metatable().has_value() && !table.get_metatable()->get("__metatable").is_nil()) {
+        throw std::runtime_error("cannot change a protected metatable");
+    }
+
+    if (arg2.is_nil()) {
+        table.set_metatable(std::nullopt);
+    } else if (arg2.is_table()) {
+        auto metatable = std::get<Table>(arg2);
+        table.set_metatable(metatable);
+    }
+
+    return table;
+}
+
+auto rawget(const CallContext& ctx) -> Value {
+    const auto& table = std::get<Table>(ctx.expect_argument<Table>(0));
+    const auto& arg2 = ctx.expect_argument<>(1);
+
+    return table.get(arg2);
+}
+
+auto rawset(const CallContext& ctx) -> Value {
+    auto table = std::get<Table>(ctx.expect_argument<Table>(0));
+    const auto& key = ctx.expect_argument<>(1);
+    const auto& value = ctx.expect_argument<>(1);
+
+    table.set(key, value);
+
+    return table;
 }
 
 } // namespace minilua

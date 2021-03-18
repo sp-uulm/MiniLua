@@ -206,6 +206,7 @@ private:
     void trace_function_call(ast::Prefix prefix, const std::vector<Value>& arguments) const;
     void trace_function_call_result(ast::Prefix prefix, const CallResult& result) const;
     void trace_exprlists(std::vector<ast::Expression>& exprlist, const Vallist& result) const;
+    void trace_metamethod_call(const std::string& name, const Vallist& arguments) const;
 
     void trace_enter_block(Env& env);
 
