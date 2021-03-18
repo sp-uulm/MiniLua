@@ -32,9 +32,9 @@ void error(const CallContext& ctx);
  * Calls the given function (first argument) with the given arguments (rest of
  * the arguments) and catches any errors.
  *
- * If the function raise an error this function returns two values: `true` and
+ * If the function raise an error this function returns two values: `false` and
  * the error message. If the function does not raise an error this function will
- * return `false` and all return values of the called functions.
+ * return `true` and all return values of the called functions.
  *
  * \note The source changes from a called function will only be forwarded if no error
  * was raised.
