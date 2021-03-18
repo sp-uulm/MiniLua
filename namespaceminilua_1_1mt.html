@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>minilua::mt namespace | MiniLua Value tracing lua interpreter</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
+  <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
+  <link rel="icon" href="favicon-dark.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#22272e" />
+</head>
+<body>
+<header><nav id="navigation">
+  <div class="m-container">
+    <div class="m-row">
+      <span id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">
+        <a href="https://sp-uulm.github.io/MiniLua/">MiniLua</a> <span class="m-breadcrumb">|</span> <a href="index.html" class="m-thin">Value tracing lua interpreter</a>
+      </span>
+      <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
+        <a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+          <path id="m-doc-search-icon-path" d="m6 0c-3.31 0-6 2.69-6 6 0 3.31 2.69 6 6 6 1.49 0 2.85-0.541 3.89-1.44-0.0164 0.338 0.147 0.759 0.5 1.15l3.22 3.79c0.552 0.614 1.45 0.665 2 0.115 0.55-0.55 0.499-1.45-0.115-2l-3.79-3.22c-0.392-0.353-0.812-0.515-1.15-0.5 0.895-1.05 1.44-2.41 1.44-3.89 0-3.31-2.69-6-6-6zm0 1.56a4.44 4.44 0 0 1 4.44 4.44 4.44 4.44 0 0 1-4.44 4.44 4.44 4.44 0 0 1-4.44-4.44 4.44 4.44 0 0 1 4.44-4.44z"/>
+        </svg></a>
+        <a id="m-navbar-show" href="#navigation" title="Show navigation"></a>
+        <a id="m-navbar-hide" href="#" title="Hide navigation"></a>
+      </div>
+      <div id="m-navbar-collapse" class="m-col-t-12 m-show-m m-col-m-none m-right-m">
+        <div class="m-row">
+          <ol class="m-col-t-6 m-col-m-none">
+            <li><a href="pages.html">Pages</a></li>
+            <li>
+              <a href="namespaces.html">Namespaces</a>
+              <ol>
+                <li><a href="namespaceminilua.html">minilua</a></li>
+              </ol>
+            </li>
+            <li><a href="https://lythenas.github.io/tree-sitter-cpp-api/">Tree-Sitter</a></li>
+          </ol>
+          <ol class="m-col-t-6 m-col-m-none" start="4">
+            <li><a href="annotated.html">Classes</a></li>
+            <li><a href="https://github.com/sp-uulm/MiniLua/">GitHub</a></li>
+            <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+              <use href="#m-doc-search-icon-path" />
+            </svg></a></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav></header>
+<main><article>
+  <div class="m-container m-container-inflatable">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <h1>
+          <span class="m-breadcrumb"><a href="namespaceminilua.html">minilua</a>::<wbr/></span>mt <span class="m-thin">namespace</span>
+        </h1>
+        <p>contains the <em>metatable events</em>.</p>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li>
+              Reference
+              <ul>
+                <li><a href="#func-members">Functions</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+<p>That is everything that can be customized using a metamethod.</p><p>The functions have the same name as the metamethods (except without leading <code>__</code>). These names don&#x27;t always match the method names on <code><a href="classminilua_1_1Value.html" class="m-doc">Value</a></code>.</p><p>If the required metamethod is not present (or the value is not a table) these functions will simply call the corresponding functions on the <code><a href="classminilua_1_1Value.html" class="m-doc">Value</a></code>.</p><aside class="m-note m-info"><h4>Note</h4><p>This is slightly different to lua spec. In Lua it would be possible to set metatables (globally) for string, number, bool, nil and function as well but we don&#x27;t support this (this would only be possible through the debug api or C anyway).</p></aside><p>Binary events first check the left value for the metamethod and if that is not present they check the right side.</p>
+        <section id="func-members">
+          <h2><a href="#func-members">Functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#accb16bf14ba4a56dff997fcdcd06d08d" class="m-doc">index</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Index into a <a href="classminilua_1_1Table.html" class="m-doc">Table</a> or calls <code>__index</code> of the metatable.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#afa832676df4c09e7ad250b162d70d2bf" class="m-doc">newindex</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Index into a <a href="classminilua_1_1Table.html" class="m-doc">Table</a> or calls <code>__index</code> of the metatable.</dd>
+            <dt id="aa47856f754c7eaebfd1cd490c54164ee">
+              <span class="m-doc-wrap-bumper">auto <a href="#aa47856f754c7eaebfd1cd490c54164ee" class="m-doc-self">add</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Add (binary <code>+</code>) operator. Will call metamethod <code>__add</code> if necessary.</dd>
+            <dt id="a5a47ae8fd3ab3c607b668526e77a317d">
+              <span class="m-doc-wrap-bumper">auto <a href="#a5a47ae8fd3ab3c607b668526e77a317d" class="m-doc-self">sub</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Sub (binary <code>-</code>) operator. Will call metamethod <code>__sub</code> if necessary.</dd>
+            <dt id="ac5a2e5e12d92f41903a07914b13108c6">
+              <span class="m-doc-wrap-bumper">auto <a href="#ac5a2e5e12d92f41903a07914b13108c6" class="m-doc-self">mul</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Mul (binary <code>*</code>) operator. Will call metamethod <code>__mul</code> if necessary.</dd>
+            <dt id="ad21e2225025856ac3db1dfbd0ae9c589">
+              <span class="m-doc-wrap-bumper">auto <a href="#ad21e2225025856ac3db1dfbd0ae9c589" class="m-doc-self">div</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Div (binary <code>/</code>) operator. Will call metamethod <code>__div</code> if necessary.</dd>
+            <dt id="abdb6417109047b885cc983e567cbcda2">
+              <span class="m-doc-wrap-bumper">auto <a href="#abdb6417109047b885cc983e567cbcda2" class="m-doc-self">mod</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Mod (binary <code>%</code>) operator. Will call metamethod <code>__mod</code> if necessary.</dd>
+            <dt id="a9c68107c1ce959edbcdc966220b82e10">
+              <span class="m-doc-wrap-bumper">auto <a href="#a9c68107c1ce959edbcdc966220b82e10" class="m-doc-self">pow</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Pow (binary <code>^</code>) operator. Will call metamethod <code>__pow</code> if necessary.</dd>
+            <dt id="a4176a23bfbd5f0b758af6774357e47d9">
+              <span class="m-doc-wrap-bumper">auto <a href="#a4176a23bfbd5f0b758af6774357e47d9" class="m-doc-self">idiv</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Floor division (binary <code>//</code>) operator. Will call metamethod <code>__idiv</code> if necessary.</dd>
+            <dt id="a6e7b50bf88392fadf0bb8ababe0dfb3f">
+              <span class="m-doc-wrap-bumper">auto <a href="#a6e7b50bf88392fadf0bb8ababe0dfb3f" class="m-doc-self">band</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Bitwise and (binary <code>&amp;</code>) operator. Will call metamethod <code>__band</code> if necessary.</dd>
+            <dt id="a75c91ad7f2c76169bf50e08f4a5a651e">
+              <span class="m-doc-wrap-bumper">auto <a href="#a75c91ad7f2c76169bf50e08f4a5a651e" class="m-doc-self">bor</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Bitwise or (binary <code>|</code>) operator. Will call metamethod <code>__bor</code> if necessary.</dd>
+            <dt id="a3207c34921c3093d8ff1493a9b5696ed">
+              <span class="m-doc-wrap-bumper">auto <a href="#a3207c34921c3093d8ff1493a9b5696ed" class="m-doc-self">bxor</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Bitwise xor (binary <code>~</code>) operator. Will call metamethod <code>__bxor</code> if necessary.</dd>
+            <dt id="ab96bb1c93a59aca10847868b673da464">
+              <span class="m-doc-wrap-bumper">auto <a href="#ab96bb1c93a59aca10847868b673da464" class="m-doc-self">shl</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Bitwise left shift (binary <code>&lt;&lt;</code>) operator. Will call metamethod <code>__shl</code> if necessary.</dd>
+            <dt id="a1da1378415162bb4c812ffc4ee6c196a">
+              <span class="m-doc-wrap-bumper">auto <a href="#a1da1378415162bb4c812ffc4ee6c196a" class="m-doc-self">shr</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Bitwise right shift (binary <code>&gt;&gt;</code>) operator. Will call metamethod <code>__shr</code> if necessary.</dd>
+            <dt id="afdfe30fbbdc0bc59d002c77b5322c0f0">
+              <span class="m-doc-wrap-bumper">auto <a href="#afdfe30fbbdc0bc59d002c77b5322c0f0" class="m-doc-self">concat</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Concatenation (binary <code>..</code>) operator. Will call metamethod <code>__concat</code> if necessary.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a02ed72f18e0d1340a9cd7df61b362a6e" class="m-doc">eq</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Equal (binary <code>==</code>) operator. Will call metamethod <code>__eq</code> if necessary.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#adb4f61275fc0d33b4edf4bc9de2a8b84" class="m-doc">lt</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Less than (binary <code>&lt;</code>) operator. Will call metamethod <code>__lt</code> if necessary.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a9343338a79ac2006d6c1f99d979995d6" class="m-doc">le</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Less than (binary <code>&lt;=</code>) operator. Will call metamethod <code>__le</code> if necessary.</dd>
+            <dt id="ad3686a622d2f0f3cc08481e3a76437eb">
+              <span class="m-doc-wrap-bumper">auto <a href="#ad3686a622d2f0f3cc08481e3a76437eb" class="m-doc-self">unm</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Negation (unary <code>-</code>) operator. Will call metamethod <code>__unm</code> if necessary.</dd>
+            <dt id="a000ab5be32e29b201f9933ad1526742f">
+              <span class="m-doc-wrap-bumper">auto <a href="#a000ab5be32e29b201f9933ad1526742f" class="m-doc-self">bnot</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Bitwise not (unary <code>~</code>) operator. Will call metamethod <code>__bnot</code> if necessary.</dd>
+            <dt id="a79994376670c263dc55bd6546ef729c6">
+              <span class="m-doc-wrap-bumper">auto <a href="#a79994376670c263dc55bd6546ef729c6" class="m-doc-self">len</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Length (unary <code>#</code>) operator. Will call metamethod <code>__len</code> if necessary.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a3ac433acc408879f984979ea7f52ac9f" class="m-doc">call</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Call (<code>func(args)</code>) operator. Will call metamethod <code>__call</code> if necessary.</dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="accb16bf14ba4a56dff997fcdcd06d08d"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />mt::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#accb16bf14ba4a56dff997fcdcd06d08d" class="m-doc-self">index</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; CallResult</span></span>
+            </h3>
+            <p>Index into a <a href="classminilua_1_1Table.html" class="m-doc">Table</a> or calls <code>__index</code> of the metatable.</p>
+<p>The metatable is only used if the key is not present in the table.</p><aside class="m-note m-info"><h4>Note</h4><p>The argument has to be a <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a> because we might need to call a lua function.</p></aside>
+          </div></section>
+          <section class="m-doc-details" id="afa832676df4c09e7ad250b162d70d2bf"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />mt::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#afa832676df4c09e7ad250b162d70d2bf" class="m-doc-self">newindex</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; CallResult</span></span>
+            </h3>
+            <p>Index into a <a href="classminilua_1_1Table.html" class="m-doc">Table</a> or calls <code>__index</code> of the metatable.</p>
+<aside class="m-note m-info"><h4>Note</h4><p>The argument has to be a <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a> because we might need to call a lua function.</p></aside>
+          </div></section>
+          <section class="m-doc-details" id="a02ed72f18e0d1340a9cd7df61b362a6e"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />mt::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a02ed72f18e0d1340a9cd7df61b362a6e" class="m-doc-self">eq</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult</span></span>
+            </h3>
+            <p>Equal (binary <code>==</code>) operator. Will call metamethod <code>__eq</code> if necessary.</p>
+<p>Lua will only try the metamethods if both values are the same type and not trivially equal.</p><p>The result is always converted to a bool.</p>
+          </div></section>
+          <section class="m-doc-details" id="adb4f61275fc0d33b4edf4bc9de2a8b84"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />mt::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#adb4f61275fc0d33b4edf4bc9de2a8b84" class="m-doc-self">lt</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult</span></span>
+            </h3>
+            <p>Less than (binary <code>&lt;</code>) operator. Will call metamethod <code>__lt</code> if necessary.</p>
+<p>The result is always converted to a bool.</p>
+          </div></section>
+          <section class="m-doc-details" id="a9343338a79ac2006d6c1f99d979995d6"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />mt::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9343338a79ac2006d6c1f99d979995d6" class="m-doc-self">le</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx,
+              std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) -&gt; CallResult</span></span>
+            </h3>
+            <p>Less than (binary <code>&lt;=</code>) operator. Will call metamethod <code>__le</code> if necessary.</p>
+<p>The lua spec also specifies that if the <code>__le</code> metamethod is not present it will try a <code>__lt</code> metamethod with reversed parameters. But it states that this behaviour might be removed in the future (this assumes that <code>a &lt;= b</code> is equal to <code>b &lt; a</code>).</p><p>The result is always converted to a bool.</p>
+          </div></section>
+          <section class="m-doc-details" id="a3ac433acc408879f984979ea7f52ac9f"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />mt::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3ac433acc408879f984979ea7f52ac9f" class="m-doc-self">call</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; CallResult</span></span>
+            </h3>
+            <p>Call (<code>func(args)</code>) operator. Will call metamethod <code>__call</code> if necessary.</p>
+<p>The metamethod is only searched in <code>func</code> and it will get <code>func</code> and the arguments <code>args</code> as parameters.</p><p>This metamethod allows multiple results.</p>
+          </div></section>
+        </section>
+      </div>
+    </div>
+  </div>
+</article></main>
+<div class="m-doc-search" id="search">
+  <a href="#!" onclick="return hideSearch()"></a>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-m-8 m-push-m-2">
+        <div class="m-doc-search-header m-text m-small">
+          <div><span class="m-label m-default">Tab</span> / <span class="m-label m-default">T</span> to search, <span class="m-label m-default">Esc</span> to close</div>
+          <div id="search-symbolcount">&hellip;</div>
+        </div>
+        <div class="m-doc-search-content">
+          <form>
+            <input type="search" name="q" id="search-input" placeholder="Loading &hellip;" disabled="disabled" autofocus="autofocus" autocomplete="off" spellcheck="false" />
+          </form>
+          <noscript class="m-text m-danger m-text-center">Unlike everything else in the docs, the search functionality <em>requires</em> JavaScript.</noscript>
+          <div id="search-help" class="m-text m-dim m-text-center">
+            <p class="m-noindent">Search for symbols, directories, files, pages or
+            modules. You can omit any prefix from the symbol or file path; adding a
+            <code>:</code> or <code>/</code> suffix lists all members of given symbol or
+            directory.</p>
+            <p class="m-noindent">Use <span class="m-label m-dim">&darr;</span>
+            / <span class="m-label m-dim">&uarr;</span> to navigate through the list,
+            <span class="m-label m-dim">Enter</span> to go.
+            <span class="m-label m-dim">Tab</span> autocompletes common prefix, you can
+            copy a link to the result using <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">L</span> while <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">M</span> produces a Markdown link.</p>
+          </div>
+          <div id="search-notfound" class="m-text m-warning m-text-center">Sorry, nothing was found.</div>
+          <ul id="search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="search-v1.js"></script>
+<script src="searchdata-v1.js" async="async"></script>
+<footer><nav>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <p>MiniLua Value tracing lua interpreter. Created with <a href="https://doxygen.org/">Doxygen</a> 1.8.17 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+      </div>
+    </div>
+  </div>
+</nav></footer>
+</body>
+</html>

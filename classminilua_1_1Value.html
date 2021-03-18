@@ -260,6 +260,10 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a96f3ada62a67f79798173cf8f67e84de" class="m-doc-self">to_string</a>(</span><span class="m-doc-wrap">std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) const -&gt; Value -&gt; auto</span>
             </dt>
             <dd>Converts the value to a <code><a href="structminilua_1_1String.html" class="m-doc">String</a></code>.</dd>
+            <dt id="a32bf46ccb5515219bef7db464cdfe158">
+              <span class="m-doc-wrap-bumper">auto <a href="#a32bf46ccb5515219bef7db464cdfe158" class="m-doc-self">to_bool</a>(</span><span class="m-doc-wrap">std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) const -&gt; Value -&gt; auto</span>
+            </dt>
+            <dd>Converts the value to a <code><a href="structminilua_1_1Bool.html" class="m-doc">Bool</a></code>.</dd>
             <dt id="a00cb855c5fcb340d69165b04c3349169">
               <span class="m-doc-wrap-bumper">auto <a href="#a00cb855c5fcb340d69165b04c3349169" class="m-doc-self">negate</a>(</span><span class="m-doc-wrap">std::optional&lt;<a href="structminilua_1_1Range.html" class="m-doc">Range</a>&gt; location = std::nullopt) const -&gt; Value -&gt; auto</span>
             </dt>
@@ -493,14 +497,14 @@
               <span class="m-doc-wrap-bumper">auto minilua::<wbr />Value::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#adf1d05cb89a08348c770f3abe1a11891" class="m-doc-self">operator[]</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1Value.html" class="m-doc">Value</a>&amp;) -&gt; Value &amp;</span></span>
             </h3>
             <p>Access the value of a <a href="classminilua_1_1Table.html" class="m-doc">Table</a>.</p>
-<p>If the value is not a <a href="classminilua_1_1Table.html" class="m-doc">Table</a> this throws an exception.</p>
+<p>If the value is not a <a href="classminilua_1_1Table.html" class="m-doc">Table</a> this throws an exception.</p><aside class="m-note m-info"><h4>Note</h4><p>This will ignore metatables. See <code>mt:index</code>.</p></aside>
           </div></section>
           <section class="m-doc-details" id="a64b4e4b0ab33a2d42b529bc3f1450f95"><div>
             <h3>
               <span class="m-doc-wrap-bumper">auto minilua::<wbr />Value::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a64b4e4b0ab33a2d42b529bc3f1450f95" class="m-doc-self">operator[]</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1Value.html" class="m-doc">Value</a>&amp;) const -&gt; const Value &amp;</span></span>
             </h3>
             <p>Access the value of a <a href="classminilua_1_1Table.html" class="m-doc">Table</a>.</p>
-<p>If the value is not a <a href="classminilua_1_1Table.html" class="m-doc">Table</a> this throws an exception.</p>
+<p>If the value is not a <a href="classminilua_1_1Table.html" class="m-doc">Table</a> this throws an exception.</p><aside class="m-note m-info"><h4>Note</h4><p>This will ignore metatables. See <code><a href="namespaceminilua_1_1mt.html#accb16bf14ba4a56dff997fcdcd06d08d" class="m-doc">mt::<wbr />index</a></code>.</p></aside>
           </div></section>
           <section class="m-doc-details" id="a45c1e760f0b8956a0fe60d3849f62a1c"><div>
             <h3>

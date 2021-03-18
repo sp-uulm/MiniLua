@@ -128,6 +128,11 @@
             </dt>
             <dd>Returns the arguments given to this function.</dd>
             <dt>
+              <div class="m-doc-template">template&lt;typename... Ts&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#a471e7bb088bc46470edc30ac008e73f1" class="m-doc">expect_argument</a>(</span><span class="m-doc-wrap">size_t index) const -&gt; const Value &amp; -&gt; auto</span>
+            </dt>
+            <dd>Helper to check required arguments.</dd>
+            <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a64de6fc9188934f54712f286ccb7c13d" class="m-doc">unary_numeric_arg_helper</a>(</span><span class="m-doc-wrap">) const -&gt; std::tuple&lt; Number, UnaryOrigin &gt; -&gt; auto</span>
             </dt>
             <dd>Convenience method for writing unary numeric functions.</dd>
@@ -185,6 +190,18 @@
             </h3>
             <p>Returns the value of a variable accessible from the function.</p>
 <p>Returns <code><a href="structminilua_1_1Nil.html" class="m-doc">Nil</a></code> if the variable is not accessible or does not exist.</p>
+          </div></section>
+          <section class="m-doc-details" id="a471e7bb088bc46470edc30ac008e73f1"><div>
+            <h3>
+              <div class="m-doc-template">
+                template&lt;typename... Ts&gt;
+              </div>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />CallContext::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a471e7bb088bc46470edc30ac008e73f1" class="m-doc-self">expect_argument</a>(</span><span class="m-doc-wrap">size_t index) const -&gt; const Value &amp;</span></span>
+            </h3>
+            <p>Helper to check required arguments.</p>
+<p>Usage:</p><pre class="m-code"><span class="n">Value</span> <span class="n">table</span> <span class="o">=</span> <span class="n">ctx</span><span class="p">.</span><span class="n">expect_argument</span><span class="o">&lt;</span><span class="n">Table</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="n">Value</span> <span class="n">nil_or_table</span> <span class="o">=</span> <span class="n">ctx</span><span class="p">.</span><span class="n">expect_argument</span><span class="o">&lt;</span><span class="n">Nil</span><span class="p">,</span> <span class="n">Table</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="n">Value</span> <span class="n">string_or_number</span> <span class="o">=</span> <span class="n">ctx</span><span class="p">.</span><span class="n">expect_argument</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span> <span class="n">Number</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span></pre><p>If the type does not match or the value is not present this method will throw a lua appropriate exception that looks something like this:</p><pre class="m-code"><span class="n">bad</span> <span class="n">argument</span> <span class="err">#</span><span class="mi">1</span> <span class="p">(</span><span class="n">table</span> <span class="n">expected</span><span class="p">,</span> <span class="n">got</span> <span class="n">no</span> <span class="n">value</span><span class="p">)</span></pre>
           </div></section>
           <section class="m-doc-details" id="a64de6fc9188934f54712f286ccb7c13d"><div>
             <h3>

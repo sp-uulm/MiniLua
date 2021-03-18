@@ -78,6 +78,8 @@
             <dd>Users of the library should ignore this namespace. It is only usable internally.</dd>
             <dt>namespace <a href="namespaceminilua_1_1math.html" class="m-doc">math</a></dt>
             <dd>Math functions in the lua standard library.</dd>
+            <dt>namespace <a href="namespaceminilua_1_1mt.html" class="m-doc">mt</a></dt>
+            <dd>contains the <em>metatable events</em>.</dd>
           </dl>
         </section>
         <section id="nested-classes">
@@ -294,6 +296,11 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a8a0763abf3444cbef51a1eabf5acf336" class="m-doc-self">simplify</a>(</span><span class="m-doc-wrap">const std::optional&lt;<a href="classminilua_1_1SourceChangeTree.html" class="m-doc">SourceChangeTree</a>&gt;&amp; tree) -&gt; std::optional&lt; SourceChangeTree &gt; -&gt; auto</span>
             </dt>
             <dd>See <a href="classminilua_1_1SourceChangeTree.html#a72f2bfd137b96f01d395dfa987ce31ea" class="m-doc">SourceChangeTree::<wbr />simplify</a>.</dd>
+            <dt id="afc248bc9d6282a746ee614ab83b0f2e7">
+              <span class="m-doc-wrap-bumper">auto <a href="#afc248bc9d6282a746ee614ab83b0f2e7" class="m-doc-self">combine_source_changes</a>(</span><span class="m-doc-wrap">const std::optional&lt;<a href="classminilua_1_1SourceChangeTree.html" class="m-doc">SourceChangeTree</a>&gt;&amp; lhs,
+              const std::optional&lt;<a href="classminilua_1_1SourceChangeTree.html" class="m-doc">SourceChangeTree</a>&gt;&amp; rhs) -&gt; std::optional&lt; SourceChangeTree &gt; -&gt; auto</span>
+            </dt>
+            <dd>Combines two source changes using a <code><a href="structminilua_1_1SourceChangeCombination.html" class="m-doc">SourceChangeCombination</a></code> if necessary.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a74d69f5050e669eca9f59c5f45423af5" class="m-doc">create_math_table</a>(</span><span class="m-doc-wrap"><a href="classminilua_1_1MemoryAllocator.html" class="m-doc">MemoryAllocator</a>* allocator) -&gt; Table -&gt; auto</span>
             </dt>
@@ -303,19 +310,39 @@
             </dt>
             <dd>Tries to force the first argument to take on the value of the second argument.</dd>
             <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a4097ee09ada8d95f8a07f6d05a92e09a" class="m-doc">to_string</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Converts the value to a string.</dd>
+            <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a9d23bd6a360843900fe5cd99956526fc" class="m-doc">pcall</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; CallResult -&gt; auto</span>
             </dt>
             <dd>Calls the given function with the given arguments and catches errors.</dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a8e792c4cbda0190a0af716f409d2dd72" class="m-doc">to_string</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; Value -&gt; auto</span>
-            </dt>
-            <dd>Converts the value to a string.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#aecddd7e2bb983b093d7d69a0572ee8c3" class="m-doc">select</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; Vallist -&gt; auto</span>
             </dt>
             <dd></dd>
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a8831ff5d681092907d29efbae0c2f6c3" class="m-doc">discard_origin</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; Vallist -&gt; auto</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a4b95c9b586a440f55900099e00b9fcb9" class="m-doc">debug_print</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx)</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#af4927d565753545516c343ab7c57fb1d" class="m-doc">get_metatable</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; Value -&gt; auto</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a800898abea8e020879d07942cd96cbd0" class="m-doc">set_metatable</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; Value -&gt; auto</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ab6198e0f7215962a21d2b30ef420d943" class="m-doc">rawget</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; Value -&gt; auto</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a339e6d88d3eec4a4e23224a4b747f5c6" class="m-doc">rawset</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; Value -&gt; auto</span>
             </dt>
             <dd></dd>
             <dt>
@@ -423,19 +450,19 @@
             <p>Tries to force the first argument to take on the value of the second argument.</p>
 <p>The same as calling <code>arg1.force(arg2)</code> on the <a href="classminilua_1_1Value.html" class="m-doc">Values</a> in C++ where <code>arg1</code> and <code>arg2</code> are the first and second arguments.</p><aside class="m-note m-info"><h4>Note</h4><p>This is not part of the official Lua stdlib.</p></aside>
           </div></section>
+          <section class="m-doc-details" id="a4097ee09ada8d95f8a07f6d05a92e09a"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a4097ee09ada8d95f8a07f6d05a92e09a" class="m-doc-self">to_string</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; CallResult</span></span>
+            </h3>
+            <p>Converts the value to a string.</p>
+<p>Tables and functions will not return a meaningful string. They will only be represented as their address.</p><p>Will respect the metamethod <code>__tostring</code>.</p>
+          </div></section>
           <section class="m-doc-details" id="a9d23bd6a360843900fe5cd99956526fc"><div>
             <h3>
               <span class="m-doc-wrap-bumper">auto minilua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9d23bd6a360843900fe5cd99956526fc" class="m-doc-self">pcall</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; CallResult</span></span>
             </h3>
             <p>Calls the given function with the given arguments and catches errors.</p>
 <p>Calls the given function (first argument) with the given arguments (rest of the arguments) and catches any errors.</p><p>If the function raise an error this function returns two values: <code>false</code> and the error message. If the function does not raise an error this function will return <code>true</code> and all return values of the called functions.</p><aside class="m-note m-info"><h4>Note</h4><p>The source changes from a called function will only be forwarded if no error was raised.</p></aside>
-          </div></section>
-          <section class="m-doc-details" id="a8e792c4cbda0190a0af716f409d2dd72"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">auto minilua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a8e792c4cbda0190a0af716f409d2dd72" class="m-doc-self">to_string</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; Value</span></span>
-            </h3>
-            <p>Converts the value to a string.</p>
-<p>Tables and functions will not return a meaningful string.</p><p>Will respect the metamethod <code>__tostring</code>.</p>
           </div></section>
           <section class="m-doc-details" id="aecddd7e2bb983b093d7d69a0572ee8c3"><div>
             <h3>
@@ -448,6 +475,36 @@
               <span class="m-doc-wrap-bumper">auto minilua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a8831ff5d681092907d29efbae0c2f6c3" class="m-doc-self">discard_origin</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; Vallist</span></span>
             </h3>
 <p>Remove the origin of all passed in values and return them.</p><aside class="m-note m-info"><h4>Note</h4><p>This is not part of the official lua stdlib.</p></aside>
+          </div></section>
+          <section class="m-doc-details" id="a4b95c9b586a440f55900099e00b9fcb9"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void minilua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a4b95c9b586a440f55900099e00b9fcb9" class="m-doc-self">debug_print</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx)</span></span>
+            </h3>
+<p>Debug print the values (this will also print tables but not functions).</p>
+          </div></section>
+          <section class="m-doc-details" id="af4927d565753545516c343ab7c57fb1d"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#af4927d565753545516c343ab7c57fb1d" class="m-doc-self">get_metatable</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; Value</span></span>
+            </h3>
+<p>Returns the metatable of the first parameter or nil if there is none.</p>
+          </div></section>
+          <section class="m-doc-details" id="a800898abea8e020879d07942cd96cbd0"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a800898abea8e020879d07942cd96cbd0" class="m-doc-self">set_metatable</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; Value</span></span>
+            </h3>
+<p>Sets the metatable (second parameter) for the table (first parameter) and return the table.</p><p>Will error if the first value is not a table or second value is not a table or nil.</p>
+          </div></section>
+          <section class="m-doc-details" id="ab6198e0f7215962a21d2b30ef420d943"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab6198e0f7215962a21d2b30ef420d943" class="m-doc-self">rawget</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; Value</span></span>
+            </h3>
+<p>Gets the real value of table[index], without invoking any metamethod.</p><p>First param is the table, second param is the index.</p><p>Will error if the table is not a <a href="classminilua_1_1Table.html" class="m-doc">Table</a>.</p>
+          </div></section>
+          <section class="m-doc-details" id="a339e6d88d3eec4a4e23224a4b747f5c6"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a339e6d88d3eec4a4e23224a4b747f5c6" class="m-doc-self">rawset</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; Value</span></span>
+            </h3>
+<p>Sets the real value of table[index] to value, without invoking any metamethod.</p><p>First param is the table, second param is the index and third param is the value.</p><p>Will error if the table is not a <a href="classminilua_1_1Table.html" class="m-doc">Table</a> or if the index is invalid.</p><p>This function returns table.</p>
           </div></section>
           <section class="m-doc-details" id="a5b8117b06bce383f88a4caca59e52ca6"><div>
             <h3>
