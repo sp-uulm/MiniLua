@@ -67,13 +67,6 @@ std::string parse_eval_update(std::string program) {
     return program;
 }
 
-std::string read_input_from_file(std::string path) {
-    std::ifstream ifs;
-    ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    ifs.open(path);
-    return std::string(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
-}
-
 // TODO fix the memory leaks
 TEST_CASE("parse, eval, update", "[parse][leaks]") {
     SECTION("simple for") {
@@ -95,59 +88,6 @@ TEST_CASE("parse, eval, update", "[parse][leaks]") {
     }
 }
 
-TEST_CASE("unit_tests lua files") {
-    std::vector<std::string> test_files{
-        "literals/bools.lua",
-        "literals/numbers.lua",
-        "literals/string.lua",
-        "literals/table.lua",
-        "expressions/binary_operations.lua",
-        "expressions/unary_operations.lua",
-        "statements/if.lua",
-        "statements/while.lua",
-        "statements/repeat_until.lua",
-        "statements/functions.lua",
-        "local_variables.lua",
-        "counter.lua",
-        "metatables/general.lua",
-        "metatables/tostring.lua",
-        "metatables/comparison.lua",
-        "metatables/call.lua",
-        "metatables/arithmetic.lua",
-        "metatables/bitwise.lua",
-        "metatables/concat.lua",
-        "metatables/len.lua",
-    };
-    // NOTE: exptects to be run from build directory
-    for (const auto& file : test_files) {
-        std::string path = "../luaprograms/unit_tests/" + file;
-        DYNAMIC_SECTION("File: " << path) {
-            // TODO remove once comments work
-            std::string program = read_input_from_file(path);
-
-            while (true) {
-                auto start_pos = program.find("--");
-                if (start_pos == std::string::npos) {
-                    break;
-                }
-
-                auto end_pos = program.find('\n', start_pos);
-                if (end_pos == std::string::npos) {
-                    end_pos = program.size() - 1;
-                }
-
-                auto count = end_pos - start_pos + 1;
-                program.replace(start_pos, count, "");
-            }
-
-            minilua::Interpreter interpreter;
-            REQUIRE(interpreter.parse(program));
-            auto result = interpreter.evaluate();
-            REQUIRE(!result.source_change.has_value());
-        }
-    }
-}
-
 TEST_CASE("interpreter does not return functions") {
     SECTION("plain function") {
         minilua::Interpreter interpreter;
@@ -164,41 +104,6 @@ TEST_CASE("interpreter does not return functions") {
     }
 }
 
-TEST_CASE("whole lua-programs", "[.hide]") {
-    SECTION("programs with function calls") {
-        std::vector<std::string> test_files{
-            "BepposBalloons.lua",
-            "FragmeentedFurniture.lua",
-            "FragmentedFurniture_withoutMethods.lua",
-            "HelplessHuman.lua",
-            "LottaLaps.lua",
-            "luaToStringFunctionExample.lua",
-            "simple.lua"};
-        for (const auto& file : test_files) {
-            std::string path = "../luaprograms/" + file;
-            DYNAMIC_SECTION("File: " << path) {
-                const std::string program = read_input_from_file(path);
-
-                // old parser
-                // const auto result = parse_eval_update(program);
-                // REQUIRE(result == program);
-
-                minilua::Interpreter interpreter;
-                // interpreter.config().all(true);
-                interpreter.parse(program);
-                auto result = interpreter.evaluate();
-                REQUIRE(!result.source_change.has_value());
-            }
-        }
-    }
-
-    SECTION("Lua-program without functions") {
-        const std::string program =
-            read_input_from_file("../luaprograms/FragmentedFurniture_withoutMethods.lua");
-        const auto result = parse_eval_update(program);
-        REQUIRE(result == program);
-    }
-}
 TEST_CASE("old Environment leaks", "[interpreter][leaks]") {
     static_assert(std::is_move_constructible<lua::rt::Environment>());
 
