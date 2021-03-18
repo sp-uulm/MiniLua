@@ -303,6 +303,14 @@
             </dt>
             <dd>Tries to force the first argument to take on the value of the second argument.</dd>
             <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a9d23bd6a360843900fe5cd99956526fc" class="m-doc">pcall</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; CallResult -&gt; auto</span>
+            </dt>
+            <dd>Calls the given function with the given arguments and catches errors.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a8e792c4cbda0190a0af716f409d2dd72" class="m-doc">to_string</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; Value -&gt; auto</span>
+            </dt>
+            <dd>Converts the value to a string.</dd>
+            <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#aecddd7e2bb983b093d7d69a0572ee8c3" class="m-doc">select</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; Vallist -&gt; auto</span>
             </dt>
             <dd></dd>
@@ -414,6 +422,20 @@
             </h3>
             <p>Tries to force the first argument to take on the value of the second argument.</p>
 <p>The same as calling <code>arg1.force(arg2)</code> on the <a href="classminilua_1_1Value.html" class="m-doc">Values</a> in C++ where <code>arg1</code> and <code>arg2</code> are the first and second arguments.</p><aside class="m-note m-info"><h4>Note</h4><p>This is not part of the official Lua stdlib.</p></aside>
+          </div></section>
+          <section class="m-doc-details" id="a9d23bd6a360843900fe5cd99956526fc"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9d23bd6a360843900fe5cd99956526fc" class="m-doc-self">pcall</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; CallResult</span></span>
+            </h3>
+            <p>Calls the given function with the given arguments and catches errors.</p>
+<p>Calls the given function (first argument) with the given arguments (rest of the arguments) and catches any errors.</p><p>If the function raise an error this function returns two values: <code>false</code> and the error message. If the function does not raise an error this function will return <code>true</code> and all return values of the called functions.</p><aside class="m-note m-info"><h4>Note</h4><p>The source changes from a called function will only be forwarded if no error was raised.</p></aside>
+          </div></section>
+          <section class="m-doc-details" id="a8e792c4cbda0190a0af716f409d2dd72"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a8e792c4cbda0190a0af716f409d2dd72" class="m-doc-self">to_string</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; Value</span></span>
+            </h3>
+            <p>Converts the value to a string.</p>
+<p>Tables and functions will not return a meaningful string.</p><p>Will respect the metamethod <code>__tostring</code>.</p>
           </div></section>
           <section class="m-doc-details" id="aecddd7e2bb983b093d7d69a0572ee8c3"><div>
             <h3>
