@@ -253,3 +253,30 @@ auto operator<<(std::ostream& os, const SourceChangeAlternative& self) -> std::o
 }
 
 } // namespace minilua
+
+namespace std {
+auto std::hash<minilua::Location>::operator()(const minilua::Location& location) const -> size_t {
+    std::size_t h1 = std::hash<uint32_t>()(location.byte);
+    std::size_t h2 = std::hash<uint32_t>()(location.column);
+    std::size_t h3 = std::hash<uint32_t>()(location.line);
+    std::size_t seed = h1;
+
+    // implementation of boost::hash_combine
+    seed ^= h2 + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    seed ^= h3 + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+
+    return seed;
+}
+
+auto std::hash<minilua::Range>::operator()(const minilua::Range& range) const -> size_t {
+    std::size_t h1 = std::hash<minilua::Location>()(range.start);
+    std::size_t h2 = std::hash<minilua::Location>()(range.end);
+    // NOTE: ignores the file
+    std::size_t seed = h1;
+
+    // implementation of boost::hash_combine
+    seed ^= h2 + 0x9e3779b9 + (seed << 6) + (seed >> 2); // NOLINT
+
+    return seed;
+}
+} // namespace std

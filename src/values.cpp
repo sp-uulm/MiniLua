@@ -459,6 +459,55 @@ void Origin::set_file(std::optional<std::shared_ptr<std::string>> file) {
 auto Origin::simplify() const -> Origin {
     return std::visit([](const auto& origin) -> Origin { return origin.simplify(); }, this->raw());
 }
+[[nodiscard]] auto
+Origin::with_updated_ranges(const std::unordered_map<Range, Range>& range_map) const -> Origin {
+    return std::visit(
+        overloaded{
+            [&range_map](const LiteralOrigin& origin) -> Origin {
+                for (const auto& [from, to] : range_map) {
+                    if (from.start == origin.location.start && from.end == origin.location.end) {
+                        auto location = to;
+                        location.file = origin.location.file;
+                        return LiteralOrigin{
+                            .location = location,
+                        };
+                    }
+                }
+                return origin;
+            },
+            [&range_map](const BinaryOrigin& origin) -> Origin {
+                auto lhs_origin = origin.lhs->origin().with_updated_ranges(range_map);
+                auto rhs_origin = origin.rhs->origin().with_updated_ranges(range_map);
+
+                auto new_origin = origin;
+                new_origin.lhs = std::make_shared<Value>(origin.lhs->with_origin(lhs_origin));
+                new_origin.rhs = std::make_shared<Value>(origin.rhs->with_origin(rhs_origin));
+                return new_origin;
+            },
+            [&range_map](const UnaryOrigin& origin) -> Origin {
+                auto val_origin = origin.val->origin().with_updated_ranges(range_map);
+
+                auto new_origin = origin;
+                new_origin.val = std::make_shared<Value>(origin.val->with_origin(val_origin));
+                return new_origin;
+            },
+            [&range_map](const MultipleArgsOrigin& origin) -> Origin {
+                std::vector<Value> new_values;
+                new_values.reserve(origin.values.size());
+
+                for (const auto& value : origin.values) {
+                    auto new_origin = value.origin().with_updated_ranges(range_map);
+                    new_values.push_back(value.with_origin(new_origin));
+                }
+
+                auto new_origin = origin;
+                new_origin.values = new_values;
+                return new_origin;
+            },
+            [&range_map](const auto& origin) -> Origin { return origin; },
+        },
+        this->origin);
+}
 
 auto operator==(const Origin& lhs, const Origin& rhs) noexcept -> bool {
     return lhs.raw() == rhs.raw();

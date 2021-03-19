@@ -1,3 +1,4 @@
+#include <QGraphicsEllipseItem>
 #include <QGraphicsView>
 #include <QTextEdit>
 #include <QThreadPool>
@@ -20,6 +21,21 @@ protected:
     auto xsputn(const char_type* s, std::streamsize count) -> std::streamsize override;
 };
 
+class MovableCircle : public QGraphicsEllipseItem {
+    std::function<void(QPointF)> on_move;
+    std::function<void(bool)> on_select;
+
+public:
+    explicit MovableCircle();
+
+    void set_on_move(std::function<void(QPointF)> on_move);
+    void set_on_select(std::function<void(bool)> on_select);
+
+protected:
+    auto itemChange(GraphicsItemChange change, const QVariant& value) -> QVariant override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+};
+
 class MainWindow : public QWidget {
     Q_OBJECT; // NOLINT
 
@@ -27,7 +43,10 @@ class MainWindow : public QWidget {
     QTextEdit* log;
     QWidget* viz_box;
     QGraphicsView* viz;
-    QGraphicsEllipseItem* circle;
+    MovableCircle* circle;
+
+    minilua::Value circle_x;
+    minilua::Value circle_y;
 
     minilua::Interpreter interpreter;
 

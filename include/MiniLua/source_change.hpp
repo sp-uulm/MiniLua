@@ -53,6 +53,16 @@ constexpr auto operator>=(Location lhs, Location rhs) noexcept -> bool {
 }
 auto operator<<(std::ostream&, const Location&) -> std::ostream&;
 
+} // namespace minilua
+
+namespace std {
+template <> struct hash<minilua::Location> {
+    auto operator()(const minilua::Location& location) const -> size_t;
+};
+} // namespace std
+
+namespace minilua {
+
 /**
  * @brief A range (sometimes called span) in source code.
  *
@@ -85,6 +95,16 @@ struct Range {
 auto operator==(const Range& lhs, const Range& rhs) noexcept -> bool;
 auto operator!=(const Range& lhs, const Range& rhs) noexcept -> bool;
 auto operator<<(std::ostream&, const Range&) -> std::ostream&;
+
+} // namespace minilua
+
+namespace std {
+template <> struct hash<minilua::Range> {
+    auto operator()(const minilua::Range& range) const -> size_t;
+};
+} // namespace std
+
+namespace minilua {
 
 class SourceChangeTree;
 

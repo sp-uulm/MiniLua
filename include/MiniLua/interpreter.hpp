@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "environment.hpp"
@@ -183,7 +184,7 @@ public:
      * \warning The returned value will become invalid if the source code is
      * changed (by calling parse or apply_source_changes).
      */
-    [[nodiscard]] auto source_code() const -> std::string_view;
+    [[nodiscard]] auto source_code() const -> const std::string&;
 
     /**
      * @brief Parse fresh source code.
@@ -194,8 +195,13 @@ public:
 
     /**
      * @brief Applies a list of single source changes.
+     *
+     * This returns a map of ranges that were changed. Keys are the old ranges
+     * and values are the new ranges. Note that this map only contains ranges
+     * for the applied source changes. Other range might have moved and are not
+     * present in the map.
      */
-    void apply_source_changes(std::vector<SourceChange>);
+    auto apply_source_changes(std::vector<SourceChange>) -> std::unordered_map<Range, Range>;
 
     /**
      * @brief Run the parsed program.

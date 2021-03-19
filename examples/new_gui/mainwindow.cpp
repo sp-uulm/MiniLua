@@ -1,4 +1,5 @@
 #include "mainwindow.hpp"
+#include "MiniLua/source_change.hpp"
 #include <QBoxLayout>
 #include <QGraphicsEllipseItem>
 #include <QGraphicsSceneEvent>
@@ -6,15 +7,12 @@
 #include <QPushButton>
 #include <QTimer>
 #include <QtConcurrent/QtConcurrent>
+#include <qnamespace.h>
 #include <unistd.h>
 #include <utility>
 
 const static char* const INITIAL_TEXT = R"(
 setCircle(0, 0, 100)
-sleep(1)
-setCircle(100, 100, 100)
-sleep(1)
-setCircle(200, 100, 100)
 )";
 
 // class ForwardingOutStream
@@ -24,6 +22,28 @@ ForwardingOutStream::ForwardingOutStream(std::function<void(std::string)> callba
 auto ForwardingOutStream::xsputn(const char_type* s, std::streamsize count) -> std::streamsize {
     this->callback(std::string(s, count));
     return count;
+}
+
+// class Circle
+MovableCircle::MovableCircle() : QGraphicsEllipseItem() {
+    this->setFlags(QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemIsMovable);
+}
+void MovableCircle::set_on_move(std::function<void(QPointF)> on_move) {
+    this->on_move = std::move(on_move);
+}
+void MovableCircle::set_on_select(std::function<void(bool)> on_select) {
+    this->on_select = std::move(on_select);
+}
+
+auto MovableCircle::itemChange(GraphicsItemChange change, const QVariant& value) -> QVariant {
+    if (change == ItemSelectedHasChanged && scene() != nullptr) {
+        this->on_select(this->isSelected());
+    }
+    return QGraphicsEllipseItem::itemChange(change, value);
+}
+void MovableCircle::mouseMoveEvent(QGraphicsSceneMouseEvent* event) {
+    this->on_move(event->scenePos());
+    QGraphicsEllipseItem::mouseMoveEvent(event);
 }
 
 // class MainWindow
@@ -40,10 +60,18 @@ MainWindow::MainWindow(QWidget* parent)
     env.set_stdout(&this->out_stream);
     env.set_stderr(&this->err_stream);
     env.add("setCircle", minilua::Value([this](const minilua::CallContext& ctx) {
-                auto x = std::get<minilua::Number>(ctx.arguments().get(0)).as_float();
-                auto y = std::get<minilua::Number>(ctx.arguments().get(1)).as_float();
-                auto size = std::get<minilua::Number>(ctx.arguments().get(2)).as_float();
-                emit new_circle(x, y, size);
+                auto x = ctx.arguments().get(0);
+                auto y = ctx.arguments().get(1);
+                auto size = ctx.arguments().get(2);
+
+                this->circle_x = x;
+                this->circle_y = y;
+
+                auto x_num = std::get<minilua::Number>(x).as_float();
+                auto y_num = std::get<minilua::Number>(y).as_float();
+                auto size_num = std::get<minilua::Number>(size).as_float();
+
+                emit new_circle(x_num, y_num, size_num);
             }));
     env.add("sleep", minilua::Value([](const minilua::CallContext& ctx) {
                 auto secs = std::get<minilua::Number>(ctx.arguments().get(0)).try_as_int();
@@ -81,7 +109,54 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Visualization
     auto* scene = new QGraphicsScene();
-    this->circle = scene->addEllipse(QRectF(0, 0, 100, 100), QPen(Qt::black), QBrush(Qt::green));
+    // scene->addEllipse(QRectF(0, 0, 100, 100), QPen(Qt::black), QBrush(Qt::green));
+    this->circle = new MovableCircle();
+    scene->addItem(this->circle);
+    this->circle->set_on_move([this](QPointF point) {
+        std::cerr << "pos: " << point.x() << ", " << point.y() << "\n";
+        std::cerr << "value: " << this->circle_x << ", " << this->circle_y << "\n";
+
+        // TODO move into signal
+
+        auto source_change_x = this->circle_x.force(point.x(), "ui_drag").value();
+        auto source_change_y = this->circle_y.force(point.y(), "ui_drag").value();
+
+        auto source_change = minilua::SourceChangeCombination();
+        source_change.add(source_change_x);
+        source_change.add(source_change_y);
+
+        auto source_changes = minilua::SourceChangeTree(source_change).collect_first_alternative();
+
+        const auto range_map = this->interpreter.apply_source_changes(source_changes);
+
+        // update ranges in origins of stored values
+        this->circle_x =
+            this->circle_x.with_origin(this->circle_x.origin().with_updated_ranges(range_map));
+        this->circle_y =
+            this->circle_y.with_origin(this->circle_y.origin().with_updated_ranges(range_map));
+
+        // update editor text
+        this->editor->setPlainText(QString::fromStdString(this->interpreter.source_code()));
+    });
+    this->circle->set_on_select([this](bool selected) {
+        if (selected) {
+            std::cerr << "selected\n";
+        }
+
+        std::cerr << "circle: " << this->circle->pos().x() << ", " << this->circle->pos().y()
+                  << "\n";
+        std::cerr << "circle: " << this->circle->scenePos().x() << ", "
+                  << this->circle->scenePos().y() << "\n";
+    });
+    this->circle->setRect(QRectF(0, 0, 100, 100));
+    // border color
+    this->circle->setPen(QPen(Qt::black));
+    // fill color
+    this->circle->setBrush(QBrush(Qt::green));
+
+    std::cerr << "circle: " << this->circle->pos().x() << ", " << this->circle->pos().y() << "\n";
+    std::cerr << "circle: " << this->circle->scenePos().x() << ", " << this->circle->scenePos().y()
+              << "\n";
 
     this->viz = new QGraphicsView(scene);
     main_layout->addWidget(this->viz);
@@ -130,7 +205,8 @@ void MainWindow::exec_interpreter() {
 }
 
 void MainWindow::set_circle(double x, double y, double size) {
-    this->circle->setRect(QRectF(x, y, size, size));
+    this->circle->setPos(x, y);
+    this->circle->setRect(QRectF(0, 0, size, size));
 }
 
 void MainWindow::set_text(std::string str) { this->editor->setText(QString(str.c_str())); }

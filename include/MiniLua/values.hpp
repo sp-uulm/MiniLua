@@ -1328,6 +1328,24 @@ public:
      * \note This is not recursive. It will only look at the first level.
      */
     [[nodiscard]] auto simplify() const -> Origin;
+
+    /**
+     * Returns a new origin with updated ranges.
+     *
+     * This will replace the matching `LiteralOrigin` ranges of the keys with
+     * those of the values.
+     *
+     * The `file`s in the range map will be ignored for finding the correct
+     * range to replace. But the returned origin will always contain ranges with
+     * the same file as the original origin.
+     *
+     * \note Other ranges might also have moved but are not updated. Only exact
+     * matches are updated.
+     *
+     * \todo Make this also update moved ranges in the same line
+     * (this might be difficult, when multiple ranges in one line are moved).
+     */
+    [[nodiscard]] auto with_updated_ranges(const std::unordered_map<Range, Range>&) const -> Origin;
 };
 
 auto operator==(const Origin&, const Origin&) noexcept -> bool;
@@ -1575,6 +1593,7 @@ public:
      * This is a builder style method and creates a new Value.
      */
     [[nodiscard]] auto with_origin(Origin new_origin) const -> Value;
+
     /**
      * @brief The type of this value as a string.
      */
