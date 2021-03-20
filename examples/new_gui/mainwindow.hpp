@@ -26,6 +26,9 @@ class MovableCircle : public QGraphicsEllipseItem {
     std::function<void(bool)> on_select;
 
 public:
+    minilua::Value lua_x; // NOLINT
+    minilua::Value lua_y; // NOLINT
+
     explicit MovableCircle();
 
     void set_on_move(std::function<void(QPointF)> on_move);
@@ -43,10 +46,8 @@ class MainWindow : public QWidget {
     QTextEdit* log;
     QWidget* viz_box;
     QGraphicsView* viz;
-    MovableCircle* circle;
 
-    minilua::Value circle_x;
-    minilua::Value circle_y;
+    std::vector<MovableCircle*> circles;
 
     minilua::Interpreter interpreter;
 
@@ -66,12 +67,14 @@ private slots:
     void handle_run_button();
     void insert_stdout(std::string str);
     void insert_stderr(std::string str);
-    void set_circle(double x, double y, double size);
+
+    void create_circle(minilua::Value x, minilua::Value y, minilua::Value size);
+    void clear_circles();
 
 signals:
     void new_stdout(std::string str);
     void new_stderr(std::string str);
-    void new_circle(double x, double y, double size);
+    void new_circle(minilua::Value x, minilua::Value y, minilua::Value size);
 
 private: // NOLINT
     void set_text(std::string str);
