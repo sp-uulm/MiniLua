@@ -5,6 +5,7 @@
 
 #include <MiniLua/MiniLua.hpp>
 #include <functional>
+#include <optional>
 #include <sstream>
 
 // namespace Ui {
@@ -36,7 +37,6 @@ public:
 
 protected:
     auto itemChange(GraphicsItemChange change, const QVariant& value) -> QVariant override;
-    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
 };
 
 class MainWindow : public QWidget {
@@ -63,18 +63,21 @@ public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow() override;
 
+    void insert_log(std::string str, std::optional<std::string> color = std::nullopt);
+    void clear_circles();
+
 private slots:
     void handle_run_button();
     void insert_stdout(std::string str);
     void insert_stderr(std::string str);
 
-    void create_circle(minilua::Value x, minilua::Value y, minilua::Value size);
-    void clear_circles();
+    void
+    create_circle(minilua::Value x, minilua::Value y, minilua::Value size, Qt::GlobalColor color);
 
 signals:
     void new_stdout(std::string str);
     void new_stderr(std::string str);
-    void new_circle(minilua::Value x, minilua::Value y, minilua::Value size);
+    void new_circle(minilua::Value x, minilua::Value y, minilua::Value size, Qt::GlobalColor color);
 
 private: // NOLINT
     void set_text(std::string str);

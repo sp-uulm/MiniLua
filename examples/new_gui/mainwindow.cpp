@@ -12,7 +12,8 @@
 #include <utility>
 
 const static char* const INITIAL_TEXT = R"(
-addCircle(0, 0, 100)
+addCircle(0, 0, 100, "red")
+addCircle(50, 50, 100, "blue")
 )";
 
 // class ForwardingOutStream
@@ -26,7 +27,9 @@ auto ForwardingOutStream::xsputn(const char_type* s, std::streamsize count) -> s
 
 // class Circle
 MovableCircle::MovableCircle() : QGraphicsEllipseItem() {
-    this->setFlags(QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemIsMovable);
+    this->setFlags(
+        QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemIsMovable |
+        QGraphicsItem::ItemSendsGeometryChanges);
 }
 void MovableCircle::set_on_move(std::function<void(QPointF)> on_move) {
     this->on_move = std::move(on_move);
@@ -36,14 +39,14 @@ void MovableCircle::set_on_select(std::function<void(bool)> on_select) {
 }
 
 auto MovableCircle::itemChange(GraphicsItemChange change, const QVariant& value) -> QVariant {
+    if (change == ItemPositionHasChanged && scene() != nullptr) {
+        auto new_pos = value.toPointF();
+        this->on_move(new_pos);
+    }
     if (change == ItemSelectedHasChanged && scene() != nullptr) {
         this->on_select(this->isSelected());
     }
     return QGraphicsEllipseItem::itemChange(change, value);
-}
-void MovableCircle::mouseMoveEvent(QGraphicsSceneMouseEvent* event) {
-    this->on_move(event->scenePos());
-    QGraphicsEllipseItem::mouseMoveEvent(event);
 }
 
 // class MainWindow
@@ -63,8 +66,30 @@ MainWindow::MainWindow(QWidget* parent)
                 auto x = ctx.arguments().get(0);
                 auto y = ctx.arguments().get(1);
                 auto size = ctx.arguments().get(2);
+                auto color = ctx.arguments().get(3);
 
-                emit new_circle(x, y, size);
+                auto qt_color = static_cast<Qt::GlobalColor>(2); // black
+
+                if (!color.is_nil()) {
+                    auto color_str = std::get<minilua::String>(color).value;
+                    if (color_str == "red") {
+                        qt_color = Qt::GlobalColor::red;
+                    } else if (color_str == "green") {
+                        qt_color = Qt::GlobalColor::green;
+                    } else if (color_str == "blue") {
+                        qt_color = Qt::GlobalColor::blue;
+                    } else if (color_str == "cyan") {
+                        qt_color = Qt::GlobalColor::cyan;
+                    } else if (color_str == "magenta") {
+                        qt_color = Qt::GlobalColor::magenta;
+                    } else if (color_str == "yellow") {
+                        qt_color = Qt::GlobalColor::yellow;
+                    } else {
+                        qt_color = Qt::GlobalColor::black;
+                    }
+                }
+
+                emit new_circle(x, y, size, qt_color);
             }));
     env.add("sleep", minilua::Value([](const minilua::CallContext& ctx) {
                 auto secs = std::get<minilua::Number>(ctx.arguments().get(0)).try_as_int();
@@ -106,12 +131,18 @@ MainWindow::MainWindow(QWidget* parent)
     main_layout->addWidget(this->viz);
     this->viz->setSizePolicy(
         QSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Expanding));
+    // set the scene size so it does not move around on screen
+    scene->setSceneRect(-250, -250, 500, 500); // NOLINT
+
+    auto* zero_text = scene->addSimpleText("0");
+    zero_text->setPos(0, 0);
+    // always keep on top
+    zero_text->setZValue(1000); // NOLINT
 
     // Log
     this->log = new QTextEdit();
     base_box->addWidget(log);
     log->setReadOnly(true);
-    log->setPlainText("Log\n");
     log->setSizePolicy(QSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Expanding));
 }
 
@@ -121,7 +152,7 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::handle_run_button() {
-    this->err_stream << "Running program!\n" << std::flush;
+    this->insert_log("== Running program! ==\n", "green");
 
     clear_circles();
     QFuture<void> future = QtConcurrent::run(&this->pool, [this]() { this->exec_interpreter(); });
@@ -138,26 +169,27 @@ void MainWindow::clear_circles() {
 void MainWindow::exec_interpreter() {
     const auto parse_result = this->interpreter.parse(this->editor->toPlainText().toStdString());
     if (!parse_result) {
-        this->err_stream << "== FAILED TO PARSE: ==\n";
+        this->insert_log("== Running program! ==\n", "red");
         for (const auto& error : parse_result.errors) {
-            this->err_stream << error << "\n";
+            this->insert_log(" " + error + "\n", "red");
         }
-        this->err_stream << std::flush;
         return;
     }
 
     try {
         const auto eval_result = this->interpreter.evaluate();
-        this->err_stream << "== SUCCESSFULLY EXECUTED ==\n"
-                         << "RETURN VALUE: " << eval_result.value << "\n"
-                         << "SOURCE CHANGES: " << eval_result.source_change << "\n"
-                         << std::flush;
+        std::stringstream ss;
+        ss << "== SUCCESSFULLY EXECUTED ==\n"
+           << "RETURN VALUE: " << eval_result.value << "\n"
+           << "SOURCE CHANGES: " << eval_result.source_change << "\n";
+        this->insert_log(ss.str(), "green");
     } catch (const minilua::InterpreterException& e) {
-        this->err_stream << "== FAILED TO EXECUTE PROGRAM: ==\n" << e.what() << "\n" << std::flush;
+        this->insert_log("== FAILED TO EXECUTE PROGRAM: ==\n"s + e.what() + "\n", "green");
     }
 }
 
-void MainWindow::create_circle(minilua::Value x, minilua::Value y, minilua::Value size) {
+void MainWindow::create_circle(
+    minilua::Value x, minilua::Value y, minilua::Value size, Qt::GlobalColor color) {
     auto x_num = std::get<minilua::Number>(x).as_float();
     auto y_num = std::get<minilua::Number>(y).as_float();
     auto size_num = std::get<minilua::Number>(size).as_float();
@@ -170,16 +202,17 @@ void MainWindow::create_circle(minilua::Value x, minilua::Value y, minilua::Valu
     // border color
     circle->setPen(QPen(Qt::black));
     // fill color
-    circle->setBrush(QBrush(Qt::green));
+    circle->setBrush(QBrush(color));
+    circle->setOpacity(0.8);
 
     circle->set_on_move([this, circle](QPointF point) {
-        std::cerr << "pos: " << point.x() << ", " << point.y() << "\n";
-        std::cerr << "value: " << circle->lua_x << ", " << circle->lua_y << "\n";
-
         // TODO move into signal
 
-        auto source_change_x = circle->lua_x.force(point.x(), "ui_drag").value();
-        auto source_change_y = circle->lua_y.force(point.y(), "ui_drag").value();
+        auto new_x = point.x();
+        auto new_y = point.y();
+
+        auto source_change_x = circle->lua_x.force(new_x, "ui_drag").value();
+        auto source_change_y = circle->lua_y.force(new_y, "ui_drag").value();
 
         auto source_change = minilua::SourceChangeCombination();
         source_change.add(source_change_x);
@@ -198,7 +231,7 @@ void MainWindow::create_circle(minilua::Value x, minilua::Value y, minilua::Valu
         // update editor text
         this->editor->setPlainText(QString::fromStdString(this->interpreter.source_code()));
     });
-    circle->set_on_select([this, circle](bool selected) {
+    circle->set_on_select([circle](bool selected) {
         if (selected) {
             std::cerr << "selected\n";
         }
@@ -214,16 +247,19 @@ void MainWindow::create_circle(minilua::Value x, minilua::Value y, minilua::Valu
 
 void MainWindow::set_text(std::string str) { this->editor->setText(QString(str.c_str())); }
 
-void MainWindow::insert_stdout(std::string str) {
+void MainWindow::insert_log(std::string str, std::optional<std::string> color) {
     this->log->moveCursor(QTextCursor::End);
-    this->log->insertPlainText(QString(str.c_str()));
-    this->log->moveCursor(QTextCursor::End);
-}
-void MainWindow::insert_stderr(std::string str) {
-    this->log->moveCursor(QTextCursor::End);
-    this->log->insertHtml("<font color=\"red\">" + QString(str.c_str()) + "</font>");
-    if (*(str.end() - 1) == '\n') {
-        this->log->insertPlainText(QString('\n'));
+    if (!color) {
+        this->log->insertPlainText(QString(str.c_str()));
+    } else {
+        this->log->insertHtml(
+            "<font color=\"" + QString::fromStdString(*color) + "\">" +
+            QString(str.c_str()).replace('\n', "<br>") + "</font>");
+        if (*(str.end() - 1) == '\n') {
+            this->log->insertPlainText(QString('\n'));
+        }
     }
     this->log->moveCursor(QTextCursor::End);
 }
+void MainWindow::insert_stdout(std::string str) { this->insert_log(std::move(str)); }
+void MainWindow::insert_stderr(std::string str) { this->insert_log(std::move(str), "red"); }
