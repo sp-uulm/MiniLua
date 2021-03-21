@@ -30,10 +30,12 @@ public:
     minilua::Value lua_x; // NOLINT
     minilua::Value lua_y; // NOLINT
 
-    explicit MovableCircle();
+    explicit MovableCircle(minilua::Value x, minilua::Value y, double size, Qt::GlobalColor color);
 
     void set_on_move(std::function<void(QPointF)> on_move);
     void set_on_select(std::function<void(bool)> on_select);
+
+    void update_value_ranges(const std::unordered_map<minilua::Range, minilua::Range>& range_map);
 
 protected:
     auto itemChange(GraphicsItemChange change, const QVariant& value) -> QVariant override;
@@ -73,11 +75,13 @@ private slots:
 
     void
     create_circle(minilua::Value x, minilua::Value y, minilua::Value size, Qt::GlobalColor color);
+    void apply_move_source_change(MovableCircle* circle, QPointF new_point);
 
 signals:
     void new_stdout(std::string str);
     void new_stderr(std::string str);
     void new_circle(minilua::Value x, minilua::Value y, minilua::Value size, Qt::GlobalColor color);
+    void circle_moved(MovableCircle* circle, QPointF new_point);
 
 private: // NOLINT
     void set_text(std::string str);

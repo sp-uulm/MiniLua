@@ -16,6 +16,24 @@ addCircle(0, 0, 100, "red")
 addCircle(50, 50, 100, "blue")
 )";
 
+static auto str_to_color(const std::string& color_str) -> Qt::GlobalColor {
+    if (color_str == "red") {
+        return Qt::GlobalColor::red;
+    } else if (color_str == "green") {
+        return Qt::GlobalColor::green;
+    } else if (color_str == "blue") {
+        return Qt::GlobalColor::blue;
+    } else if (color_str == "cyan") {
+        return Qt::GlobalColor::cyan;
+    } else if (color_str == "magenta") {
+        return Qt::GlobalColor::magenta;
+    } else if (color_str == "yellow") {
+        return Qt::GlobalColor::yellow;
+    } else {
+        return Qt::GlobalColor::black;
+    }
+}
+
 // class ForwardingOutStream
 ForwardingOutStream::ForwardingOutStream(std::function<void(std::string)> callback)
     : callback(std::move(callback)) {}
@@ -26,16 +44,33 @@ auto ForwardingOutStream::xsputn(const char_type* s, std::streamsize count) -> s
 }
 
 // class Circle
-MovableCircle::MovableCircle() : QGraphicsEllipseItem() {
+MovableCircle::MovableCircle(minilua::Value x, minilua::Value y, double size, Qt::GlobalColor color)
+    : QGraphicsEllipseItem(), lua_x(std::move(x)), lua_y(std::move(y)) {
     this->setFlags(
         QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemIsMovable |
         QGraphicsItem::ItemSendsGeometryChanges);
+
+    auto x_num = std::get<minilua::Number>(x).as_float();
+    auto y_num = std::get<minilua::Number>(y).as_float();
+
+    this->setPos(x_num, y_num);
+    this->setRect(QRectF(0, 0, size, size));
+    // border color
+    this->setPen(QPen(Qt::black));
+    // fill color
+    this->setBrush(QBrush(color));
+    this->setOpacity(0.8); // NOLINT
 }
 void MovableCircle::set_on_move(std::function<void(QPointF)> on_move) {
     this->on_move = std::move(on_move);
 }
 void MovableCircle::set_on_select(std::function<void(bool)> on_select) {
     this->on_select = std::move(on_select);
+}
+void MovableCircle::update_value_ranges(
+    const std::unordered_map<minilua::Range, minilua::Range>& range_map) {
+    this->lua_x = this->lua_x.with_origin(this->lua_x.origin().with_updated_ranges(range_map));
+    this->lua_y = this->lua_y.with_origin(this->lua_y.origin().with_updated_ranges(range_map));
 }
 
 auto MovableCircle::itemChange(GraphicsItemChange change, const QVariant& value) -> QVariant {
@@ -58,6 +93,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(this, &MainWindow::new_stdout, this, &MainWindow::insert_stdout);
     connect(this, &MainWindow::new_stderr, this, &MainWindow::insert_stderr);
     connect(this, &MainWindow::new_circle, this, &MainWindow::create_circle);
+    connect(this, &MainWindow::circle_moved, this, &MainWindow::apply_move_source_change);
 
     auto& env = this->interpreter.environment();
     env.set_stdout(&this->out_stream);
@@ -68,25 +104,10 @@ MainWindow::MainWindow(QWidget* parent)
                 auto size = ctx.arguments().get(2);
                 auto color = ctx.arguments().get(3);
 
-                auto qt_color = static_cast<Qt::GlobalColor>(2); // black
-
+                auto qt_color = Qt::GlobalColor::black;
                 if (!color.is_nil()) {
                     auto color_str = std::get<minilua::String>(color).value;
-                    if (color_str == "red") {
-                        qt_color = Qt::GlobalColor::red;
-                    } else if (color_str == "green") {
-                        qt_color = Qt::GlobalColor::green;
-                    } else if (color_str == "blue") {
-                        qt_color = Qt::GlobalColor::blue;
-                    } else if (color_str == "cyan") {
-                        qt_color = Qt::GlobalColor::cyan;
-                    } else if (color_str == "magenta") {
-                        qt_color = Qt::GlobalColor::magenta;
-                    } else if (color_str == "yellow") {
-                        qt_color = Qt::GlobalColor::yellow;
-                    } else {
-                        qt_color = Qt::GlobalColor::black;
-                    }
+                    qt_color = str_to_color(color_str);
                 }
 
                 emit new_circle(x, y, size, qt_color);
@@ -109,7 +130,7 @@ MainWindow::MainWindow(QWidget* parent)
     auto* run_button = new QPushButton();
     util_layout->addWidget(run_button);
     run_button->setText("Run");
-    run_button->setFixedWidth(100);
+    run_button->setFixedWidth(100); // NOLINT
     connect(run_button, &QPushButton::clicked, this, &MainWindow::handle_run_button);
 
     // Main Area
@@ -138,6 +159,10 @@ MainWindow::MainWindow(QWidget* parent)
     zero_text->setPos(0, 0);
     // always keep on top
     zero_text->setZValue(1000); // NOLINT
+
+    // axis lines
+    scene->addLine(-250, 0, 250, 0); // NOLINT
+    scene->addLine(0, -250, 0, 250); // NOLINT
 
     // Log
     this->log = new QTextEdit();
@@ -180,8 +205,8 @@ void MainWindow::exec_interpreter() {
         const auto eval_result = this->interpreter.evaluate();
         std::stringstream ss;
         ss << "== SUCCESSFULLY EXECUTED ==\n"
-           << "RETURN VALUE: " << eval_result.value << "\n"
-           << "SOURCE CHANGES: " << eval_result.source_change << "\n";
+           << "   RETURN VALUE: " << eval_result.value << "\n"
+           << "   SOURCE CHANGES: " << eval_result.source_change << "\n";
         this->insert_log(ss.str(), "green");
     } catch (const minilua::InterpreterException& e) {
         this->insert_log("== FAILED TO EXECUTE PROGRAM: ==\n"s + e.what() + "\n", "green");
@@ -190,47 +215,12 @@ void MainWindow::exec_interpreter() {
 
 void MainWindow::create_circle(
     minilua::Value x, minilua::Value y, minilua::Value size, Qt::GlobalColor color) {
-    auto x_num = std::get<minilua::Number>(x).as_float();
-    auto y_num = std::get<minilua::Number>(y).as_float();
     auto size_num = std::get<minilua::Number>(size).as_float();
 
-    auto* circle = new MovableCircle();
-    circle->lua_x = x;
-    circle->lua_y = y;
-    circle->setPos(x_num, y_num);
-    circle->setRect(QRectF(0, 0, size_num, size_num));
-    // border color
-    circle->setPen(QPen(Qt::black));
-    // fill color
-    circle->setBrush(QBrush(color));
-    circle->setOpacity(0.8);
+    auto* circle = new MovableCircle(std::move(x), std::move(y), size_num, color);
 
-    circle->set_on_move([this, circle](QPointF point) {
-        // TODO move into signal
+    circle->set_on_move([this, circle](QPointF point) { emit circle_moved(circle, point); });
 
-        auto new_x = point.x();
-        auto new_y = point.y();
-
-        auto source_change_x = circle->lua_x.force(new_x, "ui_drag").value();
-        auto source_change_y = circle->lua_y.force(new_y, "ui_drag").value();
-
-        auto source_change = minilua::SourceChangeCombination();
-        source_change.add(source_change_x);
-        source_change.add(source_change_y);
-
-        auto source_changes = minilua::SourceChangeTree(source_change).collect_first_alternative();
-
-        const auto range_map = this->interpreter.apply_source_changes(source_changes);
-
-        // update ranges in origins of stored values
-        circle->lua_x =
-            circle->lua_x.with_origin(circle->lua_x.origin().with_updated_ranges(range_map));
-        circle->lua_y =
-            circle->lua_y.with_origin(circle->lua_y.origin().with_updated_ranges(range_map));
-
-        // update editor text
-        this->editor->setPlainText(QString::fromStdString(this->interpreter.source_code()));
-    });
     circle->set_on_select([circle](bool selected) {
         if (selected) {
             std::cerr << "selected\n";
@@ -243,6 +233,27 @@ void MainWindow::create_circle(
 
     this->circles.push_back(circle);
     this->viz->scene()->addItem(circle);
+}
+void MainWindow::apply_move_source_change(MovableCircle* circle, QPointF new_point) {
+    auto new_x = new_point.x();
+    auto new_y = new_point.y();
+
+    auto source_change_x = circle->lua_x.force(new_x, "ui_drag").value();
+    auto source_change_y = circle->lua_y.force(new_y, "ui_drag").value();
+
+    auto source_change = minilua::SourceChangeCombination();
+    source_change.add(source_change_x);
+    source_change.add(source_change_y);
+
+    auto source_changes = minilua::SourceChangeTree(source_change).collect_first_alternative();
+
+    const auto range_map = this->interpreter.apply_source_changes(source_changes);
+
+    // update ranges in origins of stored values
+    circle->update_value_ranges(range_map);
+
+    // update editor text
+    this->editor->setPlainText(QString::fromStdString(this->interpreter.source_code()));
 }
 
 void MainWindow::set_text(std::string str) { this->editor->setText(QString(str.c_str())); }
