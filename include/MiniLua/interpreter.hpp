@@ -201,7 +201,7 @@ public:
      * for the applied source changes. Other range might have moved and are not
      * present in the map.
      */
-    auto apply_source_changes(std::vector<SourceChange>) -> std::unordered_map<Range, Range>;
+    auto apply_source_changes(std::vector<SourceChange>) -> RangeMap;
 
     /**
      * @brief Run the parsed program.

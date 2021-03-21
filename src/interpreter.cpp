@@ -92,8 +92,7 @@ auto Interpreter::parse(std::string source_code) -> ParseResult {
     return result;
 }
 
-auto Interpreter::apply_source_changes(std::vector<SourceChange> source_changes)
-    -> std::unordered_map<Range, Range> {
+auto Interpreter::apply_source_changes(std::vector<SourceChange> source_changes) -> RangeMap {
     std::vector<ts::Edit> edits;
     edits.reserve(source_changes.size());
 
@@ -104,7 +103,7 @@ auto Interpreter::apply_source_changes(std::vector<SourceChange> source_changes)
 
     this->impl->source_code = this->impl->tree.source();
 
-    std::unordered_map<Range, Range> range_map;
+    RangeMap range_map;
     for (const auto& applied_edit : edit_result.applied_edits) {
         range_map[from_ts_range(applied_edit.before)] = from_ts_range(applied_edit.after);
     }

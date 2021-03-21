@@ -35,7 +35,7 @@ public:
     void set_on_move(std::function<void(QPointF)> on_move);
     void set_on_select(std::function<void(bool)> on_select);
 
-    void update_value_ranges(const std::unordered_map<minilua::Range, minilua::Range>& range_map);
+    void update_value_ranges(const minilua::RangeMap& range_map);
 
 protected:
     auto itemChange(GraphicsItemChange change, const QVariant& value) -> QVariant override;

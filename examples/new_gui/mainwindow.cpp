@@ -67,10 +67,10 @@ void MovableCircle::set_on_move(std::function<void(QPointF)> on_move) {
 void MovableCircle::set_on_select(std::function<void(bool)> on_select) {
     this->on_select = std::move(on_select);
 }
-void MovableCircle::update_value_ranges(
-    const std::unordered_map<minilua::Range, minilua::Range>& range_map) {
+void MovableCircle::update_value_ranges(const minilua::RangeMap& range_map) {
     this->lua_x = this->lua_x.with_origin(this->lua_x.origin().with_updated_ranges(range_map));
     this->lua_y = this->lua_y.with_origin(this->lua_y.origin().with_updated_ranges(range_map));
+    // throw std::exception();
 }
 
 auto MovableCircle::itemChange(GraphicsItemChange change, const QVariant& value) -> QVariant {
@@ -250,7 +250,12 @@ void MainWindow::apply_move_source_change(MovableCircle* circle, QPointF new_poi
     const auto range_map = this->interpreter.apply_source_changes(source_changes);
 
     // update ranges in origins of stored values
-    circle->update_value_ranges(range_map);
+    // NOTE: We update all ranges so the byte offset of the other literals will
+    // also be moved and then they will be correct when the user next moves a
+    // different circle before re-executing the program
+    for (auto* other_circle : this->circles) {
+        other_circle->update_value_ranges(range_map);
+    }
 
     // update editor text
     this->editor->setPlainText(QString::fromStdString(this->interpreter.source_code()));

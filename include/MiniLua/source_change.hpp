@@ -4,6 +4,7 @@
 #include "MiniLua/utils.hpp"
 #include <cstdint>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <numeric>
 #include <optional>
@@ -95,6 +96,14 @@ struct Range {
 auto operator==(const Range& lhs, const Range& rhs) noexcept -> bool;
 auto operator!=(const Range& lhs, const Range& rhs) noexcept -> bool;
 auto operator<<(std::ostream&, const Range&) -> std::ostream&;
+
+struct RangeStartCompare {
+    constexpr auto operator()(const Range& lhs, const Range& rhs) const -> bool {
+        return lhs.start < rhs.start;
+    }
+};
+
+using RangeMap = std::map<Range, Range, RangeStartCompare>;
 
 } // namespace minilua
 

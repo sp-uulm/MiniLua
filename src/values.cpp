@@ -459,21 +459,11 @@ void Origin::set_file(std::optional<std::shared_ptr<std::string>> file) {
 auto Origin::simplify() const -> Origin {
     return std::visit([](const auto& origin) -> Origin { return origin.simplify(); }, this->raw());
 }
-[[nodiscard]] auto
-Origin::with_updated_ranges(const std::unordered_map<Range, Range>& range_map) const -> Origin {
+[[nodiscard]] auto Origin::with_updated_ranges(const RangeMap& range_map) const -> Origin {
     return std::visit(
         overloaded{
             [&range_map](const LiteralOrigin& origin) -> Origin {
-                for (const auto& [from, to] : range_map) {
-                    if (from.start == origin.location.start && from.end == origin.location.end) {
-                        auto location = to;
-                        location.file = origin.location.file;
-                        return LiteralOrigin{
-                            .location = location,
-                        };
-                    }
-                }
-                return origin;
+                return origin.with_updated_ranges(range_map);
             },
             [&range_map](const BinaryOrigin& origin) -> Origin {
                 auto lhs_origin = origin.lhs->origin().with_updated_ranges(range_map);
@@ -537,6 +527,62 @@ auto operator<<(std::ostream& os, const ExternalOrigin&) -> std::ostream& {
 
 // struct LiteralOrigin
 auto LiteralOrigin::simplify() const -> Origin { return *this; }
+
+auto LiteralOrigin::with_updated_ranges(const RangeMap& range_map) const -> LiteralOrigin {
+    auto find_range = [&range_map](auto predicate) {
+        return std::find_if(range_map.begin(), range_map.end(), predicate);
+    };
+    auto find_range_from_end = [&range_map](auto predicate) {
+        return std::find_if(range_map.rbegin(), range_map.rend(), predicate);
+    };
+
+    // update if range matches exactly
+    {
+        // [from, to] tuple,
+        // where start of both is equal to the start of this origins location
+        const auto range_update = find_range([this](const auto& range) {
+            return range.first.start == this->location.start &&
+                   range.first.end == this->location.end;
+        });
+
+        if (range_update != range_map.end()) {
+            auto location = range_update->second;
+            location.file = this->location.file;
+            return LiteralOrigin{.location = location};
+        }
+    }
+
+    // update if range is before this origin in the code
+    // we need to update this to make tree-sitter behave correctly when updating
+    // different origins multiple times
+    {
+        // [from, to] tuple,
+        // that is the first before the location of this origin (only considering byte)
+        const auto range_update = find_range_from_end(
+            [this](const auto& range) { return range.first.end.byte < this->location.start.byte; });
+
+        if (range_update != range_map.rend()) {
+            const auto& [from, to] = *range_update;
+            auto location = this->location;
+
+            // move the byte offset if this origin is after the range to update
+            auto byte_diff = to.end.byte - from.end.byte;
+            location.start.byte += byte_diff;
+            location.end.byte += byte_diff;
+
+            // if the range to update is on the same line, also update the column index
+            if (from.end.line == this->location.end.line) {
+                auto column_diff = to.end.column - from.end.column;
+                location.start.column += column_diff;
+                location.end.column += column_diff;
+            }
+
+            return LiteralOrigin{.location = location};
+        }
+    }
+
+    return *this;
+}
 
 auto operator==(const LiteralOrigin& lhs, const LiteralOrigin& rhs) noexcept -> bool {
     return lhs.location == rhs.location;
