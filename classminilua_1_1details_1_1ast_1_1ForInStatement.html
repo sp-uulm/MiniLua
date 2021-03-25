@@ -77,6 +77,10 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a6ac8ff367cfe6c2b8f18aea990f36b8d" class="m-doc">loop_expression</a>(</span><span class="m-doc-wrap">) const -&gt; InLoopExpression -&gt; auto</span>
             </dt>
             <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a03666136381f46a69915ee0c2017052c" class="m-doc">desugar</a>(</span><span class="m-doc-wrap">) const -&gt; DoStatement -&gt; auto</span>
+            </dt>
+            <dd></dd>
           </dl>
         </section>
         <section>
@@ -106,6 +110,12 @@
                 </tr>
               </tfoot>
             </table>
+          </div></section>
+          <section class="m-doc-details" id="a03666136381f46a69915ee0c2017052c"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />details::<wbr />ast::<wbr />ForInStatement::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a03666136381f46a69915ee0c2017052c" class="m-doc-self">desugar</a>(</span><span class="m-doc-wrap">) const -&gt; DoStatement</span></span>
+            </h3>
+<p>we have a for loop like this: for var_1, ···, var_n in explist do block end</p><p>and are basically deriving this code from it:</p><p>do &ndash;do_statement local f, s, var = explist &ndash;statement_1 while true do &ndash;while_statement local var_1, ···, var_n = f(s, var) &ndash;statement_w1 if var_1 == nil then break end &ndash;statement_w2 var = var_1 &ndash;statement_w3 block &ndash;all statements of the for loop end end</p>
           </div></section>
         </section>
       </div>

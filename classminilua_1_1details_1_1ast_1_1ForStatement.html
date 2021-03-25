@@ -77,6 +77,10 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a136de24d605b888dc6138b1605bd5d06" class="m-doc">body</a>(</span><span class="m-doc-wrap">) const -&gt; Body -&gt; auto</span>
             </dt>
             <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a0712aaa273bd0711a9546e4c61bd05b1" class="m-doc">desugar</a>(</span><span class="m-doc-wrap">) const -&gt; DoStatement -&gt; auto</span>
+            </dt>
+            <dd></dd>
           </dl>
         </section>
         <section>
@@ -106,6 +110,12 @@
                 </tr>
               </tfoot>
             </table>
+          </div></section>
+          <section class="m-doc-details" id="a0712aaa273bd0711a9546e4c61bd05b1"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />details::<wbr />ast::<wbr />ForStatement::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a0712aaa273bd0711a9546e4c61bd05b1" class="m-doc-self">desugar</a>(</span><span class="m-doc-wrap">) const -&gt; DoStatement</span></span>
+            </h3>
+<p>we have a for loop like this: for v = e1, e2, e3 do block end</p><p>and are basically deriving this code from it:</p><p>do &ndash;do_statement local var, limit, step = tonumber(e1), tonumber(e2), tonumber(e3) &ndash;statement_1 if not (var and limit and step) then <a href="namespaceminilua.html#a8bcef509a7eb662f14745cef93deb568" class="m-doc">error()</a> end &ndash;statement_2 var = var - step &ndash;statement_3 while true do &ndash;while_loop var = var + step &ndash;statement_w1 if (step &gt;= 0 and var &gt; limit) or (step &lt; 0 and var &lt; limit) then &ndash;statement_w2 break end local v = var &ndash;statement_w3 block &ndash;all the statements of the for loop end end</p>
           </div></section>
         </section>
       </div>

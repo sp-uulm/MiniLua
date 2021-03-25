@@ -70,35 +70,17 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#ae95937168a0d74b50a5536b962ebd630" class="m-doc">leading_self</a>(</span><span class="m-doc-wrap">) const -&gt; bool -&gt; auto</span>
-            </dt>
-            <dd></dd>
-            <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#acf81eb998e6b047a91125e75283f4d9c" class="m-doc">params</a>(</span><span class="m-doc-wrap">) const -&gt; std::vector&lt; Identifier &gt; -&gt; auto</span>
             </dt>
             <dd></dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a974db552c5cbece0441ea808787bdb65" class="m-doc">spread</a>(</span><span class="m-doc-wrap">) const -&gt; SpreadPos -&gt; auto</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#ad597eb58c67888cf1f7ee5d7c1c72016" class="m-doc">spread</a>(</span><span class="m-doc-wrap">) const -&gt; bool -&gt; auto</span>
             </dt>
             <dd></dd>
           </dl>
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="ae95937168a0d74b50a5536b962ebd630"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">auto minilua::<wbr />details::<wbr />ast::<wbr />Parameters::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae95937168a0d74b50a5536b962ebd630" class="m-doc-self">leading_self</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span></span>
-            </h3>
-            <table class="m-table m-fullwidth m-flat">
-              <tfoot>
-                <tr>
-                  <th style="width: 1%">Returns</th>
-                  <td>true if the first parameter is &quot;self&quot; false otherwise</td>
-                </tr>
-              </tfoot>
-            </table>
-<p>self can only be the first parameter this method looks if the self keyword is present in this parameter list</p>
-          </div></section>
           <section class="m-doc-details" id="acf81eb998e6b047a91125e75283f4d9c"><div>
             <h3>
               <span class="m-doc-wrap-bumper">auto minilua::<wbr />details::<wbr />ast::<wbr />Parameters::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#acf81eb998e6b047a91125e75283f4d9c" class="m-doc-self">params</a>(</span><span class="m-doc-wrap">) const -&gt; std::vector&lt; Identifier &gt;</span></span>
@@ -107,24 +89,23 @@
               <tfoot>
                 <tr>
                   <th style="width: 1%">Returns</th>
-                  <td>a vector containing all parameters excluding a potential spread at the beginning or and or a potential self at the beginning</td>
+                  <td>a vector containing all parameters excluding a potential spread</td>
                 </tr>
               </tfoot>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a974db552c5cbece0441ea808787bdb65"><div>
+          <section class="m-doc-details" id="ad597eb58c67888cf1f7ee5d7c1c72016"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">auto minilua::<wbr />details::<wbr />ast::<wbr />Parameters::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a974db552c5cbece0441ea808787bdb65" class="m-doc-self">spread</a>(</span><span class="m-doc-wrap">) const -&gt; SpreadPos</span></span>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />details::<wbr />ast::<wbr />Parameters::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad597eb58c67888cf1f7ee5d7c1c72016" class="m-doc-self">spread</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span></span>
             </h3>
             <table class="m-table m-fullwidth m-flat">
               <tfoot>
                 <tr>
                   <th style="width: 1%">Returns</th>
-                  <td>SpreadPos::BEGIN if there is a spread as the first parameter SpreadPos::END if there is a spread as the last parameter SpreadPos::NO_SPREAD if there is no spread amongst the parameters</td>
+                  <td>true if the last parameter is &quot;spread&quot; (...)</td>
                 </tr>
               </tfoot>
             </table>
-<p>specifies the position of a potential spread contained within the parameters SpreadPos::BEGIN and a leading self is not possible</p>
           </div></section>
         </section>
       </div>
