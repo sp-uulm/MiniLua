@@ -123,7 +123,7 @@ auto ForStatement::desugar() const -> DoStatement {
     auto complete_if_cond = Expression(
         BinaryOperation(if_cond_left, BinOpEnum::OR, if_cond_right, le_range, gen_cause),
         gen_cause);
-    // the we generate the body of the if statement alias statement_w2
+    // then we generate the body of the if statement alias statement_w2
     auto statement_w2_body =
         Body(std::vector<Statement>{Statement(Break(), le_range, gen_cause)}, std::nullopt);
     auto statement_w2 = IfStatement(complete_if_cond, statement_w2_body, le_range, gen_cause);
