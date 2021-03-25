@@ -180,9 +180,10 @@ auto Interpreter::run_file(const ts::Tree& tree, Env& env) -> EvalResult {
 }
 
 auto Interpreter::tracer() const -> std::ostream& { return *this->config.target; }
-void Interpreter::trace_enter_node(ts::Node node, std::optional<std::string> method_name) const {
+void Interpreter::trace_enter_node(
+    std::string ast_class, std::optional<std::string> method_name) const {
     if (this->config.trace_nodes) {
-        this->tracer() << "Enter node: " << ts::debug_print_node(node);
+        this->tracer() << "Enter node: " << ast_class;
         if (method_name) {
             this->tracer() << " (method: " << method_name.value() << ")";
         }
@@ -190,10 +191,10 @@ void Interpreter::trace_enter_node(ts::Node node, std::optional<std::string> met
     }
 }
 void Interpreter::trace_exit_node(
-    ts::Node node, std::optional<std::string> method_name,
+    std::string ast_class, std::optional<std::string> method_name,
     std::optional<std::string> reason) const {
     if (this->config.trace_nodes) {
-        this->tracer() << "Exit node: " << ts::debug_print_node(node);
+        this->tracer() << "Exit node: " << ast_class;
         if (method_name) {
             this->tracer() << " (method: " << method_name.value() << ")";
         }
@@ -205,7 +206,7 @@ void Interpreter::trace_exit_node(
 }
 void Interpreter::trace_function_call(
     ast::Prefix prefix, const std::vector<Value>& arguments) const {
-    auto function_name = std::string(prefix.raw().text());
+    auto function_name = std::string(prefix.to_string());
     if (this->config.trace_calls) {
         this->tracer() << "Calling function: " << function_name << " with arguments (";
         for (const auto& arg : arguments) {
@@ -216,7 +217,7 @@ void Interpreter::trace_function_call(
 }
 void Interpreter::trace_function_call_result(ast::Prefix prefix, const CallResult& result) const {
     if (this->config.trace_calls) {
-        auto function_name = std::string(prefix.raw().text());
+        auto function_name = std::string(prefix.to_string());
         this->tracer() << "Function call to: " << function_name << " resulted in "
                        << result.values();
         if (result.source_change().has_value()) {
@@ -240,7 +241,7 @@ void Interpreter::trace_exprlists(
         this->tracer() << "Exprlist: (";
         const auto* sep = "";
         for (auto& expr : exprlist) {
-            this->tracer() << sep << expr.raw().text();
+            this->tracer() << sep << expr.to_string();
             sep = ", ";
         }
         this->tracer() << ") resulted in (";
@@ -261,12 +262,12 @@ void Interpreter::trace_enter_block(Env& env) {
 
 // class Interpreter::NodeTracer
 Interpreter::NodeTracer::NodeTracer(
-    Interpreter* interpreter, ts::Node node, std::optional<std::string> method_name)
-    : interpreter(*interpreter), node(node), method_name(std::move(method_name)) {
-    this->interpreter.trace_enter_node(this->node, this->method_name);
+    Interpreter* interpreter, std::string ast_class, std::optional<std::string> method_name)
+    : interpreter(*interpreter), ast_class(ast_class), method_name(std::move(method_name)) {
+    this->interpreter.trace_enter_node(this->ast_class, this->method_name);
 }
 Interpreter::NodeTracer::~NodeTracer() {
-    this->interpreter.trace_exit_node(this->node, this->method_name);
+    this->interpreter.trace_exit_node(this->ast_class, this->method_name);
 }
 
 // helper functions
@@ -279,7 +280,7 @@ static auto convert_range(ts::Range range) -> Range {
 
 // interpreter implementation
 auto Interpreter::visit_root(ast::Program program, Env& env) -> EvalResult {
-    auto _ = NodeTracer(this, program.raw(), "visit_root");
+    auto _ = NodeTracer(this, program.debug_print(), "visit_root");
 
     EvalResult result;
 
@@ -298,7 +299,7 @@ auto Interpreter::visit_root(ast::Program program, Env& env) -> EvalResult {
 }
 
 auto Interpreter::visit_statement(ast::Statement statement, Env& env) -> EvalResult {
-    auto _ = NodeTracer(this, statement.raw(), "visit_statement");
+    auto _ = NodeTracer(this, statement.debug_print(), "visit_statement");
 
     auto result = std::visit(
         overloaded{
@@ -314,19 +315,16 @@ auto Interpreter::visit_statement(ast::Statement statement, Env& env) -> EvalRes
                 return this->visit_repeat_until_statement(node, env);
             },
             [this, &env](ast::ForStatement node) -> EvalResult {
-                // TODO desugar this
-                throw UNIMPLEMENTED("for");
+                return this->visit_do_statement(node.desugar(), env);
             },
             [this, &env](ast::ForInStatement node) -> EvalResult {
-                // TODO desugar this
-                throw UNIMPLEMENTED("for in");
+                return this->visit_do_statement(node.desugar(), env);
             },
             [this, &env](ast::GoTo node) -> EvalResult { throw UNIMPLEMENTED("goto"); },
             [this, &env](ast::Break node) { return this->visit_break_statement(); },
             [this, &env](ast::Label node) -> EvalResult { throw UNIMPLEMENTED("label"); },
             [this, &env](ast::FunctionStatement node) {
-                // TODO desugar this to variable and assignment
-                return this->visit_function_statement(node, env);
+                return this->visit_variable_declaration(node.desugar(), env);
             },
             [this, &env](ast::FunctionCall node) -> EvalResult {
                 return this->visit_function_call(node, env);
@@ -343,7 +341,7 @@ auto Interpreter::visit_statement(ast::Statement statement, Env& env) -> EvalRes
 }
 
 auto Interpreter::visit_do_statement(ast::DoStatement do_stmt, Env& env) -> EvalResult {
-    auto _ = NodeTracer(this, do_stmt.raw(), "visit_do_statement");
+    auto _ = NodeTracer(this, do_stmt.debug_print(), "visit_do_statement");
 
     return this->visit_block(do_stmt.body(), env);
 }
@@ -379,7 +377,7 @@ auto Interpreter::visit_block_with_local_env(ast::Body block, Env& block_env) ->
 }
 
 auto Interpreter::visit_if_statement(ast::IfStatement if_stmt, Env& env) -> EvalResult {
-    auto _ = NodeTracer(this, if_stmt.raw(), "visit_if_statement");
+    auto _ = NodeTracer(this, if_stmt.debug_print(), "visit_if_statement");
 
     EvalResult result;
 
@@ -425,7 +423,7 @@ auto Interpreter::visit_if_statement(ast::IfStatement if_stmt, Env& env) -> Eval
 }
 
 auto Interpreter::visit_while_statement(ast::WhileStatement while_stmt, Env& env) -> EvalResult {
-    auto _ = NodeTracer(this, while_stmt.raw(), "visit_while_statement");
+    auto _ = NodeTracer(this, while_stmt.debug_print(), "visit_while_statement");
 
     EvalResult result;
 
@@ -457,7 +455,7 @@ auto Interpreter::visit_while_statement(ast::WhileStatement while_stmt, Env& env
 
 auto Interpreter::visit_repeat_until_statement(ast::RepeatStatement repeat_stmt, Env& env)
     -> EvalResult {
-    auto _ = NodeTracer(this, repeat_stmt.raw(), "visit_repeat_until_statement");
+    auto _ = NodeTracer(this, repeat_stmt.debug_print(), "visit_repeat_until_statement");
 
     EvalResult result;
 
@@ -532,7 +530,7 @@ auto Interpreter::visit_expression_list(std::vector<ast::Expression> expressions
 }
 
 auto Interpreter::visit_return_statement(ast::Return return_stmt, Env& env) -> EvalResult {
-    auto _ = NodeTracer(this, return_stmt.raw(), "visit_return_statement");
+    auto _ = NodeTracer(this, return_stmt.debug_print(), "visit_return_statement");
 
     auto result = this->visit_expression_list(return_stmt.exp_list(), env);
     result.do_return = true;
@@ -542,7 +540,7 @@ auto Interpreter::visit_return_statement(ast::Return return_stmt, Env& env) -> E
 
 auto Interpreter::visit_variable_declaration(ast::VariableDeclaration decl, Env& env)
     -> EvalResult {
-    auto _ = NodeTracer(this, decl.raw(), "visit_variable_declaration");
+    auto _ = NodeTracer(this, decl.debug_print(), "visit_variable_declaration");
 
     EvalResult result = this->visit_expression_list(decl.declarations(), env);
     const auto vallist = result.values;
@@ -618,14 +616,12 @@ auto Interpreter::visit_variable_declaration(ast::VariableDeclaration decl, Env&
 }
 
 auto Interpreter::visit_identifier(ast::Identifier ident, Env& env) -> std::string {
-    auto _ = NodeTracer(this, ident.raw(), "visit_identifier");
+    auto _ = NodeTracer(this, ident.debug_print(), "visit_identifier");
     return ident.string();
 }
 
 auto Interpreter::visit_expression(ast::Expression expr, Env& env) -> EvalResult {
-    auto _ = NodeTracer(this, expr.raw(), "visit_expression");
-
-    auto node = expr.raw();
+    auto _ = NodeTracer(this, expr.debug_print(), "visit_expression");
 
     EvalResult result = std::visit(
         overloaded{
@@ -746,20 +742,16 @@ auto Interpreter::visit_parameter_list(std::vector<ast::Identifier> raw_params, 
 
 auto Interpreter::visit_function_expression(ast::FunctionDefinition function_definition, Env& env)
     -> EvalResult {
-    auto _ = NodeTracer(this, function_definition.raw(), "visit_function_expression");
+    auto _ = NodeTracer(this, function_definition.debug_print(), "visit_function_expression");
 
     EvalResult result;
 
     auto parameters = function_definition.parameters();
 
-    if (parameters.leading_self()) {
-        throw UNIMPLEMENTED("self as function parameter");
-    }
-
     std::vector<std::string> actual_parameters =
         this->visit_parameter_list(parameters.params(), env);
 
-    bool vararg = parameters.spread() != ast::NO_SPREAD;
+    bool vararg = parameters.spread();
 
     auto body = function_definition.body();
 
@@ -776,49 +768,8 @@ auto Interpreter::visit_function_expression(ast::FunctionDefinition function_def
     return result;
 }
 
-// TODO remove once we can desugar function statements
-auto Interpreter::visit_function_statement(ast::FunctionStatement function_statement, Env& env)
-    -> EvalResult {
-    auto _ = NodeTracer(this, function_statement.raw(), "visit_function_statement");
-
-    EvalResult result;
-
-    auto parameters = function_statement.parameters();
-
-    if (parameters.leading_self()) {
-        throw UNIMPLEMENTED("self as function parameter");
-    }
-
-    std::vector<std::string> actual_parameters =
-        this->visit_parameter_list(parameters.params(), env);
-
-    bool vararg = parameters.spread() != ast::NO_SPREAD;
-
-    auto body = function_statement.body();
-
-    Value func = Function(FunctionImpl{
-        .body = std::move(body),
-        .env = Env(env),
-        .parameters = std::move(actual_parameters),
-        .vararg = vararg,
-        .interpreter = *this,
-    });
-
-    auto function_name = function_statement.name();
-    auto identifiers = function_name.identifier();
-
-    if (identifiers.size() != 1 || function_name.method()) {
-        throw UNIMPLEMENTED("function complicated name");
-    }
-
-    auto ident = this->visit_identifier(identifiers[0], env);
-    env.set_global(ident, func);
-
-    return result;
-}
-
 auto Interpreter::visit_table_index(ast::TableIndex table_index, Env& env) -> EvalResult {
-    auto _ = NodeTracer(this, table_index.raw(), "visit_table_index");
+    auto _ = NodeTracer(this, table_index.debug_print(), "visit_table_index");
 
     EvalResult result;
 
@@ -843,7 +794,7 @@ auto Interpreter::visit_table_index(ast::TableIndex table_index, Env& env) -> Ev
 
 auto Interpreter::visit_field_expression(ast::FieldExpression field_expression, Env& env)
     -> EvalResult {
-    auto _ = NodeTracer(this, field_expression.raw(), "visit_field_expression");
+    auto _ = NodeTracer(this, field_expression.debug_print(), "visit_field_expression");
 
     EvalResult result;
 
@@ -864,7 +815,7 @@ auto Interpreter::visit_field_expression(ast::FieldExpression field_expression, 
 }
 
 auto Interpreter::visit_table_constructor(ast::Table table_constructor, Env& env) -> EvalResult {
-    auto _ = NodeTracer(this, table_constructor.raw(), "visit_table_constructor");
+    auto _ = NodeTracer(this, table_constructor.debug_print(), "visit_table_constructor");
 
     EvalResult result;
 
@@ -953,11 +904,11 @@ auto Interpreter::visit_table_constructor(ast::Table table_constructor, Env& env
 }
 
 auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) -> EvalResult {
-    auto _ = NodeTracer(this, bin_op.raw(), "visit_binary_operation");
+    auto _ = NodeTracer(this, bin_op.debug_print(), "visit_binary_operation");
 
     EvalResult result;
 
-    auto origin = convert_range(bin_op.raw().range());
+    auto origin = bin_op.range();
     origin.file = env.get_file();
 
     auto lhs_result = this->visit_expression(bin_op.left(), env);
@@ -1049,11 +1000,11 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
 }
 
 auto Interpreter::visit_unary_operation(ast::UnaryOperation unary_op, Env& env) -> EvalResult {
-    auto _ = NodeTracer(this, unary_op.raw(), "visit_unary_operation");
+    auto _ = NodeTracer(this, unary_op.debug_print(), "visit_unary_operation");
 
     EvalResult result = this->visit_expression(unary_op.expression(), env);
 
-    auto range = convert_range(unary_op.raw().range());
+    auto range = unary_op.range();
     range.file = env.get_file();
 
     Environment environment(env);
@@ -1088,7 +1039,7 @@ auto Interpreter::visit_unary_operation(ast::UnaryOperation unary_op, Env& env) 
 }
 
 auto Interpreter::visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult {
-    auto _ = NodeTracer(this, prefix.raw(), "visit_prefix");
+    auto _ = NodeTracer(this, prefix.debug_print(), "visit_prefix");
 
     EvalResult result = std::visit(
         overloaded{
@@ -1119,7 +1070,7 @@ auto Interpreter::visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult {
 }
 
 auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalResult {
-    auto _ = NodeTracer(this, call.raw(), "visit_function_call");
+    auto _ = NodeTracer(this, call.debug_print(), "visit_function_call");
 
     EvalResult result;
 
@@ -1156,7 +1107,9 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
 
         this->trace_function_call_result(call.id(), call_result);
     } catch (const std::runtime_error& e) {
-        std::string pos = call.raw().range().start.point.pretty(true);
+        stringstream ss;
+        ss << call.range().start;
+        std::string pos = ss.str();
         throw InterpreterException("failed to call function  ("s + pos + ") : " + e.what());
     }
 

@@ -9,6 +9,7 @@
 namespace minilua::details::ast {
 
 // Some forward declarations
+class Body;
 class Expression;
 class Identifier;
 class Statement;
@@ -19,42 +20,21 @@ class FieldExpression;
 using IndexField = std::pair<Expression, Expression>;
 using IdentifierField = std::pair<Identifier, Expression>;
 
+enum GEN_CAUSE { FOR_LOOP_DESUGAR, FOR_IN_LOOP_DESUGAR, FUNCTION_STATEMENT_DESUGAR };
 enum class LiteralType { TRUE, FALSE, NIL, NUMBER, STRING };
 class Literal {
     std::string literal_content;
     LiteralType literal_type;
-    ts::Range literal_range;
+    minilua::Range literal_range;
 
 public:
-    Literal(LiteralType, std::string, ts::Range);
+    Literal(LiteralType, std::string, minilua::Range);
     auto content() const -> std::string;
     auto type() const -> LiteralType;
     auto range() const -> minilua::Range;
 };
 /**
- * The Body class groups a variable amount of statements together
- * the last statement of a Body might be a return_statement
- */
-class Body {
-    std::vector<ts::Node> nodes;
-
-public:
-    explicit Body(std::vector<ts::Node>);
-    /**
-     * This method maps the statement Nodes to Statement classes
-     * @return the statements in this body excluding a potential return_statement
-     */
-    auto statements() -> std::vector<Statement>;
-    /**
-     * This checks for a return node
-     * the return_statement is always the last statement of the body
-     * @return a Return class if the body has a return statement
-     *          else an empty optional
-     */
-    auto return_statement() -> std::optional<Return>;
-};
-/**
- * class for program nodes. It only holds a body
+ * class for program nodes
  */
 class Program {
     ts::Node program;
@@ -62,31 +42,62 @@ class Program {
 public:
     explicit Program(ts::Node);
     /**
-     * the children nodes of the Program get put into a Body class by this method
+     * the children nodes of the program get put into a Body class by this method
      * @return a Body containing the full program
      */
     auto body() const -> Body;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
+};
+/**
+ * class for do_statement nodes
+ */
+class DoStatement {
+    struct DoStruct {
+        std::shared_ptr<Body> body; // the pointer is needed because Body is only a forward
+                                    // declaration here and no complete type
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        DoStruct(const Body&, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, DoStruct> content;
+
+public:
+    explicit DoStatement(ts::Node);
+    explicit DoStatement(const Body&, minilua::Range, GEN_CAUSE);
+    /**
+     *
+     * @return a body containing all statements of the do block
+     */
+    auto body() const -> Body;
+    auto range() const -> minilua::Range;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for identifier_nodes
  */
 class Identifier {
-    ts::Node id;
+    struct IdStruct {
+        std::string identifier;
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        IdStruct(std::string, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, IdStruct> content;
 
 public:
     explicit Identifier(ts::Node);
+    explicit Identifier(const std::string&, minilua::Range, GEN_CAUSE);
     /**
      * get the identifier name as a string
-     * @return the identifer as a string
+     * @return the identifier as a string
      */
     auto string() const -> std::string;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
- * this enum holds all possible BinaryOperators in lua
+ * this enum holds all possible binary operators in lua
  */
 enum class BinOpEnum {
     ADD,         //      +
@@ -115,18 +126,30 @@ enum class BinOpEnum {
  * class for binary_operation nodes
  */
 class BinaryOperation {
-    ts::Node bin_op;
+    struct BinOpStruct {
+        std::shared_ptr<Expression> left; // the pointer is needed because Expression is only a
+                                          // forward declaration here and no complete type
+        BinOpEnum bin_operator;
+        std::shared_ptr<Expression> right; // the pointer is needed because Expression is only a
+                                           // forward declaration here and no complete type
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        BinOpStruct(const Expression&, BinOpEnum, const Expression&, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, BinOpStruct> content;
 
 public:
     explicit BinaryOperation(ts::Node node);
+    explicit BinaryOperation(
+        const Expression&, BinOpEnum, const Expression&, minilua::Range, GEN_CAUSE);
     /**
      *
-     * @return The left operand
+     * @return the left operand
      */
     auto left() const -> Expression;
     /**
      *
-     * @return The right operand
+     * @return the right operand
      */
     auto right() const -> Expression;
     /**
@@ -135,10 +158,10 @@ public:
      */
     auto binary_operator() const -> BinOpEnum;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
- * This enum holds all unary Operators of lua
+ * this enum holds all unary operators of lua
  */
 enum class UnOpEnum {
     NOT,  //    not
@@ -150,10 +173,19 @@ enum class UnOpEnum {
  * class for unary_operation nodes
  */
 class UnaryOperation {
-    ts::Node un_op;
+    struct UnOpStruct {
+        UnOpEnum un_operator;
+        std::shared_ptr<Expression> operand; // the pointer is needed because Expression is only a
+                                             // forward declaration here and no complete type
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        UnOpStruct(UnOpEnum, const Expression&, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, UnOpStruct> content;
 
 public:
     explicit UnaryOperation(ts::Node node);
+    explicit UnaryOperation(UnOpEnum, const Expression&, minilua::Range, GEN_CAUSE);
     /**
      *
      * @return the operator of the operation
@@ -161,11 +193,11 @@ public:
     auto unary_operator() const -> UnOpEnum;
     /**
      *
-     * @return the operand of
+     * @return the operand of the operation
      */
     auto expression() const -> Expression;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for loop_expression  nodes
@@ -177,12 +209,12 @@ public:
     explicit LoopExpression(ts::Node);
     /**
      *
-     * @return The identifier of the loop variable
+     * @return the identifier of the loop variable
      */
     auto variable() const -> Identifier;
     /**
      *
-     * @return The start value of the loop variable
+     * @return the start value of the loop variable
      */
     auto start() const -> Expression;
     /**
@@ -197,7 +229,7 @@ public:
      */
     auto end() const -> Expression;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for for_statement nodes
@@ -218,7 +250,8 @@ public:
      */
     auto body() const -> Body;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
+    auto desugar() const -> DoStatement;
 };
 /**
  * class for in_loop_expression nodes
@@ -234,12 +267,12 @@ public:
      */
     auto loop_vars() const -> std::vector<Identifier>;
     /**
-     * the loop expressions usually should eveluate to a functioncall
+     *
      * @return the loop expressions
      */
     auto loop_exps() const -> std::vector<Expression>;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for for_in_statement nodes
@@ -259,17 +292,28 @@ public:
      * @return the corresponding loop expression
      */
     auto loop_expression() const -> InLoopExpression;
+    auto desugar() const -> DoStatement;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for while_statement nodes
  */
 class WhileStatement {
-    ts::Node while_statement;
+    struct WhileStruct {
+        std::shared_ptr<Expression> condition; // the pointer is needed because Expression is only a
+                                               // forward declaration here and no complete type
+        std::shared_ptr<Body> body; // the pointer is needed because Body is only a forward
+                                    // declaration here and no complete type
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        WhileStruct(const Expression&, const Body&, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, WhileStruct> content;
 
 public:
     explicit WhileStatement(ts::Node node);
+    explicit WhileStatement(const Expression&, const Body&, minilua::Range, GEN_CAUSE);
     /**
      * @return an expression containing the conditional expression of the loop
      */
@@ -280,7 +324,7 @@ public:
      */
     auto body() const -> Body;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for repeat_statement nodes
@@ -300,7 +344,7 @@ public:
      */
     auto body() const -> Body;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for else_if nodes
@@ -321,7 +365,7 @@ public:
      */
     auto condition() const -> Expression;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for else nodes
@@ -337,16 +381,29 @@ public:
      */
     auto body() const -> Body;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for if_statement nodes
  */
 class IfStatement {
-    ts::Node if_statement;
+    struct IfStruct {
+        std::shared_ptr<Expression> condition; // the pointer is needed because Expression is only a
+                                               // forward declaration here and no complete type
+        std::shared_ptr<Body> body; // the pointer is needed because Body is only a forward
+                                    // declaration here and no complete type
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        IfStruct(const Expression&, const Body&, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, IfStruct> content;
 
 public:
     explicit IfStatement(ts::Node node);
+    /**
+     * constructs an if-statement without elseifs or an else
+     */
+    explicit IfStatement(const Expression&, const Body&, minilua::Range, GEN_CAUSE);
     /**
      *
      * @return a body containing the statements of the if block excluding else_if and else
@@ -370,7 +427,7 @@ public:
      */
     auto else_statement() const -> std::optional<Else>;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * a class for return_statement nodes
@@ -387,7 +444,7 @@ public:
      */
     auto exp_list() const -> std::vector<Expression>;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for table_index nodes
@@ -399,42 +456,94 @@ public:
     explicit TableIndex(ts::Node);
     /**
      *
-     * @return a prefix that eveluates to the table of this table index
+     * @return a prefix that evaluates to the table of this table index
      */
     auto table() const -> Prefix;
     /**
      *
-     * @return an expression that eveluates to the index
+     * @return an expression that evaluates to the index
      */
     auto index() const -> Expression;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
+/**
+ * class for field_expression nodes
+ */
+class FieldExpression {
+    struct FieldExpStruct {
+        std::shared_ptr<Prefix> table; // the pointer is needed because Prefix is only a forward
+                                       // declaration here and no complete type
+        Identifier property;
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        FieldExpStruct(const Prefix&, Identifier, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, FieldExpStruct> content;
+
+public:
+    explicit FieldExpression(ts::Node);
+    explicit FieldExpression(const Prefix&, Identifier, minilua::Range, GEN_CAUSE);
+    /**
+     *
+     * @return a Prefix containing the identifier for the table
+     */
+    auto table_id() const -> Prefix;
+    /**
+     *
+     * @return an Identifier for a property of the table
+     */
+    auto property_id() const -> Identifier;
+    auto range() const -> minilua::Range;
+    auto debug_print() const -> std::string;
+};
+
 /**
  * class for variable_declarator nodes
  */
 class VariableDeclarator {
-    ts::Node dec;
+    using VarDecVariant = std::variant<Identifier, FieldExpression, TableIndex>;
+    struct VDStruct {
+        VarDecVariant vd_variant;
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        VDStruct(Identifier, minilua::Range, GEN_CAUSE);
+        VDStruct(FieldExpression, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, VDStruct> content;
 
 public:
     explicit VariableDeclarator(ts::Node node);
+    explicit VariableDeclarator(Identifier, GEN_CAUSE);
+    explicit VariableDeclarator(FieldExpression, GEN_CAUSE);
     /**
      *
      * @return a variant containing the class this variable declarator gets resolved to
      */
-    auto options() const -> std::variant<Identifier, FieldExpression, TableIndex>;
+    auto options() const -> VarDecVariant;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for variable_declaration and local_variable_declaration nodes
  */
 class VariableDeclaration {
-    ts::Node var_dec;
+    struct VDStruct {
+        std::vector<VariableDeclarator> declarators;
+        std::vector<Expression> declarations;
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        VDStruct(
+            std::vector<VariableDeclarator>, std::vector<Expression>, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, VDStruct> content;
     bool local_dec;
 
 public:
     explicit VariableDeclaration(ts::Node node);
+    explicit VariableDeclaration(
+        bool, const std::vector<VariableDeclarator>&, const std::vector<Expression>&,
+        minilua::Range, GEN_CAUSE);
     /**
      *
      * @return true if the declaration is local
@@ -451,44 +560,7 @@ public:
      */
     auto declarations() const -> std::vector<Expression>;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
-};
-/**
- * class for field_expression nodes
- */
-class FieldExpression {
-    ts::Node exp;
-
-public:
-    explicit FieldExpression(ts::Node);
-    /**
-     *
-     * @return a Prefix containing the Identifier for the table
-     */
-    auto table_id() const -> Prefix;
-    /**
-     *
-     * @return an Identifier for a property of the Table
-     */
-    auto property_id() const -> Identifier;
-    auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
-};
-/**
- * class for do_statement nodes
- */
-class DoStatement {
-    ts::Node do_statement;
-
-public:
-    explicit DoStatement(ts::Node);
-    /**
-     *
-     * @return a body containing all statements of the do block
-     */
-    auto body() const -> Body;
-    auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for go_to_statements
@@ -504,7 +576,7 @@ public:
      */
     auto label() const -> Identifier;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for label_statements
@@ -520,7 +592,7 @@ public:
      */
     auto id() const -> Identifier;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for function_name nodes
@@ -547,52 +619,53 @@ public:
      */
     auto method() const -> std::optional<Identifier>;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
-/**
- * an enum defining the different positions a Spread can occur in the parameters of a method
- */
-enum SpreadPos { BEGIN, END, NO_SPREAD };
 /**
  * a class for parameter nodes
  */
 class Parameters {
-    ts::Node parameters;
+    struct ParamStruct {
+        std::vector<Identifier> identifiers;
+        bool spread;
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        ParamStruct(std::vector<Identifier>, bool, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, ParamStruct> content;
 
 public:
     explicit Parameters(ts::Node);
-    /**
-     * self can only be the first parameter this method looks if the self keyword is present in this
-     * parameter list
-     * @return true if the first parameter is "self"
-     *          false otherwise
-     */
-    auto leading_self() const -> bool;
+    explicit Parameters(std::vector<Identifier>, bool, minilua::Range, GEN_CAUSE);
     /**
      *
-     * @return a vector containing all parameters excluding a potential spread at the beginning or
-     * and or a potential self at the beginning
+     * @return a vector containing all parameters excluding a potential spread
      */
     auto params() const -> std::vector<Identifier>;
     /**
-     * specifies the position of a potential spread contained within the parameters
-     * SpreadPos::BEGIN and a leading self is not possible
-     * @return SpreadPos::BEGIN if there is a spread as the first parameter
-     *          SpreadPos::END if there is a spread as the last parameter
-     *          SpreadPos::NO_SPREAD if there is no spread amongst the parameters
+     * @return true if the last parameter is "spread" (...)
      */
-    auto spread() const -> SpreadPos;
+    auto spread() const -> bool;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for function_definition nodes
  */
 class FunctionDefinition {
-    ts::Node func_def;
+    struct FuncDefStruct {
+        Parameters parameters;
+        std::shared_ptr<Body> body; // the pointer is needed because Body is only a forward
+                                    // declaration here and no complete type
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        FuncDefStruct(Parameters, const Body&, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, FuncDefStruct> content;
 
 public:
     explicit FunctionDefinition(ts::Node);
+    explicit FunctionDefinition(const Parameters&, const Body&, minilua::Range, GEN_CAUSE);
     /**
      *
      * @return a body containing all statements of this function
@@ -604,7 +677,7 @@ public:
      */
     auto parameters() const -> Parameters;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for function_statements
@@ -627,35 +700,49 @@ public:
     auto body() const -> Body;
     /**
      *
-     * @return a Parameter class containing all information about the Parameters of this function
+     * @return a Parameter class containing all information about the parameters of this function
      */
     auto parameters() const -> Parameters;
     auto local() const -> bool;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
+    auto desugar() const -> VariableDeclaration;
 };
 class FunctionCall {
-    ts::Node func_call;
+    struct FuncCallStruct {
+        std::shared_ptr<Prefix> prefix;
+        std::optional<Identifier> method;
+        std::vector<Expression> args;
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        FuncCallStruct(
+            const Prefix&, std::optional<Identifier>, std::vector<Expression>, minilua::Range,
+            GEN_CAUSE);
+    };
+    std::variant<ts::Node, FuncCallStruct> content;
 
 public:
     explicit FunctionCall(ts::Node);
+    explicit FunctionCall(
+        const Prefix&, std::optional<Identifier>, std::vector<Expression>, minilua::Range,
+        GEN_CAUSE);
     /**
      *
      * @return
-     * If the call is a method call id() the Prefix should refer to to a table
-     * else the Prefix states the functionname
+     * If the call is a method call id() should refer to a table
+     * else the Prefix states the function name
      */
     auto id() const -> Prefix;
     /**
      *
      * @return
      * an empty optional if it is not a method call
-     * the functionname if it is a method call
+     * the function name if it is a method call
      */
     auto method() const -> std::optional<Identifier>;
     auto args() const -> std::vector<Expression>;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for field_nodes
@@ -675,7 +762,7 @@ public:
      */
     auto content() const -> std::variant<IndexField, IdentifierField, Expression>;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 /**
  * class for table nodes
@@ -691,7 +778,7 @@ public:
      */
     auto fields() const -> std::vector<Field>;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
 };
 // a few empty classes that are just used as additional return types
 class Spread {};
@@ -701,52 +788,126 @@ class Break {};
  * class for prefix nodes
  */
 class Prefix {
-    ts::Node prefix;
+    using PrefixVariant = std::variant<VariableDeclarator, FunctionCall, Expression>;
+    using modifiedPrefixVariant = std::variant<
+        VariableDeclarator, FunctionCall,
+        std::shared_ptr<Expression>>; // the pointer is needed because Expression is only a forward
+                                      // declaration here and no complete type
+    struct PrefixStruct {
+        modifiedPrefixVariant prefix_variant;
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        PrefixStruct(VariableDeclarator, minilua::Range, GEN_CAUSE);
+        PrefixStruct(FunctionCall, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, PrefixStruct> content;
 
 public:
     explicit Prefix(ts::Node);
+    explicit Prefix(VariableDeclarator, GEN_CAUSE);
+    explicit Prefix(FunctionCall, GEN_CAUSE);
     /**
      *
      * @return a variant containing the class this Prefix gets resolved to
      */
-    auto options() const -> std::variant<Self, VariableDeclarator, FunctionCall, Expression>;
+    auto options() const -> PrefixVariant;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
+    auto to_string() const -> std::string;
 };
+using ExpressionVariant = std::variant<
+    Spread, Prefix, FunctionDefinition, Table, BinaryOperation, UnaryOperation, Literal,
+    Identifier>;
 /**
  * class for expression nodes
  */
 class Expression {
-    ts::Node exp;
+    struct ExpStruct {
+        ExpressionVariant exp_variant;
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        ExpStruct(BinaryOperation, minilua::Range, GEN_CAUSE);
+        ExpStruct(UnaryOperation, minilua::Range, GEN_CAUSE);
+        ExpStruct(FunctionDefinition, minilua::Range, GEN_CAUSE);
+        ExpStruct(Prefix, minilua::Range, GEN_CAUSE);
+        ExpStruct(Literal, minilua::Range, GEN_CAUSE);
+        ExpStruct(Identifier, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, ExpStruct> content;
 
 public:
     explicit Expression(ts::Node);
+    explicit Expression(BinaryOperation, GEN_CAUSE);
+    explicit Expression(UnaryOperation, GEN_CAUSE);
+    explicit Expression(FunctionDefinition, GEN_CAUSE);
+    explicit Expression(Prefix, GEN_CAUSE);
+    explicit Expression(Literal, GEN_CAUSE);
+    explicit Expression(Identifier, GEN_CAUSE);
     /**
      *
      * @return a variant containing the class this expression gets resolved to
      */
-    auto options() const -> std::variant<
-        Spread, Prefix, FunctionDefinition, Table, BinaryOperation, UnaryOperation, Literal,
-        Identifier>;
+    auto options() const -> ExpressionVariant;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
+    auto to_string() const -> std::string;
 };
-
+using StatementVariant = std::variant<
+    VariableDeclaration, DoStatement, IfStatement, WhileStatement, RepeatStatement, ForStatement,
+    ForInStatement, GoTo, Break, Label, FunctionStatement, FunctionCall, Expression>;
 class Statement {
-    ts::Node statement;
+    struct StatStruct {
+        StatementVariant stat_var;
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        StatStruct(VariableDeclaration, minilua::Range, GEN_CAUSE);
+        StatStruct(FunctionCall, minilua::Range, GEN_CAUSE);
+        StatStruct(WhileStatement, minilua::Range, GEN_CAUSE);
+        StatStruct(IfStatement, minilua::Range, GEN_CAUSE);
+        StatStruct(DoStatement, minilua::Range, GEN_CAUSE);
+        StatStruct(Break, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, StatStruct> content;
 
 public:
     explicit Statement(ts::Node);
+    explicit Statement(VariableDeclaration, GEN_CAUSE);
+    explicit Statement(FunctionCall, GEN_CAUSE);
+    explicit Statement(WhileStatement, GEN_CAUSE);
+    explicit Statement(IfStatement, GEN_CAUSE);
+    explicit Statement(DoStatement, GEN_CAUSE);
+    explicit Statement(Break, minilua::Range, GEN_CAUSE);
     /**
      *
      * @return a variant containing the class this statement gets resolved to
      */
-    auto options() const -> std::variant<
-        VariableDeclaration, DoStatement, IfStatement, WhileStatement, RepeatStatement,
-        ForStatement, ForInStatement, GoTo, Break, Label, FunctionStatement, FunctionCall,
-        Expression>;
+    auto options() const -> StatementVariant;
     auto range() const -> minilua::Range;
-    auto raw() const -> ts::Node;
+    auto debug_print() const -> std::string;
+};
+/**
+ * The Body class groups a variable amount of statements together
+ * the last statement of a Body might be a return_statement
+ */
+class Body {
+    using BodyPair = std::pair<std::vector<Statement>, std::optional<Return>>;
+    std::variant<std::vector<ts::Node>, BodyPair> content;
+
+public:
+    explicit Body(std::vector<ts::Node>);
+    explicit Body(std::vector<Statement>, std::optional<Return>);
+    /**
+     * This method maps the statement Nodes to Statement classes
+     * @return the statements in this body excluding a potential return_statement
+     */
+    auto statements() -> std::vector<Statement>;
+    /**
+     * This checks for a return node
+     * the return_statement is always the last statement of the body
+     * @return a Return class if the body has a return statement
+     *          else an empty optional
+     */
+    auto return_statement() -> std::optional<Return>;
 };
 } // namespace minilua::details::ast
 
