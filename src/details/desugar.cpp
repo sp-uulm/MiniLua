@@ -16,8 +16,9 @@ namespace minilua::details::ast {
            break
          end
          local v = var                                                      --statement_w3
-         block                                                              --all the statements of
- the for loop end end
+         block                                                 --all the statements of the for loop
+       end
+   end
  * @return
  */
 auto ForStatement::desugar() const -> DoStatement {
@@ -44,7 +45,7 @@ auto ForStatement::desugar() const -> DoStatement {
         to_number_prefix, std::nullopt, std::vector<Expression>{loop_exp.end()}, le_range,
         gen_cause);
     auto end_exp = Expression(Prefix(end_to_number, gen_cause), gen_cause);
-    // if there there is no value given for the step size we default to 1
+    // if there is no value given for the step size we default to 1
     if (loop_exp.step().has_value()) {
         FunctionCall step_to_number = FunctionCall(
             to_number_prefix, std::nullopt, std::vector<Expression>{loop_exp.step().value()},
@@ -123,7 +124,7 @@ auto ForStatement::desugar() const -> DoStatement {
     auto complete_if_cond = Expression(
         BinaryOperation(if_cond_left, BinOpEnum::OR, if_cond_right, le_range, gen_cause),
         gen_cause);
-    // the we generate the body of the if statement alias statement_w2
+    // then we generate the body of the if statement alias statement_w2
     auto statement_w2_body =
         Body(std::vector<Statement>{Statement(Break(), le_range, gen_cause)}, std::nullopt);
     auto statement_w2 = IfStatement(complete_if_cond, statement_w2_body, le_range, gen_cause);
