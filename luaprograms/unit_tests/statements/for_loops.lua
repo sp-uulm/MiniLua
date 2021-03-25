@@ -2,8 +2,8 @@ a = 0
 for i=1,6,2 do
     a = a+1
 end
-assert(a==3)
 
+assert(a==3)
 t={
     a = "b";
     c ;

@@ -73,3 +73,25 @@ function f7(t)
     assert(t.key == 42)
 end
 f7{key = 42}
+
+t2 = {
+    a = 2;
+    b = 3;
+    c = 4;
+    d = 5;
+    t3 = {
+        func = function (a)
+            return a*7;
+        end
+    }
+}
+
+function t2:sum ()
+    return self.a+self.b+self.c+self.d
+end
+
+sum = t2.sum(t2)
+assert(sum == 14)
+
+res = t2.t3.func(6)
+assert(res == 42)

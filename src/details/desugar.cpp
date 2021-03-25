@@ -34,7 +34,7 @@ auto ForStatement::desugar() const -> DoStatement {
     // now we are on to statement_1
     std::vector<Expression> declarations;
     Prefix to_number_prefix = Prefix(
-        VariableDeclarator(Identifier("to_number", le_range, gen_cause), gen_cause), gen_cause);
+        VariableDeclarator(Identifier("tonumber", le_range, gen_cause), gen_cause), gen_cause);
     // we now generate the tonumber function calls
     FunctionCall start_to_number = FunctionCall(
         to_number_prefix, std::nullopt, std::vector<Expression>{loop_exp.start()}, le_range,

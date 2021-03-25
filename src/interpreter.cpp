@@ -33,6 +33,7 @@ InterpreterConfig::InterpreterConfig(bool def) : InterpreterConfig() { this->all
 void InterpreterConfig::all(bool def) {
     this->trace_nodes = def;
     this->trace_calls = def;
+    this->trace_metamethod_calls = def;
     this->trace_enter_block = def;
     this->trace_exprlists = def;
     this->trace_break = def;

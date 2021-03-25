@@ -26,7 +26,30 @@ auto force(const CallContext& ctx) -> CallResult;
 
 void error(const CallContext& ctx);
 
-auto to_string(const CallContext& ctx) -> Value;
+/**
+ * @brief Converts the value to a string.
+ *
+ * Tables and functions will not return a meaningful string. They will only be
+ * represented as their address.
+ *
+ * Will respect the metamethod `__tostring`.
+ */
+auto to_string(const CallContext& ctx) -> CallResult;
+
+/**
+ * @brief Calls the given function with the given arguments and catches errors.
+ *
+ * Calls the given function (first argument) with the given arguments (rest of
+ * the arguments) and catches any errors.
+ *
+ * If the function raise an error this function returns two values: `false` and
+ * the error message. If the function does not raise an error this function will
+ * return `true` and all return values of the called functions.
+ *
+ * \note The source changes from a called function will only be forwarded if no error
+ * was raised.
+ */
+auto pcall(const CallContext& ctx) -> CallResult;
 
 auto to_number(const CallContext& ctx) -> Value;
 
@@ -48,7 +71,7 @@ auto next(const CallContext& ctx) -> Vallist;
  */
 auto select(const CallContext& ctx) -> Vallist;
 
-void print(const CallContext& ctx);
+auto print(const CallContext& ctx) -> CallResult;
 
 /**
  * Remove the origin of all passed in values and return them.
@@ -56,6 +79,45 @@ void print(const CallContext& ctx);
  * \note This is not part of the official lua stdlib.
  */
 auto discard_origin(const CallContext& ctx) -> Vallist;
+
+/**
+ * Debug print the values (this will also print tables but not functions).
+ */
+void debug_print(const CallContext& ctx);
+
+/**
+ * Returns the metatable of the first parameter or nil if there is none.
+ */
+auto get_metatable(const CallContext& ctx) -> Value;
+
+/**
+ * Sets the metatable (second parameter) for the table (first parameter) and
+ * return the table.
+ *
+ * Will error if the first value is not a table or second value is not a table
+ * or nil.
+ */
+auto set_metatable(const CallContext& ctx) -> Value;
+
+/**
+ * Gets the real value of table[index], without invoking any metamethod.
+ *
+ * First param is the table, second param is the index.
+ *
+ * Will error if the table is not a Table.
+ */
+auto rawget(const CallContext& ctx) -> Value;
+
+/**
+ * Sets the real value of table[index] to value, without invoking any metamethod.
+ *
+ * First param is the table, second param is the index and third param is the value.
+ *
+ * Will error if the table is not a Table or if the index is invalid.
+ *
+ * This function returns table.
+ */
+auto rawset(const CallContext& ctx) -> Value;
 
 } // namespace minilua
 

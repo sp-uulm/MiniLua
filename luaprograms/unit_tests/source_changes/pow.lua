@@ -1,0 +1,2 @@
+force(3 ^ 4, 27)
+-- EXPECT SOURCE_CHANGE 1:11 3.0

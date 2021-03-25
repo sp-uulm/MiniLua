@@ -155,7 +155,7 @@ auto Table::contains_function() const -> bool {
         this->begin(), this->end(), [](const auto& kv) { return kv.second.is_function(); });
 }
 
-auto Table::get(const Value& key) -> Value {
+auto Table::get(const Value& key) const -> Value {
     auto value = impl->value.find(key);
     if (value == impl->value.end()) {
         return Nil();
@@ -305,6 +305,18 @@ auto Table::next(const Value& key) const -> Vallist {
                 }
             }},
         key.raw());
+}
+
+auto Table::get_metatable() const -> std::optional<Table> { return this->impl->metatable; }
+void Table::set_metatable(std::optional<Table> metatable) {
+    this->impl->metatable = std::move(metatable);
+}
+
+auto Table::get_metamethod(const std::string& metamethod) const -> Value {
+    if (this->get_metatable().has_value()) {
+        return this->get_metatable()->get(metamethod);
+    }
+    return Nil();
 }
 
 } // namespace minilua

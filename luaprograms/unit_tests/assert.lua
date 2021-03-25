@@ -1,2 +1,3 @@
 assert(true)
-assert(false, "message")
+
+assert(not pcall(function () assert(false, "message") end))

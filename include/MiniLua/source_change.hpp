@@ -438,6 +438,13 @@ auto operator<<(std::ostream&, const std::optional<SourceChangeTree>&) -> std::o
  */
 auto simplify(const std::optional<SourceChangeTree>& tree) -> std::optional<SourceChangeTree>;
 
+/**
+ * @brief Combines two source changes using a `SourceChangeCombination` if necessary.
+ */
+auto combine_source_changes(
+    const std::optional<SourceChangeTree>& lhs, const std::optional<SourceChangeTree>& rhs)
+    -> std::optional<SourceChangeTree>;
+
 } // namespace minilua
 
 #endif

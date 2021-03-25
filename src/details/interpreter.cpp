@@ -1,6 +1,7 @@
 #include "interpreter.hpp"
 #include "MiniLua/environment.hpp"
 #include "MiniLua/interpreter.hpp"
+#include "MiniLua/metatables.hpp"
 #include "MiniLua/stdlib.hpp"
 #include "ast.hpp"
 #include "tree_sitter/tree_sitter.hpp"
@@ -45,21 +46,6 @@ EvalResult::EvalResult(Vallist values)
 EvalResult::EvalResult(const CallResult& call_result)
     : values(call_result.values()), do_break(false), do_return(false),
       source_change(call_result.source_change()) {}
-
-/**
- * Helper function to combine two optional source changes.
- */
-static auto combine_source_changes(
-    const std::optional<SourceChangeTree>& lhs, const std::optional<SourceChangeTree>& rhs)
-    -> std::optional<SourceChangeTree> {
-    if (lhs.has_value() && rhs.has_value()) {
-        return SourceChangeCombination({*lhs, *rhs});
-    } else if (lhs.has_value()) {
-        return lhs;
-    } else {
-        return rhs;
-    }
-}
 
 void EvalResult::combine(const EvalResult& other) {
     this->values = other.values;
@@ -238,6 +224,15 @@ void Interpreter::trace_function_call_result(ast::Prefix prefix, const CallResul
             this->tracer() << " with source changes " << result.source_change().value();
         }
         this->tracer() << "\n";
+    }
+}
+void Interpreter::trace_metamethod_call(const std::string& name, const Vallist& arguments) const {
+    if (this->config.trace_metamethod_calls) {
+        this->tracer() << "Calling Metamethod: " << name << " with arguments (";
+        for (const auto& arg : arguments) {
+            this->tracer() << arg << ", ";
+        }
+        this->tracer() << ")\n";
     }
 }
 void Interpreter::trace_exprlists(
@@ -567,7 +562,7 @@ auto Interpreter::visit_variable_declaration(ast::VariableDeclaration decl, Env&
                         throw InterpreterException(
                             "Field expression not allowed as target of local declaration");
                     },
-                    [](ast::TableIndex /*node*/) {
+                    [](ast::TableIndex node) {
                         throw InterpreterException(
                             "Table access not allowed as target of local declaration");
                     },
@@ -579,7 +574,40 @@ auto Interpreter::visit_variable_declaration(ast::VariableDeclaration decl, Env&
                     [this, &env, &value](ast::Identifier ident) {
                         env.set_var(this->visit_identifier(ident, env), value);
                     },
-                    [](auto node) { throw UNIMPLEMENTED("variable_declarator"); }},
+                    [this, &env, &value, &result](ast::TableIndex table_index) {
+                        // evaluate the prefix (i.e. the part before the square brackets)
+                        auto prefix_result = this->visit_prefix(table_index.table(), env);
+                        result.combine(prefix_result);
+                        auto table = prefix_result.values.get(0);
+
+                        // evaluate the index (i.e. the part inside the square brackets)
+                        auto index_result = this->visit_expression(table_index.index(), env);
+                        result.combine(index_result);
+                        auto index = index_result.values.get(0);
+
+                        Environment environment(env);
+                        CallContext ctx(&environment);
+
+                        auto newindex_call_result =
+                            mt::newindex(ctx.make_new({table, index, value}));
+                        result.combine(EvalResult(newindex_call_result));
+                    },
+                    [this, &env, &value, &result](ast::FieldExpression field_expr) {
+                        // evaluate the prefix (i.e. the part before the dot)
+                        auto prefix_result = this->visit_prefix(field_expr.table_id(), env);
+                        result.combine(prefix_result);
+                        auto table = prefix_result.values.get(0);
+
+                        // get the property identifier (i.e. the part after the dot)
+                        auto index = field_expr.property_id().string();
+
+                        Environment environment(env);
+                        CallContext ctx(&environment);
+
+                        auto newindex_call_result =
+                            mt::newindex(ctx.make_new({table, index, value}));
+                        result.combine(EvalResult(newindex_call_result));
+                    }},
                 target);
         }
     }
@@ -755,7 +783,12 @@ auto Interpreter::visit_table_index(ast::TableIndex table_index, Env& env) -> Ev
     result.combine(index_result);
     auto index = index_result.values.get(0);
 
-    result.values = Vallist(table[index]);
+    Environment environment(env);
+    CallContext ctx(&environment);
+
+    auto index_call_result = mt::index(ctx.make_new({table, index}));
+    result.combine(EvalResult(index_call_result));
+
     return result;
 }
 
@@ -768,10 +801,16 @@ auto Interpreter::visit_field_expression(ast::FieldExpression field_expression, 
     // evaluate the prefix (i.e. the part before the dot)
     auto table_result = this->visit_prefix(field_expression.table_id(), env);
     result.combine(table_result);
+    auto table = table_result.values.get(0);
 
     std::string key = this->visit_identifier(field_expression.property_id(), env);
 
-    result.values = Vallist(table_result.values.get(0)[key]);
+    Environment environment(env);
+    CallContext ctx(&environment);
+
+    auto index_call_result = mt::index(ctx.make_new({table, key}));
+    result.combine(EvalResult(index_call_result));
+
     return result;
 }
 
@@ -873,44 +912,89 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
     origin.file = env.get_file();
 
     auto lhs_result = this->visit_expression(bin_op.left(), env);
-    auto rhs_result = this->visit_expression(bin_op.right(), env);
+    auto lhs = lhs_result.values.get(0);
+    result.combine(lhs_result);
 
-    auto impl_operator = [&result, &lhs_result, &rhs_result, &origin](auto f) {
-        Value value = std::invoke(f, lhs_result.values.get(0), rhs_result.values.get(0), origin);
-        result.combine(rhs_result);
+    auto rhs_result = this->visit_expression(bin_op.right(), env);
+    auto rhs = rhs_result.values.get(0);
+    result.combine(rhs_result);
+
+    // raw operators
+    auto impl_operator = [&result, &origin](auto f, Value lhs, Value rhs) {
+        Value value = std::invoke(f, lhs, rhs, origin);
         result.values = Vallist(value);
     };
 
 #define IMPL(op, method)                                                                           \
     case ast::BinOpEnum::op:                                                                       \
-        impl_operator(&Value::method);                                                             \
+        impl_operator(&Value::method, lhs, rhs);                                                   \
+        break;
+
+    Environment environment(env);
+    CallContext ctx(&environment);
+
+    // operators supporting metamethods
+    auto impl_mt_operator = [this, &ctx, &result,
+                             &origin](auto f, Value lhs, Value rhs, const std::string& name) {
+        auto args = Vallist{std::move(lhs), std::move(rhs)};
+        this->trace_metamethod_call(name, args);
+        auto call_result = f(ctx.make_new(args), origin);
+        result.combine(EvalResult(call_result.one_value()));
+    };
+
+#define IMPL_MT(op, function, name)                                                                \
+    case ast::BinOpEnum::op:                                                                       \
+        impl_mt_operator(function, lhs, rhs, name);                                                \
         break;
 
     switch (bin_op.binary_operator()) {
-        IMPL(ADD, add)
-        IMPL(SUB, sub)
-        IMPL(MUL, mul)
-        IMPL(DIV, div)
-        IMPL(MOD, mod)
-        IMPL(POW, pow)
-        IMPL(LT, less_than)
-        IMPL(LEQ, less_than_or_equal)
-        IMPL(GT, greater_than)
-        IMPL(GEQ, greater_than_or_equal)
-        IMPL(EQ, equals)
-        IMPL(NEQ, unequals)
-        IMPL(CONCAT, concat)
+        // operators with metamethods
+
+        // arithmetic
+        IMPL_MT(ADD, mt::add, "add")
+        IMPL_MT(SUB, mt::sub, "sub")
+        IMPL_MT(MUL, mt::mul, "mul")
+        IMPL_MT(DIV, mt::div, "div")
+        IMPL_MT(MOD, mt::mod, "mod")
+        IMPL_MT(POW, mt::pow, "pow")
+        IMPL_MT(INT_DIV, mt::idiv, "idiv")
+
+        // bitwise
+        IMPL_MT(BIT_AND, mt::band, "band")
+        IMPL_MT(BIT_OR, mt::bor, "bor")
+        IMPL_MT(BIT_XOR, mt::bxor, "bxor")
+        IMPL_MT(SHIFT_LEFT, mt::shl, "shl")
+        IMPL_MT(SHIFT_RIGHT, mt::shr, "shr")
+        IMPL_MT(CONCAT, mt::concat, "concat")
+
+        // comparison
+        IMPL_MT(EQ, mt::eq, "eq")
+        IMPL_MT(LT, mt::lt, "lt")
+        IMPL_MT(LEQ, mt::le, "le")
+
+        // the following operators have to be converted to other metamethods
+    case ast::BinOpEnum::GT:
+        // gt: "x > y" == "y < x"
+        impl_mt_operator(mt::lt, rhs, lhs, "gt");
+        break;
+    case ast::BinOpEnum::GEQ:
+        // geq: "x >= y" == "y <= x"
+        impl_mt_operator(mt::le, rhs, lhs, "geq");
+        break;
+    case ast::BinOpEnum::NEQ:
+        // neq: "x ~= y" == "not (x == y)"
+        impl_mt_operator(mt::eq, lhs, rhs, "eq");
+        result.values = Vallist(result.values.get(0).invert());
+        break;
+
+        // these don't have metamethods
+        // TODO do short circuiting
         IMPL(OR, logic_or)
         IMPL(AND, logic_and)
-        IMPL(BIT_OR, bit_or)
-        IMPL(BIT_AND, bit_and)
-        IMPL(SHIFT_LEFT, bit_shl)
-        IMPL(SHIFT_RIGHT, bit_shr)
-        IMPL(BIT_XOR, bit_xor)
-        IMPL(INT_DIV, int_div)
     }
 
 #undef IMPL
+#undef IMPL_MT
 
     return result;
 }
@@ -923,19 +1007,33 @@ auto Interpreter::visit_unary_operation(ast::UnaryOperation unary_op, Env& env) 
     auto range = unary_op.range();
     range.file = env.get_file();
 
-#define IMPL(op, method)                                                                           \
+    Environment environment(env);
+    CallContext ctx(&environment);
+
+    auto impl_mt_operator = [this, &ctx, &result, &range](auto f, const std::string& name) {
+        auto args = Vallist{result.values.get(0)};
+        this->trace_metamethod_call(name, args);
+        auto call_result = f(ctx.make_new(args), range);
+        result.combine(EvalResult(call_result.one_value()));
+    };
+
+#define IMPL_MT(op, method, name)                                                                  \
     case ast::UnOpEnum::op:                                                                        \
-        result.values = Vallist(result.values.get(0).method(range));                               \
+        impl_mt_operator(method, name);                                                            \
         break;
 
     switch (unary_op.unary_operator()) {
-        IMPL(NOT, invert)
-        IMPL(NEG, negate)
-        IMPL(LEN, len)
-        IMPL(BWNOT, bit_not)
+        IMPL_MT(NEG, mt::unm, "unm")
+        IMPL_MT(BWNOT, mt::bnot, "bnot")
+        IMPL_MT(LEN, mt::len, "len")
+
+    case ast::UnOpEnum::NOT:
+        result.values = Vallist(result.values.get(0).invert(range));
+        break;
     }
 
 #undef IMPL
+#undef IMPL_MT
 
     return result;
 }
@@ -992,13 +1090,19 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
     // this will produce an error if the obj is not callable
     auto obj = function_obj_result.values.get(0);
 
-    // move the Env to the CallContext
+    // metamethod __call gets the called object as first argument
+    std::vector<Value> meta_arguments;
+    meta_arguments.reserve(arguments.size() + 1);
+    meta_arguments.push_back(obj);
+    std::move(arguments.begin(), arguments.end(), std::back_inserter(meta_arguments));
+
+    // move the Env to the CallContext (and move it back later)
     auto environment = Environment(env);
     auto ctx =
-        CallContext(&environment).make_new(arguments, call.range().with_file(env.get_file()));
+        CallContext(&environment).make_new(meta_arguments, call.range().with_file(env.get_file()));
 
     try {
-        CallResult call_result = obj.call(ctx);
+        CallResult call_result = mt::call(ctx);
         result.combine(EvalResult(call_result));
 
         this->trace_function_call_result(call.id(), call_result);
