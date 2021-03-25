@@ -27,7 +27,7 @@ auto write(const CallContext& ctx, std::FILE* file) -> Value {
 
         if (v.type() == "Number" || v.type() == "String") {
             String s = std::get<String>(v.to_string());
-            auto* c = s.value.c_str();
+            const auto* c = s.value.c_str();
             std::fwrite(c, sizeof c[0], sizeof c, file);
         } else {
             // TODO: error-message
