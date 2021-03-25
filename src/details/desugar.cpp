@@ -44,7 +44,7 @@ auto ForStatement::desugar() const -> DoStatement {
         to_number_prefix, std::nullopt, std::vector<Expression>{loop_exp.end()}, le_range,
         gen_cause);
     auto end_exp = Expression(Prefix(end_to_number, gen_cause), gen_cause);
-    // if there there is no value given for the step size we default to 1
+    // if there is no value given for the step size we default to 1
     if (loop_exp.step().has_value()) {
         FunctionCall step_to_number = FunctionCall(
             to_number_prefix, std::nullopt, std::vector<Expression>{loop_exp.step().value()},
