@@ -12,23 +12,63 @@
 #include <vector>
 
 #include "MiniLua/environment.hpp"
+#include "MiniLua/interpreter.hpp"
+#include "MiniLua/source_change.hpp"
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/utils.hpp"
 #include "internal_env.hpp"
 
 namespace minilua {
 
+auto force(const CallContext& ctx) -> CallResult {
+    auto old_value = ctx.arguments().get(0);
+    auto new_value = ctx.arguments().get(1);
+
+    if (old_value.is_nil() || new_value.is_nil()) {
+        throw std::runtime_error("requires two arguments (old_value and new_value)");
+    }
+
+    return CallResult(old_value.force(new_value));
+}
+
+/**
+Splits a string into two parts. the split happens at the character c which is not included in the
+result.
+
+Example:
+split_string("123.456", '.') = (123, 456)
+*/
+// commented because not needed at the moment, maybe in the future. if not, delete it
+/*static auto split_string(const std::string& s, char c) -> std::pair<std::string, std::string> {
+    std::pair<std::string, std::string> result;
+    std::stringstream split(s);
+    std::string tmp;
+    std::getline(split, tmp, c);
+    result.first = tmp;
+    std::getline(split, tmp, c);
+    result.second = tmp;
+    return result;
+    */
+
 namespace details {
 
 void add_stdlib(Table& table) {
     table.set("tostring", to_string);
-    table.set("to_number", to_number);
+    table.set("tonumber", to_number);
     table.set("type", type);
     table.set("next", next);
     table.set("select", select);
     table.set("print", print);
     table.set("error", error);
+    table.set("pcall", pcall);
+
+    table.set("getmetatable", get_metatable);
+    table.set("setmetatable", set_metatable);
+
+    // non official lua stdlib items
     table.set("discard_origin", discard_origin);
+    table.set("debug_print", debug_print);
+    table.set("force", force);
 }
 
 } // namespace details
@@ -39,10 +79,48 @@ void error(const CallContext& ctx) {
     throw std::runtime_error(std::get<String>(message.to_string()).value);
 }
 
-auto to_string(const CallContext& ctx) -> Value {
+auto pcall(const CallContext& ctx) -> CallResult {
+    // function to call
+    auto fun = ctx.arguments().get(0);
+
+    // rest of the arguments
+    std::vector<Value> args;
+    args.reserve(ctx.arguments().size() - 1);
+    std::move(ctx.arguments().begin() + 1, ctx.arguments().end(), std::back_inserter(args));
+
+    try {
+        auto call_result = fun.call(ctx.make_new(args));
+
+        // collect return values and put `true` in front of them
+        std::vector<Value> values;
+        values.reserve(call_result.values().size() + 1);
+        values.emplace_back(true);
+        std::move(
+            call_result.values().begin(), call_result.values().end(), std::back_inserter(values));
+
+        return CallResult(values, call_result.source_change());
+    } catch (const InterpreterException& e) {
+        return CallResult({false, String(e.what())});
+    }
+}
+
+auto to_string(const CallContext& ctx) -> CallResult {
     auto arg = ctx.arguments().get(0);
 
-    return arg.to_string(ctx.call_location());
+    return std::visit(
+        overloaded{
+            [&arg, &ctx](const Table& table) -> CallResult {
+                auto metamethod = table.get_metamethod("__tostring");
+                if (metamethod.is_function()) {
+                    return metamethod.call(ctx);
+                } else {
+                    return CallResult({arg.to_string(ctx.call_location())});
+                }
+            },
+            [&arg, &ctx](const auto& /*unused*/) -> CallResult {
+                return CallResult({arg.to_string(ctx.call_location())});
+            }},
+        arg.raw());
 }
 
 auto to_number(const CallContext& ctx) -> Value {
@@ -128,19 +206,24 @@ auto select(const CallContext& ctx) -> Vallist {
         index.raw());
 }
 
-void print(const CallContext& ctx) {
+auto print(const CallContext& ctx) -> CallResult {
     auto* const stdout = ctx.environment().get_stdout();
     std::string gap;
 
-    for (const auto& arg : ctx.arguments()) {
-        const Value v = to_string(ctx.make_new({arg}));
+    std::optional<SourceChangeTree> source_changes;
 
-        if (v.is_string()) {
-            *stdout << gap << std::get<String>(v).value;
+    for (const auto& arg : ctx.arguments()) {
+        const CallResult result = to_string(ctx.make_new({arg}));
+        source_changes = combine_source_changes(source_changes, result.source_change());
+
+        if (result.values().get(0).is_string()) {
+            *stdout << gap << std::get<String>(result.values().get(0)).value;
             gap = "\t";
         }
     }
     *stdout << std::endl;
+
+    return CallResult(source_changes);
 }
 
 auto discard_origin(const CallContext& ctx) -> Vallist {
@@ -153,6 +236,65 @@ auto discard_origin(const CallContext& ctx) -> Vallist {
     });
 
     return Vallist(values);
+}
+
+void debug_print(const CallContext& ctx) {
+    auto& err = *ctx.environment().get_stderr();
+    for (const auto& value : ctx.arguments()) {
+        err << value << "\n";
+    }
+}
+
+auto get_metatable(const CallContext& ctx) -> Value {
+    auto arg = ctx.arguments().get(0);
+    if (arg.is_table()) {
+        auto metatable = std::get<Table>(arg).get_metatable();
+        if (metatable.has_value()) {
+            auto __metatable = metatable->get("__metatable");
+            if (!__metatable.is_nil()) {
+                return __metatable;
+            } else {
+                return metatable.value();
+            }
+        }
+    }
+
+    return Nil();
+}
+
+auto set_metatable(const CallContext& ctx) -> Value {
+    auto table = std::get<Table>(ctx.expect_argument<Table>(0));
+    const auto& arg2 = ctx.expect_argument<Nil, Table>(1);
+
+    if (table.get_metatable().has_value() && !table.get_metatable()->get("__metatable").is_nil()) {
+        throw std::runtime_error("cannot change a protected metatable");
+    }
+
+    if (arg2.is_nil()) {
+        table.set_metatable(std::nullopt);
+    } else if (arg2.is_table()) {
+        auto metatable = std::get<Table>(arg2);
+        table.set_metatable(metatable);
+    }
+
+    return table;
+}
+
+auto rawget(const CallContext& ctx) -> Value {
+    const auto& table = std::get<Table>(ctx.expect_argument<Table>(0));
+    const auto& arg2 = ctx.expect_argument<>(1);
+
+    return table.get(arg2);
+}
+
+auto rawset(const CallContext& ctx) -> Value {
+    auto table = std::get<Table>(ctx.expect_argument<Table>(0));
+    const auto& key = ctx.expect_argument<>(1);
+    const auto& value = ctx.expect_argument<>(1);
+
+    table.set(key, value);
+
+    return table;
 }
 
 } // namespace minilua

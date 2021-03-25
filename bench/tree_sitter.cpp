@@ -1,7 +1,8 @@
 #include <iostream>
 #define CATCH_CONFIG_ENABLE_BENCHMARKING
-#include "tree_sitter/tree_sitter.hpp"
+#include "tree_sitter_lua.hpp"
 #include <catch2/catch.hpp>
+#include <tree_sitter/tree_sitter.hpp>
 
 TEST_CASE("Tree-Sitter Node navigation") {
     std::string source = R"#(if true then
@@ -14,7 +15,7 @@ else
     print(4)
 end)#";
 
-    ts::Parser parser;
+    ts::Parser parser(ts::LUA_LANGUAGE);
     ts::Tree tree = parser.parse_string(source);
 
     {
@@ -104,7 +105,7 @@ else
     print(4)
 end)#";
 
-    ts::Parser parser;
+    ts::Parser parser(ts::LUA_LANGUAGE);
     ts::Tree tree = parser.parse_string(source);
 
     {
@@ -208,7 +209,7 @@ else
     print(4)
 end)#";
 
-    ts::Parser parser;
+    ts::Parser parser(ts::LUA_LANGUAGE);
     ts::Tree tree = parser.parse_string(source);
 
     INFO(tree.root_node());
@@ -216,8 +217,9 @@ end)#";
 
     {
         ts::Node root = tree.root_node();
-        ts::Query print3_query{
-            "(function_call (identifier) @function (arguments (number) @number)) @call"};
+        ts::Query print3_query(
+            ts::LUA_LANGUAGE,
+            "(function_call (identifier) @function (arguments (number) @number)) @call");
         ts::QueryCursor cursor{tree};
         cursor.exec(print3_query);
         auto matches = cursor.matches();
@@ -249,15 +251,17 @@ end)#";
     }
 
     BENCHMARK("create query") {
-        ts::Query function_query{
-            "(function_call (identifier) @function (arguments (number) @number)) @call"};
+        ts::Query function_query(
+            ts::LUA_LANGUAGE,
+            "(function_call (identifier) @function (arguments (number) @number)) @call");
         return function_query;
     };
 
     BENCHMARK("create query cursor") { return ts::QueryCursor{tree}; };
 
-    ts::Query function_query{
-        "(function_call (identifier) @function (arguments (number) @number)) @call"};
+    ts::Query function_query(
+        ts::LUA_LANGUAGE,
+        "(function_call (identifier) @function (arguments (number) @number)) @call");
     ts::QueryCursor cursor{tree};
 
     BENCHMARK("execute query") { cursor.exec(function_query); };
@@ -295,11 +299,14 @@ end)#";
         throw std::runtime_error("should not reach here");
     };
 
-    ts::Query query_if{
-        "(program (if_statement (condition_expression) @cond (_)* @body (else) @else_body))"};
-    ts::Query query_while{"(while_statement (condition_expression) @cond (_)* @body)"};
-    ts::Query query_call{"(function_call (identifier) @function (arguments) @args)"};
-    ts::Query query_number{"(number) @num"};
+    ts::Query query_if(
+        ts::LUA_LANGUAGE,
+        "(program (if_statement (condition_expression) @cond (_)* @body (else) @else_body))");
+    ts::Query query_while(
+        ts::LUA_LANGUAGE, "(while_statement (condition_expression) @cond (_)* @body)");
+    ts::Query query_call(
+        ts::LUA_LANGUAGE, "(function_call (identifier) @function (arguments) @args)");
+    ts::Query query_number(ts::LUA_LANGUAGE, "(number) @num");
 
     BENCHMARK("navigate to 3") {
         cursor.exec(query_if);

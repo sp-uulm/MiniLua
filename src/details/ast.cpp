@@ -1,4 +1,5 @@
 #include "ast.hpp"
+#include "../tree_sitter_lua.hpp"
 #include "MiniLua/values.hpp"
 #include <cassert>
 #include <iostream>

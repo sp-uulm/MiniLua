@@ -1,6 +1,7 @@
 #include "MiniLua/interpreter.hpp"
 #include "details/interpreter.hpp"
 #include "tree_sitter/tree_sitter.hpp"
+#include "tree_sitter_lua.hpp"
 
 #include <sstream>
 #include <string>
@@ -32,6 +33,7 @@ InterpreterConfig::InterpreterConfig(bool def) : InterpreterConfig() { this->all
 void InterpreterConfig::all(bool def) {
     this->trace_nodes = def;
     this->trace_calls = def;
+    this->trace_metamethod_calls = def;
     this->trace_enter_block = def;
     this->trace_exprlists = def;
     this->trace_break = def;
@@ -49,7 +51,8 @@ struct Interpreter::Impl {
     Environment env;
 
     Impl(std::string initial_source_code)
-        : source_code(std::move(initial_source_code)), tree(parser.parse_string(this->source_code)),
+        : parser(ts::LUA_LANGUAGE), source_code(std::move(initial_source_code)),
+          tree(parser.parse_string(this->source_code)),
           allocator(std::make_unique<MemoryAllocator>()), env(allocator.get()) {}
 
     ~Impl() { allocator->free_all(); }

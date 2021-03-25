@@ -6,6 +6,31 @@
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/values.hpp"
 
+TEST_CASE("force") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("without origin") {
+        minilua::Value old_value = 25; // NOLINT
+        minilua::Value new_value = 17; // NOLINT
+        ctx = ctx.make_new({old_value, new_value});
+        CHECK(!minilua::force(ctx).source_change().has_value());
+    }
+    SECTION("with origin") {
+        minilua::Value old_value =
+            minilua::Value(25).with_origin(minilua::LiteralOrigin{}); // NOLINT
+        minilua::Value new_value = 17;                                // NOLINT
+        ctx = ctx.make_new({old_value, new_value});
+        CHECK(minilua::force(ctx).source_change().has_value());
+    }
+    SECTION("error when less than two arguments") {
+        ctx = ctx.make_new({25}); // NOLINT
+        CHECK_THROWS(minilua::force(ctx));
+        ctx = ctx.make_new();
+        CHECK_THROWS(minilua::force(ctx));
+    }
+}
+
 TEST_CASE("assert") {
     SECTION("assert false") {
         minilua::Interpreter interpreter;
@@ -33,14 +58,14 @@ TEST_CASE("to_string") {
             bool i = true;
             minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
             ctx = ctx.make_new(list);
-            CHECK(minilua::to_string(ctx) == minilua::Value("true"));
+            CHECK(minilua::to_string(ctx) == minilua::CallResult({minilua::Value("true")}));
         }
 
         SECTION("False") {
             bool i = false;
             minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
             ctx = ctx.make_new(list);
-            CHECK(minilua::to_string(ctx) == minilua::Value("false"));
+            CHECK(minilua::to_string(ctx) == minilua::CallResult({minilua::Value("false")}));
         }
     }
 
@@ -48,34 +73,34 @@ TEST_CASE("to_string") {
         int i = 42;
         minilua::Vallist list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
-        CHECK(minilua::to_string(ctx) == minilua::Value("42"));
+        CHECK(minilua::to_string(ctx) == minilua::CallResult({minilua::Value("42")}));
     }
 
     SECTION("String to String") {
         std::string s = "Minilua";
         minilua::Vallist list = minilua::Vallist({minilua::Value(s)});
         ctx = ctx.make_new(list);
-        CHECK(minilua::to_string(ctx) == minilua::Value("Minilua"));
+        CHECK(minilua::to_string(ctx) == minilua::CallResult({minilua::Value("Minilua")}));
     }
 
     SECTION("Nil to String") {
         minilua::Vallist list = minilua::Vallist({minilua::Nil()});
         ctx = ctx.make_new(list);
-        CHECK(minilua::to_string(ctx) == minilua::Value("nil"));
+        CHECK(minilua::to_string(ctx) == minilua::CallResult({minilua::Value("nil")}));
     }
 
     SECTION("Table to String") {
         minilua::Table t;
         minilua::Vallist list = minilua::Vallist({t});
         ctx = ctx.make_new(list);
-        CHECK_FALSE(minilua::to_string(ctx) == minilua::Value(""));
+        CHECK_FALSE(minilua::to_string(ctx) == minilua::CallResult({minilua::Value("")}));
     }
 
     SECTION("Function to String") {
         minilua::Function f{[](const minilua::CallContext&) {}};
         minilua::Vallist list = minilua::Vallist({f});
         ctx = ctx.make_new(list);
-        CHECK(minilua::to_string(ctx) != minilua::Value(""));
+        CHECK(minilua::to_string(ctx) != minilua::CallResult({minilua::Value("")}));
     }
 }
 

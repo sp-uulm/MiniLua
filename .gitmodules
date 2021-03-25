@@ -1,14 +1,14 @@
-[submodule "extern/tree-sitter"]
-	path = extern/tree-sitter
-	url = ../../tree-sitter/tree-sitter.git
-[submodule "extern/tree-sitter-lua"]
-	path = extern/tree-sitter-lua
-	url = ../../CFU9/tree-sitter-lua.git
-	update = rebase
-	branch = adjustments
 [submodule "extern/catch2"]
 	path = extern/catch2
 	url = ../../catchorg/Catch2.git
-[submodule "extern/doxygen-dark-theme"]
-	path = extern/doxygen-dark-theme
-	url = ../../Lythenas/doxygen-dark-theme
+[submodule "extern/m.css"]
+	path = extern/m.css
+	url = git@github.com:Lythenas/m.css
+[submodule "extern/tree-sitter-cpp-api"]
+	path = extern/tree-sitter-cpp-api
+	url = ../../Lythenas/tree-sitter-cpp-api.git
+[submodule "extern/tree-sitter-lua"]
+    path = extern/tree-sitter-lua
+    url = ../../CFU9/tree-sitter-lua.git
+    update = rebase
+    branch = adjustments

@@ -15,12 +15,15 @@ namespace minilua {
 class Value;
 
 /**
- * Represents the global environment/configuration for the 'Interpreter'.
+ * @brief The environment/configuration for the Interpreter.
  *
- * This contains things like global variables (including functions), etc.
+ * This contains things like global and local variables (including functions),
+ * etc. But local variables can not be manually created.
  *
  * The default constructor initializes an empty environment with the standard
- * c++ I/O streams (std::cin, etc).
+ * C++ I/O streams (`std::cin`, `std::cout` and `std::cerr`).
+ *
+ * Supports equality operators.
  */
 class Environment {
 public:
@@ -30,78 +33,116 @@ private:
     owning_ptr<Impl> impl;
 
 public:
+    /**
+     * @brief Create an empty environment with the default C++ I/O streams
+     * in the @ref GLOBAL_ALLOCATOR.
+     */
     Environment();
+    /**
+     * @brief Create an empty environment with the default C++ I/O streams
+     * in the given `allocator`.
+     */
     Environment(MemoryAllocator* allocator);
     explicit Environment(Impl);
+    /**
+     * @brief Copy constructor.
+     */
     Environment(const Environment&);
     // can't use noexcept = default in older compilers (pre c++20 compilers)
     // NOLINTNEXTLINE
+    /**
+     * @brief Move constructor.
+     */
     Environment(Environment&&);
     ~Environment();
+    /**
+     * @brief Copy assignment operator.
+     */
     auto operator=(const Environment&) -> Environment&;
     // can't use noexcept = default in older compilers (pre c++20 compilers)
     // NOLINTNEXTLINE
+    /**
+     * @brief Move assignment operator.
+     */
     auto operator=(Environment&&) -> Environment&;
+    /**
+     * @brief Swap function.
+     */
     friend void swap(Environment&, Environment&);
 
     /**
-     * Helper function to create a table in the same allocator as the environment.
+     * @brief Create a new table in the allocator of this environment.
      */
     [[nodiscard]] auto make_table() const -> Table;
 
     /**
-     * Adds the math-functions to a table and inserts this table to the global environment
-     */
-    void create_math_table();
-
-    /**
-     * Add a variable to the environment.
+     * @brief Add a variable to the environment.
      */
     void add(const std::string& name, Value value);
+    /**
+     * @brief Add a variable to the environment.
+     */
     void add(std::string&& name, Value value);
 
     /**
-     * Add a table variable with the given name and return the table.
+     * @brief Add a table as a variable with the given name and return the
+     * table.
      */
     auto add_table(const std::string& name) -> Table;
 
     /**
-     * Add multiple variables to the environment.
+     * @brief Add multiple variables to the environment.
      */
     void add_all(std::unordered_map<std::string, Value> values);
+    /**
+     * @brief Add multiple variables to the environment.
+     */
     void add_all(std::initializer_list<std::pair<std::string, Value>> values);
+    /**
+     * @brief Add multiple variables to the environment.
+     */
     void add_all(std::vector<std::pair<std::string, Value>> values);
 
     /**
-     * Get the value of a variable.
+     * @brief Get the value of a variable.
      *
-     * Throws an exception if the variable does not exist.
+     * Returns Nil if the variable does not exist.
      */
     auto get(const std::string& name) -> Value;
 
     /**
-     * Check if a variable is set.
+     * @brief Check if a variable is set.
      */
     auto has(const std::string& name) -> bool;
 
     /**
-     * Sets stdin/out/err stream to use in lua code.
-     *
-     * NOTE: The default are c++'s cin, cout and cerr.
+     * @brief Sets the stdin stream to use in lua code.
      */
     void set_stdin(std::istream*);
+    /**
+     * @brief Sets the stdout stream to use in lua code.
+     */
     void set_stdout(std::ostream*);
+    /**
+     * @brief Sets the stderr stream to use in lua code.
+     */
     void set_stderr(std::ostream*);
 
     /**
-     * Get the configured stdin/out/err stream.
+     * @brief Get the configured stdin stream.
      */
     auto get_stdin() -> std::istream*;
+    /**
+     * @brief Get the configured stdout stream.
+     */
     auto get_stdout() -> std::ostream*;
+    /**
+     * @brief Get the configured stderr stream.
+     */
     auto get_stderr() -> std::ostream*;
 
     /**
-     * Returns the number of variables.
+     * @brief Returns the number of variables.
      */
     [[nodiscard]] auto size() const -> size_t;
 

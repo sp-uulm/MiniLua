@@ -16,7 +16,7 @@ project(MiniLua VERSION 1.0
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-add_compile_options(-Wall -Werror=return-type)
+add_compile_options(-Wall -Werror=return-type -fno-omit-frame-pointer)
 
 # generates compile_commands.json that can be used by clang tooling
 # (e.g. language server)
@@ -26,10 +26,14 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 # documentation
 find_package(Doxygen)
+find_package(Plantuml)
 
 # dependencies
-find_package(TreeSitter)
+find_package(TreeSitterWrapper)
 find_package(TreeSitterLua)
+
+# include(CMakePrintHelpers)
+# cmake_print_properties(TARGETS TreeSitterWrapper::TreeSitter TreeSitter TreeSitterWrapper PROPERTIES INTERFACE_INCLUDE_DIRECTORIES)
 
 # library
 add_subdirectory(src)
