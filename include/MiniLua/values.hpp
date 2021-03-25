@@ -1172,6 +1172,11 @@ struct LiteralOrigin {
      * Removes unusable origins from the tree.
      */
     [[nodiscard]] auto simplify() const -> Origin;
+
+    /**
+     * Helper method for `Origin::with_updated_ranges`.
+     */
+    [[nodiscard]] auto with_updated_ranges(const RangeMap& range_map) const -> LiteralOrigin;
 };
 
 auto operator==(const LiteralOrigin&, const LiteralOrigin&) noexcept -> bool;
@@ -1388,6 +1393,26 @@ public:
      * \note This is not recursive. It will only look at the first level.
      */
     [[nodiscard]] auto simplify() const -> Origin;
+
+    /**
+     * @brief Returns a new origin with updated ranges.
+     *
+     * This will replace the matching `LiteralOrigin` ranges of the keys with
+     * those of the values. Other origin ranges will not be updated.
+     *
+     * The `file`s in the range map will be ignored for finding the correct
+     * range to replace. But the returned origin will always contain ranges with
+     * the same file as the original origin.
+     *
+     * \note This will update exact matches and `LiteralOrigin`s that come
+     * after the ranges in the map. The second update is done so `Value::force`
+     * generates the correct `SourceChange`s when updating multiple values one
+     * after the other.
+     *
+     * \warning This does not support range changes that change the amount of
+     * lines a range spans and the ranges in the given map can't be overlapping.
+     */
+    [[nodiscard]] auto with_updated_ranges(const RangeMap&) const -> Origin;
 };
 
 auto operator==(const Origin&, const Origin&) noexcept -> bool;
@@ -1635,6 +1660,7 @@ public:
      * This is a builder style method and creates a new Value.
      */
     [[nodiscard]] auto with_origin(Origin new_origin) const -> Value;
+
     /**
      * @brief The type of this value as a string.
      */
