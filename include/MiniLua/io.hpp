@@ -6,9 +6,16 @@
 
 #include "MiniLua/values.hpp"
 
-namespace minilua::io {
+namespace minilua {
+
+auto create_io_table(MemoryAllocator* allocator) -> Table;
+
+namespace io {
 
 auto open(const CallContext& ctx) -> Vallist;
-} // namespace minilua::io
+
+} // namespace io
+
+} // namespace minilua
 
 #endif
