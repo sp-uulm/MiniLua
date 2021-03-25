@@ -740,43 +740,6 @@ auto Interpreter::visit_function_expression(ast::FunctionDefinition function_def
     return result;
 }
 
-// TODO remove once we can desugar function statements
-/*auto Interpreter::visit_function_statement(ast::FunctionStatement function_statement, Env& env)
-    -> EvalResult {
-    auto _ = NodeTracer(this, function_statement.debug_print(), "visit_function_statement");
-
-    EvalResult result;
-
-    auto parameters = function_statement.parameters();
-
-    std::vector<std::string> actual_parameters =
-        this->visit_parameter_list(parameters.params(), env);
-
-    bool vararg = parameters.spread();
-
-    auto body = function_statement.body();
-
-    Value func = Function(FunctionImpl{
-        .body = std::move(body),
-        .env = Env(env),
-        .parameters = std::move(actual_parameters),
-        .vararg = vararg,
-        .interpreter = *this,
-    });
-
-    auto function_name = function_statement.name();
-    auto identifiers = function_name.identifier();
-
-    if (identifiers.size() != 1 || function_name.method()) {
-        throw UNIMPLEMENTED("function complicated name");
-    }
-
-    auto ident = this->visit_identifier(identifiers[0], env);
-    env.set_global(ident, func);
-
-    return result;
-}*/
-
 auto Interpreter::visit_table_index(ast::TableIndex table_index, Env& env) -> EvalResult {
     auto _ = NodeTracer(this, table_index.debug_print(), "visit_table_index");
 

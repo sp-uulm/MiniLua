@@ -794,7 +794,7 @@ TEST_CASE("comment_test", "[tree-sitter]") {
     CHECK(operand_right->string() == "b"s);
 }
 // helper function
-static auto count_nested_fes(VariableDeclarator vd) -> int {
+static auto count_nested_identifiers_in_fieldexpression(VariableDeclarator vd) -> int {
     int count = 0;
     auto current_vd = vd;
     while (true) {
@@ -896,16 +896,16 @@ TEST_CASE("desugar_function_statements", "[tree-sitter]") {
     for (int i = 0; i < 4; i++) {
         switch (i) {
         case 0:
-            CHECK(count_nested_fes(var_decs[i]) == 5);
+            CHECK(count_nested_identifiers_in_fieldexpression(var_decs[i]) == 5);
             break;
         case 1:
-            CHECK(count_nested_fes(var_decs[i]) == 2);
+            CHECK(count_nested_identifiers_in_fieldexpression(var_decs[i]) == 2);
             break;
         case 2:
-            CHECK(count_nested_fes(var_decs[i]) == 3);
+            CHECK(count_nested_identifiers_in_fieldexpression(var_decs[i]) == 3);
             break;
         case 3:
-            CHECK(count_nested_fes(var_decs[i]) == 1);
+            CHECK(count_nested_identifiers_in_fieldexpression(var_decs[i]) == 1);
             break;
         }
     }

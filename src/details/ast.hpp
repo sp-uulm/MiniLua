@@ -20,7 +20,7 @@ class FieldExpression;
 using IndexField = std::pair<Expression, Expression>;
 using IdentifierField = std::pair<Identifier, Expression>;
 
-enum GEN_CAUSE { FOR_LOOP_DESUGAR, FOR_IN_LOOP_DESUGAR, FUNCTION_STATEMENT_DESUGAR, PLACEHOLDER };
+enum GEN_CAUSE { FOR_LOOP_DESUGAR, FOR_IN_LOOP_DESUGAR, FUNCTION_STATEMENT_DESUGAR };
 enum class LiteralType { TRUE, FALSE, NIL, NUMBER, STRING };
 class Literal {
     std::string literal_content;
@@ -34,7 +34,7 @@ public:
     auto range() const -> minilua::Range;
 };
 /**
- * class for program nodes. It only holds a body
+ * class for program nodes
  */
 class Program {
     ts::Node program;
@@ -42,7 +42,7 @@ class Program {
 public:
     explicit Program(ts::Node);
     /**
-     * the children nodes of the Program get put into a Body class by this method
+     * the children nodes of the program get put into a Body class by this method
      * @return a Body containing the full program
      */
     auto body() const -> Body;
@@ -53,9 +53,14 @@ public:
  * class for do_statement nodes
  */
 class DoStatement {
-    using DoTuple = std::tuple<std::shared_ptr<Body>, minilua::Range, GEN_CAUSE>;
-    enum TupleIndex { BODY, RANGE, CAUSE };
-    std::variant<ts::Node, DoTuple> content;
+    struct DoStruct {
+        std::shared_ptr<Body> body; // the pointer is needed because Body is only a forward
+                                    // declaration here and no complete type
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        DoStruct(const Body&, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, DoStruct> content;
 
 public:
     explicit DoStatement(ts::Node);
@@ -72,23 +77,27 @@ public:
  * class for identifier_nodes
  */
 class Identifier {
-    using IdTuple = std::tuple<std::string, minilua::Range, GEN_CAUSE>;
-    enum TupleIndex { STRING, RANGE, CAUSE };
-    std::variant<ts::Node, IdTuple> content;
+    struct IdStruct {
+        std::string identifier;
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        IdStruct(std::string, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, IdStruct> content;
 
 public:
     explicit Identifier(ts::Node);
     explicit Identifier(const std::string&, minilua::Range, GEN_CAUSE);
     /**
      * get the identifier name as a string
-     * @return the identifer as a string
+     * @return the identifier as a string
      */
     auto string() const -> std::string;
     auto range() const -> minilua::Range;
     auto debug_print() const -> std::string;
 };
 /**
- * this enum holds all possible BinaryOperators in lua
+ * this enum holds all possible binary operators in lua
  */
 enum class BinOpEnum {
     ADD,         //      +
@@ -117,11 +126,17 @@ enum class BinOpEnum {
  * class for binary_operation nodes
  */
 class BinaryOperation {
-    using BinOpTuple = std::tuple<
-        std::shared_ptr<Expression>, BinOpEnum, std::shared_ptr<Expression>, minilua::Range,
-        GEN_CAUSE>;
-    enum TupleIndex { LEFT, OPERATOR, RIGHT, RANGE, CAUSE };
-    std::variant<ts::Node, BinOpTuple> content;
+    struct BinOpStruct {
+        std::shared_ptr<Expression> left; // the pointer is needed because Expression is only a
+                                          // forward declaration here and no complete type
+        BinOpEnum bin_operator;
+        std::shared_ptr<Expression> right; // the pointer is needed because Expression is only a
+                                           // forward declaration here and no complete type
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        BinOpStruct(const Expression&, BinOpEnum, const Expression&, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, BinOpStruct> content;
 
 public:
     explicit BinaryOperation(ts::Node node);
@@ -129,12 +144,12 @@ public:
         const Expression&, BinOpEnum, const Expression&, minilua::Range, GEN_CAUSE);
     /**
      *
-     * @return The left operand
+     * @return the left operand
      */
     auto left() const -> Expression;
     /**
      *
-     * @return The right operand
+     * @return the right operand
      */
     auto right() const -> Expression;
     /**
@@ -146,7 +161,7 @@ public:
     auto debug_print() const -> std::string;
 };
 /**
- * This enum holds all unary Operators of lua
+ * this enum holds all unary operators of lua
  */
 enum class UnOpEnum {
     NOT,  //    not
@@ -158,9 +173,15 @@ enum class UnOpEnum {
  * class for unary_operation nodes
  */
 class UnaryOperation {
-    using UnOpTuple = std::tuple<UnOpEnum, std::shared_ptr<Expression>, minilua::Range, GEN_CAUSE>;
-    enum TupleIndex { OPERATOR, OPERAND, RANGE, CAUSE };
-    std::variant<ts::Node, UnOpTuple> content;
+    struct UnOpStruct {
+        UnOpEnum un_operator;
+        std::shared_ptr<Expression> operand; // the pointer is needed because Expression is only a
+                                             // forward declaration here and no complete type
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        UnOpStruct(UnOpEnum, const Expression&, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, UnOpStruct> content;
 
 public:
     explicit UnaryOperation(ts::Node node);
@@ -172,7 +193,7 @@ public:
     auto unary_operator() const -> UnOpEnum;
     /**
      *
-     * @return the operand of
+     * @return the operand of the operation
      */
     auto expression() const -> Expression;
     auto range() const -> minilua::Range;
@@ -188,12 +209,12 @@ public:
     explicit LoopExpression(ts::Node);
     /**
      *
-     * @return The identifier of the loop variable
+     * @return the identifier of the loop variable
      */
     auto variable() const -> Identifier;
     /**
      *
-     * @return The start value of the loop variable
+     * @return the start value of the loop variable
      */
     auto start() const -> Expression;
     /**
@@ -246,7 +267,7 @@ public:
      */
     auto loop_vars() const -> std::vector<Identifier>;
     /**
-     * the loop expressions usually should eveluate to a functioncall
+     *
      * @return the loop expressions
      */
     auto loop_exps() const -> std::vector<Expression>;
@@ -279,10 +300,16 @@ public:
  * class for while_statement nodes
  */
 class WhileStatement {
-    using WhileTuple =
-        std::tuple<std::shared_ptr<Expression>, std::shared_ptr<Body>, minilua::Range, GEN_CAUSE>;
-    enum TupleIndex { CONDITION, BODY, RANGE, CAUSE };
-    std::variant<ts::Node, WhileTuple> content;
+    struct WhileStruct {
+        std::shared_ptr<Expression> condition; // the pointer is needed because Expression is only a
+                                               // forward declaration here and no complete type
+        std::shared_ptr<Body> body; // the pointer is needed because Body is only a forward
+                                    // declaration here and no complete type
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        WhileStruct(const Expression&, const Body&, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, WhileStruct> content;
 
 public:
     explicit WhileStatement(ts::Node node);
@@ -360,10 +387,16 @@ public:
  * class for if_statement nodes
  */
 class IfStatement {
-    using IfTuple =
-        std::tuple<std::shared_ptr<Expression>, std::shared_ptr<Body>, minilua::Range, GEN_CAUSE>;
-    enum TupleIndex { CONDITION, BODY, RANGE, CAUSE };
-    std::variant<ts::Node, IfTuple> content;
+    struct IfStruct {
+        std::shared_ptr<Expression> condition; // the pointer is needed because Expression is only a
+                                               // forward declaration here and no complete type
+        std::shared_ptr<Body> body; // the pointer is needed because Body is only a forward
+                                    // declaration here and no complete type
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        IfStruct(const Expression&, const Body&, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, IfStruct> content;
 
 public:
     explicit IfStatement(ts::Node node);
@@ -423,12 +456,12 @@ public:
     explicit TableIndex(ts::Node);
     /**
      *
-     * @return a prefix that eveluates to the table of this table index
+     * @return a prefix that evaluates to the table of this table index
      */
     auto table() const -> Prefix;
     /**
      *
-     * @return an expression that eveluates to the index
+     * @return an expression that evaluates to the index
      */
     auto index() const -> Expression;
     auto range() const -> minilua::Range;
@@ -438,40 +471,51 @@ public:
  * class for field_expression nodes
  */
 class FieldExpression {
-    using FieldExpTuple =
-        std::tuple<std::shared_ptr<Prefix>, Identifier, minilua::Range, GEN_CAUSE>;
-    enum TupleIndex { TABLE, PROPERTY, RANGE, CAUSE };
-    std::variant<ts::Node, FieldExpTuple> content;
+    struct FieldExpStruct {
+        std::shared_ptr<Prefix> table; // the pointer is needed because Prefix is only a forward
+                                       // declaration here and no complete type
+        Identifier property;
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        FieldExpStruct(const Prefix&, Identifier, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, FieldExpStruct> content;
 
 public:
     explicit FieldExpression(ts::Node);
-    explicit FieldExpression(const Prefix&, const Identifier&, minilua::Range, GEN_CAUSE);
+    explicit FieldExpression(const Prefix&, Identifier, minilua::Range, GEN_CAUSE);
     /**
      *
-     * @return a Prefix containing the Identifier for the table
+     * @return a Prefix containing the identifier for the table
      */
     auto table_id() const -> Prefix;
     /**
      *
-     * @return an Identifier for a property of the Table
+     * @return an Identifier for a property of the table
      */
     auto property_id() const -> Identifier;
     auto range() const -> minilua::Range;
     auto debug_print() const -> std::string;
 };
-using VarDecVariant = std::variant<Identifier, FieldExpression, TableIndex>;
+
 /**
  * class for variable_declarator nodes
  */
 class VariableDeclarator {
-    using VDTuple = std::tuple<VarDecVariant, minilua::Range, GEN_CAUSE>;
-    enum TupleIndex { VD_VARIANT, RANGE, CAUSE };
-    std::variant<ts::Node, VDTuple> content;
+    using VarDecVariant = std::variant<Identifier, FieldExpression, TableIndex>;
+    struct VDStruct {
+        VarDecVariant vd_variant;
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        VDStruct(Identifier, minilua::Range, GEN_CAUSE);
+        VDStruct(FieldExpression, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, VDStruct> content;
 
 public:
     explicit VariableDeclarator(ts::Node node);
-    explicit VariableDeclarator(const Identifier&, GEN_CAUSE);
-    explicit VariableDeclarator(const FieldExpression&, GEN_CAUSE);
+    explicit VariableDeclarator(Identifier, GEN_CAUSE);
+    explicit VariableDeclarator(FieldExpression, GEN_CAUSE);
     /**
      *
      * @return a variant containing the class this variable declarator gets resolved to
@@ -484,10 +528,15 @@ public:
  * class for variable_declaration and local_variable_declaration nodes
  */
 class VariableDeclaration {
-    using VDTuple = std::tuple<
-        std::vector<VariableDeclarator>, std::vector<Expression>, minilua::Range, GEN_CAUSE>;
-    enum TupleIndex { DECLARATORS, DECLARATIONS, RANGE, CAUSE };
-    std::variant<ts::Node, VDTuple> content;
+    struct VDStruct {
+        std::vector<VariableDeclarator> declarators;
+        std::vector<Expression> declarations;
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        VDStruct(
+            std::vector<VariableDeclarator>, std::vector<Expression>, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, VDStruct> content;
     bool local_dec;
 
 public:
@@ -576,20 +625,25 @@ public:
  * a class for parameter nodes
  */
 class Parameters {
-    using ParamTuple = std::tuple<std::vector<Identifier>, bool, minilua::Range, GEN_CAUSE>;
-    enum TupleIndex { IDENTIFIERS, SPREAD, RANGE, CAUSE };
-    std::variant<ts::Node, ParamTuple> content;
+    struct ParamStruct {
+        std::vector<Identifier> identifiers;
+        bool spread;
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        ParamStruct(std::vector<Identifier>, bool, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, ParamStruct> content;
 
 public:
     explicit Parameters(ts::Node);
-    explicit Parameters(const std::vector<Identifier>&, bool, minilua::Range, GEN_CAUSE);
+    explicit Parameters(std::vector<Identifier>, bool, minilua::Range, GEN_CAUSE);
     /**
      *
      * @return a vector containing all parameters excluding a potential spread
      */
     auto params() const -> std::vector<Identifier>;
     /**
-     * @return true if the last parameter is "spread"
+     * @return true if the last parameter is "spread" (...)
      */
     auto spread() const -> bool;
     auto range() const -> minilua::Range;
@@ -599,9 +653,15 @@ public:
  * class for function_definition nodes
  */
 class FunctionDefinition {
-    using FuncDefTuple = std::tuple<Parameters, std::shared_ptr<Body>, minilua::Range, GEN_CAUSE>;
-    enum TupleIndex { PARAMETERS, BODY, RANGE, CAUSE };
-    std::variant<ts::Node, FuncDefTuple> content;
+    struct FuncDefStruct {
+        Parameters parameters;
+        std::shared_ptr<Body> body; // the pointer is needed because Body is only a forward
+                                    // declaration here and no complete type
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        FuncDefStruct(Parameters, const Body&, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, FuncDefStruct> content;
 
 public:
     explicit FunctionDefinition(ts::Node);
@@ -640,7 +700,7 @@ public:
     auto body() const -> Body;
     /**
      *
-     * @return a Parameter class containing all information about the Parameters of this function
+     * @return a Parameter class containing all information about the parameters of this function
      */
     auto parameters() const -> Parameters;
     auto local() const -> bool;
@@ -649,29 +709,35 @@ public:
     auto desugar() const -> VariableDeclaration;
 };
 class FunctionCall {
-    using FuncCallTuple = std::tuple<
-        std::shared_ptr<Prefix>, std::optional<Identifier>, std::vector<Expression>, minilua::Range,
-        GEN_CAUSE>;
-    enum TupleIndex { PREFIX, METHOD, ARGS, RANGE, CAUSE };
-    std::variant<ts::Node, FuncCallTuple> content;
+    struct FuncCallStruct {
+        std::shared_ptr<Prefix> prefix;
+        std::optional<Identifier> method;
+        std::vector<Expression> args;
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        FuncCallStruct(
+            const Prefix&, std::optional<Identifier>, std::vector<Expression>, minilua::Range,
+            GEN_CAUSE);
+    };
+    std::variant<ts::Node, FuncCallStruct> content;
 
 public:
     explicit FunctionCall(ts::Node);
     explicit FunctionCall(
-        const Prefix&, const std::optional<Identifier>&, const std::vector<Expression>&,
-        minilua::Range, GEN_CAUSE);
+        const Prefix&, std::optional<Identifier>, std::vector<Expression>, minilua::Range,
+        GEN_CAUSE);
     /**
-const      *
+     *
      * @return
-   &  * If the call is a method call id() the Prefix should refer to to a table
-     * else the Prefix states the functionname
+     * If the call is a method call id() should refer to a table
+     * else the Prefix states the function name
      */
     auto id() const -> Prefix;
     /**
      *
      * @return
      * an empty optional if it is not a method call
-     * the functionname if it is a method call
+     * the function name if it is a method call
      */
     auto method() const -> std::optional<Identifier>;
     auto args() const -> std::vector<Expression>;
@@ -718,21 +784,28 @@ public:
 class Spread {};
 class Self {};
 class Break {};
-using PrefixVariant = std::variant<Self, VariableDeclarator, FunctionCall, Expression>;
 /**
  * class for prefix nodes
  */
 class Prefix {
-    using modifiedPrefixVariant =
-        std::variant<Self, VariableDeclarator, FunctionCall, std::shared_ptr<Expression>>;
-    using PrefixTuple = std::tuple<modifiedPrefixVariant, minilua::Range, GEN_CAUSE>;
-    enum TupleIndex { PFX_VARIANT, RANGE, CAUSE };
-    std::variant<ts::Node, PrefixTuple> content;
+    using PrefixVariant = std::variant<VariableDeclarator, FunctionCall, Expression>;
+    using modifiedPrefixVariant = std::variant<
+        VariableDeclarator, FunctionCall,
+        std::shared_ptr<Expression>>; // the pointer is needed because Expression is only a forward
+                                      // declaration here and no complete type
+    struct PrefixStruct {
+        modifiedPrefixVariant prefix_variant;
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        PrefixStruct(VariableDeclarator, minilua::Range, GEN_CAUSE);
+        PrefixStruct(FunctionCall, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, PrefixStruct> content;
 
 public:
     explicit Prefix(ts::Node);
-    explicit Prefix(const VariableDeclarator&, GEN_CAUSE);
-    explicit Prefix(const FunctionCall&, GEN_CAUSE);
+    explicit Prefix(VariableDeclarator, GEN_CAUSE);
+    explicit Prefix(FunctionCall, GEN_CAUSE);
     /**
      *
      * @return a variant containing the class this Prefix gets resolved to
@@ -749,18 +822,27 @@ using ExpressionVariant = std::variant<
  * class for expression nodes
  */
 class Expression {
-    using ExpTup = std::tuple<ExpressionVariant, minilua::Range>;
-    std::variant<ts::Node, std::tuple<ExpressionVariant, minilua::Range>> content;
-    enum TupleIndex { EXP_VARIANT, RANGE };
+    struct ExpStruct {
+        ExpressionVariant exp_variant;
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        ExpStruct(BinaryOperation, minilua::Range, GEN_CAUSE);
+        ExpStruct(UnaryOperation, minilua::Range, GEN_CAUSE);
+        ExpStruct(FunctionDefinition, minilua::Range, GEN_CAUSE);
+        ExpStruct(Prefix, minilua::Range, GEN_CAUSE);
+        ExpStruct(Literal, minilua::Range, GEN_CAUSE);
+        ExpStruct(Identifier, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, ExpStruct> content;
 
 public:
     explicit Expression(ts::Node);
-    explicit Expression(const BinaryOperation&);
-    explicit Expression(const UnaryOperation&);
-    explicit Expression(const FunctionDefinition&);
-    explicit Expression(const Prefix&);
-    explicit Expression(const Literal&);
-    explicit Expression(const Identifier&);
+    explicit Expression(BinaryOperation, GEN_CAUSE);
+    explicit Expression(UnaryOperation, GEN_CAUSE);
+    explicit Expression(FunctionDefinition, GEN_CAUSE);
+    explicit Expression(Prefix, GEN_CAUSE);
+    explicit Expression(Literal, GEN_CAUSE);
+    explicit Expression(Identifier, GEN_CAUSE);
     /**
      *
      * @return a variant containing the class this expression gets resolved to
@@ -774,18 +856,27 @@ using StatementVariant = std::variant<
     VariableDeclaration, DoStatement, IfStatement, WhileStatement, RepeatStatement, ForStatement,
     ForInStatement, GoTo, Break, Label, FunctionStatement, FunctionCall, Expression>;
 class Statement {
-    using StatementTuple = std::tuple<StatementVariant, minilua::Range>;
-    enum TupleIndex { STAT_VARIANT, RANGE };
-    std::variant<ts::Node, StatementTuple> content;
+    struct StatStruct {
+        StatementVariant stat_var;
+        minilua::Range range;
+        GEN_CAUSE gen_cause;
+        StatStruct(VariableDeclaration, minilua::Range, GEN_CAUSE);
+        StatStruct(FunctionCall, minilua::Range, GEN_CAUSE);
+        StatStruct(WhileStatement, minilua::Range, GEN_CAUSE);
+        StatStruct(IfStatement, minilua::Range, GEN_CAUSE);
+        StatStruct(DoStatement, minilua::Range, GEN_CAUSE);
+        StatStruct(Break, minilua::Range, GEN_CAUSE);
+    };
+    std::variant<ts::Node, StatStruct> content;
 
 public:
     explicit Statement(ts::Node);
-    explicit Statement(const VariableDeclaration&);
-    explicit Statement(const FunctionCall&);
-    explicit Statement(const WhileStatement&);
-    explicit Statement(const IfStatement&);
-    explicit Statement(const DoStatement&);
-    explicit Statement(const Break&, minilua::Range);
+    explicit Statement(VariableDeclaration, GEN_CAUSE);
+    explicit Statement(FunctionCall, GEN_CAUSE);
+    explicit Statement(WhileStatement, GEN_CAUSE);
+    explicit Statement(IfStatement, GEN_CAUSE);
+    explicit Statement(DoStatement, GEN_CAUSE);
+    explicit Statement(Break, minilua::Range, GEN_CAUSE);
     /**
      *
      * @return a variant containing the class this statement gets resolved to

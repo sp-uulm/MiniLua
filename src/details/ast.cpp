@@ -31,32 +31,32 @@ auto operator<<(std::ostream& os, const GEN_CAUSE& cause) -> std::ostream& {
     case FUNCTION_STATEMENT_DESUGAR:
         os << "function_statement desugaring";
         break;
-    case PLACEHOLDER:
-        break;
     }
     return os;
 }
-static auto ast_class_to_string(const std::string& name, minilua::Range range) -> std::string {
+static auto ast_class_to_string(const std::string& name, const minilua::Range& range)
+    -> std::string {
     std::stringstream ss;
     ss << "(" << name << " " << range << ")";
     return ss.str();
 }
-static auto ast_class_to_string(const std::string& name, minilua::Range range, GEN_CAUSE cause)
+static auto
+ast_class_to_string(const std::string& name, const minilua::Range& range, GEN_CAUSE cause)
     -> std::string {
     std::stringstream ss;
     ss << "(" << name << " " << range << "generated for " << cause << ")";
     return ss.str();
 }
-static auto
-ast_class_to_string(const std::string& name, minilua::Range range, const std::string& content)
+static auto ast_class_to_string(
+    const std::string& name, const minilua::Range& range, const std::string& content)
     -> std::string {
     std::stringstream ss;
     ss << "(" << name << " " << range << "|" << content << ")";
     return ss.str();
 }
 static auto ast_class_to_string(
-    const std::string& name, minilua::Range range, const std::string& content, GEN_CAUSE cause)
-    -> std::string {
+    const std::string& name, const minilua::Range& range, const std::string& content,
+    GEN_CAUSE cause) -> std::string {
     std::stringstream ss;
     ss << "(" << name << " " << range << "generated cause:" << cause << "|" << content << ")";
     return ss.str();
@@ -104,6 +104,9 @@ auto Body::statements() -> std::vector<Statement> {
         this->content);
 }
 // Identifier
+Identifier::IdStruct::IdStruct(std::string identifier, minilua::Range range, GEN_CAUSE gen_cause)
+    : identifier(std::move(identifier)), range(std::move(range)), gen_cause(gen_cause) {}
+
 Identifier::Identifier(ts::Node node) : content(node) {
     if (node.type_id() != ts::NODE_IDENTIFIER && node.type_id() != ts::NODE_METHOD &&
         node.type_id() != ts::NODE_PROPERTY_IDENTIFIER &&
@@ -112,30 +115,31 @@ Identifier::Identifier(ts::Node node) : content(node) {
     }
 }
 Identifier::Identifier(const std::string& str, Range range, GEN_CAUSE cause)
-    : content(std::make_tuple(str, range, cause)) {}
+    : content(IdStruct(str, std::move(range), cause)) {}
 auto Identifier::string() const -> std::string {
     return std::visit(
         overloaded{
             [](ts::Node node) -> std::string { return node.text(); },
-            [](IdTuple tuple) -> std::string { return std::get<STRING>(tuple); }},
+            [](const IdStruct& id_struct) -> std::string { return id_struct.identifier; }},
         this->content);
 }
 auto Identifier::range() const -> minilua::Range {
     return std::visit(
         overloaded{
             [](ts::Node node) -> minilua::Range { return convert_range(node.range()); },
-            [](IdTuple tuple) -> minilua::Range { return std::get<RANGE>(tuple); }},
+            [](const IdStruct& id_struct) -> minilua::Range { return id_struct.range; }},
         this->content);
 }
 auto Identifier::debug_print() const -> std::string {
+    std::string class_name = "identifier";
     return std::visit(
         overloaded{
-            [this](const IdTuple& tuple) {
+            [class_name](const IdStruct& id_struct) {
                 return ast_class_to_string(
-                    "identifier", this->range(), this->string(), std::get<CAUSE>(tuple));
+                    class_name, id_struct.range, id_struct.identifier, id_struct.gen_cause);
             },
-            [this](ts::Node /*node*/) {
-                return ast_class_to_string("identifier", this->range(), this->string());
+            [class_name](ts::Node node) {
+                return ast_class_to_string(class_name, convert_range(node.range()), node.text());
             }},
         this->content);
 }
@@ -151,6 +155,12 @@ auto Program::debug_print() const -> std::string {
     return ast_class_to_string("program", this->range());
 }
 // BinaryOperation
+BinaryOperation::BinOpStruct::BinOpStruct(
+    const Expression& left, BinOpEnum bin_operator, const Expression& right, minilua::Range range,
+    GEN_CAUSE gen_cause)
+    : left(std::make_shared<Expression>(left)), bin_operator(bin_operator),
+      right(std::make_shared<Expression>(right)), range(std::move(range)), gen_cause(gen_cause) {}
+
 BinaryOperation::BinaryOperation(ts::Node node) : content(node) {
     if (node.type_id() != ts::NODE_BINARY_OPERATION) {
         throw std::runtime_error("not a binary_operation node");
@@ -160,21 +170,19 @@ BinaryOperation::BinaryOperation(ts::Node node) : content(node) {
 BinaryOperation::BinaryOperation(
     const Expression& left, BinOpEnum op_enum, const Expression& right, minilua::Range range,
     GEN_CAUSE cause)
-    : content(std::make_tuple(
-          std::make_shared<Expression>(left), op_enum, std::make_shared<Expression>(right), range,
-          cause)) {}
+    : content(BinOpStruct(left, op_enum, right, std::move(range), cause)) {}
 auto BinaryOperation::left() const -> Expression {
     return std::visit(
         overloaded{
             [](ts::Node node) -> Expression { return Expression(node.child(0).value()); },
-            [](BinOpTuple tuple) -> Expression { return *std::get<LEFT>(tuple); }},
+            [](const BinOpStruct& bin_struct) -> Expression { return *bin_struct.left; }},
         this->content);
 }
 auto BinaryOperation::right() const -> Expression {
     return std::visit(
         overloaded{
             [](ts::Node node) -> Expression { return Expression(node.child(2).value()); },
-            [](BinOpTuple tuple) -> Expression { return *std::get<RIGHT>(tuple); }},
+            [](const BinOpStruct& bin_struct) -> Expression { return *bin_struct.right; }},
         this->content);
 }
 auto BinaryOperation::binary_operator() const -> BinOpEnum {
@@ -228,29 +236,35 @@ auto BinaryOperation::binary_operator() const -> BinOpEnum {
                     throw std::runtime_error("Unknown Binary Operator: " + op_str);
                 }
             },
-            [](BinOpTuple tuple) -> BinOpEnum { return std::get<OPERATOR>(tuple); }},
+            [](const BinOpStruct& bin_struct) -> BinOpEnum { return bin_struct.bin_operator; }},
         this->content);
 }
 auto BinaryOperation::range() const -> minilua::Range {
     return std::visit(
         overloaded{
             [](ts::Node node) -> minilua::Range { return convert_range(node.range()); },
-            [](BinOpTuple tuple) -> minilua::Range { return std::get<RANGE>(tuple); }},
+            [](const BinOpStruct& bin_struct) -> minilua::Range { return bin_struct.range; }},
         this->content);
 }
 auto BinaryOperation::debug_print() const -> std::string {
+    std::string class_name = "binary_operation";
     return std::visit(
         overloaded{
-            [this](const BinOpTuple& tuple) {
+            [class_name](const BinOpStruct& bin_struct) {
                 return ast_class_to_string(
-                    "binary_operation", this->range(), std::get<CAUSE>(tuple));
+                    "binary_operation", bin_struct.range, bin_struct.gen_cause);
             },
-            [this](ts::Node /*node*/) {
-                return ast_class_to_string("binary_operation", this->range());
+            [class_name](ts::Node node) {
+                return ast_class_to_string("binary_operation", convert_range(node.range()));
             }},
         this->content);
 }
 // UnaryOperation
+UnaryOperation::UnOpStruct::UnOpStruct(
+    UnOpEnum un_operator, const Expression& operand, minilua::Range range, GEN_CAUSE gen_cause)
+    : un_operator(un_operator), operand(std::make_shared<Expression>(operand)),
+      range(std::move(range)), gen_cause(gen_cause) {}
+
 UnaryOperation::UnaryOperation(ts::Node node) : content(node) {
     if (node.type_id() != ts::NODE_UNARY_OPERATION) {
         throw std::runtime_error("not an unary_operation node");
@@ -259,7 +273,7 @@ UnaryOperation::UnaryOperation(ts::Node node) : content(node) {
 }
 UnaryOperation::UnaryOperation(
     UnOpEnum op_enum, const Expression& exp, minilua::Range range, GEN_CAUSE cause)
-    : content(std::make_tuple(op_enum, std::make_shared<Expression>(exp), range, cause)) {}
+    : content(UnOpStruct(op_enum, exp, std::move(range), cause)) {}
 auto UnaryOperation::unary_operator() const -> UnOpEnum {
     return std::visit(
         overloaded{
@@ -276,7 +290,7 @@ auto UnaryOperation::unary_operator() const -> UnOpEnum {
                     throw std::runtime_error("unknown Unary Operator: " + node.child(0)->text());
                 }
             },
-            [](UnOpTuple tuple) -> UnOpEnum { return std::get<OPERATOR>(tuple); }},
+            [](const UnOpStruct& un_struct) -> UnOpEnum { return un_struct.un_operator; }},
         this->content);
 }
 
@@ -284,23 +298,22 @@ auto UnaryOperation::expression() const -> Expression {
     return std::visit(
         overloaded{
             [](ts::Node node) -> Expression { return Expression(node.child(1).value()); },
-            [](UnOpTuple tuple) -> Expression { return *std::get<OPERAND>(tuple); }},
+            [](const UnOpStruct& un_struct) -> Expression { return *un_struct.operand; }},
         this->content);
 }
 auto UnaryOperation::range() const -> minilua::Range {
     return std::visit(
         overloaded{
             [](ts::Node node) -> minilua::Range { return convert_range(node.range()); },
-            [](UnOpTuple tuple) -> minilua::Range { return std::get<RANGE>(tuple); }},
+            [](const UnOpStruct& un_struct) -> minilua::Range { return un_struct.range; }},
         this->content);
 }
 auto UnaryOperation::debug_print() const -> std::string {
     std::string class_name = "unary_operation";
     return std::visit(
         overloaded{
-            [class_name](UnOpTuple tuple) {
-                return ast_class_to_string(
-                    class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
+            [class_name](const UnOpStruct& un_struct) {
+                return ast_class_to_string(class_name, un_struct.range, un_struct.gen_cause);
             },
             [class_name](ts::Node node) {
                 return ast_class_to_string(class_name, convert_range(node.range()));
@@ -416,6 +429,11 @@ auto ForInStatement::debug_print() const -> std::string {
 }
 
 // WhileStatement
+WhileStatement::WhileStruct::WhileStruct(
+    const Expression& condition, const Body& body, minilua::Range range, GEN_CAUSE gen_cause)
+    : condition(std::make_shared<Expression>(condition)), body(std::make_shared<Body>(body)),
+      range(std::move(range)), gen_cause(gen_cause) {}
+
 WhileStatement::WhileStatement(ts::Node node) : content(node) {
     if (node.type_id() != ts::NODE_WHILE_STATEMENT) {
         throw std::runtime_error("not a while_statement node");
@@ -426,8 +444,7 @@ WhileStatement::WhileStatement(ts::Node node) : content(node) {
 }
 WhileStatement::WhileStatement(
     const Expression& cond, const Body& body, minilua::Range range, GEN_CAUSE cause)
-    : content(std::make_tuple(
-          std::make_shared<Expression>(cond), std::make_shared<Body>(body), range, cause)) {}
+    : content(WhileStruct(cond, body, std::move(range), cause)) {}
 auto WhileStatement::body() const -> Body {
     return std::visit(
         overloaded{
@@ -436,7 +453,7 @@ auto WhileStatement::body() const -> Body {
                 body.erase(body.begin());
                 return Body(body);
             },
-            [](WhileTuple tuple) -> Body { return *std::get<BODY>(tuple); }},
+            [](const WhileStruct& while_struct) -> Body { return *while_struct.body; }},
         this->content);
 }
 auto WhileStatement::repeat_conditon() const -> Expression {
@@ -445,7 +462,7 @@ auto WhileStatement::repeat_conditon() const -> Expression {
             [](ts::Node node) -> Expression {
                 return Expression(node.named_child(0).value().named_child(0).value());
             },
-            [](WhileTuple tuple) -> Expression { return *std::get<CONDITION>(tuple); }},
+            [](const WhileStruct& while_struct) -> Expression { return *while_struct.condition; }},
         this->content);
 }
 
@@ -453,16 +470,15 @@ auto WhileStatement::range() const -> minilua::Range {
     return std::visit(
         overloaded{
             [](ts::Node node) -> minilua::Range { return convert_range(node.range()); },
-            [](WhileTuple tuple) -> minilua::Range { return std::get<RANGE>(tuple); }},
+            [](const WhileStruct& while_struct) -> minilua::Range { return while_struct.range; }},
         this->content);
 }
 auto WhileStatement::debug_print() const -> std::string {
     std::string class_name = "while_statement";
     return std::visit(
         overloaded{
-            [class_name](WhileTuple tuple) {
-                return ast_class_to_string(
-                    class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
+            [class_name](const WhileStruct& while_struct) {
+                return ast_class_to_string(class_name, while_struct.range, while_struct.gen_cause);
             },
             [class_name](ts::Node node) {
                 return ast_class_to_string(class_name, convert_range(node.range()));
@@ -498,6 +514,11 @@ auto RepeatStatement::debug_print() const -> std::string {
 }
 
 // If
+IfStatement::IfStruct::IfStruct(
+    const Expression& condition, const Body& body, minilua::Range range, GEN_CAUSE gen_cause)
+    : condition(std::make_shared<Expression>(condition)), body(std::make_shared<Body>(body)),
+      range(std::move(range)), gen_cause(gen_cause) {}
+
 IfStatement::IfStatement(ts::Node node) : content(node) {
     if (node.type_id() != ts::NODE_IF_STATEMENT) {
         throw std::runtime_error("not an if_statement node");
@@ -508,15 +529,14 @@ IfStatement::IfStatement(ts::Node node) : content(node) {
 }
 IfStatement::IfStatement(
     const Expression& cond, const Body& body, minilua::Range range, GEN_CAUSE cause)
-    : content(std::make_tuple(
-          std::make_shared<Expression>(cond), std::make_shared<Body>(body), range, cause)) {}
+    : content(IfStruct(cond, body, std::move(range), cause)) {}
 auto IfStatement::condition() const -> Expression {
     return std::visit(
         overloaded{
             [](ts::Node node) -> Expression {
                 return Expression(node.named_child(0).value().named_child(0).value());
             },
-            [](IfTuple tuple) -> Expression { return *std::get<CONDITION>(tuple); }},
+            [](const IfStruct& if_struct) -> Expression { return *if_struct.condition; }},
         this->content);
 }
 auto IfStatement::else_statement() const -> std::optional<Else> {
@@ -530,7 +550,7 @@ auto IfStatement::else_statement() const -> std::optional<Else> {
                     return std::nullopt;
                 }
             },
-            [](const IfTuple& /*tuple*/) -> std::optional<Else> { return std::nullopt; }},
+            [](const IfStruct& /*if_struct*/) -> std::optional<Else> { return std::nullopt; }},
         this->content);
 }
 auto IfStatement::elseifs() const -> std::vector<ElseIf> {
@@ -561,7 +581,9 @@ auto IfStatement::elseifs() const -> std::vector<ElseIf> {
                 });
                 return res;
             },
-            [](const IfTuple& /*tuple*/) -> std::vector<ElseIf> { return std::vector<ElseIf>(); }},
+            [](const IfStruct& /*if_struct*/) -> std::vector<ElseIf> {
+                return std::vector<ElseIf>();
+            }},
         this->content);
 }
 auto IfStatement::body() const -> Body {
@@ -586,23 +608,22 @@ auto IfStatement::body() const -> Body {
                 }
                 return Body(std::vector<ts::Node>(if_children.begin() + 1, end));
             },
-            [](IfTuple tuple) -> Body { return *std::get<BODY>(tuple); }},
+            [](const IfStruct& if_struct) -> Body { return *if_struct.body; }},
         this->content);
 }
 auto IfStatement::range() const -> minilua::Range {
     return std::visit(
         overloaded{
             [](ts::Node node) -> minilua::Range { return convert_range(node.range()); },
-            [](IfTuple tuple) -> minilua::Range { return std::get<RANGE>(tuple); }},
+            [](const IfStruct& if_struct) -> minilua::Range { return if_struct.range; }},
         this->content);
 }
 auto IfStatement::debug_print() const -> std::string {
     std::string class_name = "if_statement";
     return std::visit(
         overloaded{
-            [class_name](IfTuple tuple) {
-                return ast_class_to_string(
-                    class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
+            [class_name](const IfStruct& if_struct) {
+                return ast_class_to_string(class_name, if_struct.range, if_struct.gen_cause);
             },
             [class_name](ts::Node node) {
                 return ast_class_to_string(class_name, convert_range(node.range()));
@@ -661,6 +682,12 @@ auto Return::debug_print() const -> std::string {
 }
 
 // VariableDeclaration
+VariableDeclaration::VDStruct::VDStruct(
+    std::vector<VariableDeclarator> declarators, std::vector<Expression> declarations,
+    minilua::Range range, GEN_CAUSE gen_cause)
+    : declarators(std::move(declarators)), declarations(std::move(declarations)),
+      range(std::move(range)), gen_cause(gen_cause) {}
+
 VariableDeclaration::VariableDeclaration(ts::Node node) : content(node) {
     if (node.type_id() != ts::NODE_VARIABLE_DECLARATION &&
         node.type_id() != ts::NODE_LOCAL_VARIABLE_DECLARATION) {
@@ -672,7 +699,7 @@ VariableDeclaration::VariableDeclaration(ts::Node node) : content(node) {
 VariableDeclaration::VariableDeclaration(
     bool local, const std::vector<VariableDeclarator>& v_declarators,
     const std::vector<Expression>& v_declarations, minilua::Range range, GEN_CAUSE cause)
-    : content(std::make_tuple(v_declarators, v_declarations, range, cause)), local_dec(local) {}
+    : content(VDStruct(v_declarators, v_declarations, std::move(range), cause)), local_dec(local) {}
 auto VariableDeclaration::declarations() const -> std::vector<Expression> {
     return std::visit(
         overloaded{
@@ -698,7 +725,9 @@ auto VariableDeclaration::declarations() const -> std::vector<Expression> {
                     return res;
                 }
             },
-            [](VDTuple tuple) -> std::vector<Expression> { return std::get<DECLARATIONS>(tuple); }},
+            [](const VDStruct& vd_struct) -> std::vector<Expression> {
+                return vd_struct.declarations;
+            }},
         this->content);
 }
 auto VariableDeclaration::declarators() const -> std::vector<VariableDeclarator> {
@@ -727,8 +756,8 @@ auto VariableDeclaration::declarators() const -> std::vector<VariableDeclarator>
                     return res;
                 }
             },
-            [](VDTuple tuple) -> std::vector<VariableDeclarator> {
-                return std::get<DECLARATORS>(tuple);
+            [](const VDStruct& vd_struct) -> std::vector<VariableDeclarator> {
+                return vd_struct.declarators;
             }},
         this->content);
 }
@@ -737,16 +766,15 @@ auto VariableDeclaration::range() const -> minilua::Range {
     return std::visit(
         overloaded{
             [](ts::Node node) -> minilua::Range { return convert_range(node.range()); },
-            [](VDTuple tuple) -> minilua::Range { return std::get<RANGE>(tuple); }},
+            [](const VDStruct& vd_struct) -> minilua::Range { return vd_struct.range; }},
         this->content);
 }
 auto VariableDeclaration::debug_print() const -> std::string {
     std::string class_name = "variable_declaration";
     return std::visit(
         overloaded{
-            [class_name](VDTuple tuple) {
-                return ast_class_to_string(
-                    class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
+            [class_name](const VDStruct& vd_struct) {
+                return ast_class_to_string(class_name, vd_struct.range, vd_struct.gen_cause);
             },
             [class_name](ts::Node node) {
                 return ast_class_to_string(class_name, convert_range(node.range()));
@@ -755,16 +783,21 @@ auto VariableDeclaration::debug_print() const -> std::string {
 }
 
 // VariableDeclarator
+VariableDeclarator::VDStruct::VDStruct(Identifier id, minilua::Range range, GEN_CAUSE gen_cause)
+    : vd_variant(id), range(std::move(range)), gen_cause(gen_cause) {}
+VariableDeclarator::VDStruct::VDStruct(
+    FieldExpression fe, minilua::Range range, GEN_CAUSE gen_cause)
+    : vd_variant(fe), range(std::move(range)), gen_cause(gen_cause) {}
 VariableDeclarator::VariableDeclarator(ts::Node node) : content(node) {
     if (node.type_id() != ts::NODE_VARIABLE_DECLARATOR && node.type_id() != ts::NODE_IDENTIFIER &&
         node.type_id() != ts::NODE_FIELD_EXPRESSION && node.type_id() != ts::NODE_TABLE_INDEX) {
         throw std::runtime_error("not a variable declarator");
     }
 }
-VariableDeclarator::VariableDeclarator(const Identifier& id, GEN_CAUSE cause)
-    : content(std::make_tuple(id, id.range(), cause)) {}
-VariableDeclarator::VariableDeclarator(const FieldExpression& fe, GEN_CAUSE cause)
-    : content(std::make_tuple(fe, fe.range(), cause)) {}
+VariableDeclarator::VariableDeclarator(Identifier id, GEN_CAUSE cause)
+    : content(VDStruct(id, id.range(), cause)) {}
+VariableDeclarator::VariableDeclarator(FieldExpression fe, GEN_CAUSE cause)
+    : content(VDStruct(fe, fe.range(), cause)) {}
 auto VariableDeclarator::options() const -> std::variant<Identifier, FieldExpression, TableIndex> {
     return std::visit(
         overloaded{
@@ -790,14 +823,14 @@ auto VariableDeclarator::options() const -> std::variant<Identifier, FieldExpres
                     throw std::runtime_error("invalid variable declarator");
                 }
             },
-            [](VDTuple tuple) -> VarDecVariant { return std::get<VD_VARIANT>(tuple); }},
+            [](const VDStruct& vd_struct) -> VarDecVariant { return vd_struct.vd_variant; }},
         this->content);
 }
 auto VariableDeclarator::range() const -> minilua::Range {
     return std::visit(
         overloaded{
             [](ts::Node node) { return convert_range(node.range()); },
-            [](VDTuple tuple) { return std::get<RANGE>(tuple); }},
+            [](const VDStruct& vd_struct) { return vd_struct.range; }},
         this->content);
 }
 auto VariableDeclarator::debug_print() const -> std::string {
@@ -807,9 +840,9 @@ auto VariableDeclarator::debug_print() const -> std::string {
         auto id_text = id->string();
         return std::visit(
             overloaded{
-                [class_name, id_text](VDTuple tuple) {
+                [class_name, id_text](const VDStruct& vd_struct) {
                     return ast_class_to_string(
-                        class_name, std::get<RANGE>(tuple), id_text, std::get<CAUSE>(tuple));
+                        class_name, vd_struct.range, id_text, vd_struct.gen_cause);
                 },
                 [class_name, id_text](ts::Node node) {
                     return ast_class_to_string(class_name, convert_range(node.range()), id_text);
@@ -818,9 +851,8 @@ auto VariableDeclarator::debug_print() const -> std::string {
     } else {
         return std::visit(
             overloaded{
-                [class_name](VDTuple tuple) {
-                    return ast_class_to_string(
-                        class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
+                [class_name](const VDStruct& vd_struct) {
+                    return ast_class_to_string(class_name, vd_struct.range, vd_struct.gen_cause);
                 },
                 [class_name](ts::Node node) {
                     return ast_class_to_string(class_name, convert_range(node.range()));
@@ -850,25 +882,27 @@ auto TableIndex::debug_print() const -> std::string {
 }
 
 // DoStatement
+DoStatement::DoStruct::DoStruct(const Body& body, minilua::Range range, GEN_CAUSE gen_cause)
+    : body(std::make_shared<Body>(body)), range(std::move(range)), gen_cause(gen_cause) {}
 DoStatement::DoStatement(ts::Node node) : content(node) {
     if (node.type_id() != ts::NODE_DO_STATEMENT) {
         throw std::runtime_error("not a do_statement node");
     }
 }
 DoStatement::DoStatement(const Body& body, minilua::Range range, GEN_CAUSE cause)
-    : content(std::make_tuple(std::make_shared<Body>(body), range, cause)) {}
+    : content(DoStruct(body, std::move(range), cause)) {}
 auto DoStatement::body() const -> Body {
     return std::visit(
         overloaded{
             [](ts::Node node) -> Body { return Body(node.named_children()); },
-            [](const DoTuple& tuple) -> Body { return *std::get<BODY>(tuple); }},
+            [](const DoStruct& doStruct) -> Body { return *doStruct.body; }},
         this->content);
 }
 auto DoStatement::range() const -> minilua::Range {
     return std::visit(
         overloaded{
             [](ts::Node node) -> minilua::Range { return convert_range(node.range()); },
-            [](const DoTuple& tuple) -> minilua::Range { return std::get<RANGE>(tuple); }},
+            [](const DoStruct& doStruct) -> minilua::Range { return doStruct.range; }},
         this->content);
 }
 auto DoStatement::debug_print() const -> std::string {
@@ -878,14 +912,18 @@ auto DoStatement::debug_print() const -> std::string {
             [class_name](ts::Node node) {
                 return ast_class_to_string(class_name, convert_range(node.range()));
             },
-            [class_name](DoTuple tuple) {
-                return ast_class_to_string(
-                    class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
+            [class_name](const DoStruct& doStruct) {
+                return ast_class_to_string(class_name, doStruct.range, doStruct.gen_cause);
             }},
         this->content);
 }
 
 // FieldExpression
+FieldExpression::FieldExpStruct::FieldExpStruct(
+    const Prefix& prefix, Identifier identifier, minilua::Range range, GEN_CAUSE gen_cause)
+    : table(std::make_shared<Prefix>(prefix)), property(std::move(identifier)),
+      range(std::move(range)), gen_cause(gen_cause) {}
+
 FieldExpression::FieldExpression(ts::Node node) : content(node) {
     if (node.type_id() != ts::NODE_FIELD_EXPRESSION) {
         throw std::runtime_error("not a field_expression node");
@@ -893,36 +931,35 @@ FieldExpression::FieldExpression(ts::Node node) : content(node) {
     assert(node.named_child_count() == 2);
 }
 FieldExpression::FieldExpression(
-    const Prefix& prefix, const Identifier& identifier, minilua::Range range, GEN_CAUSE cause)
-    : content(std::make_tuple(std::make_shared<Prefix>(prefix), identifier, range, cause)) {}
+    const Prefix& prefix, Identifier identifier, minilua::Range range, GEN_CAUSE cause)
+    : content(FieldExpStruct(prefix, std::move(identifier), std::move(range), cause)) {}
 auto FieldExpression::table_id() const -> Prefix {
     return std::visit(
         overloaded{
             [](ts::Node node) -> Prefix { return Prefix(node.named_child(0).value()); },
-            [](const FieldExpTuple& tuple) -> Prefix { return *std::get<TABLE>(tuple); }},
+            [](const FieldExpStruct& fe_struct) -> Prefix { return *fe_struct.table; }},
         this->content);
 }
 auto FieldExpression::property_id() const -> Identifier {
     return std::visit(
         overloaded{
             [](ts::Node node) -> Identifier { return Identifier(node.named_child(1).value()); },
-            [](const FieldExpTuple& tuple) -> Identifier { return std::get<PROPERTY>(tuple); }},
+            [](const FieldExpStruct& fe_struct) -> Identifier { return fe_struct.property; }},
         this->content);
 }
 auto FieldExpression::range() const -> minilua::Range {
     return std::visit(
         overloaded{
             [](ts::Node node) -> minilua::Range { return convert_range(node.range()); },
-            [](const FieldExpTuple& tuple) -> minilua::Range { return std::get<RANGE>(tuple); }},
+            [](const FieldExpStruct& fe_struct) -> minilua::Range { return fe_struct.range; }},
         this->content);
 }
 auto FieldExpression::debug_print() const -> std::string {
     std::string class_name = "field_expression";
     return std::visit(
         overloaded{
-            [class_name](FieldExpTuple tuple) {
-                return ast_class_to_string(
-                    class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
+            [class_name](const FieldExpStruct& fe_struct) {
+                return ast_class_to_string(class_name, fe_struct.range, fe_struct.gen_cause);
             },
             [class_name](ts::Node node) {
                 return ast_class_to_string(class_name, convert_range(node.range()));
@@ -956,14 +993,19 @@ auto GoTo::debug_print() const -> std::string {
 }
 
 // Parameters
+Parameters::ParamStruct::ParamStruct(
+    std::vector<Identifier> identifiers, bool spread, minilua::Range range, GEN_CAUSE gen_cause)
+    : identifiers(std::move(identifiers)), spread(spread), range(std::move(range)),
+      gen_cause(gen_cause) {}
+
 Parameters::Parameters(ts::Node node) : content(node) {
     if (node.type_id() != ts::NODE_PARAMETERS) {
         throw std::runtime_error("not a parameters node");
     }
 }
 Parameters::Parameters(
-    const std::vector<Identifier>& params, bool spread, minilua::Range range, GEN_CAUSE cause)
-    : content(std::make_tuple(params, spread, range, cause)) {}
+    std::vector<Identifier> params, bool spread, minilua::Range range, GEN_CAUSE cause)
+    : content(ParamStruct(std::move(params), spread, std::move(range), cause)) {}
 auto Parameters::spread() const -> bool {
     return std::visit(
         overloaded{
@@ -972,7 +1014,7 @@ auto Parameters::spread() const -> bool {
                        ((node.named_child(node.named_child_count() - 1))->type_id() ==
                         ts::NODE_SPREAD);
             },
-            [](ParamTuple tuple) { return std::get<SPREAD>(tuple); }},
+            [](const ParamStruct& param_struct) { return param_struct.spread; }},
         this->content);
 }
 auto Parameters::params() const -> std::vector<Identifier> {
@@ -999,8 +1041,8 @@ auto Parameters::params() const -> std::vector<Identifier> {
                     return res;
                 }
             },
-            [](ParamTuple tuple) -> std::vector<Identifier> {
-                return std::get<IDENTIFIERS>(tuple);
+            [](const ParamStruct& param_struct) -> std::vector<Identifier> {
+                return param_struct.identifiers;
             }},
         this->content);
 }
@@ -1008,16 +1050,15 @@ auto Parameters::range() const -> minilua::Range {
     return std::visit(
         overloaded{
             [](ts::Node node) -> minilua::Range { return convert_range(node.range()); },
-            [](ParamTuple tuple) -> minilua::Range { return std::get<RANGE>(tuple); }},
+            [](const ParamStruct& param_struct) -> minilua::Range { return param_struct.range; }},
         this->content);
 }
 auto Parameters::debug_print() const -> std::string {
     std::string class_name = "parameters";
     return std::visit(
         overloaded{
-            [class_name](ParamTuple tuple) {
-                return ast_class_to_string(
-                    class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
+            [class_name](const ParamStruct& param_struct) {
+                return ast_class_to_string(class_name, param_struct.range, param_struct.gen_cause);
             },
             [class_name](ts::Node node) {
                 return ast_class_to_string(class_name, convert_range(node.range()));
@@ -1067,6 +1108,11 @@ auto FunctionName::debug_print() const -> std::string {
 }
 
 // FunctionDefinition
+FunctionDefinition::FuncDefStruct::FuncDefStruct(
+    Parameters parameters, const Body& body, minilua::Range range, GEN_CAUSE gen_cause)
+    : parameters(std::move(parameters)), body(std::make_shared<Body>(body)),
+      range(std::move(range)), gen_cause(gen_cause) {}
+
 FunctionDefinition::FunctionDefinition(ts::Node node) : content(node) {
     if (node.type_id() != ts::NODE_FUNCTION_DEFINITION) {
         throw std::runtime_error("not a function_definition node");
@@ -1074,12 +1120,12 @@ FunctionDefinition::FunctionDefinition(ts::Node node) : content(node) {
 }
 FunctionDefinition::FunctionDefinition(
     const Parameters& params, const Body& body, minilua::Range range, GEN_CAUSE cause)
-    : content(std::tuple(params, std::make_shared<Body>(body), range, cause)) {}
+    : content(FuncDefStruct(params, body, std::move(range), cause)) {}
 auto FunctionDefinition::parameters() const -> Parameters {
     return std::visit(
         overloaded{
             [](ts::Node node) -> Parameters { return Parameters(node.named_child(0).value()); },
-            [](const FuncDefTuple& tuple) -> Parameters { return std::get<PARAMETERS>(tuple); }},
+            [](const FuncDefStruct& fd_struct) -> Parameters { return fd_struct.parameters; }},
         this->content);
 }
 auto FunctionDefinition::body() const -> Body {
@@ -1089,23 +1135,22 @@ auto FunctionDefinition::body() const -> Body {
                 std::vector<ts::Node> children = node.named_children();
                 return Body(std::vector<ts::Node>(children.begin() + 1, children.end()));
             },
-            [](const FuncDefTuple& tuple) -> Body { return *std::get<BODY>(tuple); }},
+            [](const FuncDefStruct& fd_struct) -> Body { return *fd_struct.body; }},
         this->content);
 }
 auto FunctionDefinition::range() const -> minilua::Range {
     return std::visit(
         overloaded{
             [](ts::Node node) -> minilua::Range { return convert_range(node.range()); },
-            [](const FuncDefTuple& tuple) -> minilua::Range { return std::get<RANGE>(tuple); }},
+            [](const FuncDefStruct& fd_struct) -> minilua::Range { return fd_struct.range; }},
         this->content);
 }
 auto FunctionDefinition::debug_print() const -> std::string {
     std::string class_name = "function_definition";
     return std::visit(
         overloaded{
-            [class_name](FuncDefTuple tuple) {
-                return ast_class_to_string(
-                    class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
+            [class_name](const FuncDefStruct& fd_struct) {
+                return ast_class_to_string(class_name, fd_struct.range, fd_struct.gen_cause);
             },
             [class_name](ts::Node node) {
                 return ast_class_to_string(class_name, convert_range(node.range()));
@@ -1139,6 +1184,12 @@ auto FunctionStatement::debug_print() const -> std::string {
 }
 
 // FunctionCall
+FunctionCall::FuncCallStruct::FuncCallStruct(
+    const Prefix& prefix, std::optional<Identifier> method, std::vector<Expression> args,
+    minilua::Range range, GEN_CAUSE gen_cause)
+    : prefix(std::make_shared<Prefix>(prefix)), method(std::move(method)), args(std::move(args)),
+      range(std::move(range)), gen_cause(gen_cause) {}
+
 FunctionCall::FunctionCall(ts::Node node) : content(node) {
     if (node.type_id() != ts::NODE_FUNCTION_CALL) {
         throw std::runtime_error("not a function_call node");
@@ -1146,9 +1197,9 @@ FunctionCall::FunctionCall(ts::Node node) : content(node) {
     assert(node.named_child_count() == 2 || node.named_child_count() == 3);
 }
 FunctionCall::FunctionCall(
-    const Prefix& pfx, const std::optional<Identifier>& method, const std::vector<Expression>& args,
+    const Prefix& pfx, std::optional<Identifier> method, std::vector<Expression> args,
     minilua::Range range, GEN_CAUSE cause)
-    : content(std::make_tuple(std::make_shared<Prefix>(pfx), method, args, range, cause)) {}
+    : content(FuncCallStruct(pfx, std::move(method), std::move(args), std::move(range), cause)) {}
 auto FunctionCall::method() const -> std::optional<Identifier> {
     return std::visit(
         overloaded{
@@ -1159,14 +1210,14 @@ auto FunctionCall::method() const -> std::optional<Identifier> {
                     return std::nullopt;
                 }
             },
-            [](FuncCallTuple tuple) { return std::get<METHOD>(tuple); }},
+            [](const FuncCallStruct& fc_struct) { return fc_struct.method; }},
         this->content);
 }
 auto FunctionCall::id() const -> Prefix {
     return std::visit(
         overloaded{
             [](ts::Node node) -> Prefix { return Prefix(node.named_child(0).value()); },
-            [](FuncCallTuple tuple) -> Prefix { return *std::get<PREFIX>(tuple); }},
+            [](const FuncCallStruct& fc_struct) -> Prefix { return *fc_struct.prefix; }},
         this->content);
 }
 auto FunctionCall::args() const -> std::vector<Expression> {
@@ -1182,23 +1233,24 @@ auto FunctionCall::args() const -> std::vector<Expression> {
                     [](ts::Node node) { return Expression(node); });
                 return args;
             },
-            [](FuncCallTuple tuple) -> std::vector<Expression> { return std::get<ARGS>(tuple); }},
+            [](const FuncCallStruct& fc_struct) -> std::vector<Expression> {
+                return fc_struct.args;
+            }},
         this->content);
 }
 auto FunctionCall::range() const -> minilua::Range {
     return std::visit(
         overloaded{
             [](ts::Node node) -> minilua::Range { return convert_range(node.range()); },
-            [](FuncCallTuple tuple) -> minilua::Range { return std::get<RANGE>(tuple); }},
+            [](const FuncCallStruct& fc_struct) -> minilua::Range { return fc_struct.range; }},
         this->content);
 }
 auto FunctionCall::debug_print() const -> std::string {
     std::string class_name = "function_call";
     return std::visit(
         overloaded{
-            [class_name](FuncCallTuple tuple) {
-                return ast_class_to_string(
-                    class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
+            [class_name](const FuncCallStruct& fc_struct) {
+                return ast_class_to_string(class_name, fc_struct.range, fc_struct.gen_cause);
             },
             [class_name](ts::Node node) {
                 return ast_class_to_string(class_name, convert_range(node.range()));
@@ -1256,6 +1308,11 @@ auto Field::debug_print() const -> std::string {
 }
 
 // Prefix
+Prefix::PrefixStruct::PrefixStruct(FunctionCall fc, minilua::Range range, GEN_CAUSE gen_cause)
+    : prefix_variant(fc), range(std::move(range)), gen_cause(gen_cause) {}
+Prefix::PrefixStruct::PrefixStruct(VariableDeclarator vd, minilua::Range range, GEN_CAUSE gen_cause)
+    : prefix_variant(vd), range(std::move(range)), gen_cause(gen_cause) {}
+
 Prefix::Prefix(ts::Node node) : content(node) {
     if (!(node.type_id() == ts::NODE_SELF || node.type_id() == ts::NODE_FUNCTION_CALL ||
           node.type_id() == ts::NODE_IDENTIFIER || node.type_id() == ts::NODE_FIELD_EXPRESSION ||
@@ -1263,17 +1320,14 @@ Prefix::Prefix(ts::Node node) : content(node) {
         throw std::runtime_error("Not a prefix-node");
     }
 }
-Prefix::Prefix(const VariableDeclarator& vd, GEN_CAUSE cause)
-    : content(std::make_tuple(vd, vd.range(), cause)) {}
-Prefix::Prefix(const FunctionCall& fc, GEN_CAUSE cause)
-    : content(std::make_tuple(fc, fc.range(), cause)) {}
+Prefix::Prefix(VariableDeclarator vd, GEN_CAUSE cause)
+    : content(PrefixStruct(vd, vd.range(), cause)) {}
+Prefix::Prefix(FunctionCall fc, GEN_CAUSE cause) : content(PrefixStruct(fc, fc.range(), cause)) {}
 auto Prefix::options() const -> PrefixVariant {
     return std::visit(
         overloaded{
             [](ts::Node node) -> PrefixVariant {
-                if (node.type_id() == ts::NODE_SELF) {
-                    return Self();
-                } else if (node.type_id() == ts::NODE_FUNCTION_CALL) {
+                if (node.type_id() == ts::NODE_FUNCTION_CALL) {
                     return FunctionCall(node);
                 } else if (node.child_count() > 0 && node.child(0)->text() == "(") {
                     return Expression(node.child(1).value());
@@ -1286,11 +1340,10 @@ auto Prefix::options() const -> PrefixVariant {
                     throw std::runtime_error("Not a prefix-node");
                 }
             },
-            [](PrefixTuple tuple) -> PrefixVariant {
-                auto mod_var = std::get<PFX_VARIANT>(tuple);
+            [](const PrefixStruct& pfx_struct) -> PrefixVariant {
+                auto mod_var = pfx_struct.prefix_variant;
                 return std::visit(
                     overloaded{
-                        [](Self self) -> PrefixVariant { return self; },
                         [](VariableDeclarator vd) -> PrefixVariant { return vd; },
                         [](FunctionCall fc) -> PrefixVariant { return fc; },
                         [](const std::shared_ptr<Expression>& exp) -> PrefixVariant {
@@ -1304,16 +1357,15 @@ auto Prefix::range() const -> minilua::Range {
     return std::visit(
         overloaded{
             [](ts::Node node) { return convert_range(node.range()); },
-            [](PrefixTuple tuple) { return std::get<RANGE>(tuple); }},
+            [](const PrefixStruct& pfx_struct) { return pfx_struct.range; }},
         this->content);
 }
 auto Prefix::debug_print() const -> std::string {
     std::string class_name = "prefix";
     return std::visit(
         overloaded{
-            [class_name](PrefixTuple tuple) {
-                return ast_class_to_string(
-                    class_name, std::get<RANGE>(tuple), std::get<CAUSE>(tuple));
+            [class_name](const PrefixStruct& pfx_struct) {
+                return ast_class_to_string(class_name, pfx_struct.range, pfx_struct.gen_cause);
             },
             [class_name](ts::Node node) {
                 return ast_class_to_string(class_name, convert_range(node.range()));
@@ -1324,8 +1376,8 @@ auto Prefix::to_string() const -> std::string {
     return std::visit(
         overloaded{
             [](ts::Node node) -> std::string { return node.text(); },
-            [](PrefixTuple tuple) -> std::string {
-                auto variant = std::get<TupleIndex::PFX_VARIANT>(tuple);
+            [](const PrefixStruct& pfx_struct) -> std::string {
+                auto variant = pfx_struct.prefix_variant;
                 if (auto* var_dec = std::get_if<VariableDeclarator>(&variant)) {
                     auto options = var_dec->options();
                     if (auto* id = std::get_if<Identifier>(&options)) {
@@ -1341,25 +1393,44 @@ auto Prefix::to_string() const -> std::string {
 }
 
 // Expression
+Expression::ExpStruct::ExpStruct(BinaryOperation bin_op, minilua::Range range, GEN_CAUSE gen_cause)
+    : exp_variant(bin_op), range(std::move(range)), gen_cause(gen_cause) {}
+Expression::ExpStruct::ExpStruct(UnaryOperation un_op, minilua::Range range, GEN_CAUSE gen_cause)
+    : exp_variant(un_op), range(std::move(range)), gen_cause(gen_cause) {}
+Expression::ExpStruct::ExpStruct(
+    FunctionDefinition func_def, minilua::Range range, GEN_CAUSE gen_cause)
+    : exp_variant(func_def), range(std::move(range)), gen_cause(gen_cause) {}
+Expression::ExpStruct::ExpStruct(Prefix prefix, minilua::Range range, GEN_CAUSE gen_cause)
+    : exp_variant(prefix), range(std::move(range)), gen_cause(gen_cause) {}
+Expression::ExpStruct::ExpStruct(Literal literal, minilua::Range range, GEN_CAUSE gen_cause)
+    : exp_variant(literal), range(std::move(range)), gen_cause(gen_cause) {}
+Expression::ExpStruct::ExpStruct(Identifier id, minilua::Range range, GEN_CAUSE gen_cause)
+    : exp_variant(id), range(std::move(range)), gen_cause(gen_cause) {}
+
 Expression::Expression(ts::Node node) : content(node) {
     if (!(node.type_id() == ts::NODE_SPREAD || node.type_id() == ts::NODE_FUNCTION_DEFINITION ||
           node.type_id() == ts::NODE_TABLE || node.type_id() == ts::NODE_BINARY_OPERATION ||
           node.type_id() == ts::NODE_UNARY_OPERATION || node.type_id() == ts::NODE_STRING ||
           node.type_id() == ts::NODE_NUMBER || node.type_id() == ts::NODE_NIL ||
           node.type_id() == ts::NODE_FALSE || node.type_id() == ts::NODE_TRUE ||
-          node.type_id() == ts::NODE_IDENTIFIER || node.type_id() == ts::NODE_SELF ||
-          node.type_id() == ts::NODE_FUNCTION_CALL || node.type_id() == ts::NODE_FIELD_EXPRESSION ||
-          node.type_id() == ts::NODE_TABLE_INDEX || node.child(0)->text() == "(")) {
+          node.type_id() == ts::NODE_IDENTIFIER || node.type_id() == ts::NODE_FUNCTION_CALL ||
+          node.type_id() == ts::NODE_FIELD_EXPRESSION || node.type_id() == ts::NODE_TABLE_INDEX ||
+          node.child(0)->text() == "(")) {
         throw std::runtime_error("Not an expression-node");
     }
 }
-Expression::Expression(const UnaryOperation& un) : content(std::make_tuple(un, un.range())) {}
-Expression::Expression(const BinaryOperation& bin) : content(std::make_tuple(bin, bin.range())) {}
-Expression::Expression(const FunctionDefinition& fd) : content(std::make_tuple(fd, fd.range())) {}
-Expression::Expression(const Literal& literal)
-    : content(std::make_tuple(literal, literal.range())) {}
-Expression::Expression(const Identifier& id) : content(std::make_tuple(id, id.range())) {}
-Expression::Expression(const Prefix& pfx) : content(std::make_tuple(pfx, pfx.range())) {}
+Expression::Expression(UnaryOperation un, GEN_CAUSE gen_cause)
+    : content(ExpStruct(un, un.range(), gen_cause)) {}
+Expression::Expression(BinaryOperation bin, GEN_CAUSE gen_cause)
+    : content(ExpStruct(bin, bin.range(), gen_cause)) {}
+Expression::Expression(FunctionDefinition fd, GEN_CAUSE gen_cause)
+    : content(ExpStruct(fd, fd.range(), gen_cause)) {}
+Expression::Expression(Literal literal, GEN_CAUSE gen_cause)
+    : content(ExpStruct(literal, literal.range(), gen_cause)) {}
+Expression::Expression(Identifier id, GEN_CAUSE gen_cause)
+    : content(ExpStruct(id, id.range(), gen_cause)) {}
+Expression::Expression(Prefix pfx, GEN_CAUSE gen_cause)
+    : content(ExpStruct(pfx, pfx.range(), gen_cause)) {}
 auto Expression::options() const -> ExpressionVariant {
     return std::visit(
         overloaded{
@@ -1387,7 +1458,7 @@ auto Expression::options() const -> ExpressionVariant {
                 } else if (node.type_id() == ts::NODE_IDENTIFIER) {
                     return Identifier(node);
                 } else if (
-                    node.type_id() == ts::NODE_SELF || node.type_id() == ts::NODE_FUNCTION_CALL ||
+                    node.type_id() == ts::NODE_FUNCTION_CALL ||
                     node.type_id() == ts::NODE_FIELD_EXPRESSION ||
                     node.type_id() == ts::NODE_TABLE_INDEX ||
                     (node.child(0).has_value() && node.child(0)->text() == "(")) {
@@ -1396,14 +1467,16 @@ auto Expression::options() const -> ExpressionVariant {
                     throw std::runtime_error("Not an expression-node");
                 }
             },
-            [](ExpTup tuple) -> ExpressionVariant { return std::get<EXP_VARIANT>(tuple); }},
+            [](const ExpStruct& exp_struct) -> ExpressionVariant {
+                return exp_struct.exp_variant;
+            }},
         this->content);
 }
 auto Expression::range() const -> minilua::Range {
     return std::visit(
         overloaded{
             [](ts::Node node) -> minilua::Range { return convert_range(node.range()); },
-            [](ExpTup tuple) -> minilua::Range { return std::get<RANGE>(tuple); }},
+            [](const ExpStruct& exp_struct) -> minilua::Range { return exp_struct.range; }},
         this->content);
 }
 auto Expression::debug_print() const -> std::string {
@@ -1413,9 +1486,9 @@ auto Expression::debug_print() const -> std::string {
         auto id_text = id->string();
         return std::visit(
             overloaded{
-                [class_name, id_text](ExpTup tuple) {
+                [class_name, id_text](const ExpStruct& exp_struct) {
                     return ast_class_to_string(
-                        class_name, std::get<RANGE>(tuple), id_text, GEN_CAUSE::PLACEHOLDER);
+                        class_name, exp_struct.range, id_text, exp_struct.gen_cause);
                 },
                 [class_name, id_text](ts::Node node) {
                     return ast_class_to_string(class_name, convert_range(node.range()), id_text);
@@ -1425,9 +1498,9 @@ auto Expression::debug_print() const -> std::string {
         auto literal_text = literal->content();
         return std::visit(
             overloaded{
-                [class_name, literal_text](ExpTup tuple) {
+                [class_name, literal_text](const ExpStruct& exp_struct) {
                     return ast_class_to_string(
-                        class_name, std::get<RANGE>(tuple), literal_text, GEN_CAUSE::PLACEHOLDER);
+                        class_name, exp_struct.range, literal_text, exp_struct.gen_cause);
                 },
                 [class_name, literal_text](ts::Node node) {
                     return ast_class_to_string(
@@ -1437,9 +1510,8 @@ auto Expression::debug_print() const -> std::string {
     } else {
         return std::visit(
             overloaded{
-                [class_name](ExpTup tuple) {
-                    return ast_class_to_string(
-                        class_name, std::get<RANGE>(tuple), GEN_CAUSE::PLACEHOLDER);
+                [class_name](const ExpStruct& exp_struct) {
+                    return ast_class_to_string(class_name, exp_struct.range, exp_struct.gen_cause);
                 },
                 [class_name](ts::Node node) {
                     return ast_class_to_string(class_name, convert_range(node.range()));
@@ -1451,8 +1523,8 @@ auto Expression::to_string() const -> std::string {
     return std::visit(
         overloaded{
             [](ts::Node node) { return node.text(); },
-            [](ExpTup tuple) {
-                auto var = std::get<TupleIndex::EXP_VARIANT>(tuple);
+            [](const ExpStruct& exp_struct) {
+                auto var = exp_struct.exp_variant;
                 return std::visit(
                     overloaded{
                         [](Spread /*spread*/) -> std::string { return "..."; },
@@ -1475,6 +1547,20 @@ auto Expression::to_string() const -> std::string {
 }
 
 // Statement
+Statement::StatStruct::StatStruct(VariableDeclaration vd, minilua::Range range, GEN_CAUSE gen_cause)
+    : stat_var(vd), range(std::move(range)), gen_cause(gen_cause) {}
+Statement::StatStruct::StatStruct(FunctionCall fc, minilua::Range range, GEN_CAUSE gen_cause)
+    : stat_var(fc), range(std::move(range)), gen_cause(gen_cause) {}
+Statement::StatStruct::StatStruct(
+    WhileStatement while_stat, minilua::Range range, GEN_CAUSE gen_cause)
+    : stat_var(while_stat), range(std::move(range)), gen_cause(gen_cause) {}
+Statement::StatStruct::StatStruct(IfStatement if_stat, minilua::Range range, GEN_CAUSE gen_cause)
+    : stat_var(if_stat), range(std::move(range)), gen_cause(gen_cause) {}
+Statement::StatStruct::StatStruct(DoStatement do_stat, minilua::Range range, GEN_CAUSE gen_cause)
+    : stat_var(do_stat), range(std::move(range)), gen_cause(gen_cause) {}
+Statement::StatStruct::StatStruct(Break break_stat, minilua::Range range, GEN_CAUSE gen_cause)
+    : stat_var(break_stat), range(std::move(range)), gen_cause(gen_cause) {}
+
 Statement::Statement(ts::Node node) : content(node) {
     if (!(node.type_id() == ts::NODE_EXPRESSION ||
           node.type_id() == ts::NODE_VARIABLE_DECLARATION ||
@@ -1490,17 +1576,18 @@ Statement::Statement(ts::Node node) : content(node) {
         throw std::runtime_error("Not a statement-node " + std::string(node.type()));
     }
 }
-Statement::Statement(const IfStatement& if_statement)
-    : content(std::make_tuple(if_statement, if_statement.range())) {}
-Statement::Statement(const FunctionCall& func_call)
-    : content(std::make_tuple(func_call, func_call.range())) {}
-Statement::Statement(const WhileStatement& while_statement)
-    : content(std::make_tuple(while_statement, while_statement.range())) {}
-Statement::Statement(const VariableDeclaration& var_dec)
-    : content(std::make_tuple(var_dec, var_dec.range())) {}
-Statement::Statement(const DoStatement& do_statement)
-    : content(std::make_tuple(do_statement, do_statement.range())) {}
-Statement::Statement(const Break& bk, minilua::Range range) : content(std::make_tuple(bk, range)) {}
+Statement::Statement(IfStatement if_statement, GEN_CAUSE gen_cause)
+    : content(StatStruct(if_statement, if_statement.range(), gen_cause)) {}
+Statement::Statement(FunctionCall func_call, GEN_CAUSE gen_cause)
+    : content(StatStruct(func_call, func_call.range(), gen_cause)) {}
+Statement::Statement(WhileStatement while_statement, GEN_CAUSE gen_cause)
+    : content(StatStruct(while_statement, while_statement.range(), gen_cause)) {}
+Statement::Statement(VariableDeclaration var_dec, GEN_CAUSE gen_cause)
+    : content(StatStruct(var_dec, var_dec.range(), gen_cause)) {}
+Statement::Statement(DoStatement do_statement, GEN_CAUSE gen_cause)
+    : content(StatStruct(do_statement, do_statement.range(), gen_cause)) {}
+Statement::Statement(Break brk, minilua::Range range, GEN_CAUSE gen_cause)
+    : content(StatStruct(brk, std::move(range), gen_cause)) {}
 auto Statement::options() const -> StatementVariant {
     return std::visit(
         overloaded{
@@ -1529,9 +1616,9 @@ auto Statement::options() const -> StatementVariant {
                     return Break();
                 } else if (node.type_id() == ts::NODE_LABEL_STATEMENT) {
                     return Label(node);
-                } else if (node.type_id() == ts::NODE_FUNCTION) {
-                    return FunctionStatement(node);
-                } else if (node.type_id() == ts::NODE_LOCAL_FUNCTION) {
+                } else if (
+                    node.type_id() == ts::NODE_FUNCTION ||
+                    node.type_id() == ts::NODE_LOCAL_FUNCTION) {
                     return FunctionStatement(node);
                 } else if (node.type_id() == ts::NODE_FUNCTION_CALL) {
                     return FunctionCall(node);
@@ -1539,23 +1626,22 @@ auto Statement::options() const -> StatementVariant {
                     throw std::runtime_error("Not a statement-node");
                 }
             },
-            [](StatementTuple tuple) -> StatementVariant { return std::get<STAT_VARIANT>(tuple); }},
+            [](const StatStruct& stat_struct) -> StatementVariant { return stat_struct.stat_var; }},
         this->content);
 }
 auto Statement::range() const -> minilua::Range {
     return std::visit(
         overloaded{
             [](ts::Node node) { return convert_range(node.range()); },
-            [](StatementTuple tuple) { return std::get<RANGE>(tuple); }},
+            [](const StatStruct& stat_struct) { return stat_struct.range; }},
         this->content);
 }
 auto Statement::debug_print() const -> std::string {
     std::string class_name = "statement";
     return std::visit(
         overloaded{
-            [class_name](StatementTuple tuple) {
-                return ast_class_to_string(
-                    class_name, std::get<RANGE>(tuple), GEN_CAUSE::PLACEHOLDER);
+            [class_name](const StatStruct& stat_struct) {
+                return ast_class_to_string(class_name, stat_struct.range, stat_struct.gen_cause);
             },
             [class_name](ts::Node node) {
                 return ast_class_to_string(class_name, convert_range(node.range()));
@@ -1564,7 +1650,7 @@ auto Statement::debug_print() const -> std::string {
 }
 
 Literal::Literal(LiteralType type, std::string string, minilua::Range range)
-    : literal_content(std::move(string)), literal_type(type), literal_range(range){};
+    : literal_content(std::move(string)), literal_type(type), literal_range(std::move(range)) {}
 auto Literal::type() const -> LiteralType { return this->literal_type; }
 auto Literal::content() const -> std::string { return this->literal_content; }
 auto Literal::range() const -> minilua::Range { return this->literal_range; }
