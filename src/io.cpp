@@ -1,3 +1,5 @@
+#include <bits/types/FILE.h>
+#include <cstddef>
 #include <cstdio>
 #include <iostream>
 #include <istream>
@@ -19,16 +21,17 @@ auto flush() -> Value { return true; }
 
 auto lines(const Value& a...) {}
 
-auto write(const CallContext& ctx) -> Value {
+auto write(const CallContext& ctx, std::FILE* file) -> Value {
     for (int i = 1; i < ctx.arguments().size(); i++) {
         auto v = ctx.arguments().get(i);
 
         if (v.type() == "Number" || v.type() == "String") {
-            // TODO: write
+            String s = std::get<String>(v.to_string());
+            auto* c = s.value.c_str();
+            std::fwrite(c, sizeof c[0], sizeof c, file);
         } else {
             // TODO: error-message
         }
-        i++;
     }
     return 1;
 }
@@ -46,9 +49,16 @@ auto static open_file(const String& filename, const String& mode) -> Vallist {
         return Vallist({Nil(), "could not open file", 2});
     }
     Table file_tab;
-    file_tab.set("close", [file]() { std::fclose(file); });
-    file_tab.set("flush", minilua::flush);
-    file_tab.set("write", write);
+
+    file_tab.set(
+        "close", [file](const CallContext& /*unused*/) -> Value { return std::fclose(file) == 0; });
+    file_tab.set(
+        "flush", [file](const CallContext& /*unused*/) -> Value { return std::fflush(file) == 0; });
+    file_tab.set("write", [file, file_tab](const CallContext& ctx) -> Value {
+        write(ctx, file);
+        Value v(file_tab);
+        return "File (" + /*adress*/ std::get<String>(v.to_string()).value + ")";
+    });
     return Vallist();
 }
 
