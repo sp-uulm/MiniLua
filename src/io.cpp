@@ -10,6 +10,7 @@
 #include <utility>
 #include <variant>
 
+#include "MiniLua/environment.hpp"
 #include "MiniLua/io.hpp"
 #include "MiniLua/utils.hpp"
 #include "MiniLua/values.hpp"
@@ -40,16 +41,17 @@ auto create_io_table(MemoryAllocator* allocator) -> Table {
 namespace io {
 
 class FileHandle {
-protected:
-    bool closed;
-
 public:
     enum SeekWhence { SET, CURRENT, END };
 
-    FileHandle() : closed(false) {}
+    FileHandle() {}
     virtual ~FileHandle(){};
 
     auto read(const CallContext& ctx) -> Vallist {
+        if (!this->is_open()) {
+            // TODO error?
+            return Vallist();
+        }
         // auto file_table = ctx.arguments().get(0);
         auto format = ctx.arguments().get(1);
 
@@ -86,10 +88,20 @@ public:
                 }},
             offset_param.raw());
 
+        if (!this->is_open()) {
+            // TODO error?
+            return Nil();
+        }
+
         return this->seek_impl(whence, offset);
     }
 
     auto write(const CallContext& ctx) -> Vallist {
+        if (!this->is_open()) {
+            // TODO error?
+            return Vallist();
+        }
+
         // arg 0 is file table
         for (int i = 1; i < ctx.arguments().size(); i++) {
             auto v = ctx.arguments().get(i);
@@ -112,10 +124,17 @@ public:
     }
 
     auto lines(const CallContext& ctx) -> Value {
+        if (!this->is_open()) {
+            // TODO error?
+            return Nil();
+        }
+
         // TODO
         // create iterator function that call read with the given format
         return Nil();
     }
+
+    virtual auto is_open() -> bool = 0;
 
     virtual auto close() -> bool = 0;
     virtual auto flush() -> bool = 0;
@@ -134,6 +153,7 @@ public:
 };
 
 class CFileHandle : public FileHandle {
+    // NOTE: a nullptr is treated as a closed file
     FILE* handle;
 
 public:
@@ -142,8 +162,24 @@ public:
     }
     ~CFileHandle() override { this->close(); }
 
-    auto close() -> bool override { return fclose(this->handle) == 0; }
-    auto flush() -> bool override { return fflush(this->handle) == 0; }
+    auto is_open() -> bool override { return this->handle != nullptr; }
+
+    auto close() -> bool override {
+        if (!is_open()) {
+            // TODO error?
+            return false;
+        }
+        auto result = fclose(this->handle);
+        this->handle = nullptr;
+        return result == 0;
+    }
+    auto flush() -> bool override {
+        if (!is_open()) {
+            // TODO error?
+            return false;
+        }
+        return fflush(this->handle) == 0;
+    }
     auto read_all() -> Value override {
         // figure out how long the file is (and reset to start of file)
         fseek(this->handle, 0L, SEEK_END);
@@ -166,6 +202,10 @@ public:
         return 0;
     }
     auto setvbuf(const CallContext& ctx) -> Value override {
+        if (!is_open()) {
+            // TODO error?
+            return Nil();
+        }
         // do nothing
         return true;
     }
@@ -180,25 +220,29 @@ std::istream* stdin = &std::cin;
 std::ostream* stdout = &std::cout;
 std::ostream* stderr = &std::cerr;
 
-auto static open_file(const String& path, const String& mode) -> Vallist {
+auto static open_file(const CallContext& ctx, const String& path, const String& mode) -> Vallist {
     try {
         auto* file = new CFileHandle(path.value, mode.value);
 
-        Table file_tab;
+        Table table = ctx.make_table();
 
-        file_tab.set(
+        table.set(
             "close", [file](const CallContext& /*unused*/) -> Value { return file->close(); });
-        file_tab.set(
+        table.set(
             "flush", [file](const CallContext& /*unused*/) -> Value { return file->flush(); });
-        file_tab.set(
-            "write", [file](const CallContext& ctx) -> Vallist { return file->write(ctx); });
-        file_tab.set("read", [file](const CallContext& ctx) -> Vallist { return file->read(ctx); });
-        file_tab.set("seek", [file](const CallContext& ctx) -> Value { return file->seek(ctx); });
-        file_tab.set("lines", [file](const CallContext& ctx) -> Value { return file->lines(ctx); });
-        file_tab.set(
+        table.set("write", [file](const CallContext& ctx) -> Vallist { return file->write(ctx); });
+        table.set("read", [file](const CallContext& ctx) -> Vallist { return file->read(ctx); });
+        table.set("seek", [file](const CallContext& ctx) -> Value { return file->seek(ctx); });
+        table.set("lines", [file](const CallContext& ctx) -> Value { return file->lines(ctx); });
+        table.set(
             "setvbuf", [file](const CallContext& ctx) -> Value { return file->setvbuf(ctx); });
 
-        return Vallist(file_tab);
+        Table metatable = ctx.make_table();
+        metatable.set("__gc", [file](const CallContext& /*ctx*/) { delete file; });
+
+        table.set_metatable(metatable);
+
+        return Vallist(table);
     } catch (const std::runtime_error& error) {
         // TODO: differnciate between different errors
         return Vallist({Nil(), "could not open file", 2});
@@ -211,14 +255,14 @@ auto open(const CallContext& ctx) -> Vallist {
 
     return std::visit(
         overloaded{
-            [&file](const Nil& /*unused*/) -> Vallist {
-                return open_file(file, std::get<String>("r"));
+            [&ctx, &file](const Nil& /*unused*/) -> Vallist {
+                return open_file(ctx, file, std::get<String>("r"));
             },
-            [&file](const String& mode) -> Vallist {
+            [&ctx, &file](const String& mode) -> Vallist {
                 std::regex modes(R"(([rwa]\+?b?))");
 
                 if (std::regex_match(mode.value, modes)) {
-                    return open_file(file, mode);
+                    return open_file(ctx, file, mode);
                 } else {
                     throw std::runtime_error("invalid mode");
                 }

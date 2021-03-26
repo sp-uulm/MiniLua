@@ -54,7 +54,18 @@ public:
     auto allocate_table() -> TableImpl*;
 
     /**
+     * @brief Returns the list of allocated tables.
+     *
+     * This is used by the interpreter to call the `__gc` metamethod on all
+     * tables that have it.
+     */
+    [[nodiscard]] auto get_all() const -> const std::vector<TableImpl*>&;
+
+    /**
      * @brief Free all objects created through this allocator.
+     *
+     * This assumes that there are no tables with a `__gc` method, or that all
+     * of them have already been called.
      *
      * \warning This is highly unsafe! You have to be absolutely certain that
      * none of the values allocated by this will be used again.

@@ -570,6 +570,13 @@ public:
         MemoryAllocator* allocator = &GLOBAL_ALLOCATOR);
 
     /**
+     * @brief Construct a table directly from a pointer to it's impl.
+     *
+     * \warning This should only be used internally.
+     */
+    Table(TableImpl* impl, MemoryAllocator* allocator);
+
+    /**
      * @brief Copy a table to a different allocator.
      *
      * This will make a deep copy meaning all nested tables will also be copied

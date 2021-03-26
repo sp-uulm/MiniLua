@@ -124,6 +124,7 @@ Table::Table(
     }
 }
 
+Table::Table(TableImpl* impl, MemoryAllocator* allocator) : allocator(allocator), impl(impl) {}
 Table::Table(const Table& other, MemoryAllocator* allocator) : Table(allocator) {
     for (const auto& [key, value] : other) {
         this->set(Value(key, allocator), Value(value, allocator));

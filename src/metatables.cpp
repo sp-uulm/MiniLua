@@ -409,4 +409,19 @@ auto len(const CallContext& ctx, std::optional<Range> location) -> CallResult {
         arg1.raw());
 }
 
+void gc(const CallContext& ctx) {
+    auto arg1 = ctx.arguments().get(0);
+
+    return std::visit(
+        overloaded{
+            [&ctx](const Table& arg1) {
+                auto meta = arg1.get_metamethod("__gc");
+                if (meta.is_function()) {
+                    auto _ = meta.call(ctx);
+                }
+            },
+            [](const auto& /*unused*/) {}},
+        arg1.raw());
+}
+
 } // namespace minilua::mt

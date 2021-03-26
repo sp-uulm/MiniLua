@@ -103,6 +103,9 @@ auto Interpreter::run(const ts::Tree& tree, Env& user_env) -> EvalResult {
         }
     }
 
+    // NOTE: This will not free the tables it only calls all __gc metamethods.
+    this->cleanup_environment(env);
+
     return result;
 }
 
@@ -168,6 +171,17 @@ auto Interpreter::load_stdlib() -> ts::Tree {
     } catch (const std::exception& e) {
         // This should never actually throw an exception
         throw InterpreterException("THIS IS A BUG! Failed to parse the stdlib: "s + e.what());
+    }
+}
+
+void Interpreter::cleanup_environment(Env& env) {
+    for (auto* table_impl : env.allocator()->get_all()) {
+        Environment environment(env);
+        CallContext ctx(&environment);
+
+        Table table(table_impl, env.allocator());
+
+        mt::gc(ctx.make_new({table}));
     }
 }
 

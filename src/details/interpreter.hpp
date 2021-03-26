@@ -117,6 +117,13 @@ private:
     void execute_stdlib(Env& env);
 
     /**
+     * Cleans up the environment (i.e. garbage collection).
+     *
+     * This will call `__gc` metamethod on all tables (if they exist).
+     */
+    void cleanup_environment(Env& env);
+
+    /**
      * Run a file.
      *
      * The file has to be loaded and parsed into a tree and the file
