@@ -15,7 +15,9 @@ assert(content == "Hello, World!")
 assert(io.type(file) == "closed file")
 
 file = io.open("/tmp/luatest.txt", "r")
+-- seek to end to get file size
 assert(file.seek(file, "end") == 13)
 content = file.read(file, "a")
-file.close(file)
+-- close using io.close instead of file:close
+io.close(file)
 assert(content == "")

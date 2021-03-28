@@ -21,7 +21,7 @@ auto create_io_table(MemoryAllocator* allocator) -> Table {
     std::unordered_map<Value, Value> math_functions;
     Table io(allocator);
     io.set("open", io::open);
-    // io.set("close", io::close);
+    io.set("close", io::close);
     // io.set("flush", io::flush);
     // io.set("input", io::input);
     // io.set("lines", io::lines);
@@ -322,5 +322,12 @@ auto open(const CallContext& ctx) -> Vallist {
             }},
         mode.raw());
 }
+
+auto close(const CallContext& ctx) -> CallResult {
+    auto file = ctx.expect_argument<Table>(0);
+
+    return file["close"].call(ctx.make_new());
+}
+
 } // namespace io
 } // end namespace minilua

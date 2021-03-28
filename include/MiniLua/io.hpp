@@ -13,6 +13,7 @@ auto create_io_table(MemoryAllocator* allocator) -> Table;
 namespace io {
 
 auto open(const CallContext& ctx) -> Vallist;
+auto close(const CallContext& ctx) -> CallResult;
 
 auto type(const CallContext& ctx) -> CallResult;
 
