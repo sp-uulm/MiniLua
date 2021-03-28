@@ -29,7 +29,7 @@ auto create_io_table(MemoryAllocator* allocator) -> Table {
     // io.set("popen", io::popen);
     // io.set("read", io::read);
     // io.set("tmpfile", io::tmpfile);
-    // io.set("type", io::type);
+    io.set("type", io::type);
     // io.set("write", io::write);
 
     // io.set("stdin", Nil());
@@ -39,6 +39,24 @@ auto create_io_table(MemoryAllocator* allocator) -> Table {
 }
 
 namespace io {
+
+auto type(const CallContext& ctx) -> CallResult {
+    auto file = ctx.arguments().get(0);
+
+    // return the result of calling the "type" method if the file is a table
+    // and the method exists, otherwise return nil
+    return std::visit(
+        overloaded{
+            [&ctx](const Table& table) {
+                if (table.get("type").is_function()) {
+                    return table.get("type").call(ctx);
+                } else {
+                    return CallResult();
+                }
+            },
+            [](const auto& /*unused*/) { return CallResult(); }},
+        file.raw());
+}
 
 class FileHandle {
 public:
@@ -59,12 +77,12 @@ public:
             throw std::runtime_error("Currently only 'a' is implemented for formats.");
         }
 
-        // TODO allow the other and multuple formats
+        // TODO allow the other and multiple formats
 
         return Vallist(this->read_all());
     }
 
-    auto seek(const CallContext& ctx) -> Value {
+    auto seek(const CallContext& ctx) -> Vallist {
         const auto& whence_str = ctx.expect_argument<String>(1);
         auto offset_param = ctx.arguments().get(2);
 
@@ -89,11 +107,14 @@ public:
             offset_param.raw());
 
         if (!this->is_open()) {
-            // TODO error?
-            return Nil();
+            return Vallist({Nil(), "Can not seek in closed file"});
         }
 
-        return this->seek_impl(whence, offset);
+        try {
+            return Vallist(this->seek_impl(whence, offset));
+        } catch (const std::runtime_error& e) {
+            return Vallist({Nil(), "Failed to seek in file"});
+        }
     }
 
     auto write(const CallContext& ctx) -> Vallist {
@@ -132,6 +153,14 @@ public:
         // TODO
         // create iterator function that call read with the given format
         return Nil();
+    }
+
+    auto type(const CallContext& ctx) -> Value {
+        if (this->is_open()) {
+            return "file";
+        } else {
+            return "closed file";
+        }
     }
 
     virtual auto is_open() -> bool = 0;
@@ -181,10 +210,12 @@ public:
         return fflush(this->handle) == 0;
     }
     auto read_all() -> Value override {
-        // figure out how long the file is (and reset to start of file)
+        // figure out how long the file is (from the current position)
+        // and reset position
+        long current_position = ftell(this->handle);
         fseek(this->handle, 0L, SEEK_END);
-        long numbytes = ftell(this->handle);
-        fseek(this->handle, 0L, SEEK_SET);
+        long numbytes = ftell(this->handle) - current_position;
+        fseek(this->handle, current_position, SEEK_SET);
 
         // allocate a buffer
         auto* buffer = new char[numbytes];
@@ -198,8 +229,26 @@ public:
         return content;
     }
     auto seek_impl(SeekWhence whence, long offset) -> long override {
-        // TODO
-        return 0;
+        int whence_flag;
+        switch (whence) {
+        case SeekWhence::CURRENT:
+            whence_flag = SEEK_CUR;
+            break;
+        case SeekWhence::SET:
+            whence_flag = SEEK_SET;
+            break;
+        case SeekWhence::END:
+            whence_flag = SEEK_END;
+            break;
+        }
+
+        if (fseek(this->handle, offset, whence_flag) == 0) {
+            // success
+            return ftell(this->handle);
+        } else {
+            // failure
+            return -1;
+        }
     }
     auto setvbuf(const CallContext& ctx) -> Value override {
         if (!is_open()) {
@@ -232,10 +281,11 @@ auto static open_file(const CallContext& ctx, const String& path, const String& 
             "flush", [file](const CallContext& /*unused*/) -> Value { return file->flush(); });
         table.set("write", [file](const CallContext& ctx) -> Vallist { return file->write(ctx); });
         table.set("read", [file](const CallContext& ctx) -> Vallist { return file->read(ctx); });
-        table.set("seek", [file](const CallContext& ctx) -> Value { return file->seek(ctx); });
+        table.set("seek", [file](const CallContext& ctx) -> Vallist { return file->seek(ctx); });
         table.set("lines", [file](const CallContext& ctx) -> Value { return file->lines(ctx); });
         table.set(
             "setvbuf", [file](const CallContext& ctx) -> Value { return file->setvbuf(ctx); });
+        table.set("type", [file](const CallContext& ctx) -> Value { return file->type(ctx); });
 
         Table metatable = ctx.make_table();
         metatable.set("__gc", [file](const CallContext& /*ctx*/) { delete file; });

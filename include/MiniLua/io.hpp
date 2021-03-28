@@ -14,6 +14,8 @@ namespace io {
 
 auto open(const CallContext& ctx) -> Vallist;
 
+auto type(const CallContext& ctx) -> CallResult;
+
 } // namespace io
 
 } // namespace minilua
