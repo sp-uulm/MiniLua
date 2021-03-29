@@ -81,8 +81,10 @@ t2 = {
     d = 5;
     t3 = {
         func = function (a)
-            return a*7;
-        end
+            return a*7
+        end;
+        a = 144;
+        b = 13;
     }
 }
 
@@ -92,6 +94,16 @@ end
 
 sum = t2.sum(t2)
 assert(sum == 14)
+sum2 = t2:sum()
+assert(sum == sum2)
+
 
 res = t2.t3.func(6)
 assert(res == 42)
+
+function t2.t3:foo()
+    return self.a % self.b --144 mod 13 = 1
+end
+
+res2 = t2.t3:foo();
+assert(res2 == 1)

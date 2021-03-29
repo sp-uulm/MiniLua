@@ -31,6 +31,9 @@ auto operator<<(std::ostream& os, const GEN_CAUSE& cause) -> std::ostream& {
     case FUNCTION_STATEMENT_DESUGAR:
         os << "function_statement desugaring";
         break;
+    case METHOD_CALL_CONVERSION:
+        os << "conversion of method_call to normal function_call";
+        break;
     }
     return os;
 }
@@ -1200,6 +1203,13 @@ FunctionCall::FunctionCall(
     const Prefix& pfx, std::optional<Identifier> method, std::vector<Expression> args,
     minilua::Range range, GEN_CAUSE cause)
     : content(FuncCallStruct(pfx, std::move(method), std::move(args), std::move(range), cause)) {}
+auto FunctionCall::prefix() const -> Prefix {
+    return std::visit(
+        overloaded{
+            [](ts::Node node) -> Prefix { return Prefix(node.named_child(0).value()); },
+            [](const FuncCallStruct& fc_struct) -> Prefix { return *fc_struct.prefix; }},
+        this->content);
+}
 auto FunctionCall::method() const -> std::optional<Identifier> {
     return std::visit(
         overloaded{
@@ -1214,14 +1224,19 @@ auto FunctionCall::method() const -> std::optional<Identifier> {
         this->content);
 }
 auto FunctionCall::id() const -> Prefix {
-    return std::visit(
-        overloaded{
-            [](ts::Node node) -> Prefix { return Prefix(node.named_child(0).value()); },
-            [](const FuncCallStruct& fc_struct) -> Prefix { return *fc_struct.prefix; }},
-        this->content);
+    auto prefix = this->prefix();
+    auto method = this->method();
+    if (method.has_value()) {
+        prefix = Prefix(
+            VariableDeclarator(
+                FieldExpression(prefix, method.value(), this->range(), METHOD_CALL_CONVERSION),
+                METHOD_CALL_CONVERSION),
+            METHOD_CALL_CONVERSION);
+    }
+    return prefix;
 }
 auto FunctionCall::args() const -> std::vector<Expression> {
-    return std::visit(
+    auto exp_list = std::visit(
         overloaded{
             [](ts::Node node) -> std::vector<Expression> {
                 std::vector<ts::Node> arg_nodes =
@@ -1237,6 +1252,10 @@ auto FunctionCall::args() const -> std::vector<Expression> {
                 return fc_struct.args;
             }},
         this->content);
+    if (this->method().has_value()) {
+        exp_list.insert(exp_list.begin(), Expression(this->prefix(), METHOD_CALL_CONVERSION));
+    }
+    return exp_list;
 }
 auto FunctionCall::range() const -> minilua::Range {
     return std::visit(
@@ -1314,9 +1333,8 @@ Prefix::PrefixStruct::PrefixStruct(VariableDeclarator vd, minilua::Range range, 
     : prefix_variant(vd), range(std::move(range)), gen_cause(gen_cause) {}
 
 Prefix::Prefix(ts::Node node) : content(node) {
-    if (!(node.type_id() == ts::NODE_SELF || node.type_id() == ts::NODE_FUNCTION_CALL ||
-          node.type_id() == ts::NODE_IDENTIFIER || node.type_id() == ts::NODE_FIELD_EXPRESSION ||
-          node.type_id() == ts::NODE_TABLE_INDEX)) {
+    if (!(node.type_id() == ts::NODE_FUNCTION_CALL || node.type_id() == ts::NODE_IDENTIFIER ||
+          node.type_id() == ts::NODE_FIELD_EXPRESSION || node.type_id() == ts::NODE_TABLE_INDEX)) {
         throw std::runtime_error("Not a prefix-node");
     }
 }
