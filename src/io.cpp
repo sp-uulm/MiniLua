@@ -98,21 +98,74 @@ public:
     FileHandle() {}
     virtual ~FileHandle(){};
 
-    auto read(const CallContext& ctx) -> Vallist {
+    void ensure_file_is_open() {
         if (!this->is_open()) {
-            // TODO error?
-            return Vallist();
+            throw std::runtime_error("attempt to use a closed file");
         }
-        // auto file_table = ctx.arguments().get(0);
-        auto format = ctx.arguments().get(1);
+    }
 
-        if (format != "a") {
-            throw std::runtime_error("Currently only 'a' is implemented for formats.");
+    auto read(const CallContext& ctx) -> Vallist {
+        this->ensure_file_is_open();
+
+        // skip first argument because it is the file table
+        auto formats_begin = ctx.arguments().begin() + 1;
+        auto formats_end = ctx.arguments().end();
+
+        if (formats_begin >= formats_end) {
+            // no format arguments provided
+            return Vallist(this->read_line());
         }
 
-        // TODO allow the other and multiple formats
+        std::vector<Value> results;
+        results.reserve(std::distance(formats_begin, formats_end));
 
-        return Vallist(this->read_all());
+        int i = 1;
+        for (; formats_begin < formats_end; ++formats_begin, ++i) {
+            Value result = std::visit(
+                overloaded{
+                    [this, i](const String& format) {
+                        if (string_starts_with(format.value, 'n')) {
+                            return this->read_num();
+                        } else if (string_starts_with(format.value, 'a')) {
+                            return this->read_all();
+                        } else if (string_starts_with(format.value, 'l')) {
+                            return this->read_line();
+                        } else if (string_starts_with(format.value, 'L')) {
+                            return this->read_line_with_newline();
+                        } else {
+                            throw std::runtime_error(
+                                "bad argument #" + std::to_string(i) +
+                                " to 'read' (invalid format)");
+                        }
+                    },
+                    [this, i](const Number& format) {
+                        auto count = format.convert_to_int();
+
+                        if (count < 0) {
+                            throw std::runtime_error(
+                                "bad argument #" + std::to_string(i) +
+                                " to 'read' (invalid format)");
+                        } else {
+                            return this->read_count(count);
+                        }
+                    },
+                    [i](const auto& /*format*/) -> Value {
+                        throw std::runtime_error(
+                            "bad argument #" + std::to_string(i) + " to 'read' (invalid format)");
+                    },
+                },
+                formats_begin->raw());
+
+            // if we receive nil we stop trying to read more
+            // NOTE: This does not always mean that we are at the end of the file
+            if (result.is_nil()) {
+                return Vallist(results);
+            } else {
+                results.push_back(result);
+            }
+        }
+
+        return Vallist(results);
     }
 
     // file:seek([whence [, offset]]])
@@ -244,10 +297,10 @@ public:
     virtual auto setvbuf_impl(SetvbufMode mode, size_t size) -> bool = 0;
 
     virtual auto read_all() -> Value = 0;
-    // virtual auto read_num() -> Value;
-    // virtual auto read_line() -> Value;
-    // virtual auto read_line_with_newline() -> Value;
-    // virtual auto read_count() -> Value;
+    virtual auto read_num() -> Value = 0;
+    virtual auto read_line() -> Value = 0;
+    virtual auto read_line_with_newline() -> Value = 0;
+    virtual auto read_count(long count) -> Value = 0;
 
     virtual void write_string(std::string str) = 0;
 };
@@ -299,6 +352,65 @@ public:
 
         return content;
     }
+
+    auto read_num() -> Value override {
+        // TODO this only reads integers
+        long value;
+        if (fscanf(this->handle, "%li", &value) > 0) {
+            return value;
+        } else {
+            return Nil();
+        }
+    }
+    auto read_line() -> Value override {
+        const size_t READ_BUFFER_SIZE = 64;
+
+        std::string line;
+        char buffer[READ_BUFFER_SIZE];
+
+        while (fgets(buffer, sizeof(buffer), this->handle) != nullptr) {
+            line.append(buffer);
+
+            // read to end of line
+            if (*(line.end() - 1) == '\n') {
+                line.pop_back();
+                break;
+            }
+        }
+
+        return line;
+    }
+    auto read_line_with_newline() -> Value override {
+        const size_t READ_BUFFER_SIZE = 64;
+
+        std::string line;
+        char buffer[READ_BUFFER_SIZE];
+
+        while (fgets(buffer, sizeof(buffer), this->handle) != nullptr) {
+            line.append(buffer);
+
+            // read to end of line
+            if (*(line.end() - 1) == '\n') {
+                break;
+            }
+        }
+
+        return line;
+    }
+    auto read_count(long count) -> Value override {
+        char buffer[count + 1];
+
+        for (long i = 0; i < count; ++i) {
+            buffer[i] = fgetc(this->handle);
+            if (buffer[i] == EOF) {
+                return Nil();
+            }
+        }
+
+        buffer[count] = '\0';
+        return std::string(buffer);
+    }
+
     auto seek_impl(SeekWhence whence, long offset) -> long override {
         int whence_flag;
         switch (whence) {
