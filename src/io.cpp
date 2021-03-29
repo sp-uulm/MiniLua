@@ -153,8 +153,7 @@ public:
 
     auto write(const CallContext& ctx) -> Vallist {
         if (!this->is_open()) {
-            // TODO error?
-            return Vallist();
+            throw std::runtime_error("attempt to use a closed file");
         }
 
         // arg 0 is file table
