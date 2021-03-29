@@ -717,26 +717,23 @@ TEST_CASE("function_calls", "[tree-sitter]") {
         CHECK(std::holds_alternative<FunctionCall>(opt));
         return *std::get_if<FunctionCall>(&opt);
     });
-    CHECK(!func_calls[0].method().has_value());
     CHECK(std::holds_alternative<VariableDeclarator>(func_calls[0].id().options()));
     auto opt1 = func_calls[0].id().options();
     auto name1 = std::get_if<VariableDeclarator>(&opt1);
     CHECK(std::holds_alternative<Identifier>(name1->options()));
     CHECK(func_calls[0].args().size() == 2);
 
-    CHECK(!func_calls[1].method().has_value());
     CHECK(std::holds_alternative<VariableDeclarator>(func_calls[1].id().options()));
     auto opt2 = func_calls[1].id().options();
     auto name2 = std::get_if<VariableDeclarator>(&opt2);
     CHECK(std::holds_alternative<FieldExpression>(name2->options()));
     CHECK(func_calls[1].args().empty());
 
-    CHECK(func_calls[2].method().has_value());
     CHECK(std::holds_alternative<VariableDeclarator>(func_calls[2].id().options()));
     auto opt3 = func_calls[2].id().options();
     auto name3 = std::get_if<VariableDeclarator>(&opt3);
-    CHECK(std::holds_alternative<Identifier>(name3->options()));
-    CHECK(func_calls[2].args().empty());
+    CHECK(std::holds_alternative<FieldExpression>(name3->options()));
+    CHECK(func_calls[2].args().size() == 1);
 
     CHECK(func_calls[3].args().size() == 1);
     CHECK(std::holds_alternative<Literal>(func_calls[3].args()[0].options()));
@@ -744,9 +741,10 @@ TEST_CASE("function_calls", "[tree-sitter]") {
     auto str = std::get_if<Literal>(&opt4);
     CHECK(str->type() == LiteralType::STRING);
     CHECK(str->content() == "\"abc\"");
-    CHECK(func_calls[4].args().size() == 1);
-    CHECK(std::holds_alternative<Table>(func_calls[4].args()[0].options()));
-    auto opt5 = func_calls[4].args()[0].options();
+    CHECK(func_calls[4].args().size() == 2);
+    CHECK(std::holds_alternative<Prefix>(func_calls[4].args()[0].options()));
+    CHECK(std::holds_alternative<Table>(func_calls[4].args()[1].options()));
+    auto opt5 = func_calls[4].args()[1].options();
     auto table = std::get_if<Table>(&opt5);
     CHECK(table->fields().size() == 4);
     for (uint i = 0; i < 4; i++) {

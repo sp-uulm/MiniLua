@@ -1077,10 +1077,6 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
     auto function_obj_result = this->visit_prefix(call.id(), env);
     result.combine(function_obj_result);
 
-    if (call.method()) {
-        throw UNIMPLEMENTED("method calls");
-    }
-
     EvalResult exprlist_result = this->visit_expression_list(call.args(), env);
     auto arguments = exprlist_result.values;
 

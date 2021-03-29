@@ -20,7 +20,12 @@ class FieldExpression;
 using IndexField = std::pair<Expression, Expression>;
 using IdentifierField = std::pair<Identifier, Expression>;
 
-enum GEN_CAUSE { FOR_LOOP_DESUGAR, FOR_IN_LOOP_DESUGAR, FUNCTION_STATEMENT_DESUGAR };
+enum GEN_CAUSE {
+    FOR_LOOP_DESUGAR,
+    FOR_IN_LOOP_DESUGAR,
+    FUNCTION_STATEMENT_DESUGAR,
+    METHOD_CALL_CONVERSION
+};
 enum class LiteralType { TRUE, FALSE, NIL, NUMBER, STRING };
 class Literal {
     std::string literal_content;
@@ -720,6 +725,20 @@ class FunctionCall {
             GEN_CAUSE);
     };
     std::variant<ts::Node, FuncCallStruct> content;
+    /**
+     *
+     * @return
+     * If the call is a method call id() should refer to a table
+     * else the Prefix states the function name
+     */
+    auto prefix() const -> Prefix;
+    /**
+     *
+     * @return
+     * an empty optional if it is not a method call
+     * the function name if it is a method call
+     */
+    auto method() const -> std::optional<Identifier>;
 
 public:
     explicit FunctionCall(ts::Node);
@@ -728,18 +747,13 @@ public:
         GEN_CAUSE);
     /**
      *
-     * @return
-     * If the call is a method call id() should refer to a table
-     * else the Prefix states the function name
+     * @return the identifier of the function
      */
     auto id() const -> Prefix;
     /**
      *
-     * @return
-     * an empty optional if it is not a method call
-     * the function name if it is a method call
+     * @return the arguments for this call
      */
-    auto method() const -> std::optional<Identifier>;
     auto args() const -> std::vector<Expression>;
     auto range() const -> minilua::Range;
     auto debug_print() const -> std::string;
