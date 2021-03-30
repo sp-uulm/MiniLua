@@ -205,9 +205,7 @@ public:
     }
 
     auto write(const CallContext& ctx) -> Vallist {
-        if (!this->is_open()) {
-            throw std::runtime_error("attempt to use a closed file");
-        }
+        this->ensure_file_is_open();
 
         // arg 0 is file table
         for (int i = 1; i < ctx.arguments().size(); i++) {
@@ -231,14 +229,18 @@ public:
     }
 
     auto lines(const CallContext& ctx) -> Value {
-        if (!this->is_open()) {
-            // TODO error?
-            return Nil();
+        this->ensure_file_is_open();
+
+        auto table = ctx.arguments().get(0);
+        auto format = ctx.arguments().get(1);
+
+        if (format.is_nil()) {
+            format = "l";
         }
 
-        // TODO
-        // create iterator function that call read with the given format
-        return Nil();
+        return Function([this, table, format](const CallContext& ctx) {
+            return this->read(ctx.make_new({table, format}));
+        });
     }
 
     auto type(const CallContext& ctx) -> Value {

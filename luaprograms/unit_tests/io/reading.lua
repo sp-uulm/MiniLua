@@ -40,3 +40,17 @@ assert(d == "4")
 
 assert(file:seek("set") == 0)
 assert(file:read("a") == "1\n2\n3\n4")
+
+assert(file:seek("set") == 0)
+line_func = file:lines()
+assert(line_func() == "1")
+assert(line_func() == "2")
+assert(line_func() == "3")
+assert(line_func() == "4")
+
+assert(file:seek("set") == 0)
+line_func = file:lines("n")
+assert(line_func() == 1)
+assert(line_func() == 2)
+assert(line_func() == 3)
+assert(line_func() == 4)
