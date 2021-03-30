@@ -22,15 +22,12 @@ auto create_io_table(MemoryAllocator* allocator) -> Table {
     Table io(allocator);
     io.set("open", io::open);
     io.set("close", io::close);
-    // io.set("flush", io::flush);
     // io.set("input", io::input);
     // io.set("lines", io::lines);
     // io.set("output", io::output);
     // io.set("popen", io::popen);
-    // io.set("read", io::read);
     // io.set("tmpfile", io::tmpfile);
     io.set("type", io::type);
-    // io.set("write", io::write);
 
     // io.set("stdin", Nil());
     // io.set("stdout", Nil());
@@ -57,255 +54,6 @@ auto type(const CallContext& ctx) -> CallResult {
             [](const auto& /*unused*/) { return CallResult(); }},
         file.raw());
 }
-
-/**
- * @brief Base class for file handles used by the io implementation.
- *
- * Currently all files opened by `io.open` use `CFileHandle`.
- *
- * \todo Allow the user of the library to overwrite default file open behaviour.
- *
- * \todo Implement stdin/stdout/stderr streams using another derived class that
- * uses C++ streams.
- *
- * The following methods have to be provided by a derived class:
- *
- * - has the same behaviour described in
- *   https://www.lua.org/manual/5.3/manual.html#6.8
- *   - `is_open`
- *   - `close`
- *   - `flush`
- * - arguments will be parsed by the base class but you have to implement the
- *   behaviour
- *   - `seek_impl`
- *   - `setvbuf_impl`
- * - These methods are used by `read` and correspond to the format arguments.
- *   Note these may be called multiple times for one read if there are multiple
- *   format arguments.
- *   - `read_all`
- *   - `read_num`
- *   - `read_line`
- *   - `read_line_with_newline`
- *   - `read_count`
- * - these method will be used by `write`
- *   - `write_string`
- */
-class FileHandle {
-public:
-    enum SeekWhence { SET, CURRENT, END };
-    enum SetvbufMode { NO, FULL, LINE };
-
-    FileHandle() {}
-    virtual ~FileHandle(){};
-
-    void ensure_file_is_open() {
-        if (!this->is_open()) {
-            throw std::runtime_error("attempt to use a closed file");
-        }
-    }
-
-    auto read(const CallContext& ctx) -> Vallist {
-        this->ensure_file_is_open();
-
-        // skip first argument because it is the file table
-        auto formats_begin = ctx.arguments().begin() + 1;
-        auto formats_end = ctx.arguments().end();
-
-        if (formats_begin >= formats_end) {
-            // no format arguments provided
-            return Vallist(this->read_line());
-        }
-
-        std::vector<Value> results;
-        results.reserve(std::distance(formats_begin, formats_end));
-
-        int i = 1;
-        for (; formats_begin < formats_end; ++formats_begin, ++i) {
-            Value result = std::visit(
-                overloaded{
-                    [this, i](const String& format) {
-                        if (string_starts_with(format.value, 'n')) {
-                            return this->read_num();
-                        } else if (string_starts_with(format.value, 'a')) {
-                            return this->read_all();
-                        } else if (string_starts_with(format.value, 'l')) {
-                            return this->read_line();
-                        } else if (string_starts_with(format.value, 'L')) {
-                            return this->read_line_with_newline();
-                        } else {
-                            throw std::runtime_error(
-                                "bad argument #" + std::to_string(i) +
-                                " to 'read' (invalid format)");
-                        }
-                    },
-                    [this, i](const Number& format) {
-                        auto count = format.convert_to_int();
-
-                        if (count < 0) {
-                            throw std::runtime_error(
-                                "bad argument #" + std::to_string(i) +
-                                " to 'read' (invalid format)");
-                        } else {
-                            return this->read_count(count);
-                        }
-                    },
-                    [i](const auto& /*format*/) -> Value {
-                        throw std::runtime_error(
-                            "bad argument #" + std::to_string(i) + " to 'read' (invalid format)");
-                    },
-                },
-                formats_begin->raw());
-
-            // if we receive nil we stop trying to read more
-            // NOTE: This does not always mean that we are at the end of the file
-            if (result.is_nil()) {
-                return Vallist(results);
-            } else {
-                results.push_back(result);
-            }
-        }
-
-        return Vallist(results);
-    }
-
-    // file:seek([whence [, offset]]])
-    auto seek(const CallContext& ctx) -> Vallist {
-        const auto& whence_str = ctx.expect_argument<String>(1);
-        auto offset_param = ctx.arguments().get(2);
-
-        SeekWhence whence;
-        if (whence_str == "set") {
-            whence = SET;
-        } else if (whence_str == "cur") {
-            whence = CURRENT;
-        } else if (whence_str == "end") {
-            whence = END;
-        } else {
-            throw std::runtime_error("bad argument #1 to 'seek' (invalid option 'hi')");
-        }
-
-        long offset = std::visit(
-            overloaded{
-                [](const Nil& /*unused*/) -> long { return 0; },
-                [](const Number& value) -> long { return value.convert_to_int(); },
-                [](const auto& /*unused*/) -> long {
-                    throw std::runtime_error("bad argument #2 to 'seek' (invalid offset)");
-                }},
-            offset_param.raw());
-
-        if (!this->is_open()) {
-            return Vallist({Nil(), "Can not seek in closed file"});
-        }
-
-        try {
-            return Vallist(this->seek_impl(whence, offset));
-        } catch (const std::runtime_error& e) {
-            return Vallist({Nil(), "Failed to seek in file"});
-        }
-    }
-
-    auto write(const CallContext& ctx) -> Vallist {
-        this->ensure_file_is_open();
-
-        // arg 0 is file table
-        for (int i = 1; i < ctx.arguments().size(); i++) {
-            auto v = ctx.arguments().get(i);
-
-            if (v.is_number() || v.is_string()) {
-                String s = std::get<String>(v.to_string());
-                try {
-                    this->write_string(s.value);
-                } catch (const std::runtime_error& error) {
-                    return Vallist({Nil(), std::string(error.what())});
-                }
-            } else {
-                std::string error =
-                    "Can't write value of type " + std::string(v.type()) + " to a file.";
-                return Vallist({Nil(), error});
-            }
-        }
-
-        return Vallist(ctx.arguments().get(0));
-    }
-
-    auto lines(const CallContext& ctx) -> Value {
-        this->ensure_file_is_open();
-
-        auto table = ctx.arguments().get(0);
-        auto format = ctx.arguments().get(1);
-
-        if (format.is_nil()) {
-            format = "l";
-        }
-
-        return Function([this, table, format](const CallContext& ctx) {
-            return this->read(ctx.make_new({table, format}));
-        });
-    }
-
-    auto type(const CallContext& ctx) -> Value {
-        if (this->is_open()) {
-            return "file";
-        } else {
-            return "closed file";
-        }
-    }
-
-    // file:setvbuf(mode, [, size])
-    auto setvbuf(const CallContext& ctx) -> Value {
-        if (!this->is_open()) {
-            throw std::runtime_error("attempt to use a closed file");
-        }
-
-        // argument 0 is self (the file table)
-        auto mode_str = std::get<String>(ctx.expect_argument<String>(1)).value;
-        SetvbufMode mode;
-        if (mode_str == "no") {
-            mode = SetvbufMode::NO;
-        } else if (mode_str == "full") {
-            mode = SetvbufMode::NO;
-        } else if (mode_str == "line") {
-            mode = SetvbufMode::LINE;
-        } else {
-            throw std::runtime_error(
-                "bad argument #1 to 'setvbuf' (invalid option '" + mode_str + "')");
-        }
-
-        size_t size = std::visit(
-            overloaded{
-                [](const Nil& /*unused*/) -> size_t { return BUFSIZ; },
-                [](const Number& value) -> size_t { return value.convert_to_int(); },
-                [](const auto& value) -> size_t {
-                    throw std::runtime_error(
-                        "bad argument #2 to 'setvbuf' (number expected, got" +
-                        std::string(value.TYPE) + ")");
-                }},
-            ctx.arguments().get(2).raw());
-
-        return this->setvbuf_impl(mode, size);
-    }
-
-    virtual auto is_open() -> bool = 0;
-
-    virtual auto close() -> bool = 0;
-    virtual auto flush() -> bool = 0;
-    /**
-     * Returns the current position after the seek.
-     */
-    virtual auto seek_impl(SeekWhence whence, long offset) -> long = 0;
-    /**
-     * Returns true on success.
-     */
-    virtual auto setvbuf_impl(SetvbufMode mode, size_t size) -> bool = 0;
-
-    virtual auto read_all() -> Value = 0;
-    virtual auto read_num() -> Value = 0;
-    virtual auto read_line() -> Value = 0;
-    virtual auto read_line_with_newline() -> Value = 0;
-    virtual auto read_count(long count) -> Value = 0;
-
-    virtual void write_string(std::string str) = 0;
-};
 
 class CFileHandle : public FileHandle {
     // NOTE: a nullptr is treated as a closed file
@@ -521,5 +269,186 @@ auto close(const CallContext& ctx) -> CallResult {
     return file["close"].call(ctx.make_new());
 }
 
+// class FileHandle
+FileHandle::FileHandle() {}
+FileHandle::~FileHandle() {}
+
+void FileHandle::ensure_file_is_open() {
+    if (!this->is_open()) {
+        throw std::runtime_error("attempt to use a closed file");
+    }
+}
+
+auto FileHandle::read(const CallContext& ctx) -> Vallist {
+    this->ensure_file_is_open();
+
+    // skip first argument because it is the file table
+    auto formats_begin = ctx.arguments().begin() + 1;
+    auto formats_end = ctx.arguments().end();
+
+    if (formats_begin >= formats_end) {
+        // no format arguments provided
+        return Vallist(this->read_line());
+    }
+
+    std::vector<Value> results;
+    results.reserve(std::distance(formats_begin, formats_end));
+
+    int i = 1;
+    for (; formats_begin < formats_end; ++formats_begin, ++i) {
+        Value result = std::visit(
+            overloaded{
+                [this, i](const String& format) {
+                    if (string_starts_with(format.value, 'n')) {
+                        return this->read_num();
+                    } else if (string_starts_with(format.value, 'a')) {
+                        return this->read_all();
+                    } else if (string_starts_with(format.value, 'l')) {
+                        return this->read_line();
+                    } else if (string_starts_with(format.value, 'L')) {
+                        return this->read_line_with_newline();
+                    } else {
+                        throw std::runtime_error(
+                            "bad argument #" + std::to_string(i) + " to 'read' (invalid format)");
+                    }
+                },
+                [this, i](const Number& format) {
+                    auto count = format.convert_to_int();
+
+                    if (count < 0) {
+                        throw std::runtime_error(
+                            "bad argument #" + std::to_string(i) + " to 'read' (invalid format)");
+                    } else {
+                        return this->read_count(count);
+                    }
+                },
+                [i](const auto& /*format*/) -> Value {
+                    throw std::runtime_error(
+                        "bad argument #" + std::to_string(i) + " to 'read' (invalid format)");
+                },
+            },
+            formats_begin->raw());
+
+        // if we receive nil we stop trying to read more
+        // NOTE: This does not always mean that we are at the end of the file
+        if (result.is_nil()) {
+            return Vallist(results);
+        } else {
+            results.push_back(result);
+        }
+    }
+
+    return Vallist(results);
+}
+auto FileHandle::seek(const CallContext& ctx) -> Vallist {
+    const auto& whence_str = ctx.expect_argument<String>(1);
+    auto offset_param = ctx.arguments().get(2);
+
+    SeekWhence whence;
+    if (whence_str == "set") {
+        whence = SET;
+    } else if (whence_str == "cur") {
+        whence = CURRENT;
+    } else if (whence_str == "end") {
+        whence = END;
+    } else {
+        throw std::runtime_error("bad argument #1 to 'seek' (invalid option 'hi')");
+    }
+
+    long offset = std::visit(
+        overloaded{
+            [](const Nil& /*unused*/) -> long { return 0; },
+            [](const Number& value) -> long { return value.convert_to_int(); },
+            [](const auto& /*unused*/) -> long {
+                throw std::runtime_error("bad argument #2 to 'seek' (invalid offset)");
+            }},
+        offset_param.raw());
+
+    if (!this->is_open()) {
+        return Vallist({Nil(), "Can not seek in closed file"});
+    }
+
+    try {
+        return Vallist(this->seek_impl(whence, offset));
+    } catch (const std::runtime_error& e) {
+        return Vallist({Nil(), "Failed to seek in file"});
+    }
+}
+auto FileHandle::write(const CallContext& ctx) -> Vallist {
+    this->ensure_file_is_open();
+
+    // arg 0 is file table
+    for (int i = 1; i < ctx.arguments().size(); i++) {
+        auto v = ctx.arguments().get(i);
+
+        if (v.is_number() || v.is_string()) {
+            String s = std::get<String>(v.to_string());
+            try {
+                this->write_string(s.value);
+            } catch (const std::runtime_error& error) {
+                return Vallist({Nil(), std::string(error.what())});
+            }
+        } else {
+            std::string error =
+                "Can't write value of type " + std::string(v.type()) + " to a file.";
+            return Vallist({Nil(), error});
+        }
+    }
+
+    return Vallist(ctx.arguments().get(0));
+}
+auto FileHandle::lines(const CallContext& ctx) -> Value {
+    this->ensure_file_is_open();
+
+    auto table = ctx.arguments().get(0);
+    auto format = ctx.arguments().get(1);
+
+    if (format.is_nil()) {
+        format = "l";
+    }
+
+    return Function([this, table, format](const CallContext& ctx) {
+        return this->read(ctx.make_new({table, format}));
+    });
+}
+auto FileHandle::type(const CallContext& /*ctx*/) -> Value {
+    if (this->is_open()) {
+        return "file";
+    } else {
+        return "closed file";
+    }
+}
+auto FileHandle::setvbuf(const CallContext& ctx) -> Value {
+    if (!this->is_open()) {
+        throw std::runtime_error("attempt to use a closed file");
+    }
+
+    // argument 0 is self (the file table)
+    auto mode_str = std::get<String>(ctx.expect_argument<String>(1)).value;
+    SetvbufMode mode;
+    if (mode_str == "no") {
+        mode = SetvbufMode::NO;
+    } else if (mode_str == "full") {
+        mode = SetvbufMode::NO;
+    } else if (mode_str == "line") {
+        mode = SetvbufMode::LINE;
+    } else {
+        throw std::runtime_error(
+            "bad argument #1 to 'setvbuf' (invalid option '" + mode_str + "')");
+    }
+
+    size_t size = std::visit(
+        overloaded{
+            [](const Nil& /*unused*/) -> size_t { return BUFSIZ; },
+            [](const Number& value) -> size_t { return value.convert_to_int(); },
+            [](const auto& value) -> size_t {
+                throw std::runtime_error(
+                    "bad argument #2 to 'setvbuf' (number expected, got" + std::string(value.TYPE) +
+                    ")");
+            }},
+        ctx.arguments().get(2).raw());
+
+    return this->setvbuf_impl(mode, size);
+}
 } // namespace io
 } // end namespace minilua
