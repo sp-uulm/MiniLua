@@ -18,6 +18,30 @@ auto close(const CallContext& ctx) -> CallResult;
 auto type(const CallContext& ctx) -> CallResult;
 
 /**
+ * @brief Get the stdin file.
+ *
+ * \note This is a function so we can allocate the returned table correctly.
+ */
+auto _stdin(MemoryAllocator* allocator) -> Value;
+auto _stdin(const CallContext& ctx) -> Value;
+
+/**
+ * @brief Get the stdout file.
+ *
+ * \note This is a function so we can allocate the returned table correctly.
+ */
+auto _stdout(MemoryAllocator* allocator) -> Value;
+auto _stdout(const CallContext& ctx) -> Value;
+
+/**
+ * @brief Get the stderr file.
+ *
+ * \note This is a function so we can allocate the returned table correctly.
+ */
+auto _stderr(MemoryAllocator* allocator) -> Value;
+auto _stderr(const CallContext& ctx) -> Value;
+
+/**
  * @brief Base class for file handles used by the io implementation.
  *
  * Currently all files opened by `io.open` use `CFileHandle`.

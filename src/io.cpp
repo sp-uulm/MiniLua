@@ -17,24 +17,6 @@
 
 namespace minilua {
 
-auto create_io_table(MemoryAllocator* allocator) -> Table {
-    std::unordered_map<Value, Value> math_functions;
-    Table io(allocator);
-    io.set("open", io::open);
-    io.set("close", io::close);
-    // io.set("input", io::input);
-    // io.set("lines", io::lines);
-    // io.set("output", io::output);
-    // io.set("popen", io::popen);
-    // io.set("tmpfile", io::tmpfile);
-    io.set("type", io::type);
-
-    // io.set("stdin", Nil());
-    // io.set("stdout", Nil());
-    // io.set("stderr", Nil());
-    return io;
-}
-
 namespace io {
 
 auto type(const CallContext& ctx) -> CallResult {
@@ -58,29 +40,34 @@ auto type(const CallContext& ctx) -> CallResult {
 class CFileHandle : public FileHandle {
     // NOTE: a nullptr is treated as a closed file
     FILE* handle;
+    bool should_close;
 
 public:
-    CFileHandle(const std::string& path, const std::string& mode) {
+    CFileHandle(const std::string& path, const std::string& mode) : should_close(true) {
+        // TODO throw error if file could note be opened
         this->handle = std::fopen(path.c_str(), mode.c_str());
     }
-    ~CFileHandle() override { this->close(); }
+    CFileHandle(FILE* handle, bool should_close) : handle(handle), should_close(should_close) {}
+    ~CFileHandle() override {
+        if (this->should_close && this->handle != nullptr) {
+            std::cerr << "Closing file\n";
+            fclose(this->handle);
+            this->handle = nullptr;
+        }
+    }
 
     auto is_open() -> bool override { return this->handle != nullptr; }
 
     auto close() -> bool override {
-        if (!is_open()) {
-            // TODO error?
-            return false;
-        }
+        this->ensure_file_is_open();
+
         auto result = fclose(this->handle);
         this->handle = nullptr;
         return result == 0;
     }
     auto flush() -> bool override {
-        if (!is_open()) {
-            // TODO error?
-            return false;
-        }
+        this->ensure_file_is_open();
+
         return fflush(this->handle) == 0;
     }
     auto read_all() -> Value override {
@@ -203,35 +190,46 @@ public:
     }
 };
 
-// TODO FileHandle for C++ streams so we can use stdin, stdout and stderr
+auto static make_file_table(MemoryAllocator* allocator, CFileHandle* file) -> Value {
+    Table table(allocator);
 
-std::istream* stdin = &std::cin;
-std::ostream* stdout = &std::cout;
-std::ostream* stderr = &std::cerr;
+    table.set("close", [file](const CallContext& /*unused*/) -> Value { return file->close(); });
+    table.set("flush", [file](const CallContext& /*unused*/) -> Value { return file->flush(); });
+    table.set("write", [file](const CallContext& ctx) -> Vallist { return file->write(ctx); });
+    table.set("read", [file](const CallContext& ctx) -> Vallist { return file->read(ctx); });
+    table.set("seek", [file](const CallContext& ctx) -> Vallist { return file->seek(ctx); });
+    table.set("lines", [file](const CallContext& ctx) -> Value { return file->lines(ctx); });
+    table.set("setvbuf", [file](const CallContext& ctx) -> Value { return file->setvbuf(ctx); });
+    table.set("type", [file](const CallContext& ctx) -> Value { return file->type(ctx); });
+
+    Table metatable(allocator);
+    metatable.set("__gc", [file](const CallContext& /*ctx*/) { delete file; });
+
+    table.set_metatable(metatable);
+
+    return table;
+}
+
+auto _stdin(MemoryAllocator* allocator) -> Value {
+    static std::unique_ptr<CFileHandle> free_guard(new CFileHandle(stdin, false));
+    return make_file_table(allocator, &*free_guard);
+}
+auto _stdin(const CallContext& ctx) -> Value { return _stdin(ctx.environment().allocator()); }
+auto _stdout(MemoryAllocator* allocator) -> Value {
+    static std::unique_ptr<CFileHandle> free_guard(new CFileHandle(stdout, false));
+    return make_file_table(allocator, &*free_guard);
+}
+auto _stdout(const CallContext& ctx) -> Value { return _stdout(ctx.environment().allocator()); }
+auto _stderr(MemoryAllocator* allocator) -> Value {
+    static std::unique_ptr<CFileHandle> free_guard{new CFileHandle(stderr, false)};
+    return make_file_table(allocator, &*free_guard);
+}
+auto _stderr(const CallContext& ctx) -> Value { return _stderr(ctx.environment().allocator()); }
 
 auto static open_file(const CallContext& ctx, const String& path, const String& mode) -> Vallist {
     try {
         auto* file = new CFileHandle(path.value, mode.value);
-
-        Table table = ctx.make_table();
-
-        table.set(
-            "close", [file](const CallContext& /*unused*/) -> Value { return file->close(); });
-        table.set(
-            "flush", [file](const CallContext& /*unused*/) -> Value { return file->flush(); });
-        table.set("write", [file](const CallContext& ctx) -> Vallist { return file->write(ctx); });
-        table.set("read", [file](const CallContext& ctx) -> Vallist { return file->read(ctx); });
-        table.set("seek", [file](const CallContext& ctx) -> Vallist { return file->seek(ctx); });
-        table.set("lines", [file](const CallContext& ctx) -> Value { return file->lines(ctx); });
-        table.set(
-            "setvbuf", [file](const CallContext& ctx) -> Value { return file->setvbuf(ctx); });
-        table.set("type", [file](const CallContext& ctx) -> Value { return file->type(ctx); });
-
-        Table metatable = ctx.make_table();
-        metatable.set("__gc", [file](const CallContext& /*ctx*/) { delete file; });
-
-        table.set_metatable(metatable);
-
+        Value table = make_file_table(ctx.environment().allocator(), file);
         return Vallist(table);
     } catch (const std::runtime_error& error) {
         // TODO: differnciate between different errors
@@ -451,4 +449,23 @@ auto FileHandle::setvbuf(const CallContext& ctx) -> Value {
     return this->setvbuf_impl(mode, size);
 }
 } // namespace io
+
+auto create_io_table(MemoryAllocator* allocator) -> Table {
+    std::unordered_map<Value, Value> math_functions;
+    Table io(allocator);
+    io.set("open", io::open);
+    io.set("close", io::close);
+    // io.set("input", io::input);
+    // io.set("lines", io::lines);
+    // io.set("output", io::output);
+    // io.set("popen", io::popen);
+    // io.set("tmpfile", io::tmpfile);
+    io.set("type", io::type);
+
+    io.set("stdin", io::_stdin(allocator));
+    io.set("stdout", io::_stdout(allocator));
+    io.set("stderr", io::_stderr(allocator));
+    return io;
+}
+
 } // end namespace minilua
