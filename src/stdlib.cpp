@@ -13,6 +13,7 @@
 
 #include "MiniLua/environment.hpp"
 #include "MiniLua/interpreter.hpp"
+#include "MiniLua/io.hpp"
 #include "MiniLua/source_change.hpp"
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/utils.hpp"
@@ -69,6 +70,9 @@ void add_stdlib(Table& table) {
     table.set("discard_origin", discard_origin);
     table.set("debug_print", debug_print);
     table.set("force", force);
+
+    table.set("math", create_math_table(table.allocator()));
+    table.set("io", create_io_table(table.allocator()));
 }
 
 } // namespace details

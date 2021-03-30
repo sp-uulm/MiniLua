@@ -120,9 +120,10 @@ auto Interpreter::run(const ts::Tree& tree, Env& user_env) -> EvalResult {
 auto Interpreter::setup_environment(Env& user_env) -> Env {
     Env env(user_env.allocator());
 
+    // load the C++ part of the stdlib
+    add_stdlib(env.global());
+    // run the Lua part of the stdlib
     this->execute_stdlib(env);
-    env.global().set("math", create_math_table(env.allocator()));
-    env.global().set("io", create_io_table(env.allocator()));
 
     // apply user overwrites
     // NOTE we only consider global variables because the user can only set
@@ -133,11 +134,6 @@ auto Interpreter::setup_environment(Env& user_env) -> Env {
 }
 
 void Interpreter::execute_stdlib(Env& env) {
-    // load the C++ part of the stdlib
-    add_stdlib(env.global());
-
-    // run the Lua part of the stdlib
-
     // NOTE The tree is static so it is only initialized once
     static const ts::Tree stdlib_tree = this->load_stdlib();
 

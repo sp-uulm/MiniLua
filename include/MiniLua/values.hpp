@@ -465,7 +465,7 @@ class Table {
 private:
     // The impl pointer is allocated through this allocator and will also
     // be freed through it.
-    MemoryAllocator* allocator;
+    MemoryAllocator* _allocator;
     TableImpl* impl;
 
 public:
@@ -607,6 +607,11 @@ public:
      * @brief Swap function.
      */
     friend void swap(Table& self, Table& other);
+
+    /**
+     * @brief Returns the used allocator.
+     */
+    [[nodiscard]] auto allocator() const -> MemoryAllocator*;
 
     /**
      * @brief The result of the lua length operator `#`.
