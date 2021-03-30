@@ -7,3 +7,16 @@ function assert(predicate, message)
         end
     end
 end
+
+-- trivial io functions
+function io.flush()
+    return io.output():flush()
+end
+
+function io.read(...)
+    return io.input():read(...)
+end
+
+function io.write(...)
+    return io.output():write(...)
+end
