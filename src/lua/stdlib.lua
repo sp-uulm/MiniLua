@@ -29,7 +29,7 @@ end
 function io.close(file)
     if file == nil then
         return io.output():close()
-    elseif type(file) == "string" then
+    elseif io.type(file) ~= nil then
         return file:close()
     else
         error("bad argument #1 to 'close' (file expected, got " .. type(file) .. ")")
