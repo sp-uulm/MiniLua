@@ -210,6 +210,7 @@ auto static make_file_table(MemoryAllocator* allocator, CFileHandle* file) -> Va
     return table;
 }
 
+// TODO these should be taken from the environment
 auto _stdin(MemoryAllocator* allocator) -> Value {
     static std::unique_ptr<CFileHandle> free_guard(new CFileHandle(stdin, false));
     return make_file_table(allocator, &*free_guard);
@@ -259,12 +260,6 @@ auto open(const CallContext& ctx) -> Vallist {
                 throw std::runtime_error("bad argument #2 to 'open' (invalid mode)");
             }},
         mode.raw());
-}
-
-auto close(const CallContext& ctx) -> CallResult {
-    auto file = ctx.expect_argument<Table>(0);
-
-    return file["close"].call(ctx.make_new());
 }
 
 // class FileHandle
@@ -454,10 +449,7 @@ auto create_io_table(MemoryAllocator* allocator) -> Table {
     std::unordered_map<Value, Value> math_functions;
     Table io(allocator);
     io.set("open", io::open);
-    io.set("close", io::close);
-    // io.set("input", io::input);
     // io.set("lines", io::lines);
-    // io.set("output", io::output);
     // io.set("popen", io::popen);
     // io.set("tmpfile", io::tmpfile);
     io.set("type", io::type);
