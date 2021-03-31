@@ -995,6 +995,14 @@ public:
      * @brief Truncate the CallResult to max one value.
      */
     [[nodiscard]] auto one_value() const -> CallResult;
+
+    /**
+     * @brief Combines two CallResults.
+     *
+     * Takes the value of the given call result (`other`) and combines the
+     * source changes.
+     */
+    [[nodiscard]] auto combine(CallResult other) const -> CallResult;
 };
 
 auto operator==(const CallResult&, const CallResult&) -> bool;
