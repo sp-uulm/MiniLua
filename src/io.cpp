@@ -19,6 +19,16 @@ namespace minilua {
 
 namespace io {
 
+namespace {
+class FileOpenError {
+public:
+    std::string message;
+    int value;
+
+    FileOpenError(std::string message, int value) : message(std::move(message)), value(value) {}
+};
+} // namespace
+
 auto type(const CallContext& ctx) -> CallResult {
     auto file = ctx.arguments().get(0);
 
@@ -43,11 +53,13 @@ class CFileHandle : public FileHandle {
     bool should_close;
 
 public:
-    CFileHandle(const std::string& path, const std::string& mode) : should_close(true) {
-        // TODO throw error if file could note be opened
-        this->handle = std::fopen(path.c_str(), mode.c_str());
+    CFileHandle(const std::string& path, const std::string& mode)
+        : CFileHandle(std::fopen(path.c_str(), mode.c_str()), true) {}
+    CFileHandle(FILE* handle, bool should_close) : handle(handle), should_close(should_close) {
+        if (this->handle == nullptr) {
+            throw FileOpenError("could not open file", errno);
+        }
     }
-    CFileHandle(FILE* handle, bool should_close) : handle(handle), should_close(should_close) {}
     ~CFileHandle() override {
         if (this->should_close && this->handle != nullptr) {
             std::cerr << "Closing file\n";
@@ -248,14 +260,17 @@ auto _stderr(MemoryAllocator* allocator) -> Value {
 }
 auto _stderr(const CallContext& ctx) -> Value { return _stderr(ctx.environment().allocator()); }
 
+static auto handle_file_open_error(const FileOpenError& error) {
+    return Vallist({Nil(), error.message, error.value});
+}
+
 auto static open_file(const CallContext& ctx, const String& path, const String& mode) -> Vallist {
     try {
         auto* file = new CFileHandle(path.value, mode.value);
         Value table = make_file_table(ctx.environment().allocator(), file);
         return Vallist(table);
-    } catch (const std::runtime_error& error) {
-        // TODO: differnciate between different errors
-        return Vallist({Nil(), "could not open file", 2});
+    } catch (const FileOpenError& error) {
+        return handle_file_open_error(error);
     }
 }
 
@@ -464,6 +479,24 @@ auto FileHandle::setvbuf(const CallContext& ctx) -> Value {
 
     return this->setvbuf_impl(mode, size);
 }
+
+class TmpFile : public CFileHandle {
+public:
+    // std::tmpfile handles creating a unique file and opening it in update mode
+    // (i.e. as "wb+") and it will also automatically delete it once it's closed
+    // or the program ends.
+    TmpFile() : CFileHandle(std::tmpfile(), true) {}
+};
+
+auto tmpfile(const CallContext& ctx) -> Vallist {
+    try {
+        auto* file = new TmpFile();
+        Value table = make_file_table(ctx.environment().allocator(), file);
+        return Vallist(table);
+    } catch (const FileOpenError& error) {
+        return handle_file_open_error(error);
+    }
+}
 } // namespace io
 
 auto create_io_table(MemoryAllocator* allocator) -> Table {
@@ -472,7 +505,7 @@ auto create_io_table(MemoryAllocator* allocator) -> Table {
     io.set("open", io::open);
     // io.set("lines", io::lines);
     // io.set("popen", io::popen);
-    // io.set("tmpfile", io::tmpfile);
+    io.set("tmpfile", io::tmpfile);
     io.set("type", io::type);
 
     io.set("stdin", io::_stdin(allocator));

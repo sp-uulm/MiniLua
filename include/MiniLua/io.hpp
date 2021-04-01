@@ -17,6 +17,8 @@ auto open(const CallContext& ctx) -> Vallist;
 
 auto type(const CallContext& ctx) -> CallResult;
 
+auto tmpfile(const CallContext& ctx) -> Vallist;
+
 /**
  * @brief Get the stdin file.
  *
