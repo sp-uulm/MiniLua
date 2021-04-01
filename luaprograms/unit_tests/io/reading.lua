@@ -54,3 +54,15 @@ assert(line_func() == 1)
 assert(line_func() == 2)
 assert(line_func() == 3)
 assert(line_func() == 4)
+
+-- other number formats
+file = io.open("/tmp/luatest.txt", "w")
+file:write(1.25, "\n", 0.00002, "\n0x24\n3.4e2\n-25")
+file:close()
+
+file = io.open("/tmp/luatest.txt", "r")
+assert(file:read("n") == 1.25);
+assert(file:read("n") == 0.00002);
+assert(file:read("n") == 0x24);
+assert(file:read("n") == 3.4e2);
+assert(file:read("n") == -25);

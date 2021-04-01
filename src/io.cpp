@@ -91,11 +91,32 @@ public:
     }
 
     auto read_num() -> Value override {
-        // TODO this only reads integers
-        long value;
-        if (fscanf(this->handle, "%li", &value) > 0) {
-            return value;
-        } else {
+        const size_t READ_BUFFER_SIZE = 64;
+
+        std::string str;
+        char buffer[READ_BUFFER_SIZE];
+
+        auto current_position = ftell(this->handle);
+
+        // consume whitespace
+        fscanf(this->handle, " ");
+        // collect string that could potentially be a number
+        while (fscanf(this->handle, "%63[abcdefABCDEF0123456789.x-]", buffer) > 0) {
+            str.append(buffer);
+        }
+
+        // try to parse it
+        // if it fails to parse then we reset the file cursor and return nil
+        try {
+            Value number = parse_number_literal(str);
+            if (number.is_nil()) {
+                fseek(this->handle, current_position, SEEK_SET);
+                return Nil();
+            } else {
+                return number;
+            }
+        } catch (const std::runtime_error& e) {
+            fseek(this->handle, current_position, SEEK_SET);
             return Nil();
         }
     }
