@@ -54,6 +54,14 @@ assert(line_func() == 1)
 assert(line_func() == 2)
 assert(line_func() == 3)
 assert(line_func() == 4)
+file:close()
+
+-- io.lines
+line_func = io.lines("/tmp/luatest.txt", "n")
+assert(line_func() == 1)
+assert(line_func() == 2)
+assert(line_func() == 3)
+assert(line_func() == 4)
 
 -- other number formats
 file = io.open("/tmp/luatest.txt", "w")
@@ -66,3 +74,4 @@ assert(file:read("n") == 0.00002);
 assert(file:read("n") == 0x24);
 assert(file:read("n") == 3.4e2);
 assert(file:read("n") == -25);
+file:close()

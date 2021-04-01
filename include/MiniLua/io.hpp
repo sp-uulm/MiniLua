@@ -86,6 +86,7 @@ public:
     void ensure_file_is_open();
 
     auto read(const CallContext& ctx) -> Vallist;
+    auto read(const std::vector<Value>& formats, bool throw_on_eof = false) -> Vallist;
 
     // file:seek([whence [, offset]]])
     auto seek(const CallContext& ctx) -> Vallist;
@@ -100,6 +101,7 @@ public:
     auto setvbuf(const CallContext& ctx) -> Value;
 
     virtual auto is_open() -> bool = 0;
+    virtual auto is_at_eof() -> bool = 0;
 
     virtual auto close() -> bool = 0;
     virtual auto flush() -> bool = 0;

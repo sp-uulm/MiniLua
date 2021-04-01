@@ -69,3 +69,11 @@ function io.output(file)
         error("bad argument #1 to 'output' (string or file expected, got " .. type(file) .. ")")
     end
 end
+
+function io.lines(filename, ...)
+    if filename == nil then
+        return io.input():lines(...)
+    else
+        return io.__lines(filename, ...)
+    end
+end

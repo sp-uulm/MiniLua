@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <iostream>
 #include <istream>
+#include <iterator>
 #include <ostream>
 #include <regex>
 #include <stdexcept>
@@ -62,13 +63,13 @@ public:
     }
     ~CFileHandle() override {
         if (this->should_close && this->handle != nullptr) {
-            std::cerr << "Closing file\n";
             fclose(this->handle);
             this->handle = nullptr;
         }
     }
 
     auto is_open() -> bool override { return this->handle != nullptr; }
+    auto is_at_eof() -> bool override { return std::feof(this->handle) != 0; }
 
     auto close() -> bool override {
         this->ensure_file_is_open();
@@ -308,23 +309,17 @@ void FileHandle::ensure_file_is_open() {
     }
 }
 
-auto FileHandle::read(const CallContext& ctx) -> Vallist {
-    this->ensure_file_is_open();
+auto FileHandle::read(const std::vector<Value>& formats, bool throw_on_eof) -> Vallist {
+    std::vector<Value> results;
+    results.reserve(formats.size());
 
-    // skip first argument because it is the file table
-    auto formats_begin = ctx.arguments().begin() + 1;
-    auto formats_end = ctx.arguments().end();
-
-    if (formats_begin >= formats_end) {
+    if (formats.empty()) {
         // no format arguments provided
         return Vallist(this->read_line());
     }
 
-    std::vector<Value> results;
-    results.reserve(std::distance(formats_begin, formats_end));
-
     int i = 1;
-    for (; formats_begin < formats_end; ++formats_begin, ++i) {
+    for (const auto& format : formats) {
         Value result = std::visit(
             overloaded{
                 [this, i](const String& format) {
@@ -356,18 +351,36 @@ auto FileHandle::read(const CallContext& ctx) -> Vallist {
                         "bad argument #" + std::to_string(i) + " to 'read' (invalid format)");
                 },
             },
-            formats_begin->raw());
+            format.raw());
 
         // if we receive nil we stop trying to read more
         // NOTE: This does not always mean that we are at the end of the file
         if (result.is_nil()) {
+            if (throw_on_eof && this->is_at_eof()) {
+                throw std::runtime_error("reached eof");
+            }
             return Vallist(results);
         } else {
             results.push_back(result);
         }
+
+        ++i;
     }
 
     return Vallist(results);
+}
+auto FileHandle::read(const CallContext& ctx) -> Vallist {
+    this->ensure_file_is_open();
+
+    // skip first argument because it is the file table
+    auto formats_begin = ctx.arguments().begin() + 1;
+    auto formats_end = ctx.arguments().end();
+
+    std::vector<Value> formats;
+    formats.reserve(std::distance(formats_begin, formats_end));
+    std::copy(formats_begin, formats_end, std::back_inserter(formats));
+
+    return this->read(formats);
 }
 auto FileHandle::seek(const CallContext& ctx) -> Vallist {
     const auto& whence_str = ctx.expect_argument<String>(1);
@@ -497,13 +510,42 @@ auto tmpfile(const CallContext& ctx) -> Vallist {
         return handle_file_open_error(error);
     }
 }
+
+struct LinesIterator {
+    std::shared_ptr<CFileHandle> file;
+    std::vector<Value> read_args;
+
+    LinesIterator(std::shared_ptr<CFileHandle> file, std::vector<Value> args)
+        : file(std::move(file)), read_args(std::move(args)) {}
+
+    auto operator()(const CallContext& /*ctx*/) const -> Value {
+        try {
+            auto value = file->read(read_args, true).get(0);
+            return value;
+        } catch (const std::runtime_error&) {
+            file->close();
+            return Nil();
+        }
+    }
+};
+
+static auto __lines(const CallContext& ctx) -> Value {
+    auto filename = std::get<String>(ctx.expect_argument<String>(0)).value;
+
+    std::vector<Value> format_args;
+    format_args.reserve(ctx.arguments().size() - 1);
+    std::copy(ctx.arguments().begin() + 1, ctx.arguments().end(), std::back_inserter(format_args));
+
+    auto file = std::make_shared<CFileHandle>(filename, "r");
+    return Function(LinesIterator(file, format_args));
+}
+
 } // namespace io
 
 auto create_io_table(MemoryAllocator* allocator) -> Table {
     std::unordered_map<Value, Value> math_functions;
     Table io(allocator);
     io.set("open", io::open);
-    // io.set("lines", io::lines);
     // io.set("popen", io::popen);
     io.set("tmpfile", io::tmpfile);
     io.set("type", io::type);
@@ -511,6 +553,10 @@ auto create_io_table(MemoryAllocator* allocator) -> Table {
     io.set("stdin", io::_stdin(allocator));
     io.set("stdout", io::_stdout(allocator));
     io.set("stderr", io::_stderr(allocator));
+
+    // used for implementing io.lines
+    io.set("__lines", io::__lines);
+
     return io;
 }
 
