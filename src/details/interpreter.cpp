@@ -1,5 +1,6 @@
 #include "interpreter.hpp"
 #include "MiniLua/environment.hpp"
+#include "MiniLua/exceptions.hpp"
 #include "MiniLua/interpreter.hpp"
 #include "MiniLua/metatables.hpp"
 #include "MiniLua/stdlib.hpp"
@@ -942,13 +943,21 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
             auto call_result = f(ctx.make_new(args), origin);
             result.combine(EvalResult(call_result.one_value()));
         } catch (const BadArgumentError& e) {
-            auto message = e.format(name);
-
-            stringstream ss;
-            ss << origin.start;
-            std::string pos = ss.str();
-
-            throw InterpreterException("failed to call metafunction  ("s + pos + ") : " + message);
+            throw e.with(
+                name, StackItem{
+                          .position = origin,
+                          .info = "metamethod '" + name + "'",
+                      });
+        } catch (const InterpreterException& e) {
+            throw e.with(StackItem{
+                .position = origin,
+                .info = "metamethod '" + name + "'",
+            });
+        } catch (const std::exception& e) {
+            throw InterpreterException(e.what()).with(StackItem{
+                .position = origin,
+                .info = "metamethod '" + name + "'",
+            });
         }
     };
 
@@ -1114,21 +1123,24 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
         this->trace_function_call_result(call.id(), call_result);
     } catch (const BadArgumentError& e) {
         auto function_name = call.id().to_string();
-        auto message = e.format(function_name);
+        throw e.with(
+            function_name, StackItem{
+                               .position = call.range(),
+                               .info = "function '" + function_name + "'",
+                           });
+    } catch (const InterpreterException& e) {
+        auto function_name = call.id().to_string();
+        throw e.with(StackItem{
+            .position = call.range(),
+            .info = "function '" + function_name + "'",
+        });
+    } catch (const std::exception& e) {
+        auto function_name = call.id().to_string();
 
-        stringstream ss;
-        ss << call.range().start;
-        std::string pos = ss.str();
-
-        // TODO stacktrace
-        throw InterpreterException("failed to call function  ("s + pos + ") : " + message);
-    } catch (const std::runtime_error& e) {
-        stringstream ss;
-        ss << call.range().start;
-        std::string pos = ss.str();
-
-        // TODO stacktrace
-        throw InterpreterException("failed to call function  ("s + pos + ") : " + e.what());
+        throw InterpreterException(e.what()).with(StackItem{
+            .position = call.range(),
+            .info = "function '" + function_name + "'",
+        });
     }
 
     // move the Env back in case something has changed internally
