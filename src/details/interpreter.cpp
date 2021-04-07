@@ -938,8 +938,18 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
                              &origin](auto f, Value lhs, Value rhs, const std::string& name) {
         auto args = Vallist{std::move(lhs), std::move(rhs)};
         this->trace_metamethod_call(name, args);
-        auto call_result = f(ctx.make_new(args), origin);
-        result.combine(EvalResult(call_result.one_value()));
+        try {
+            auto call_result = f(ctx.make_new(args), origin);
+            result.combine(EvalResult(call_result.one_value()));
+        } catch (const BadArgumentError& e) {
+            auto message = e.format(name);
+
+            stringstream ss;
+            ss << origin.start;
+            std::string pos = ss.str();
+
+            throw InterpreterException("failed to call metafunction  ("s + pos + ") : " + message);
+        }
     };
 
 #define IMPL_MT(op, function, name)                                                                \
@@ -1102,10 +1112,22 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
         result.combine(EvalResult(call_result));
 
         this->trace_function_call_result(call.id(), call_result);
+    } catch (const BadArgumentError& e) {
+        auto function_name = call.id().to_string();
+        auto message = e.format(function_name);
+
+        stringstream ss;
+        ss << call.range().start;
+        std::string pos = ss.str();
+
+        // TODO stacktrace
+        throw InterpreterException("failed to call function  ("s + pos + ") : " + message);
     } catch (const std::runtime_error& e) {
         stringstream ss;
         ss << call.range().start;
         std::string pos = ss.str();
+
+        // TODO stacktrace
         throw InterpreterException("failed to call function  ("s + pos + ") : " + e.what());
     }
 
