@@ -1089,6 +1089,8 @@ auto Interpreter::visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult {
     return result;
 }
 
+static auto prefix_to_ident(const ast::Prefix& prefix) -> std::string { return prefix.to_string(); }
+
 auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalResult {
     auto _ = NodeTracer(this, call.debug_print(), "visit_function_call");
 
@@ -1126,7 +1128,9 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
         stringstream ss;
         ss << call.range().start;
         std::string pos = ss.str();
-        throw InterpreterException("failed to call function  ("s + pos + ") : " + e.what());
+        throw InterpreterException(
+            "failed to call function \"" + prefix_to_ident(call.id()) + "\" ("s + pos +
+            ") : " + e.what());
     }
 
     // move the Env back in case something has changed internally
