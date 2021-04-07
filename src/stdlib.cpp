@@ -244,8 +244,12 @@ auto discard_origin(const CallContext& ctx) -> Vallist {
 
 void debug_print(const CallContext& ctx) {
     auto& err = *ctx.environment().get_stderr();
-    for (const auto& value : ctx.arguments()) {
-        err << value << "\n";
+    if (ctx.arguments().size() == 0) {
+        err << "DEBUG: CALLED WITH NO ARGUMENTS!\n";
+    } else {
+        for (const auto& value : ctx.arguments()) {
+            err << "DEBUG: " << value << "\n";
+        }
     }
 }
 
