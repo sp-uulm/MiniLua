@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "environment.hpp"
+#include "exceptions.hpp"
 #include "source_change.hpp"
 #include "values.hpp"
 
@@ -106,14 +107,6 @@ struct InterpreterConfig {
      * @brief Set all trace flags to the given value.
      */
     void all(bool);
-};
-
-/**
- * @brief Exception thrown by the interpreter.
- */
-class InterpreterException : public std::runtime_error {
-public:
-    InterpreterException(const std::string& what);
 };
 
 /**

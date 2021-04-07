@@ -40,9 +40,6 @@ void InterpreterConfig::all(bool def) {
     this->trace_varargs = def;
 }
 
-// class InterpreterException
-InterpreterException::InterpreterException(const std::string& what) : std::runtime_error(what) {}
-
 struct Interpreter::Impl {
     ts::Parser parser;
     std::string source_code;
