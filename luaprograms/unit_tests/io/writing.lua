@@ -1,0 +1,7 @@
+file = io.open("/tmp/luatest.txt", "w")
+assert(file:write(1) == file)
+assert(file:write("\n") == file)
+assert(file:write(nil) == nil)
+assert(file:write({}) == nil)
+assert(file:write(print) == nil)
+file:close()
