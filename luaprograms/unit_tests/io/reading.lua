@@ -65,13 +65,18 @@ assert(line_func() == 4)
 
 -- other number formats
 file = io.open("/tmp/luatest.txt", "w")
-file:write(1.25, "\n", 0.00002, "\n0x24\n3.4e2\n-25")
+file:write(1.25, "\n", 0.00002, "\n0x24\n3.4e2\n-25\n0x24x\nzzz")
 file:close()
 
 file = io.open("/tmp/luatest.txt", "r")
-assert(file:read("n") == 1.25);
-assert(file:read("n") == 0.00002);
-assert(file:read("n") == 0x24);
-assert(file:read("n") == 3.4e2);
-assert(file:read("n") == -25);
+assert(file:read("n") == 1.25)
+assert(file:read("n") == 0.00002)
+assert(file:read("n") == 0x24)
+assert(file:read("n") == 3.4e2)
+assert(file:read("n") == -25)
+assert(file:read("n") == nil)
+assert(file:read("a") == "\n0x24x\nzzz")
+current = file:seek("cur")
+assert(file:read(1) == nil)
+assert(file:seek("cur") == current)
 file:close()

@@ -194,6 +194,8 @@ public:
         case SeekWhence::END:
             whence_flag = SEEK_END;
             break;
+        default:
+            throw std::runtime_error("unreachable");
         }
 
         if (fseek(this->handle, offset, whence_flag) == 0) {
@@ -216,6 +218,8 @@ public:
         case SetvbufMode::LINE:
             mode_flag = _IOLBF;
             break;
+        default:
+            throw std::runtime_error("unreachable");
         }
         return ::setvbuf(this->handle, nullptr, mode_flag, size) == 0;
     }
@@ -420,7 +424,7 @@ auto FileHandle::write(const CallContext& ctx) -> Vallist {
     this->ensure_file_is_open();
 
     // arg 0 is file table
-    for (int i = 1; i < ctx.arguments().size(); i++) {
+    for (size_t i = 1; i < ctx.arguments().size(); i++) {
         auto v = ctx.arguments().get(i);
 
         if (v.is_number() || v.is_string()) {
@@ -471,7 +475,7 @@ auto FileHandle::setvbuf(const CallContext& ctx) -> Value {
     if (mode_str == "no") {
         mode = SetvbufMode::NO;
     } else if (mode_str == "full") {
-        mode = SetvbufMode::NO;
+        mode = SetvbufMode::FULL;
     } else if (mode_str == "line") {
         mode = SetvbufMode::LINE;
     } else {

@@ -1,4 +1,5 @@
 assert(io.type(25) == nil)
+assert(io.type({}) == nil)
 
 file = io.open("/tmp/luatest.txt", "w")
 assert(io.type(file) == "file")
