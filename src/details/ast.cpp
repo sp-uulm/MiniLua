@@ -168,7 +168,7 @@ BinaryOperation::BinaryOperation(ts::Node node) : content(node) {
     if (node.type_id() != ts::NODE_BINARY_OPERATION) {
         throw std::runtime_error("not a binary_operation node");
     }
-    assert(node.child_count() == 3);
+    assert(node.named_child_count() == 3);
 }
 BinaryOperation::BinaryOperation(
     const Expression& left, BinOpEnum op_enum, const Expression& right, minilua::Range range,
@@ -177,14 +177,14 @@ BinaryOperation::BinaryOperation(
 auto BinaryOperation::left() const -> Expression {
     return std::visit(
         overloaded{
-            [](ts::Node node) -> Expression { return Expression(node.child(0).value()); },
+            [](ts::Node node) -> Expression { return Expression(node.named_child(0).value()); },
             [](const BinOpStruct& bin_struct) -> Expression { return *bin_struct.left; }},
         this->content);
 }
 auto BinaryOperation::right() const -> Expression {
     return std::visit(
         overloaded{
-            [](ts::Node node) -> Expression { return Expression(node.child(2).value()); },
+            [](ts::Node node) -> Expression { return Expression(node.named_child(2).value()); },
             [](const BinOpStruct& bin_struct) -> Expression { return *bin_struct.right; }},
         this->content);
 }
@@ -192,51 +192,51 @@ auto BinaryOperation::binary_operator() const -> BinOpEnum {
     return std::visit(
         overloaded{
             [](ts::Node node) -> BinOpEnum {
-                std::string op_str = node.child(1)->text();
-                if (op_str == "+"s) {
+                auto bin_op = node.named_child(1)->type_id();
+                if (bin_op == ts::NODE_BIN_OP_ADDITION) {
                     return BinOpEnum::ADD;
-                } else if (op_str == "-"s) {
+                } else if (bin_op == ts::NODE_BIN_OP_SUBTRACTION) {
                     return BinOpEnum::SUB;
-                } else if (op_str == "/"s) {
+                } else if (bin_op == ts::NODE_BIN_OP_DIVISION) {
                     return BinOpEnum::DIV;
-                } else if (op_str == "*"s) {
+                } else if (bin_op == ts::NODE_BIN_OP_MULTIPLICATION) {
                     return BinOpEnum::MUL;
-                } else if (op_str == "%"s) {
+                } else if (bin_op == ts::NODE_BIN_OP_MODULO) {
                     return BinOpEnum::MOD;
-                } else if (op_str == "^"s) {
+                } else if (bin_op == ts::NODE_BIN_OP_POWER) {
                     return BinOpEnum::POW;
-                } else if (op_str == "<"s) {
+                } else if (bin_op == ts::NODE_BIN_OP_LT) {
                     return BinOpEnum::LT;
-                } else if (op_str == ">"s) {
+                } else if (bin_op == ts::NODE_BIN_OP_GT) {
                     return BinOpEnum::GT;
-                } else if (op_str == "<="s) {
+                } else if (bin_op == ts::NODE_BIN_OP_LEQ) {
                     return BinOpEnum::LEQ;
-                } else if (op_str == ">="s) {
+                } else if (bin_op == ts::NODE_BIN_OP_GEQ) {
                     return BinOpEnum::GEQ;
-                } else if (op_str == "==") {
+                } else if (bin_op == ts::NODE_BIN_OP_EQ) {
                     return BinOpEnum::EQ;
-                } else if (op_str == "~="s) {
+                } else if (bin_op == ts::NODE_BIN_OP_NEQ) {
                     return BinOpEnum::NEQ;
-                } else if (op_str == ".."s) {
+                } else if (bin_op == ts::NODE_BIN_OP_CONCAT) {
                     return BinOpEnum::CONCAT;
-                } else if (op_str == "and"s) {
+                } else if (bin_op == ts::NODE_BIN_OP_LOGICAL_AND) {
                     return BinOpEnum::AND;
-                } else if (op_str == "or"s) {
+                } else if (bin_op == ts::NODE_BIN_OP_LOGICAL_OR) {
                     return BinOpEnum::OR;
-                } else if (op_str == "<<"s) {
+                } else if (bin_op == ts::NODE_BIN_OP_SHIFT_LEFT) {
                     return BinOpEnum::SHIFT_LEFT;
-                } else if (op_str == ">>"s) {
+                } else if (bin_op == ts::NODE_BIN_OP_SHIFT_RIGHT) {
                     return BinOpEnum::SHIFT_RIGHT;
-                } else if (op_str == "//"s) {
+                } else if (bin_op == ts::NODE_BIN_OP_INTEGER_DIVISION) {
                     return BinOpEnum::INT_DIV;
-                } else if (op_str == "|"s) {
+                } else if (bin_op == ts::NODE_BIN_OP_BITWISE_OR) {
                     return BinOpEnum::BIT_OR;
-                } else if (op_str == "&"s) {
+                } else if (bin_op == ts::NODE_BIN_OP_BITWISE_AND) {
                     return BinOpEnum::BIT_AND;
-                } else if (op_str == "~"s) {
+                } else if (bin_op == ts::NODE_BIN_OP_BITWISE_XOR) {
                     return BinOpEnum::BIT_XOR;
                 } else {
-                    throw std::runtime_error("Unknown Binary Operator: " + op_str);
+                    throw std::runtime_error("Unknown Binary Operator");
                 }
             },
             [](const BinOpStruct& bin_struct) -> BinOpEnum { return bin_struct.bin_operator; }},
@@ -272,7 +272,7 @@ UnaryOperation::UnaryOperation(ts::Node node) : content(node) {
     if (node.type_id() != ts::NODE_UNARY_OPERATION) {
         throw std::runtime_error("not an unary_operation node");
     }
-    assert(node.child_count() == 2);
+    assert(node.named_child_count() == 2);
 }
 UnaryOperation::UnaryOperation(
     UnOpEnum op_enum, const Expression& exp, minilua::Range range, GEN_CAUSE cause)
@@ -281,13 +281,14 @@ auto UnaryOperation::unary_operator() const -> UnOpEnum {
     return std::visit(
         overloaded{
             [](ts::Node node) -> UnOpEnum {
-                if (node.child(0)->text() == "not"s) {
+                auto un_op = node.named_child(0)->type_id();
+                if (un_op == ts::NODE_UN_OP_LOGICAL_NOT) {
                     return UnOpEnum::NOT;
-                } else if (node.child(0)->text() == "-"s) {
+                } else if (un_op == ts::NODE_UN_OP_NEGATIVE) {
                     return UnOpEnum::NEG;
-                } else if (node.child(0)->text() == "~"s) {
+                } else if (un_op == ts::NODE_UN_OP_BITWISE_NOT) {
                     return UnOpEnum::BWNOT;
-                } else if (node.child(0)->text() == "#"s) {
+                } else if (un_op == ts::NODE_UN_OP_LENGTH) {
                     return UnOpEnum::LEN;
                 } else {
                     throw std::runtime_error("unknown Unary Operator: " + node.child(0)->text());
