@@ -939,26 +939,14 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
                              &origin](auto f, Value lhs, Value rhs, const std::string& name) {
         auto args = Vallist{std::move(lhs), std::move(rhs)};
         this->trace_metamethod_call(name, args);
-        try {
-            auto call_result = f(ctx.make_new(args), origin);
-            result.combine(EvalResult(call_result.one_value()));
-        } catch (const BadArgumentError& e) {
-            throw e.with(
-                name, StackItem{
-                          .position = origin,
-                          .info = "metamethod '" + name + "'",
-                      });
-        } catch (const InterpreterException& e) {
-            throw e.with(StackItem{
+
+        auto call_result = with_call_stack(
+            [&f, &ctx, &args, &origin]() { return f(ctx.make_new(args), origin); }, name,
+            StackItem{
                 .position = origin,
                 .info = "metamethod '" + name + "'",
             });
-        } catch (const std::exception& e) {
-            throw InterpreterException(e.what()).with(StackItem{
-                .position = origin,
-                .info = "metamethod '" + name + "'",
-            });
-        }
+        result.combine(EvalResult(call_result.one_value()));
     };
 
 #define IMPL_MT(op, function, name)                                                                \
@@ -1032,7 +1020,13 @@ auto Interpreter::visit_unary_operation(ast::UnaryOperation unary_op, Env& env) 
     auto impl_mt_operator = [this, &ctx, &result, &range](auto f, const std::string& name) {
         auto args = Vallist{result.values.get(0)};
         this->trace_metamethod_call(name, args);
-        auto call_result = f(ctx.make_new(args), range);
+
+        auto call_result = with_call_stack(
+            [&f, &ctx, &args, &range]() { return f(ctx.make_new(args), range); }, name,
+            StackItem{
+                .position = range,
+                .info = "metamethod '" + name + "'",
+            });
         result.combine(EvalResult(call_result.one_value()));
     };
 
@@ -1116,32 +1110,18 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
     auto ctx =
         CallContext(&environment).make_new(meta_arguments, call.range().with_file(env.get_file()));
 
-    try {
-        CallResult call_result = mt::call(ctx);
-        result.combine(EvalResult(call_result));
+    auto function_name = call.id().to_string();
+    auto range = call.range();
 
-        this->trace_function_call_result(call.id(), call_result);
-    } catch (const BadArgumentError& e) {
-        auto function_name = call.id().to_string();
-        throw e.with(
-            function_name, StackItem{
-                               .position = call.range(),
-                               .info = "function '" + function_name + "'",
-                           });
-    } catch (const InterpreterException& e) {
-        auto function_name = call.id().to_string();
-        throw e.with(StackItem{
-            .position = call.range(),
+    auto call_result = with_call_stack(
+        [&ctx]() { return mt::call(ctx); }, function_name,
+        StackItem{
+            .position = range,
             .info = "function '" + function_name + "'",
         });
-    } catch (const std::exception& e) {
-        auto function_name = call.id().to_string();
+    result.combine(EvalResult(call_result));
 
-        throw InterpreterException(e.what()).with(StackItem{
-            .position = call.range(),
-            .info = "function '" + function_name + "'",
-        });
-    }
+    this->trace_function_call_result(call.id(), call_result);
 
     // move the Env back in case something has changed internally
     env = environment.get_raw_impl().inner;
