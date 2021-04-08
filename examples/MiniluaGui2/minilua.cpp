@@ -1,14 +1,13 @@
 #include "minilua.hpp"
 #include "./ui_minilua.h"
 
-#include <string>
-
-Minilua::Minilua(QWidget* parent) : QMainWindow(parent), ui(new Ui::Minilua) {
+Minilua::Minilua(QMainWindow* parent) : QMainWindow(parent), ui(new Ui::Minilua) {
     ui->setupUi(this);
     ui->cancelButton->setVisible(false);
 }
 
 Minilua::~Minilua() { delete ui; }
+
 void Minilua::writeTextToLogger(std::string text) { ui->log->append(QString::fromStdString(text)); }
 
 void Minilua::on_runButton_clicked() {
@@ -22,4 +21,4 @@ void Minilua::on_cancelButton_released() {
     this->writeTextToLogger("Application stopped");
 }
 
-void Minilua::exec_interpreter() {}
+void Minilua::exec_interpreter() { auto parse_result = 0; }

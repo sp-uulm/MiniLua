@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(MiniluaGui LANGUAGES CXX)
+#project(MiniluaGui2 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -33,21 +33,17 @@ set(PROJECT_SOURCES
         minilua.hpp
         minilua.ui
 )
-
+set(PROJECT_NAME_GUI
+    ${PROJECT_NAME}-newgui2
+)
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(MiniluaGui
-        ${PROJECT_SOURCES}
-    )
-else()
-    if(ANDROID)
-        add_library(MiniluaGui SHARED
-            ${PROJECT_SOURCES}
-        )
-    else()
-        add_executable(MiniluaGui
-            ${PROJECT_SOURCES}
-        )
-    endif()
-endif()
+    add_executable(
+        ${PROJECT_NAME_GUI}
+        ${PROJECT_SOURCES})
+    target_include_directories(${PROJECT_NAME_GUI} PRIVATE . ${PROJECT_NAME})
 
-target_link_libraries(MiniluaGui PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+    target_link_libraries(${PROJECT_NAME_GUI}
+            PRIVATE Qt::Core Qt::Widgets Qt::Gui ${PROJECT_NAME})
+else()
+    message(WARN "Qt6 was not found. Disabling gui example")    
+endif()
