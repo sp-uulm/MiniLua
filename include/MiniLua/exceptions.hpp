@@ -14,12 +14,12 @@ struct StackItem {
     std::string info;
 };
 
-inline auto operator<<(std::ostream& o, const StackItem& self) -> std::ostream& {
-    return o << "StackItem{ " << self.position << ", " << self.info << "}";
-}
+auto operator<<(std::ostream& o, const StackItem& self) -> std::ostream&;
 
 /**
  * @brief Exception thrown by the interpreter.
+ *
+ * This exception can contain a stack trace.
  */
 class InterpreterException : public std::runtime_error {
     std::vector<StackItem> stack;
@@ -27,25 +27,52 @@ class InterpreterException : public std::runtime_error {
 public:
     InterpreterException(const std::string& what);
 
+    /**
+     * @brief Create a new exception with the given stack item added.
+     */
     [[nodiscard]] auto with(StackItem item) const -> InterpreterException;
 
+    /**
+     * @brief Print the stacktrace to the output stream.
+     */
     void print_stacktrace(std::ostream& os) const;
 };
 
-class BadArgumentError : public std::runtime_error {
+/**
+ * @brief Exception indicating a bad argument of a function call.
+ *
+ * This is usually thrown when validating an argument.
+ *
+ * The interpreter has special code to format this exception and print the name
+ * of the called function.
+ */
+class BadArgumentError : public InterpreterException {
     int index;
     std::string message;
 
 public:
+    /**
+     * @brief Create a new BadArgumentError.
+     *
+     * @param index The index of the bad argument (starting with 1)
+     * @param message Error information for the bad argument
+     */
     BadArgumentError(int index, const std::string& message);
 
     [[nodiscard]] auto get_index() const -> int;
     [[nodiscard]] auto get_message() const -> const std::string&;
 
+    /**
+     * @brief Create a new exception with the given function name and stack item.
+     */
     [[nodiscard]] auto with(const std::string& function_name, StackItem item) const
         -> InterpreterException;
 };
 
+/**
+ * @brief Execute the given function and correctly re-throw exceptions using the
+ * given function name and stack item.
+ */
 template <typename Fn>
 auto with_call_stack(Fn f, const std::string& function_name, const StackItem& item) {
     try {

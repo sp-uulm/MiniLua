@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <utility>
 
 #include "MiniLua/exceptions.hpp"
@@ -13,27 +14,52 @@ auto InterpreterException::with(StackItem item) const -> InterpreterException {
     return e;
 }
 
-/**
- * lua: luaprograms/errors.lua:10: some error
-        stack traceback:
-        [C]: in function 'error'
-        luaprograms/errors.lua:10: in function 'func3'
-        luaprograms/errors.lua:6: in function 'func2'
-        luaprograms/errors.lua:2: in function 'func1'
-        luaprograms/errors.lua:13: in main chunk
-        [C]: in ?
- */
-void InterpreterException::print_stacktrace(std::ostream& os) const {
-    for (const auto& item : this->stack) {
-        if (item.position.file) {
-            os << *item.position.file;
+static void print_range(const std::optional<Range>& range, std::ostream& os) {
+    if (range.has_value()) {
+        if (range->file) {
+            os << *range->file;
         } else {
             os << "<unknown>";
         }
+        os << ":" << range->start.line + 1;
+    } else {
+        os << "[NATIVE]";
+    }
+}
 
-        os << ":" << item.position.start.line + 1;
+void InterpreterException::print_stacktrace(std::ostream& os) const {
+    // Separate ranges and infos
+    // We need to print the range and associated info offset so the information
+    // is accurate.
+    //
+    // We have stack items of the form (range, "in function f")
+    // but the range is the location where function f is called and we want to
+    // print the range inside of f followed by "in function f".
+    //
+    // To achieve this the offset we insert a nullopt at the beginning of ranges.
+    // This also signals that the exception was thrown in native code (which is
+    // always true).
+    std::vector<std::optional<Range>> ranges;
+    ranges.reserve(this->stack.size() + 1);
+    ranges.emplace_back(std::nullopt);
+    std::transform(
+        this->stack.begin(), this->stack.end(), std::back_inserter(ranges),
+        [](const auto& item) { return item.position; });
 
-        os << ": in " << item.info << "\n";
+    // We also insert "main chunk" in infos to keep the length the same. This is
+    // always true because the first call to any function must occur in the main
+    // chunk of a program (even if we internally don't call it "chunks").
+    std::vector<std::string> infos;
+    infos.reserve(this->stack.size() + 1);
+    std::transform(
+        this->stack.begin(), this->stack.end(), std::back_inserter(infos),
+        [](const auto& item) { return item.info; });
+    infos.emplace_back("main chunk");
+
+    for (size_t i = 0; i < ranges.size(); ++i) {
+        os << "\t";
+        print_range(ranges[i], os);
+        os << ": in " << infos[i] << "\n";
     }
 }
 
@@ -42,7 +68,7 @@ void InterpreterException::print_stacktrace(std::ostream& os) const {
 // is also useful to catch from C++, we need to create the string in the
 // constructor because of the return type of std::exception::what()
 BadArgumentError::BadArgumentError(int index, const std::string& message)
-    : std::runtime_error("bad argument #" + std::to_string(index) + "(" + message + ")"),
+    : InterpreterException("bad argument #" + std::to_string(index) + "(" + message + ")"),
       index(index), message(message) {}
 
 auto BadArgumentError::get_index() const -> int { return this->index; }
@@ -54,6 +80,10 @@ auto BadArgumentError::with(const std::string& function_name, StackItem item) co
     auto message = "bad argument #" + std::to_string(this->index) + " '" + function_name + "' (" +
                    this->message + ")";
     return InterpreterException(message).with(std::move(item));
+}
+
+auto operator<<(std::ostream& o, const StackItem& self) -> std::ostream& {
+    return o << "StackItem{ " << self.position << ", " << self.info << "}";
 }
 
 } // namespace minilua
