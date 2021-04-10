@@ -1,0 +1,7 @@
+error: <unknown>:10: some error
+stack traceback:
+	[NATIVE]: in function 'error'
+	<unknown>:10: in function 'func3'
+	<unknown>:6: in function 'func2'
+	<unknown>:2: in function 'func1'
+	<unknown>:13: in main chunk
