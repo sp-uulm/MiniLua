@@ -56,6 +56,14 @@ void InterpreterException::print_stacktrace(std::ostream& os) const {
         [](const auto& item) { return item.info; });
     infos.emplace_back("main chunk");
 
+    os << "error: ";
+    if (!this->stack.empty()) {
+        print_range(this->stack[0].position, os);
+        os << ": ";
+    }
+    os << this->what() << "\n"
+       << "stack traceback:\n";
+
     for (size_t i = 0; i < ranges.size(); ++i) {
         os << "\t";
         print_range(ranges[i], os);

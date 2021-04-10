@@ -54,7 +54,7 @@ auto main(int argc, char* argv[]) -> int {
         // TODO pretty print
         std::cerr << "\nThe value had origin: " << result.value.origin() << "\n";
     } catch (const minilua::InterpreterException& e) {
-        std::cerr << "Evaluation failed:\n";
+        // std::cerr << "Evaluation failed:\n";
         e.print_stacktrace(std::cerr);
         return 4;
     }
