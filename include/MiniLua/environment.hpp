@@ -146,6 +146,18 @@ public:
      */
     [[nodiscard]] auto size() const -> size_t;
 
+    /**
+     * @brief Sets the current file name/path.
+     *
+     * This is used when generating ranges.
+     */
+    void set_file(std::optional<std::shared_ptr<std::string>> file);
+
+    /**
+     * @brief Returns the current file name/path.
+     */
+    [[nodiscard]] auto get_file() const -> std::optional<std::shared_ptr<std::string>>;
+
     // only for internal use
     auto get_raw_impl() -> Impl&;
 

@@ -136,6 +136,11 @@ void test_file(const std::string& file) {
     CAPTURE(parse_result.errors);
     REQUIRE(parse_result);
 
+    // FIXME creates wrong paths
+    // because the working directory is different that the root project
+    //
+    // interpreter.environment().set_file(std::make_shared<std::string>(file));
+
     // setup stdin/out/err
     // if they are not provided we use the default
     if (stdin_str.has_value()) {
@@ -164,13 +169,13 @@ void test_file(const std::string& file) {
 
     // check stdout/err
     if (stdout_str.has_value() && *stdout_str != stdout_stream.str()) {
-        INFO(*stdout_str);
-        INFO(stdout_stream.str());
+        CAPTURE(*stdout_str);
+        CAPTURE(stdout_stream.str());
         FAIL("stdout did not match");
     }
     if (stderr_str.has_value() && *stderr_str != stderr_stream.str()) {
-        INFO(*stderr_str);
-        INFO(stderr_stream.str());
+        CAPTURE(*stderr_str);
+        CAPTURE(stderr_stream.str());
         FAIL("stderr did not match");
     }
 }

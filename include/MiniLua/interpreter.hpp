@@ -188,6 +188,7 @@ public:
      * Errors are part of ParseResult.
      */
     auto parse(std::string source_code) -> ParseResult;
+    auto parse_file(const std::string& filepath) -> ParseResult;
 
     /**
      * @brief Applies a list of single source changes.

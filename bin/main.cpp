@@ -4,13 +4,6 @@
 #include <fstream>
 #include <iostream>
 
-std::string read_input_from_file(std::string path) {
-    std::ifstream ifs;
-    ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    ifs.open(path);
-    return std::string(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
-}
-
 auto main(int argc, char* argv[]) -> int {
     if (argc < 2) {
         std::cerr << "Usage: " << argv[0] << " [--trace] <program.lua>\n";
@@ -24,18 +17,10 @@ auto main(int argc, char* argv[]) -> int {
         file_index = 2;
     }
 
-    std::string source_code;
-    try {
-        source_code = read_input_from_file(argv[file_index]);
-    } catch (const std::exception& e) {
-        std::cerr << "Failed to load file: " << e.what() << "\n";
-        return 2;
-    }
-
     minilua::Interpreter interpreter;
     interpreter.config().all(trace);
 
-    if (auto result = interpreter.parse(source_code); !result) {
+    if (auto result = interpreter.parse_file(argv[file_index]); !result) {
         std::cerr << "Failed to parse\nErrors:\n";
         for (const auto& error : result.errors) {
             std::cerr << " - " << error << "\n";

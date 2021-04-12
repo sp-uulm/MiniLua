@@ -84,9 +84,6 @@ auto Interpreter::run(const ts::Tree& tree, Env& user_env) -> EvalResult {
     Env env = this->setup_environment(user_env);
 
     // execute the actual program
-    std::shared_ptr<std::string> root_filename = std::make_shared<std::string>("__root__");
-    env.set_file(root_filename);
-
     auto result = this->run_file(tree, env);
 
     if (result.values.size() != 0) {
@@ -116,6 +113,18 @@ auto Interpreter::setup_environment(Env& user_env) -> Env {
     // NOTE we only consider global variables because the user can only set
     // global variables
     env.global().set_all(user_env.global());
+
+    // copy over relevant information from user_env
+    env.set_file(user_env.get_file());
+    env.set_stdin(user_env.get_stdin());
+    env.set_stdout(user_env.get_stdout());
+    env.set_stderr(user_env.get_stderr());
+
+    // set a default filename for the root file if the user did not set one
+    if (!env.get_file().has_value()) {
+        std::shared_ptr<std::string> root_filename = std::make_shared<std::string>("__root__");
+        env.set_file(root_filename);
+    }
 
     return env;
 }
@@ -1105,18 +1114,18 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
     meta_arguments.push_back(obj);
     std::move(arguments.begin(), arguments.end(), std::back_inserter(meta_arguments));
 
+    auto call_range = call.range().with_file(env.get_file());
+
     // move the Env to the CallContext (and move it back later)
     auto environment = Environment(env);
-    auto ctx =
-        CallContext(&environment).make_new(meta_arguments, call.range().with_file(env.get_file()));
+    auto ctx = CallContext(&environment).make_new(meta_arguments, call_range);
 
     auto function_name = call.id().to_string();
-    auto range = call.range();
 
     auto call_result = with_call_stack(
         [&ctx]() { return mt::call(ctx); }, function_name,
         StackItem{
-            .position = range,
+            .position = call_range,
             .info = "function '" + function_name + "'",
         });
     result.combine(EvalResult(call_result));
