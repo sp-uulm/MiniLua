@@ -16,8 +16,8 @@ auto InterpreterException::with(StackItem item) const -> InterpreterException {
 
 static void print_range(const std::optional<Range>& range, std::ostream& os) {
     if (range.has_value()) {
-        if (range->file) {
-            os << *range->file;
+        if (range->file.has_value() && *range->file != nullptr) {
+            os << **range->file;
         } else {
             os << "<unknown>";
         }
