@@ -75,6 +75,10 @@
             </dt>
             <dd>Allocate an new table implementation object.</dd>
             <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#aa3208ec8f9b1770740e5d9600a88005f" class="m-doc">get_all</a>(</span><span class="m-doc-wrap">) const -&gt; const std::vector&lt; TableImpl * &gt; &amp; -&gt; auto</span>
+            </dt>
+            <dd>Returns the list of allocated tables.</dd>
+            <dt>
               <span class="m-doc-wrap-bumper">void <a href="#ad3d223ef1c768eb00c9c558848879b23" class="m-doc">free_all</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd>Free all objects created through this allocator.</dd>
@@ -93,12 +97,19 @@
             <p>Allocate an new table implementation object.</p>
 <p>This is used internally in <a href="classminilua_1_1Table.html" class="m-doc">Table</a>.</p>
           </div></section>
+          <section class="m-doc-details" id="aa3208ec8f9b1770740e5d9600a88005f"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />MemoryAllocator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aa3208ec8f9b1770740e5d9600a88005f" class="m-doc-self">get_all</a>(</span><span class="m-doc-wrap">) const -&gt; const std::vector&lt; TableImpl * &gt; &amp;</span></span>
+            </h3>
+            <p>Returns the list of allocated tables.</p>
+<p>This is used by the interpreter to call the <code>__gc</code> metamethod on all tables that have it.</p>
+          </div></section>
           <section class="m-doc-details" id="ad3d223ef1c768eb00c9c558848879b23"><div>
             <h3>
               <span class="m-doc-wrap-bumper">void minilua::<wbr />MemoryAllocator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad3d223ef1c768eb00c9c558848879b23" class="m-doc-self">free_all</a>(</span><span class="m-doc-wrap">)</span></span>
             </h3>
             <p>Free all objects created through this allocator.</p>
-<aside class="m-note m-danger"><h4>Warning</h4><p>This is highly unsafe! You have to be absolutely certain that none of the values allocated by this will be used again.</p><p><strong>Any object/pointer allocated before calling this will become invalid.</strong></p></aside>
+<p>This assumes that there are no tables with a <code>__gc</code> method, or that all of them have already been called.</p><aside class="m-note m-danger"><h4>Warning</h4><p>This is highly unsafe! You have to be absolutely certain that none of the values allocated by this will be used again.</p><p><strong>Any object/pointer allocated before calling this will become invalid.</strong></p></aside>
           </div></section>
         </section>
       </div>

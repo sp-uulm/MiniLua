@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Todo List | MiniLua Value tracing lua interpreter</title>
+  <title>minilua::io::FileHandle class | MiniLua Value tracing lua interpreter</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -52,9 +52,53 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          Todo List
+          <span class="m-breadcrumb"><a href="namespaceminilua.html">minilua</a>::<wbr/></span><span class="m-breadcrumb"><a href="namespaceminilua_1_1io.html">io</a>::<wbr/></span>FileHandle <span class="m-thin">class</span>
         </h1>
-<dl class="m-doc"><dt>page <a href="index.html" class="m-doc">MiniLua</a></dt><dd><p><a name="_todo000004"></a>generating source changes (aka allowing a function to be reversible)</p><p><a name="_todo000005"></a>How to work with values, operators, visit, source change tracking, origin</p><p><a name="_todo000006"></a>how source changes work and how to use them</p><p><a name="_todo000007"></a>allocator</p></dd><dt>Class <a href="structminilua_1_1ExternalOrigin.html" class="m-doc">minilua::<wbr />ExternalOrigin</a></dt><dd><a name="_todo000001"></a>future use could include allowing to specify a function to change the external value (like it is possible for values produced from literals).</dd><dt>Class <a href="classminilua_1_1io_1_1FileHandle.html" class="m-doc">minilua::<wbr />io::<wbr />FileHandle</a></dt><dd><p><a name="_todo000002"></a>Allow the user of the library to overwrite default file open behaviour.</p><p><a name="_todo000003"></a>Implement stdin/stdout/stderr streams using another derived class that uses C++ streams.</p></dd></dl>
+        <p>Base class for file handles used by the io implementation.</p>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li>
+              Reference
+              <ul>
+                <li><a href="#pub-methods">Public functions</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+<p>Currently all files opened by <code><a href="namespaceminilua_1_1io.html#a11aaa010843fd55b2d4f955fabded7ff" class="m-doc">io.open</a></code> use <code><a href="classminilua_1_1io_1_1CFileHandle.html" class="m-doc">CFileHandle</a></code>.</p><aside class="m-note m-dim"><h4><a href="todo.html#_todo000002" class="m-doc">Todo</a></h4><p>Allow the user of the library to overwrite default file open behaviour.</p></aside><aside class="m-note m-dim"><h4><a href="todo.html#_todo000003" class="m-doc">Todo</a></h4><p>Implement stdin/stdout/stderr streams using another derived class that uses C++ streams.</p></aside><p>The following methods have to be provided by a derived class:</p><ul><li><code>is_open</code></li><li>have the same behaviour described in <a href="https://www.lua.org/manual/5.3/manual.html#6.8">https:/<wbr />/<wbr />www.lua.org/<wbr />manual/<wbr />5.3/<wbr />manual.html#6.8</a><ul><li><code>close</code></li><li><code>flush</code></li></ul></li><li>arguments will be parsed by the base class but you have to implement the behaviour<ul><li><code>seek_impl</code></li><li><code>setvbuf_impl</code></li></ul></li><li>These methods are used by <code>read</code> and correspond to the format arguments. Note these may be called multiple times for one read if there are multiple format arguments.<ul><li><code>read_all</code></li><li><code>read_num</code></li><li><code>read_line</code></li><li><code>read_line_with_newline</code></li><li><code>read_count</code></li></ul></li><li>these method will be used by <code>write</code><ul><li><code>write_string</code></li></ul></li></ul>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ab4d1612f7b99240ac8039970be4b2ee1" class="m-doc">seek_impl</a>(</span><span class="m-doc-wrap"><a href="classminilua_1_1io_1_1FileHandle.html#abfa9a679879253534f1a50e0d6b17335" class="m-doc">SeekWhence</a> whence,
+              long offset) -&gt; long -&gt; auto <span class="m-label m-flat m-warning">pure virtual</span></span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a1d3be4d11c717d95a3542a42120e87c4" class="m-doc">setvbuf_impl</a>(</span><span class="m-doc-wrap"><a href="classminilua_1_1io_1_1FileHandle.html#a8ed3f9fc7f7610c2f99a9d24f7dc89b7" class="m-doc">SetvbufMode</a> mode,
+              size_t size) -&gt; bool -&gt; auto <span class="m-label m-flat m-warning">pure virtual</span></span>
+            </dt>
+            <dd></dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="ab4d1612f7b99240ac8039970be4b2ee1"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />io::<wbr />FileHandle::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab4d1612f7b99240ac8039970be4b2ee1" class="m-doc-self">seek_impl</a>(</span><span class="m-doc-wrap"><a href="classminilua_1_1io_1_1FileHandle.html#abfa9a679879253534f1a50e0d6b17335" class="m-doc">SeekWhence</a> whence,
+              long offset) -&gt; long <span class="m-label m-warning">pure virtual</span></span></span>
+            </h3>
+<p>Returns the current position after the seek.</p>
+          </div></section>
+          <section class="m-doc-details" id="a1d3be4d11c717d95a3542a42120e87c4"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />io::<wbr />FileHandle::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1d3be4d11c717d95a3542a42120e87c4" class="m-doc-self">setvbuf_impl</a>(</span><span class="m-doc-wrap"><a href="classminilua_1_1io_1_1FileHandle.html#a8ed3f9fc7f7610c2f99a9d24f7dc89b7" class="m-doc">SetvbufMode</a> mode,
+              size_t size) -&gt; bool <span class="m-label m-warning">pure virtual</span></span></span>
+            </h3>
+<p>Returns true on success.</p>
+          </div></section>
+        </section>
       </div>
     </div>
   </div>

@@ -115,6 +115,11 @@
             </dt>
             <dd>Creates and fills a table in the given allocator.</dd>
             <dt>
+              <span class="m-doc-wrap-bumper"><a href="#a6fea0bc4f4d15ec7a96d0131993b240c" class="m-doc">Table</a>(</span><span class="m-doc-wrap"><a href="structminilua_1_1TableImpl.html" class="m-doc">TableImpl</a>* impl,
+              <a href="classminilua_1_1MemoryAllocator.html" class="m-doc">MemoryAllocator</a>* allocator)</span>
+            </dt>
+            <dd>Construct a table directly from a pointer to it&#x27;s impl.</dd>
+            <dt>
               <span class="m-doc-wrap-bumper"><a href="#a839e51e5db30c554886326053a7cd4d8" class="m-doc">Table</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1Table.html" class="m-doc">Table</a>&amp; other,
               <a href="classminilua_1_1MemoryAllocator.html" class="m-doc">MemoryAllocator</a>* allocator)</span>
             </dt>
@@ -144,6 +149,10 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a5d758f52a37e9bc9193bf33f89cce5ff" class="m-doc-self">operator=</a>(</span><span class="m-doc-wrap"><a href="classminilua_1_1Table.html" class="m-doc">Table</a>&amp;&amp; other) noexcept -&gt; Table &amp; -&gt; auto</span>
             </dt>
             <dd>Move assignment operator.</dd>
+            <dt id="afe3f2fc4a3afaadaa59f908f08bc0302">
+              <span class="m-doc-wrap-bumper">auto <a href="#afe3f2fc4a3afaadaa59f908f08bc0302" class="m-doc-self">allocator</a>(</span><span class="m-doc-wrap">) const -&gt; MemoryAllocator * -&gt; auto</span>
+            </dt>
+            <dd>Returns the used allocator.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a210099d27fade41d0804d4a7520d20fa" class="m-doc">border</a>(</span><span class="m-doc-wrap">) const -&gt; int -&gt; auto</span>
             </dt>
@@ -254,6 +263,14 @@
         </section>
         <section>
           <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a6fea0bc4f4d15ec7a96d0131993b240c"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"> minilua::<wbr />Table::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a6fea0bc4f4d15ec7a96d0131993b240c" class="m-doc-self">Table</a>(</span><span class="m-doc-wrap"><a href="structminilua_1_1TableImpl.html" class="m-doc">TableImpl</a>* impl,
+              <a href="classminilua_1_1MemoryAllocator.html" class="m-doc">MemoryAllocator</a>* allocator)</span></span>
+            </h3>
+            <p>Construct a table directly from a pointer to it&#x27;s impl.</p>
+<aside class="m-note m-danger"><h4>Warning</h4><p>This should only be used internally.</p></aside>
+          </div></section>
           <section class="m-doc-details" id="a839e51e5db30c554886326053a7cd4d8"><div>
             <h3>
               <span class="m-doc-wrap-bumper"> minilua::<wbr />Table::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a839e51e5db30c554886326053a7cd4d8" class="m-doc-self">Table</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1Table.html" class="m-doc">Table</a>&amp; other,

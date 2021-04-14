@@ -177,6 +177,10 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a3ac433acc408879f984979ea7f52ac9f" class="m-doc">call</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx) -&gt; CallResult -&gt; auto</span>
             </dt>
             <dd>Call (<code>func(args)</code>) operator. Will call metamethod <code>__call</code> if necessary.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a0a6c8b1b8c9df24d924e0e47ce1405dc" class="m-doc">gc</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx)</span>
+            </dt>
+            <dd>Called when a table is <em>garbage collected</em>. Will call metamethod <code>__gc</code>.</dd>
           </dl>
         </section>
         <section>
@@ -225,6 +229,13 @@
             </h3>
             <p>Call (<code>func(args)</code>) operator. Will call metamethod <code>__call</code> if necessary.</p>
 <p>The metamethod is only searched in <code>func</code> and it will get <code>func</code> and the arguments <code>args</code> as parameters.</p><p>This metamethod allows multiple results.</p>
+          </div></section>
+          <section class="m-doc-details" id="a0a6c8b1b8c9df24d924e0e47ce1405dc"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void minilua::<wbr />mt::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a0a6c8b1b8c9df24d924e0e47ce1405dc" class="m-doc-self">gc</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1CallContext.html" class="m-doc">CallContext</a>&amp; ctx)</span></span>
+            </h3>
+            <p>Called when a table is <em>garbage collected</em>. Will call metamethod <code>__gc</code>.</p>
+<p>In our case the tables are all <em>garbage collected</em> at once when the lua program stops running.</p><aside class="m-note m-info"><h4>Note</h4><p>The return value and source changes of <code>__gc</code> are ignored.</p></aside>
           </div></section>
         </section>
       </div>
