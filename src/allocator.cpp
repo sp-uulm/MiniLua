@@ -11,6 +11,9 @@ auto MemoryAllocator::allocate_table() -> TableImpl* {
     table_memory.push_back(ptr);
     return ptr;
 }
+auto MemoryAllocator::get_all() const -> const std::vector<TableImpl*>& {
+    return this->table_memory;
+}
 
 void MemoryAllocator::free_all() {
     for (TableImpl* ptr : table_memory) {

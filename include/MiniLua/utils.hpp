@@ -224,6 +224,8 @@ template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
  */
 auto to_string_with_base(int number, int base) -> std::string;
 
+auto string_starts_with(const std::string& str, char ch) -> bool;
+
 } // namespace minilua
 
 #endif

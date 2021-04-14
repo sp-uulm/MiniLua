@@ -465,7 +465,7 @@ class Table {
 private:
     // The impl pointer is allocated through this allocator and will also
     // be freed through it.
-    MemoryAllocator* allocator;
+    MemoryAllocator* _allocator;
     TableImpl* impl;
 
 public:
@@ -570,6 +570,13 @@ public:
         MemoryAllocator* allocator = &GLOBAL_ALLOCATOR);
 
     /**
+     * @brief Construct a table directly from a pointer to it's impl.
+     *
+     * \warning This should only be used internally.
+     */
+    Table(TableImpl* impl, MemoryAllocator* allocator);
+
+    /**
      * @brief Copy a table to a different allocator.
      *
      * This will make a deep copy meaning all nested tables will also be copied
@@ -600,6 +607,11 @@ public:
      * @brief Swap function.
      */
     friend void swap(Table& self, Table& other);
+
+    /**
+     * @brief Returns the used allocator.
+     */
+    [[nodiscard]] auto allocator() const -> MemoryAllocator*;
 
     /**
      * @brief The result of the lua length operator `#`.
@@ -983,6 +995,14 @@ public:
      * @brief Truncate the CallResult to max one value.
      */
     [[nodiscard]] auto one_value() const -> CallResult;
+
+    /**
+     * @brief Combines two CallResults.
+     *
+     * Takes the value of the given call result (`other`) and combines the
+     * source changes.
+     */
+    [[nodiscard]] auto combine(CallResult other) const -> CallResult;
 };
 
 auto operator==(const CallResult&, const CallResult&) -> bool;

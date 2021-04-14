@@ -169,6 +169,16 @@ auto len(const CallContext& ctx, std::optional<Range> location = std::nullopt) -
  */
 auto call(const CallContext& ctx) -> CallResult;
 
+/**
+ * @brief Called when a table is *garbage collected*. Will call metamethod `__gc`.
+ *
+ * In our case the tables are all *garbage collected* at once when the lua
+ * program stops running.
+ *
+ * \note The return value and source changes of `__gc` are ignored.
+ */
+void gc(const CallContext& ctx);
+
 } // namespace minilua::mt
 
 #endif

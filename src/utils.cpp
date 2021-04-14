@@ -48,4 +48,8 @@ auto to_string_with_base(int number, int base) -> std::string {
     return str;
 }
 
+auto string_starts_with(const std::string& str, char ch) -> bool {
+    return !str.empty() && str[0] == ch;
+}
+
 } // namespace minilua

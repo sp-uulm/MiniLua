@@ -1,6 +1,7 @@
 #include "interpreter.hpp"
 #include "MiniLua/environment.hpp"
 #include "MiniLua/interpreter.hpp"
+#include "MiniLua/io.hpp"
 #include "MiniLua/metatables.hpp"
 #include "MiniLua/stdlib.hpp"
 #include "ast.hpp"
@@ -86,30 +87,43 @@ auto Interpreter::run(const ts::Tree& tree, Env& user_env) -> EvalResult {
     std::shared_ptr<std::string> root_filename = std::make_shared<std::string>("__root__");
     env.set_file(root_filename);
 
-    auto result = this->run_file(tree, env);
+    try {
+        auto result = this->run_file(tree, env);
 
-    if (result.values.size() != 0) {
-        // don't return functions (or tables that contains functions)
-        // this prevents crashes because it is not allwed to call lua functions
-        // after the interpreter finishes
-        //
-        // also ignore everything except the first value because the public api
-        // only returns one value
-        if (result.values.get(0).contains_function()) {
-            result.values = Vallist();
-        } else {
-            result.values = Vallist(result.values.get(0));
+        if (result.values.size() != 0) {
+            // don't return functions (or tables that contains functions)
+            // this prevents crashes because it is not allwed to call lua functions
+            // after the interpreter finishes
+            //
+            // also ignore everything except the first value because the public api
+            // only returns one value
+            if (result.values.get(0).contains_function()) {
+                result.values = Vallist();
+            } else {
+                result.values = Vallist(result.values.get(0));
+            }
         }
-    }
 
-    return result;
+        // NOTE: This will not free the tables it only calls all __gc metamethods.
+        this->cleanup_environment(env);
+
+        return result;
+    } catch (const std::runtime_error& e) {
+        this->cleanup_environment(env);
+        throw;
+    } catch (const InterpreterException& e) {
+        this->cleanup_environment(env);
+        throw;
+    }
 }
 
 auto Interpreter::setup_environment(Env& user_env) -> Env {
     Env env(user_env.allocator());
 
+    // load the C++ part of the stdlib
+    add_stdlib(env.global());
+    // run the Lua part of the stdlib
     this->execute_stdlib(env);
-    env.global().set("math", create_math_table(env.allocator()));
 
     // apply user overwrites
     // NOTE we only consider global variables because the user can only set
@@ -120,11 +134,6 @@ auto Interpreter::setup_environment(Env& user_env) -> Env {
 }
 
 void Interpreter::execute_stdlib(Env& env) {
-    // load the C++ part of the stdlib
-    add_stdlib(env.global());
-
-    // run the Lua part of the stdlib
-
     // NOTE The tree is static so it is only initialized once
     static const ts::Tree stdlib_tree = this->load_stdlib();
 
@@ -166,6 +175,17 @@ auto Interpreter::load_stdlib() -> ts::Tree {
     } catch (const std::exception& e) {
         // This should never actually throw an exception
         throw InterpreterException("THIS IS A BUG! Failed to parse the stdlib: "s + e.what());
+    }
+}
+
+void Interpreter::cleanup_environment(Env& env) {
+    for (auto* table_impl : env.allocator()->get_all()) {
+        Environment environment(env);
+        CallContext ctx(&environment);
+
+        Table table(table_impl, env.allocator());
+
+        mt::gc(ctx.make_new({table}));
     }
 }
 
@@ -1069,6 +1089,8 @@ auto Interpreter::visit_prefix(ast::Prefix prefix, Env& env) -> EvalResult {
     return result;
 }
 
+static auto prefix_to_ident(const ast::Prefix& prefix) -> std::string { return prefix.to_string(); }
+
 auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalResult {
     auto _ = NodeTracer(this, call.debug_print(), "visit_function_call");
 
@@ -1106,7 +1128,9 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
         stringstream ss;
         ss << call.range().start;
         std::string pos = ss.str();
-        throw InterpreterException("failed to call function  ("s + pos + ") : " + e.what());
+        throw InterpreterException(
+            "failed to call function \"" + prefix_to_ident(call.id()) + "\" ("s + pos +
+            ") : " + e.what());
     }
 
     // move the Env back in case something has changed internally
