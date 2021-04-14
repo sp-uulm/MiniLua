@@ -206,6 +206,7 @@ public:
             return -1;
         }
     }
+    
     auto setvbuf_impl(SetvbufMode mode, size_t size) -> bool override {
         int mode_flag;
         switch (mode) {
@@ -223,6 +224,7 @@ public:
         }
         return ::setvbuf(this->handle, nullptr, mode_flag, size) == 0;
     }
+    
     void write_string(std::string str) override {
         fwrite(str.c_str(), sizeof(char), str.size(), this->handle);
     }
