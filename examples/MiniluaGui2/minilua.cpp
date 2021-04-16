@@ -1,6 +1,8 @@
 #include "minilua.hpp"
 #include "./ui_minilua.h"
+#include "MiniLua/interpreter.hpp"
 #include "MiniLua/values.hpp"
+#include <qgraphicsscene.h>
 #include <qnamespace.h>
 #include <qpoint.h>
 #include <string>
@@ -81,6 +83,7 @@ Minilua::Minilua(QMainWindow* parent)
       err_stream(&err_buf) {
     ui->setupUi(this);
     ui->cancelButton->setVisible(false);
+    ui->graphics->setScene(new QGraphicsScene());
 
     connect(this, &Minilua::new_stdout, this, &Minilua::writeTextToLog);
     connect(this, &Minilua::new_stderr, this, &Minilua::writeErrorToLog);
@@ -111,6 +114,14 @@ Minilua::Minilua(QMainWindow* parent)
 }
 
 Minilua::~Minilua() { delete ui; }
+
+void Minilua::clear_circles() {
+    for (auto* circle : this->circles) {
+        ui->graphics->scene()->removeItem(circle);
+        delete circle;
+    }
+    this->circles.clear();
+}
 
 void Minilua::create_circle(
     minilua::Value x, minilua::Value y, minilua::Value size, Qt::GlobalColor color) {
@@ -171,6 +182,9 @@ void Minilua::on_runButton_clicked() {
     ui->cancelButton->setVisible(true);
     std::string source_code = ui->inputField->toPlainText().toStdString();
     this->writeTextToLog("Application started");
+
+    clear_circles();
+    QFuture<void> future = QtConcurrent::run(&this->pool, [this]() { this->exec_interpreter(); });
 }
 
 void Minilua::on_cancelButton_released() {
@@ -178,4 +192,21 @@ void Minilua::on_cancelButton_released() {
     this->writeTextToLog("Application stopped");
 }
 
-void Minilua::exec_interpreter() { auto parse_result = 0; }
+void Minilua::exec_interpreter() {
+    const auto parse_result = this->interpreter.parse(ui->inputField->toPlainText().toStdString());
+    if (!parse_result) {
+        for (const auto& e : parse_result.errors) {
+            writeErrorToLog(e + "\n");
+        }
+    }
+
+    try {
+        const auto eval_result = this->interpreter.evaluate();
+        std::stringstream ss;
+        ss << "   RETURN VALUE: " << eval_result.value << "\n"
+           << "   SOURCE CHANGES: " << eval_result.source_change << "\n";
+        writeTextToLog(ss.str());
+    } catch (const minilua::InterpreterException& e) {
+        writeTextToLog(e.what());
+    }
+}

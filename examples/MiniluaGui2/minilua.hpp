@@ -1,10 +1,14 @@
 #ifndef MINILUA_GUI_HPP
 #define MINILUA_GUI_HPP
 
+#include <QFuture>
 #include <QGraphicsEllipseItem>
 #include <QMainWindow>
 #include <QTextBrowser>
 #include <QThreadPool>
+#include <QtConcurrent/QtConcurrent>
+
+#include <sstream>
 
 #include <MiniLua/MiniLua.hpp>
 
@@ -82,5 +86,6 @@ private:
     QThreadPool pool;
 
     void exec_interpreter();
+    void clear_circles();
 };
 #endif // MINILUA_HPP
