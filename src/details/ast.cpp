@@ -1465,8 +1465,7 @@ Expression::Expression(ts::Node node) : content(node) {
           node.type_id() == ts::NODE_NUMBER || node.type_id() == ts::NODE_NIL ||
           node.type_id() == ts::NODE_FALSE || node.type_id() == ts::NODE_TRUE ||
           node.type_id() == ts::NODE_IDENTIFIER || node.type_id() == ts::NODE_FUNCTION_CALL ||
-          node.type_id() == ts::NODE_FIELD_EXPRESSION || node.type_id() == ts::NODE_TABLE_INDEX /*||
-          node.child(0)->text() == "("*/)) {
+          node.type_id() == ts::NODE_FIELD_EXPRESSION || node.type_id() == ts::NODE_TABLE_INDEX)) {
         throw std::runtime_error("Not an expression-node");
     }
 }
@@ -1511,8 +1510,7 @@ auto Expression::options() const -> ExpressionVariant {
                 } else if (
                     node.type_id() == ts::NODE_FUNCTION_CALL ||
                     node.type_id() == ts::NODE_FIELD_EXPRESSION ||
-                    node.type_id() == ts::NODE_TABLE_INDEX /*||
-                    (node.child(0).has_value() && node.child(0)->text() == "(")*/) {
+                    node.type_id() == ts::NODE_TABLE_INDEX) {
                     return Prefix(node);
                 } else {
                     throw std::runtime_error("Not an expression-node");
@@ -1622,8 +1620,7 @@ Statement::Statement(ts::Node node) : content(node) {
           node.type_id() == ts::NODE_FOR_IN_STATEMENT ||
           node.type_id() == ts::NODE_GOTO_STATEMENT || node.type_id() == ts::NODE_BREAK_STATEMENT ||
           node.type_id() == ts::NODE_LABEL_STATEMENT || node.type_id() == ts::NODE_FUNCTION ||
-          node.type_id() == ts::NODE_LOCAL_FUNCTION || node.type_id() == ts::NODE_FUNCTION_CALL /*||
-          (node.child(0).has_value() && node.child(0)->text() == ";")*/)) {
+          node.type_id() == ts::NODE_LOCAL_FUNCTION || node.type_id() == ts::NODE_FUNCTION_CALL)) {
         throw std::runtime_error("Not a statement-node " + std::string(node.type()));
     }
 }
