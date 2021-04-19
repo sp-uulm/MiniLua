@@ -911,15 +911,19 @@ TEST_CASE("desugar_function_statements", "[tree-sitter]") {
 
 TEST_CASE("expression_prefix", "[tree-sitter]") {
     ts::Parser parser(ts::LUA_LANGUAGE);
-    std::string source = "(t+t)(t)";
+    std::string source = "(t+t)(t)\n"
+                         "(~a)()\n"
+                         "(1<<1)()";
     ts::Tree tree = parser.parse_string(source);
     ts::Node root = tree.root_node();
     auto prog = Program(root);
     auto body = prog.body();
-    CHECK(body.statements().size() == 1);
-    auto statement_var = body.statements()[0].options();
-    CHECK(std::holds_alternative<FunctionCall>(statement_var));
-    auto function_call = std::get_if<FunctionCall>(&statement_var);
-    CHECK(std::holds_alternative<Expression>(function_call->id().options()));
+    CHECK(body.statements().size() == 3);
+    for (uint i = 0; i < body.statements().size(); i++) {
+        auto statement_var = body.statements()[i].options();
+        CHECK(std::holds_alternative<FunctionCall>(statement_var));
+        auto function_call = std::get_if<FunctionCall>(&statement_var);
+        CHECK(std::holds_alternative<Expression>(function_call->id().options()));
+    }
 }
 } // namespace minilua::details::ast
