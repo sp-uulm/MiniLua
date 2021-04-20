@@ -93,7 +93,7 @@ TEST_CASE("expressions", "[tree-sitter]") {
                          "false\n"
                          "id\n"
                          "d = not true\n"
-                         "c = -1\n"
+                         "c = -a\n"
                          "a = #table\n"
                          "b = ~a\n";
     ts::Tree tree = parser.parse_string(source);
