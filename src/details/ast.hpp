@@ -757,6 +757,7 @@ public:
     auto args() const -> std::vector<Expression>;
     auto range() const -> minilua::Range;
     auto debug_print() const -> std::string;
+    auto function_name() const -> std::string;
 };
 /**
  * class for field_nodes

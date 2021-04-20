@@ -291,7 +291,8 @@ auto UnaryOperation::unary_operator() const -> UnOpEnum {
                 } else if (un_op == ts::NODE_UN_OP_LENGTH) {
                     return UnOpEnum::LEN;
                 } else {
-                    throw std::runtime_error("unknown Unary Operator: " + node.child(0)->text());
+                    throw std::runtime_error(
+                        "unknown Unary Operator: " + node.named_child(0)->text());
                 }
             },
             [](const UnOpStruct& un_struct) -> UnOpEnum { return un_struct.un_operator; }},
@@ -301,7 +302,7 @@ auto UnaryOperation::unary_operator() const -> UnOpEnum {
 auto UnaryOperation::expression() const -> Expression {
     return std::visit(
         overloaded{
-            [](ts::Node node) -> Expression { return Expression(node.child(1).value()); },
+            [](ts::Node node) -> Expression { return Expression(node.named_child(1).value()); },
             [](const UnOpStruct& un_struct) -> Expression { return *un_struct.operand; }},
         this->content);
 }
@@ -1277,6 +1278,24 @@ auto FunctionCall::debug_print() const -> std::string {
             }},
         this->content);
 }
+auto FunctionCall::function_name() const -> std::string {
+    auto prefix = this->prefix();
+    auto options = prefix.options();
+    return std::visit(
+        overloaded{
+            [](Expression exp) -> std::string { return exp.to_string(); },
+            [](FunctionCall fc) -> std::string { return "(function call result)"; },
+            [](VariableDeclarator vd) -> std::string {
+                auto vd_options = vd.options();
+                return std::visit(
+                    overloaded{
+                        [](FieldExpression fe) -> std::string { return fe.property_id().string(); },
+                        [](TableIndex ti) -> std::string { return ti.index().to_string(); },
+                        [](Identifier id) -> std::string { return id.string(); }},
+                    vd_options);
+            }},
+        options);
+}
 
 // Table
 Table::Table(ts::Node node) : table(node) {
@@ -1335,7 +1354,12 @@ Prefix::PrefixStruct::PrefixStruct(VariableDeclarator vd, minilua::Range range, 
 
 Prefix::Prefix(ts::Node node) : content(node) {
     if (!(node.type_id() == ts::NODE_FUNCTION_CALL || node.type_id() == ts::NODE_IDENTIFIER ||
-          node.type_id() == ts::NODE_FIELD_EXPRESSION || node.type_id() == ts::NODE_TABLE_INDEX)) {
+          node.type_id() == ts::NODE_FIELD_EXPRESSION || node.type_id() == ts::NODE_TABLE_INDEX ||
+          node.type_id() == ts::NODE_SPREAD || node.type_id() == ts::NODE_FUNCTION_DEFINITION ||
+          node.type_id() == ts::NODE_TABLE || node.type_id() == ts::NODE_BINARY_OPERATION ||
+          node.type_id() == ts::NODE_UNARY_OPERATION || node.type_id() == ts::NODE_STRING ||
+          node.type_id() == ts::NODE_NUMBER || node.type_id() == ts::NODE_NIL ||
+          node.type_id() == ts::NODE_FALSE || node.type_id() == ts::NODE_TRUE)) {
         throw std::runtime_error("Not a prefix-node");
     }
 }
@@ -1348,8 +1372,16 @@ auto Prefix::options() const -> PrefixVariant {
             [](ts::Node node) -> PrefixVariant {
                 if (node.type_id() == ts::NODE_FUNCTION_CALL) {
                     return FunctionCall(node);
-                } else if (node.child_count() > 0 && node.child(0)->text() == "(") {
-                    return Expression(node.child(1).value());
+                } else if (
+                    node.type_id() == ts::NODE_SPREAD ||
+                    node.type_id() == ts::NODE_FUNCTION_DEFINITION ||
+                    node.type_id() == ts::NODE_TABLE ||
+                    node.type_id() == ts::NODE_BINARY_OPERATION ||
+                    node.type_id() == ts::NODE_UNARY_OPERATION ||
+                    node.type_id() == ts::NODE_STRING || node.type_id() == ts::NODE_NUMBER ||
+                    node.type_id() == ts::NODE_NIL || node.type_id() == ts::NODE_FALSE ||
+                    node.type_id() == ts::NODE_TRUE) {
+                    return Expression(node);
                 } else if (
                     node.type_id() == ts::NODE_IDENTIFIER ||
                     node.type_id() == ts::NODE_FIELD_EXPRESSION ||
@@ -1433,8 +1465,7 @@ Expression::Expression(ts::Node node) : content(node) {
           node.type_id() == ts::NODE_NUMBER || node.type_id() == ts::NODE_NIL ||
           node.type_id() == ts::NODE_FALSE || node.type_id() == ts::NODE_TRUE ||
           node.type_id() == ts::NODE_IDENTIFIER || node.type_id() == ts::NODE_FUNCTION_CALL ||
-          node.type_id() == ts::NODE_FIELD_EXPRESSION || node.type_id() == ts::NODE_TABLE_INDEX ||
-          node.child(0)->text() == "(")) {
+          node.type_id() == ts::NODE_FIELD_EXPRESSION || node.type_id() == ts::NODE_TABLE_INDEX)) {
         throw std::runtime_error("Not an expression-node");
     }
 }
@@ -1479,8 +1510,7 @@ auto Expression::options() const -> ExpressionVariant {
                 } else if (
                     node.type_id() == ts::NODE_FUNCTION_CALL ||
                     node.type_id() == ts::NODE_FIELD_EXPRESSION ||
-                    node.type_id() == ts::NODE_TABLE_INDEX ||
-                    (node.child(0).has_value() && node.child(0)->text() == "(")) {
+                    node.type_id() == ts::NODE_TABLE_INDEX) {
                     return Prefix(node);
                 } else {
                     throw std::runtime_error("Not an expression-node");
@@ -1590,8 +1620,7 @@ Statement::Statement(ts::Node node) : content(node) {
           node.type_id() == ts::NODE_FOR_IN_STATEMENT ||
           node.type_id() == ts::NODE_GOTO_STATEMENT || node.type_id() == ts::NODE_BREAK_STATEMENT ||
           node.type_id() == ts::NODE_LABEL_STATEMENT || node.type_id() == ts::NODE_FUNCTION ||
-          node.type_id() == ts::NODE_LOCAL_FUNCTION || node.type_id() == ts::NODE_FUNCTION_CALL ||
-          (node.child(0).has_value() && node.child(0)->text() == ";"))) {
+          node.type_id() == ts::NODE_LOCAL_FUNCTION || node.type_id() == ts::NODE_FUNCTION_CALL)) {
         throw std::runtime_error("Not a statement-node " + std::string(node.type()));
     }
 }
