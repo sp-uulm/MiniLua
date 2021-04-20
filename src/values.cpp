@@ -1,6 +1,7 @@
 #include "MiniLua/values.hpp"
 #include "MiniLua/environment.hpp"
 #include "MiniLua/exceptions.hpp"
+#include "MiniLua/source_change.hpp"
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/utils.hpp"
 
@@ -393,6 +394,11 @@ CallResult::CallResult(Vallist vallist, std::optional<SourceChangeTree> sc)
     } else {
         return *this;
     }
+}
+
+auto CallResult::combine(CallResult other) const -> CallResult {
+    auto source_changes = combine_source_changes(this->source_change(), other.source_change());
+    return CallResult(other.values(), source_changes);
 }
 
 auto operator==(const CallResult& lhs, const CallResult& rhs) -> bool {

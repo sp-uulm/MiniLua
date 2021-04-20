@@ -21,6 +21,7 @@ auto Environment::operator=(const Environment&) -> Environment& = default;
 // NOLINTNEXTLINE
 auto Environment::operator=(Environment&&) -> Environment& = default;
 void swap(Environment& a, Environment& b) { swap(a.impl, b.impl); }
+auto Environment::allocator() const -> MemoryAllocator* { return this->impl->inner.allocator(); }
 
 auto Environment::make_table() const -> Table { return this->impl->inner.make_table(); }
 

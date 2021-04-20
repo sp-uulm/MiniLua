@@ -71,6 +71,11 @@ public:
     friend void swap(Environment&, Environment&);
 
     /**
+     * @brief Returns the used memory allocator.
+     */
+    [[nodiscard]] auto allocator() const -> MemoryAllocator*;
+
+    /**
      * @brief Create a new table in the allocator of this environment.
      */
     [[nodiscard]] auto make_table() const -> Table;

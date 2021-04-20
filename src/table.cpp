@@ -109,7 +109,7 @@ auto Table::const_iterator::operator->() const -> Table::const_iterator::pointer
 
 Table::Table() : Table(&GLOBAL_ALLOCATOR) {}
 Table::Table(MemoryAllocator* allocator)
-    : allocator(allocator), impl(allocator->allocate_table()) {}
+    : _allocator(allocator), impl(allocator->allocate_table()) {}
 Table::Table(std::unordered_map<Value, Value> values, MemoryAllocator* allocator)
     : Table(allocator) {
     for (const auto& [key, value] : values) {
@@ -124,6 +124,7 @@ Table::Table(
     }
 }
 
+Table::Table(TableImpl* impl, MemoryAllocator* allocator) : _allocator(allocator), impl(impl) {}
 Table::Table(const Table& other, MemoryAllocator* allocator) : Table(allocator) {
     for (const auto& [key, value] : other) {
         this->set(Value(key, allocator), Value(value, allocator));
@@ -144,9 +145,10 @@ auto Table::operator=(Table&& other) noexcept -> Table& {
     return *this;
 };
 void swap(Table& self, Table& other) {
-    std::swap(self.allocator, other.allocator);
+    std::swap(self._allocator, other._allocator);
     std::swap(self.impl, other.impl);
 }
+auto Table::allocator() const -> MemoryAllocator* { return this->_allocator; }
 
 auto Table::border() const -> int { return this->impl->calc_border(); }
 
