@@ -2,6 +2,8 @@
 #include "./ui_minilua.h"
 #include "MiniLua/interpreter.hpp"
 #include "MiniLua/values.hpp"
+#include <iostream>
+#include <qfuturewatcher.h>
 #include <qgraphicsscene.h>
 #include <qnamespace.h>
 #include <qpoint.h>
@@ -82,11 +84,13 @@ Minilua::Minilua(QMainWindow* parent)
       err_buf([this](auto str) { emit new_stderr(str); }), out_stream(&out_buf),
       err_stream(&err_buf) {
     ui->setupUi(this);
-    ui->cancelButton->setVisible(false);
+    hide_cancel_button();
     ui->graphics->setScene(new QGraphicsScene());
 
     connect(this, &Minilua::new_stdout, this, &Minilua::writeTextToLog);
     connect(this, &Minilua::new_stderr, this, &Minilua::writeErrorToLog);
+    connect(&watcher, &QFutureWatcher<void>::canceled, this, &Minilua::hide_cancel_button);
+    connect(&watcher, &QFutureWatcher<void>::finished, this, &Minilua::hide_cancel_button);
     connect(this, &Minilua::new_circle, this, &Minilua::create_circle);
     connect(this, &Minilua::circle_moved, this, &Minilua::apply_move_source_change);
 
@@ -184,13 +188,17 @@ void Minilua::on_runButton_clicked() {
     this->writeTextToLog("Application started");
 
     clear_circles();
-    QFuture<void> future = QtConcurrent::run(&this->pool, [this]() { this->exec_interpreter(); });
+    future.cancel();
+    future = QtConcurrent::run(&this->pool, [this]() { this->exec_interpreter(); });
+    watcher.setFuture(future);
 }
 
 void Minilua::on_cancelButton_released() {
-    ui->cancelButton->setVisible(false);
+    future.cancel();
     this->writeTextToLog("Application stopped");
 }
+
+void Minilua::hide_cancel_button() { ui->cancelButton->setVisible(false); }
 
 void Minilua::exec_interpreter() {
     const auto parse_result = this->interpreter.parse(ui->inputField->toPlainText().toStdString());
@@ -209,4 +217,5 @@ void Minilua::exec_interpreter() {
     } catch (const minilua::InterpreterException& e) {
         writeTextToLog(e.what());
     }
+    std::cout << "programm ended" << std::endl;
 }

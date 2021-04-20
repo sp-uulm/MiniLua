@@ -2,12 +2,14 @@
 #define MINILUA_GUI_HPP
 
 #include <QFuture>
+#include <QFutureWatcher>
 #include <QGraphicsEllipseItem>
 #include <QMainWindow>
 #include <QTextBrowser>
 #include <QThreadPool>
 #include <QtConcurrent/QtConcurrent>
 
+#include <qfuturewatcher.h>
 #include <sstream>
 
 #include <MiniLua/MiniLua.hpp>
@@ -57,6 +59,8 @@ private slots:
     void on_runButton_clicked();
     void on_cancelButton_released();
 
+    void hide_cancel_button();
+
     void writeTextToLog(const std::string& text);
     void writeErrorToLog(const std::string& text);
 
@@ -84,6 +88,8 @@ private:
     std::ostream err_stream;
 
     QThreadPool pool;
+    QFuture<void> future;
+    QFutureWatcher<void> watcher;
 
     void exec_interpreter();
     void clear_circles();
