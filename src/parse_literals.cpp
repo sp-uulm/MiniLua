@@ -7,13 +7,16 @@
 
 namespace minilua {
 
-static std::string pattern_decimal = R"((\s*-?\d+\.?\d*))";
-static std::string pattern_hex = R"((\s*-?0[xX][\dA-Fa-f]+\.?[\dA-Fa-f]*))";
-static std::string pattern_scientific_notation = R"((\s*-?\d+\.?\d*[eE]-?\d+))";
+static std::string pattern_decimal = R"((\s*-?\s*\d+\.?\d*))";
+static std::string pattern_hex = R"((\s*-?\s*0[xX][\dA-Fa-f]+\.?[\dA-Fa-f]*([pP][-+]?\d+)?))";
+static std::string pattern_hex_2 = R"((\s*-?\s*0[xX]\.[\dA-Fa-f]*([pP][-+]?\d+)?))";
+static std::string pattern_scientific_notation = R"((\s*-?\s*\d+\.?\d*([eE][-+]?\d+)?))";
+static std::string pattern_scientific_notation_2 = R"((\s*-?\s*\.\d*([eE][-+]?\d+)?))";
 static std::regex to_number_general_pattern(
-    pattern_decimal + "|" + pattern_hex + "|" + pattern_scientific_notation,
+    pattern_decimal + "|" + pattern_hex + "|" + pattern_hex_2 + "|" + pattern_scientific_notation +
+        "|" + pattern_scientific_notation_2,
     std::regex::ECMAScript | std::regex::optimize);
-static std::regex to_number_int_pattern(R"(\s*-?([0-9]+|(0[xX][a-fA-F0-9]+)))");
+static std::regex to_number_int_pattern(R"(\s*-?\s*([0-9]+|(0[xX][a-fA-F0-9]+)))");
 
 auto parse_number_literal(const std::string& str) -> Value {
     // if the string matches the expected format we parse it otherwise return nil
@@ -21,11 +24,15 @@ auto parse_number_literal(const std::string& str) -> Value {
         // parse as int and check if whole input is consumed
         try {
             char* last_pos;
+
+            auto str_copy = str;
+            str_copy.erase(remove_if(str_copy.begin(), str_copy.end(), isspace), str_copy.end());
             // we need to parse as unsigned long to retain the same behaviour as lua
-            auto value = static_cast<Number::Int>(std::strtoul(str.c_str(), &last_pos, 0));
+            auto value = static_cast<Number::Int>(std::strtoul(str_copy.c_str(), &last_pos, 0));
             // NOTE this sets `errno` to `ERANGE` if the result is out of range but
             // we ignore this to automatically truncate the result
-            if (std::distance(str.c_str(), static_cast<const char*>(last_pos)) != str.length()) {
+            if (std::distance(str_copy.c_str(), static_cast<const char*>(last_pos)) !=
+                str_copy.length()) {
                 throw std::runtime_error(
                     "Could not completely parse integer literal. This is a bug.");
             }
@@ -38,9 +45,12 @@ auto parse_number_literal(const std::string& str) -> Value {
         // parse as double and check if whole input is consumed
         try {
             char* last_pos;
-            auto value = std::strtod(str.c_str(), &last_pos);
+            auto str_copy = str;
+            str_copy.erase(remove_if(str_copy.begin(), str_copy.end(), isspace), str_copy.end());
+            auto value = std::strtod(str_copy.c_str(), &last_pos);
             // NOTE if the value is out of range HUGE_VAL is returned
-            if (std::distance(str.c_str(), static_cast<const char*>(last_pos)) != str.length()) {
+            if (std::distance(str_copy.c_str(), static_cast<const char*>(last_pos)) !=
+                str_copy.length()) {
                 throw std::runtime_error(
                     "Could not completely parse float literal. This is a bug.");
             }
