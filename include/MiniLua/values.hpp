@@ -1698,7 +1698,7 @@ public:
      *
      * This throws an exception if the types of the values didn't match.
      */
-    [[nodiscard]] auto force(Value new_value, std::string origin = "") const
+    [[nodiscard]] auto force(const Value& new_value, const std::string& origin = "") const
         -> std::optional<SourceChangeTree>;
 
     /**

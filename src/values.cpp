@@ -834,7 +834,7 @@ auto Value::contains_function() const -> bool {
     return new_value;
 }
 
-[[nodiscard]] auto Value::force(Value new_value, std::string origin) const
+[[nodiscard]] auto Value::force(const Value& new_value, const std::string& /*origin*/) const
     -> std::optional<SourceChangeTree> {
     // TODO how to integrate origin string?
     return this->origin().force(new_value);
@@ -1053,9 +1053,13 @@ static inline auto num_op_helper(
 [[nodiscard]] auto Value::negate(std::optional<Range> location) const -> Value {
     auto origin = Origin(UnaryOrigin{
         .val = std::make_shared<Value>(*this),
-        .location = location,
-        .reverse = [](const Value& new_value, const Value& old_value)
-            -> std::optional<SourceChangeTree> { return old_value.force(-new_value); }});
+        .location = std::move(location),
+        .reverse = [](const Value& new_value,
+                      const Value& old_value) -> std::optional<SourceChangeTree> {
+            // Number n = std::get<Number>(new_value);
+            cout << "reverse - with negate-function to " << new_value.type() << endl;
+            return old_value.force(-new_value);
+        }});
 
     return std::visit(
                overloaded{

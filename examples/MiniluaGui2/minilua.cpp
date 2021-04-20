@@ -3,6 +3,7 @@
 #include "MiniLua/interpreter.hpp"
 #include "MiniLua/values.hpp"
 #include <iostream>
+#include <optional>
 #include <qfuturewatcher.h>
 #include <qgraphicsscene.h>
 #include <qnamespace.h>
@@ -152,12 +153,17 @@ void Minilua::apply_move_source_change(MovableCircle* circle, QPointF new_point)
     auto new_x = new_point.x();
     auto new_y = new_point.y();
 
-    auto source_change_x = circle->lua_x.force(new_x, "ui_drag").value();
-    auto source_change_y = circle->lua_y.force(new_y, "ui_drag").value();
-
     auto source_change = minilua::SourceChangeCombination();
-    source_change.add(source_change_x);
-    source_change.add(source_change_y);
+    auto tmp = circle->lua_x.force(new_x, "ui_drag");
+    if (tmp.has_value()) {
+        auto source_change_x = tmp.value();
+        source_change.add(source_change_x);
+    }
+    tmp = circle->lua_y.force(new_y, "ui_drag");
+    if (tmp.has_value()) {
+        auto source_change_y = tmp.value();
+        source_change.add(source_change_y);
+    }
 
     auto source_changes = minilua::SourceChangeTree(source_change).collect_first_alternative();
 
@@ -217,5 +223,4 @@ void Minilua::exec_interpreter() {
     } catch (const minilua::InterpreterException& e) {
         writeTextToLog(e.what());
     }
-    std::cout << "programm ended" << std::endl;
 }
