@@ -148,7 +148,8 @@ static auto _binary_metamethod(
                 throw std::runtime_error(
                     "attempt to perform "s + op_kind + " on a table value (right)");
             },
-            [&location, &method, &arg1, &arg2](const auto&, const auto&) -> CallResult {
+            [&location, &method, &arg1,
+             &arg2](const auto& /*unused*/, const auto& /*unused*/) -> CallResult {
                 Value value = (arg1.*method)(arg2, location);
                 return CallResult({value});
             },
@@ -246,8 +247,8 @@ auto eq(const CallContext& ctx, std::optional<Range> location) -> CallResult {
 
                 return CallResult({false});
             },
-            [&location](const auto& arg1, const auto& arg2) -> CallResult {
-                Value value = Value(arg1).equals(arg2, location);
+            [&location, &arg1, &arg2](const auto& /*unued*/, const auto& /*unued*/) -> CallResult {
+                Value value = arg1.equals(arg2, location);
                 return CallResult({value});
             },
         },
@@ -343,8 +344,9 @@ auto le(const CallContext& ctx, std::optional<Range> location) -> CallResult {
 
                 throw std::runtime_error("attempt to perform arithmetic on a table value (right)");
             },
-            [&location](const auto& arg1, const auto& arg2) -> CallResult {
-                Value value = Value(arg1).less_than_or_equal(arg2, location);
+            [&location, &arg1,
+             &arg2](const auto& /*unused*/, const auto& /*unused*/) -> CallResult {
+                Value value = arg1.less_than_or_equal(arg2, location);
                 return CallResult({value});
             },
         },
@@ -401,11 +403,26 @@ auto len(const CallContext& ctx, std::optional<Range> location) -> CallResult {
 
                 return CallResult({arg1.border()});
             },
-            [&location](const auto& arg1) -> CallResult {
+            [&location, &arg1](const auto& /*unused*/) -> CallResult {
                 Value value = Value(arg1).len(location);
                 return CallResult({value});
             },
         },
+        arg1.raw());
+}
+
+void gc(const CallContext& ctx) {
+    auto arg1 = ctx.arguments().get(0);
+
+    return std::visit(
+        overloaded{
+            [&ctx](const Table& arg1) {
+                auto meta = arg1.get_metamethod("__gc");
+                if (meta.is_function()) {
+                    auto _ = meta.call(ctx);
+                }
+            },
+            [](const auto& /*unused*/) {}},
         arg1.raw());
 }
 

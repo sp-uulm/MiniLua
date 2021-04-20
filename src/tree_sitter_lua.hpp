@@ -64,6 +64,33 @@ const TypeId NODE_METHOD = LUA_LANGUAGE.node_type_id("method", true);
 const TypeId NODE_PROPERTY_IDENTIFIER = LUA_LANGUAGE.node_type_id("property_identifier", true);
 
 const FieldId FIELD_OBJECT = LUA_LANGUAGE.field_id("object");
+// binary operators
+const TypeId NODE_BIN_OP_LOGICAL_OR = LUA_LANGUAGE.node_type_id("lo_or", true);
+const TypeId NODE_BIN_OP_LOGICAL_AND = LUA_LANGUAGE.node_type_id("lo_and", true);
+const TypeId NODE_BIN_OP_LT = LUA_LANGUAGE.node_type_id("lt", true);
+const TypeId NODE_BIN_OP_LEQ = LUA_LANGUAGE.node_type_id("leq", true);
+const TypeId NODE_BIN_OP_EQ = LUA_LANGUAGE.node_type_id("eq", true);
+const TypeId NODE_BIN_OP_NEQ = LUA_LANGUAGE.node_type_id("neq", true);
+const TypeId NODE_BIN_OP_GEQ = LUA_LANGUAGE.node_type_id("geq", true);
+const TypeId NODE_BIN_OP_GT = LUA_LANGUAGE.node_type_id("gt", true);
+const TypeId NODE_BIN_OP_BITWISE_OR = LUA_LANGUAGE.node_type_id("bit_or", true);
+const TypeId NODE_BIN_OP_BITWISE_XOR = LUA_LANGUAGE.node_type_id("bit_xor", true);
+const TypeId NODE_BIN_OP_BITWISE_AND = LUA_LANGUAGE.node_type_id("bit_and", true);
+const TypeId NODE_BIN_OP_SHIFT_LEFT = LUA_LANGUAGE.node_type_id("shift_left", true);
+const TypeId NODE_BIN_OP_SHIFT_RIGHT = LUA_LANGUAGE.node_type_id("shift_right", true);
+const TypeId NODE_BIN_OP_ADDITION = LUA_LANGUAGE.node_type_id("add", true);
+const TypeId NODE_BIN_OP_SUBTRACTION = LUA_LANGUAGE.node_type_id("sub", true);
+const TypeId NODE_BIN_OP_MULTIPLICATION = LUA_LANGUAGE.node_type_id("mul", true);
+const TypeId NODE_BIN_OP_DIVISION = LUA_LANGUAGE.node_type_id("div", true);
+const TypeId NODE_BIN_OP_INTEGER_DIVISION = LUA_LANGUAGE.node_type_id("int_div", true);
+const TypeId NODE_BIN_OP_MODULO = LUA_LANGUAGE.node_type_id("mod", true);
+const TypeId NODE_BIN_OP_CONCAT = LUA_LANGUAGE.node_type_id("concat", true);
+const TypeId NODE_BIN_OP_POWER = LUA_LANGUAGE.node_type_id("pow", true);
+// unary operators
+const TypeId NODE_UN_OP_LOGICAL_NOT = LUA_LANGUAGE.node_type_id("lo_not", true);
+const TypeId NODE_UN_OP_LENGTH = LUA_LANGUAGE.node_type_id("length", true);
+const TypeId NODE_UN_OP_BITWISE_NOT = LUA_LANGUAGE.node_type_id("bit_not", true);
+const TypeId NODE_UN_OP_NEGATIVE = LUA_LANGUAGE.node_type_id("negative", true);
 
 } // namespace ts
 

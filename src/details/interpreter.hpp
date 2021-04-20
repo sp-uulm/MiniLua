@@ -117,6 +117,13 @@ private:
     void execute_stdlib(Env& env);
 
     /**
+     * Cleans up the environment (i.e. garbage collection).
+     *
+     * This will call `__gc` metamethod on all tables (if they exist).
+     */
+    void cleanup_environment(Env& env);
+
+    /**
      * Run a file.
      *
      * The file has to be loaded and parsed into a tree and the file
@@ -198,10 +205,10 @@ private:
 
     // helper methods for debugging/tracing
     [[nodiscard]] auto tracer() const -> std::ostream&;
-    void
-    trace_enter_node(ts::Node node, std::optional<std::string> method_name = std::nullopt) const;
+    void trace_enter_node(
+        std::string ast_class, std::optional<std::string> method_name = std::nullopt) const;
     void trace_exit_node(
-        ts::Node node, std::optional<std::string> method_name = std::nullopt,
+        std::string ast_class, std::optional<std::string> method_name = std::nullopt,
         std::optional<std::string> reason = std::nullopt) const;
     void trace_function_call(ast::Prefix prefix, const std::vector<Value>& arguments) const;
     void trace_function_call_result(ast::Prefix prefix, const CallResult& result) const;
@@ -226,12 +233,12 @@ private:
      */
     class NodeTracer {
         Interpreter& interpreter;
-        ts::Node node;
+        std::string ast_class;
         std::optional<std::string> method_name;
 
     public:
         NodeTracer(
-            Interpreter* interpreter, ts::Node node,
+            Interpreter* interpreter, std::string ast_class,
             std::optional<std::string> method_name = std::nullopt);
         ~NodeTracer();
     };

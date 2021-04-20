@@ -357,14 +357,14 @@ TEST_CASE("for_statements", "[tree-sitter]") {
     CHECK(start3->string() == "a"s);
     CHECK(fors[2].loop_expression().step().has_value());
     auto step3_opt = fors[2].loop_expression().step()->options();
-    CHECK(std::holds_alternative<Identifier>(step3_opt));
-    auto step3 = std::get_if<Identifier>(&step3_opt);
-    CHECK(step3->string() == "b"s);
+    CHECK(std::holds_alternative<Literal>(step3_opt));
+    auto step3 = std::get_if<Literal>(&step3_opt);
+    CHECK(step3->type() == LiteralType::NUMBER);
+    CHECK(step3->content() == "42"s);
     auto end3_opt = fors[2].loop_expression().end().options();
-    CHECK(std::holds_alternative<Literal>(end3_opt));
-    auto end3 = std::get_if<Literal>(&end3_opt);
-    CHECK(end3->type() == LiteralType::NUMBER);
-    CHECK(end3->content() == "42"s);
+    CHECK(std::holds_alternative<Identifier>(end3_opt));
+    auto end3 = std::get_if<Identifier>(&end3_opt);
+    CHECK(end3->string() == "b"s);
 }
 TEST_CASE("for_in_statements", "[tree-sitter]") {
     ts::Parser parser(ts::LUA_LANGUAGE);
@@ -405,35 +405,24 @@ TEST_CASE("for_in_statements", "[tree-sitter]") {
 }
 TEST_CASE("function_statements", "[tree-sitter]") {
     ts::Parser parser(ts::LUA_LANGUAGE);
-    std::string source = "function foo (a,b,c)\n"
+    std::string source = "function foo.foo.foo (a,b,c)\n"
                          "  1+1\n"
                          "  return 3+3,2+2,a,b,c,d \n"
                          "end\n"
-                         "function table.prop1.prop2.prop3:method (a,b,c)\n"
-                         "  return true\n"
+                         "function foo:foo(...)\n"
                          "end\n"
-                         "function foo(self,...)\n"
+                         "local function foo(self)\n"
                          "end\n"
-                         "function foo(...)\n"
+                         "function foo:foo(self,a,b,c)\n"
                          "end\n"
-                         "function foo(self)\n"
-                         "end\n"
-                         "function foo (self,a,b,c)\n"
-                         "end\n"
-                         "function foo (a,b,c,...)\n"
-                         "end\n"
-                         "function foo (...,a,b,c)\n"
-                         "end\n"
-                         "function foo(self,a,b,c,...)\n"
-                         "end\n"
-                         "function foo()\n"
-                         "end";
+                         "local function foo(self,a,b,c,...)\n"
+                         "end\n";
     ts::Tree tree = parser.parse_string(source);
     ts::Node root = tree.root_node();
     auto prog = Program(root);
     Body body = prog.body();
     auto stats = body.statements();
-    CHECK(stats.size() == 10);
+    CHECK(stats.size() == 5);
     CHECK(!body.return_statement().has_value());
     std::vector<FunctionStatement> func;
     std::transform(stats.begin(), stats.end(), std::back_inserter(func), [](Statement stat) {
@@ -441,64 +430,18 @@ TEST_CASE("function_statements", "[tree-sitter]") {
         CHECK(std::holds_alternative<FunctionStatement>(opt));
         return *std::get_if<FunctionStatement>(&opt);
     });
-    CHECK(func.size() == 10);
-    CHECK(func[1].name().method().has_value());
-    CHECK(func[1].name().identifier().size() == 4);
-    CHECK(func[0].name().identifier().size() == 1);
+    CHECK(func.size() == 5);
     CHECK(func[0].body().return_statement().has_value());
-    auto ret = func[0].body().return_statement().value();
-    CHECK(ret.exp_list().size() == 6);
-    std::vector<std::string> vec{"a", "b", "c"};
-    std::vector<std::string> params;
-    std::vector<Identifier> identifiers;
-    for (uint i = 0; i < 9; i++) {
-        if (i < 2 || i > 4) {
-            CHECK(func[i].parameters().params().size() == 3);
-            params.clear();
-            identifiers = func[i].parameters().params();
-            std::transform(
-                identifiers.begin(), identifiers.end(), std::back_inserter(params),
-                [](Identifier id) { return id.string(); });
-            CHECK(params == vec);
-        } else {
-            CHECK(func[i].parameters().params().empty());
-        }
-        switch (i) {
-        case 0:
-        case 1:
-            CHECK(!func[i].parameters().leading_self());
-            CHECK(func[i].parameters().spread() == NO_SPREAD);
-            break;
-        case 2:
-            CHECK(func[i].parameters().leading_self());
-            CHECK(func[i].parameters().spread() == END);
-            break;
-        case 3:
-            CHECK(!func[i].parameters().leading_self());
-            CHECK(func[i].parameters().spread() == BEGIN);
-            break;
-        case 4:
-        case 5:
-            CHECK(func[i].parameters().leading_self());
-            CHECK(func[i].parameters().spread() == NO_SPREAD);
-            break;
-        case 6:
-            CHECK(!func[i].parameters().leading_self());
-            CHECK(func[i].parameters().spread() == END);
-            break;
-        case 7:
-            CHECK(!func[i].parameters().leading_self());
-            CHECK(func[i].parameters().spread() == BEGIN);
-            break;
-        case 8:
-            CHECK(func[i].parameters().leading_self());
-            CHECK(func[i].parameters().spread() == END);
-            break;
-        }
-    }
-    CHECK(!func[9].parameters().leading_self());
-    CHECK(func[9].parameters().spread() == NO_SPREAD);
-    CHECK(func[9].parameters().params().empty());
+    CHECK(func[0].body().return_statement().value().exp_list().size() == 6);
+    CHECK(func[0].body().statements().size() == 1);
+    CHECK(func[0].name().identifier().size() == 3);
+    CHECK(!func[0].name().method().has_value());
+    CHECK(func[0].parameters().params().size() == 3);
+    CHECK(!func[0].parameters().spread());
+    CHECK(func[1].parameters().params().size() == 0);
+    CHECK(func[2].parameters().params().size() == 1);
+    CHECK(func[3].parameters().params().size() == 4);
+    CHECK(func[4].parameters().params().size() == 4);
 }
 TEST_CASE("while_and_repeat_statements", "[tree-sitter]") {
     ts::Parser parser(ts::LUA_LANGUAGE);
@@ -774,26 +717,23 @@ TEST_CASE("function_calls", "[tree-sitter]") {
         CHECK(std::holds_alternative<FunctionCall>(opt));
         return *std::get_if<FunctionCall>(&opt);
     });
-    CHECK(!func_calls[0].method().has_value());
     CHECK(std::holds_alternative<VariableDeclarator>(func_calls[0].id().options()));
     auto opt1 = func_calls[0].id().options();
     auto name1 = std::get_if<VariableDeclarator>(&opt1);
     CHECK(std::holds_alternative<Identifier>(name1->options()));
     CHECK(func_calls[0].args().size() == 2);
 
-    CHECK(!func_calls[1].method().has_value());
     CHECK(std::holds_alternative<VariableDeclarator>(func_calls[1].id().options()));
     auto opt2 = func_calls[1].id().options();
     auto name2 = std::get_if<VariableDeclarator>(&opt2);
     CHECK(std::holds_alternative<FieldExpression>(name2->options()));
     CHECK(func_calls[1].args().empty());
 
-    CHECK(func_calls[2].method().has_value());
     CHECK(std::holds_alternative<VariableDeclarator>(func_calls[2].id().options()));
     auto opt3 = func_calls[2].id().options();
     auto name3 = std::get_if<VariableDeclarator>(&opt3);
-    CHECK(std::holds_alternative<Identifier>(name3->options()));
-    CHECK(func_calls[2].args().empty());
+    CHECK(std::holds_alternative<FieldExpression>(name3->options()));
+    CHECK(func_calls[2].args().size() == 1);
 
     CHECK(func_calls[3].args().size() == 1);
     CHECK(std::holds_alternative<Literal>(func_calls[3].args()[0].options()));
@@ -801,9 +741,10 @@ TEST_CASE("function_calls", "[tree-sitter]") {
     auto str = std::get_if<Literal>(&opt4);
     CHECK(str->type() == LiteralType::STRING);
     CHECK(str->content() == "\"abc\"");
-    CHECK(func_calls[4].args().size() == 1);
-    CHECK(std::holds_alternative<Table>(func_calls[4].args()[0].options()));
-    auto opt5 = func_calls[4].args()[0].options();
+    CHECK(func_calls[4].args().size() == 2);
+    CHECK(std::holds_alternative<Prefix>(func_calls[4].args()[0].options()));
+    CHECK(std::holds_alternative<Table>(func_calls[4].args()[1].options()));
+    auto opt5 = func_calls[4].args()[1].options();
     auto table = std::get_if<Table>(&opt5);
     CHECK(table->fields().size() == 4);
     for (uint i = 0; i < 4; i++) {
@@ -850,5 +791,121 @@ TEST_CASE("comment_test", "[tree-sitter]") {
     auto operand_right = std::get_if<Identifier>(&operand_right_opt);
     CHECK(operand_right->string() == "b"s);
 }
+// helper function
+static auto count_nested_identifiers_in_fieldexpression(VariableDeclarator vd) -> int {
+    int count = 0;
+    auto current_vd = vd;
+    while (true) {
+        auto var1 = current_vd.options();
+        if (std::holds_alternative<Identifier>(var1)) {
+            count++;
+            return count;
+        }
+        auto fe = std::get_if<FieldExpression>(&var1);
+        count++;
+        auto pfx = fe->table_id();
+        auto var2 = pfx.options();
+        current_vd = *std::get_if<VariableDeclarator>(&var2);
+    }
+}
+TEST_CASE("desugar_function_statements", "[tree-sitter]") {
+    ts::Parser parser(ts::LUA_LANGUAGE);
+    std::string source = "function foo.foo.foo.foo.foo(a)\n"
+                         "end\n"
+                         "function foo:foo ()\n"
+                         "end\n"
+                         "function foo.foo:foo (a,b,c,...)\n"
+                         "end\n"
+                         "local function foo(...)\n"
+                         "end\n";
+    ts::Tree tree = parser.parse_string(source);
+    ts::Node root = tree.root_node();
+    auto prog = Program(root);
+    Body body = prog.body();
+    auto stats = body.statements();
+    CHECK(stats.size() == 4);
+    CHECK(!body.return_statement().has_value());
+    std::vector<FunctionStatement> func;
+    std::transform(stats.begin(), stats.end(), std::back_inserter(func), [](Statement stat) {
+        auto opt = stat.options();
+        CHECK(std::holds_alternative<FunctionStatement>(opt));
+        return *std::get_if<FunctionStatement>(&opt);
+    });
+    CHECK(func.size() == 4);
+    std::vector<VariableDeclarator> var_decs;
+    std::vector<FunctionDefinition> func_defs;
+    std::vector<VariableDeclaration> declarations;
 
+    for (auto it = func.begin(); it != func.end(); it++) {
+        auto var_declaration = it->desugar();
+        declarations.push_back(var_declaration);
+        CHECK(var_declaration.declarations().size() == 1);
+        CHECK(var_declaration.declarators().size() == 1);
+        var_decs.push_back(var_declaration.declarators()[0]);
+        auto exp_variant = var_declaration.declarations()[0].options();
+        CHECK(std::holds_alternative<FunctionDefinition>(exp_variant));
+        func_defs.push_back(*std::get_if<FunctionDefinition>(&exp_variant));
+    }
+    // check local
+    for (int i = 0; i < 4; i++) {
+        switch (i) {
+        case 0:
+        case 1:
+        case 2:
+            CHECK(!declarations[i].local());
+            break;
+        case 3:
+            CHECK(declarations[i].local());
+            break;
+        }
+    }
+    // check parameters
+    for (int i = 0; i < 4; i++) {
+        switch (i) {
+        case 0:
+            CHECK(func_defs[i].parameters().params().size() == 1);
+            break;
+        case 1:
+            CHECK(func_defs[i].parameters().params().size() == 1);
+            CHECK(func_defs[i].parameters().params()[0].string() == "self");
+            break;
+        case 2:
+            CHECK(func_defs[i].parameters().params().size() == 4);
+            break;
+        case 3:
+            CHECK(func_defs[i].parameters().params().size() == 0);
+            break;
+        }
+    }
+    // check spread
+    for (int i = 0; i < 4; i++) {
+        switch (i) {
+        case 0:
+        case 1:
+            CHECK(!func_defs[i].parameters().spread());
+            break;
+        case 2:
+        case 3:
+            CHECK(func_defs[i].parameters().spread());
+            break;
+        }
+    }
+    // check name
+    for (int i = 0; i < 4; i++) {
+        switch (i) {
+        case 0:
+            CHECK(count_nested_identifiers_in_fieldexpression(var_decs[i]) == 5);
+            break;
+        case 1:
+            CHECK(count_nested_identifiers_in_fieldexpression(var_decs[i]) == 2);
+            break;
+        case 2:
+            CHECK(count_nested_identifiers_in_fieldexpression(var_decs[i]) == 3);
+            break;
+        case 3:
+            CHECK(count_nested_identifiers_in_fieldexpression(var_decs[i]) == 1);
+            break;
+        }
+    }
+}
 } // namespace minilua::details::ast
