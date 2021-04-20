@@ -99,26 +99,6 @@ static auto change_extension(const std::string& path, const std::string& new_ext
 void test_file(const std::string& file) {
     std::string program = read_input_from_file(file);
 
-    std::string stdin_path = change_extension(file, "in");
-    std::string stdout_path = change_extension(file, "out");
-    std::string stderr_path = change_extension(file, "err");
-
-    std::optional<std::string> stdin_str = read_optional_file(stdin_path);
-    std::optional<std::string> stdout_str = read_optional_file(stdout_path);
-    std::optional<std::string> stderr_str = read_optional_file(stderr_path);
-
-    // NOTE: We need to define streams here so they live long enough,
-    // even if we don't always set them later
-
-    // in stream to read from stdin (if any)
-    std::istringstream stdin_stream;
-    if (stdin_str.has_value()) {
-        stdin_stream = std::istringstream(stdin_str.value());
-    }
-    // empty out/err streams to capture out/err
-    std::ostringstream stdout_stream;
-    std::ostringstream stderr_stream;
-
     auto expect_strings = find_expect_strings(program);
 
     // setup tests
@@ -136,23 +116,6 @@ void test_file(const std::string& file) {
     CAPTURE(parse_result.errors);
     REQUIRE(parse_result);
 
-    // FIXME creates wrong paths
-    // because the working directory is different that the root project
-    //
-    // interpreter.environment().set_file(std::make_shared<std::string>(file));
-
-    // setup stdin/out/err
-    // if they are not provided we use the default
-    if (stdin_str.has_value()) {
-        interpreter.environment().set_stdin(&stdin_stream);
-    }
-    if (stdout_str.has_value()) {
-        interpreter.environment().set_stdout(&stdout_stream);
-    }
-    if (stderr_str.has_value()) {
-        interpreter.environment().set_stderr(&stderr_stream);
-    }
-
     // evaluate
     try {
         auto result = interpreter.evaluate();
@@ -162,20 +125,7 @@ void test_file(const std::string& file) {
             test->run(result);
         }
     } catch (const minilua::InterpreterException& e) {
-        if (stderr_str.has_value()) {
-            e.print_stacktrace(stderr_stream);
-        }
-    }
-
-    // check stdout/err
-    if (stdout_str.has_value() && *stdout_str != stdout_stream.str()) {
-        CAPTURE(*stdout_str);
-        CAPTURE(stdout_stream.str());
-        FAIL("stdout did not match");
-    }
-    if (stderr_str.has_value() && *stderr_str != stderr_stream.str()) {
-        CAPTURE(*stderr_str);
-        CAPTURE(stderr_stream.str());
-        FAIL("stderr did not match");
+        // NOTE we ignore errors here because they will be caught when running
+        // the lua tests directly
     }
 }
