@@ -576,7 +576,9 @@ auto Interpreter::visit_variable_declaration(ast::VariableDeclaration decl, Env&
             std::visit(
                 overloaded{
                     [this, &env, &value](ast::Identifier ident) {
-                        env.set_local(this->visit_identifier(ident, env), value);
+                        auto ident_str = this->visit_identifier(ident, env);
+                        env.declare_local(ident_str);
+                        env.set_local(ident_str, value);
                     },
                     [](ast::FieldExpression /*node*/) {
                         throw InterpreterException(
