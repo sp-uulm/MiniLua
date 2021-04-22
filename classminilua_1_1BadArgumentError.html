@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>minilua::InterpreterException class | MiniLua Value tracing lua interpreter</title>
+  <title>minilua::BadArgumentError class | MiniLua Value tracing lua interpreter</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -52,43 +52,76 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="namespaceminilua.html">minilua</a>::<wbr/></span>InterpreterException <span class="m-thin">class</span>
+          <span class="m-breadcrumb"><a href="namespaceminilua.html">minilua</a>::<wbr/></span>BadArgumentError <span class="m-thin">class</span>
         </h1>
-        <p>Exception thrown by the interpreter.</p>
+        <p>Exception indicating a bad argument of a function call.</p>
         <div class="m-block m-default">
           <h3>Contents</h3>
           <ul>
             <li>
               Reference
               <ul>
-                <li><a href="#derived-classes">Derived classes</a></li>
+                <li><a href="#base-classes">Base classes</a></li>
+                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
               </ul>
             </li>
           </ul>
         </div>
-<p>This exception can contain a stack trace.</p>
-        <section id="derived-classes">
-          <h2><a href="#derived-classes">Derived classes</a></h2>
+<p>This is usually thrown when validating an argument.</p><p>The interpreter has special code to format this exception and print the name of the called function.</p>
+        <section id="base-classes">
+          <h2><a href="#base-classes">Base classes</a></h2>
           <dl class="m-doc">
             <dt>
-              class <a href="classminilua_1_1BadArgumentError.html" class="m-doc">BadArgumentError</a>
+              class <a href="classminilua_1_1InterpreterException.html" class="m-doc">InterpreterException</a>
             </dt>
-            <dd>Exception indicating a bad argument of a function call.</dd>
+            <dd>Exception thrown by the interpreter.</dd>
+          </dl>
+        </section>
+        <section id="typeless-methods">
+          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper"><a href="#ae1689a548836efce5a6684277e2d45d5" class="m-doc">BadArgumentError</a>(</span><span class="m-doc-wrap">int index,
+              const std::string&amp; message)</span>
+            </dt>
+            <dd>Create a new <a href="classminilua_1_1BadArgumentError.html" class="m-doc">BadArgumentError</a>.</dd>
           </dl>
         </section>
         <section id="pub-methods">
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
-            <dt id="abb3b78f243e0461fbf8cb946190b7a0c">
-              <span class="m-doc-wrap-bumper">auto <a href="#abb3b78f243e0461fbf8cb946190b7a0c" class="m-doc-self">with</a>(</span><span class="m-doc-wrap"><a href="structminilua_1_1StackItem.html" class="m-doc">StackItem</a> item) const -&gt; InterpreterException -&gt; auto</span>
+            <dt id="a01ee56c94918f533e5b1410c93c0724d">
+              <span class="m-doc-wrap-bumper">auto <a href="#a01ee56c94918f533e5b1410c93c0724d" class="m-doc-self">with</a>(</span><span class="m-doc-wrap">const std::string&amp; function_name,
+              <a href="structminilua_1_1StackItem.html" class="m-doc">StackItem</a> item) const -&gt; InterpreterException -&gt; auto</span>
             </dt>
-            <dd>Create a new exception with the given stack item added.</dd>
-            <dt id="a0ed10afac3f50fe7c75c7e6c989b593f">
-              <span class="m-doc-wrap-bumper">void <a href="#a0ed10afac3f50fe7c75c7e6c989b593f" class="m-doc-self">print_stacktrace</a>(</span><span class="m-doc-wrap">std::ostream&amp; os) const</span>
-            </dt>
-            <dd>Print the stacktrace to the output stream.</dd>
+            <dd>Create a new exception with the given function name and stack item.</dd>
           </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="ae1689a548836efce5a6684277e2d45d5"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"> minilua::<wbr />BadArgumentError::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae1689a548836efce5a6684277e2d45d5" class="m-doc-self">BadArgumentError</a>(</span><span class="m-doc-wrap">int index,
+              const std::string&amp; message)</span></span>
+            </h3>
+            <p>Create a new <a href="classminilua_1_1BadArgumentError.html" class="m-doc">BadArgumentError</a>.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">index</td>
+                  <td>The index of the bad argument (starting with 1)</td>
+                </tr>
+                <tr>
+                  <td>message</td>
+                  <td>Error information for the bad argument</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
         </section>
       </div>
     </div>

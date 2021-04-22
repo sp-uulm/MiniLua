@@ -86,6 +86,10 @@
           <h2><a href="#nested-classes">Classes</a></h2>
           <dl class="m-doc">
             <dt>
+              class <a href="classminilua_1_1BadArgumentError.html" class="m-doc">BadArgumentError</a>
+            </dt>
+            <dd>Exception indicating a bad argument of a function call.</dd>
+            <dt>
               <div class="m-doc-template">template&lt;typename Fn, typename ReverseLeft, typename ReverseRight&gt;</div>
               struct <a href="structminilua_1_1BinaryNumericFunctionHelper.html" class="m-doc">BinaryNumericFunctionHelper</a>
             </dt>
@@ -301,6 +305,13 @@
               const std::optional&lt;<a href="classminilua_1_1SourceChangeTree.html" class="m-doc">SourceChangeTree</a>&gt;&amp; rhs) -&gt; std::optional&lt; SourceChangeTree &gt; -&gt; auto</span>
             </dt>
             <dd>Combines two source changes using a <code><a href="structminilua_1_1SourceChangeCombination.html" class="m-doc">SourceChangeCombination</a></code> if necessary.</dd>
+            <dt id="a7a2cc759826e2cd91ea818c27ce0a687">
+              <div class="m-doc-template">template&lt;typename Fn&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#a7a2cc759826e2cd91ea818c27ce0a687" class="m-doc-self">with_call_stack</a>(</span><span class="m-doc-wrap">Fn f,
+              const std::string&amp; function_name,
+              const <a href="structminilua_1_1StackItem.html" class="m-doc">StackItem</a>&amp; item) -&gt; auto</span>
+            </dt>
+            <dd>Execute the given function and correctly re-throw exceptions using the given function name and stack item.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a74d69f5050e669eca9f59c5f45423af5" class="m-doc">create_math_table</a>(</span><span class="m-doc-wrap"><a href="classminilua_1_1MemoryAllocator.html" class="m-doc">MemoryAllocator</a>* allocator) -&gt; Table -&gt; auto</span>
             </dt>
