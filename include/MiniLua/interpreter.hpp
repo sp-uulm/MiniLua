@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "environment.hpp"
+#include "exceptions.hpp"
 #include "source_change.hpp"
 #include "values.hpp"
 
@@ -109,14 +110,6 @@ struct InterpreterConfig {
 };
 
 /**
- * @brief Exception thrown by the interpreter.
- */
-class InterpreterException : public std::runtime_error {
-public:
-    InterpreterException(const std::string& what);
-};
-
-/**
  * @brief An interpreter instance is used to parse and evaluate lua source
  * code.
  *
@@ -195,6 +188,7 @@ public:
      * Errors are part of ParseResult.
      */
     auto parse(std::string source_code) -> ParseResult;
+    auto parse_file(const std::string& filepath) -> ParseResult;
 
     /**
      * @brief Applies a list of single source changes.

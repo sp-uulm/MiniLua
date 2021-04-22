@@ -8,3 +8,4 @@ make MiniLua-tests
 ./tests/MiniLua-tests "$@"
 popd
 
+./scripts/run_luatests.sh

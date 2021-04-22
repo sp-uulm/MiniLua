@@ -142,7 +142,13 @@ public:
     auto get_stdout() -> std::ostream*;
     auto get_stderr() -> std::ostream*;
 
+    /**
+     * Sets the current file name/path.
+     */
     void set_file(std::optional<std::shared_ptr<std::string>> file);
+    /**
+     * Returns the current file name/path.
+     */
     auto get_file() const -> std::optional<std::shared_ptr<std::string>>;
 
     [[nodiscard]] auto allocator() const -> MemoryAllocator*;

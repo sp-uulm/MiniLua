@@ -82,6 +82,13 @@ auto Environment::get_stderr() -> std::ostream* { return impl->inner.get_stderr(
 
 auto Environment::size() const -> size_t { return impl->inner.global().size(); }
 
+void Environment::set_file(std::optional<std::shared_ptr<std::string>> file) {
+    impl->inner.set_file(std::move(file));
+}
+auto Environment::get_file() const -> std::optional<std::shared_ptr<std::string>> {
+    return impl->inner.get_file();
+}
+
 auto Environment::get_raw_impl() -> Impl& { return *this->impl; }
 
 auto operator==(const Environment& a, const Environment& b) noexcept -> bool {

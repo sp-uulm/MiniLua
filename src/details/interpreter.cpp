@@ -1,5 +1,6 @@
 #include "interpreter.hpp"
 #include "MiniLua/environment.hpp"
+#include "MiniLua/exceptions.hpp"
 #include "MiniLua/interpreter.hpp"
 #include "MiniLua/io.hpp"
 #include "MiniLua/metatables.hpp"
@@ -129,6 +130,18 @@ auto Interpreter::setup_environment(Env& user_env) -> Env {
     // NOTE we only consider global variables because the user can only set
     // global variables
     env.global().set_all(user_env.global());
+
+    // copy over relevant information from user_env
+    env.set_file(user_env.get_file());
+    env.set_stdin(user_env.get_stdin());
+    env.set_stdout(user_env.get_stdout());
+    env.set_stderr(user_env.get_stderr());
+
+    // set a default filename for the root file if the user did not set one
+    if (!env.get_file().has_value()) {
+        std::shared_ptr<std::string> root_filename = std::make_shared<std::string>("__root__");
+        env.set_file(root_filename);
+    }
 
     return env;
 }
@@ -960,7 +973,13 @@ auto Interpreter::visit_binary_operation(ast::BinaryOperation bin_op, Env& env) 
                              &origin](auto f, Value lhs, Value rhs, const std::string& name) {
         auto args = Vallist{std::move(lhs), std::move(rhs)};
         this->trace_metamethod_call(name, args);
-        auto call_result = f(ctx.make_new(args), origin);
+
+        auto call_result = with_call_stack(
+            [&f, &ctx, &args, &origin]() { return f(ctx.make_new(args), origin); }, name,
+            StackItem{
+                .position = origin,
+                .info = "metamethod '" + name + "'",
+            });
         result.combine(EvalResult(call_result.one_value()));
     };
 
@@ -1035,7 +1054,13 @@ auto Interpreter::visit_unary_operation(ast::UnaryOperation unary_op, Env& env) 
     auto impl_mt_operator = [this, &ctx, &result, &range](auto f, const std::string& name) {
         auto args = Vallist{result.values.get(0)};
         this->trace_metamethod_call(name, args);
-        auto call_result = f(ctx.make_new(args), range);
+
+        auto call_result = with_call_stack(
+            [&f, &ctx, &args, &range]() { return f(ctx.make_new(args), range); }, name,
+            StackItem{
+                .position = range,
+                .info = "metamethod '" + name + "'",
+            });
         result.combine(EvalResult(call_result.one_value()));
     };
 
@@ -1116,24 +1141,23 @@ auto Interpreter::visit_function_call(ast::FunctionCall call, Env& env) -> EvalR
     meta_arguments.push_back(obj);
     std::move(arguments.begin(), arguments.end(), std::back_inserter(meta_arguments));
 
+    auto call_range = call.range().with_file(env.get_file());
+
     // move the Env to the CallContext (and move it back later)
     auto environment = Environment(env);
-    auto ctx =
-        CallContext(&environment).make_new(meta_arguments, call.range().with_file(env.get_file()));
+    auto ctx = CallContext(&environment).make_new(meta_arguments, call_range);
 
-    try {
-        CallResult call_result = mt::call(ctx);
-        result.combine(EvalResult(call_result));
+    auto function_name = call.id().to_string();
 
-        this->trace_function_call_result(call.id(), call_result);
-    } catch (const std::runtime_error& e) {
-        stringstream ss;
-        ss << call.range().start;
-        std::string pos = ss.str();
-        throw InterpreterException(
-            "failed to call function \"" + prefix_to_ident(call.id()) + "\" ("s + pos +
-            ") : " + e.what());
-    }
+    auto call_result = with_call_stack(
+        [&ctx]() { return mt::call(ctx); }, function_name,
+        StackItem{
+            .position = call_range,
+            .info = "function '" + function_name + "'",
+        });
+    result.combine(EvalResult(call_result));
+
+    this->trace_function_call_result(call.id(), call_result);
 
     // move the Env back in case something has changed internally
     env = environment.get_raw_impl().inner;
