@@ -22,6 +22,10 @@ struct ParseResult {
      * @brief The errors.
      */
     std::vector<std::string> errors; // NOLINT(misc-non-private-member-variables-in-classes)
+    /**
+     * @brief Elapsed time for parsing in nanoseconds.
+     */
+    long elapsed_time;
 
     /**
      * @brief Convert to `false` if there was an error, `true` otherwise.

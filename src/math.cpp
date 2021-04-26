@@ -186,7 +186,7 @@ auto atan(const CallContext& ctx) -> Value {
                        auto res = to_number(new_ctx);
 
                        if (res != Nil()) {
-                           auto num = get<Number>(res);
+                           auto num = std::get<Number>(res);
 
                            len = std::sqrt(
                                x.as_float() * x.as_float() + num.as_float() * num.as_float());
@@ -208,7 +208,7 @@ auto atan(const CallContext& ctx) -> Value {
                        auto res = to_number(new_ctx);
 
                        if (res != Nil()) {
-                           auto num = get<Number>(res);
+                           auto num = std::get<Number>(res);
 
                            len = std::sqrt(
                                num.as_float() * num.as_float() + y.as_float() * y.as_float());
@@ -250,7 +250,7 @@ auto atan(const CallContext& ctx) -> Value {
                        auto res = to_number(new_ctx);
 
                        if (res != Nil()) {
-                           auto num = get<Number>(res);
+                           auto num = std::get<Number>(res);
 
                            return Value(std::atan2(num.as_float(), 1));
                        } else {

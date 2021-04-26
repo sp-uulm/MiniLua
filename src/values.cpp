@@ -903,12 +903,12 @@ auto Value::to_string(std::optional<Range> location) const -> Value {
             [](Table t) -> Value { // TODO: maybe improve the way to get the address.
                 // at the moment it could be that every time you call it the
                 // address has changed because of the change in the stack
-                ostringstream get_address;
+                std::ostringstream get_address;
                 get_address << &t;
                 return get_address.str();
             },
             [](Function f) -> Value {
-                ostringstream get_address;
+                std::ostringstream get_address;
                 get_address << &f;
                 return get_address.str();
             },

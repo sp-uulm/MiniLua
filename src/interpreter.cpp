@@ -3,6 +3,7 @@
 #include "tree_sitter/tree_sitter.hpp"
 #include "tree_sitter_lua.hpp"
 
+#include <chrono>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -71,6 +72,8 @@ auto Interpreter::environment() const -> Environment& { return impl->env; }
 auto Interpreter::source_code() const -> std::string_view { return impl->source_code; }
 
 auto Interpreter::parse(std::string source_code) -> ParseResult {
+    auto t_start = std::chrono::steady_clock::now();
+
     this->impl->source_code = std::move(source_code);
     this->impl->tree = this->impl->parser.parse_string(this->impl->source_code);
 
@@ -79,7 +82,7 @@ auto Interpreter::parse(std::string source_code) -> ParseResult {
         result.errors.emplace_back("Tree contains parse error");
 
         visit_tree(this->impl->tree, [&result](ts::Node node) {
-            if (node.type() == "ERROR"s || node.is_missing()) {
+            if (node.type() == std::string("ERROR") || node.is_missing()) {
                 std::stringstream error;
                 error << "Error in node: ";
                 error << ts::debug_print_node(node);
@@ -87,6 +90,12 @@ auto Interpreter::parse(std::string source_code) -> ParseResult {
             }
         });
     }
+
+    auto t_end = std::chrono::steady_clock::now();
+    auto t_ms = std::chrono::duration_cast<std::chrono::nanoseconds>(t_end - t_start).count();
+
+    result.elapsed_time = t_ms;
+
     return result;
 }
 void Interpreter::apply_source_changes(std::vector<SourceChange> source_changes) {
