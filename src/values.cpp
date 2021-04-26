@@ -1094,8 +1094,21 @@ static inline auto num_op_helper(
     return num_op_helper(
         *this, rhs, [](Number lhs, Number rhs) { return lhs * rhs; }, "multiply",
         binary_num_reverse(
-            [](Number new_value, Number rhs) { return new_value / rhs; },
-            [](Number new_value, Number lhs) { return new_value / lhs; }, "mul"),
+            [](Number new_value, Number rhs) -> std::optional<Number> {
+                if (rhs != 0) {
+                    return new_value / rhs;
+                } else {
+                    return std::nullopt;
+                }
+            },
+            [](Number new_value, Number lhs) -> std::optional<Number> {
+                if (lhs != 0) {
+                    return new_value / lhs;
+                } else {
+                    return std::nullopt;
+                }
+            },
+            "mul"),
         location);
 }
 [[nodiscard]] auto Value::div(const Value& rhs, std::optional<Range> location) const -> Value {
