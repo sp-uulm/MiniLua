@@ -1,5 +1,6 @@
 #include "MiniLua/values.hpp"
 #include "MiniLua/environment.hpp"
+#include "MiniLua/exceptions.hpp"
 #include "MiniLua/source_change.hpp"
 #include "MiniLua/stdlib.hpp"
 #include "MiniLua/utils.hpp"
@@ -296,9 +297,8 @@ auto CallContext::_expect_argument(size_t index, std::vector<std::string_view> e
     }
 
     if (this->arguments().size() <= index) {
-        throw std::runtime_error(
-            std::string("bad argument #") + std::to_string(index) + " (" + expected_types_string +
-            " expected, got no value)");
+        auto message = expected_types_string + " expected, got no value";
+        throw BadArgumentError(index, message);
     }
 
     const Value& value = this->arguments().get(index);
@@ -306,23 +306,19 @@ auto CallContext::_expect_argument(size_t index, std::vector<std::string_view> e
 
     if (std::find(expected_types.begin(), expected_types.end(), actual_type) ==
         expected_types.end()) {
-        throw std::runtime_error(
-            std::string("bad argument #") + std::to_string(index) + " (" + expected_types_string +
-            " expected, got " + actual_type + ")");
+        auto message = expected_types_string + " expected, got " + actual_type;
+        throw BadArgumentError(index, message);
     }
 
     return this->arguments().get(index);
 }
 
-static auto
-expect_number(const Value& value, std::optional<Range> call_location, const std::string& index)
+static auto expect_number(const Value& value, std::optional<Range> call_location, int index)
     -> Value {
     auto number = value.to_number(Nil(), std::move(call_location));
     if (number.is_nil()) {
-        // NOTE lua errors also mention the function name here but this is not
-        // really necessary, because we will add that later
-        throw std::runtime_error(
-            "bad argument #" + index + " (number expected, got " + value.type() + ")");
+        auto message = "number expected, got "s + value.type();
+        throw BadArgumentError(index, message);
     }
     return number;
 }
@@ -331,7 +327,7 @@ expect_number(const Value& value, std::optional<Range> call_location, const std:
     -> std::tuple<Number, UnaryOrigin> {
     auto arg = this->arguments().get(0);
 
-    auto num = expect_number(arg, this->call_location(), "1");
+    auto num = expect_number(arg, this->call_location(), 1);
 
     auto origin = UnaryOrigin{
         .val = std::make_shared<minilua::Value>(num),
@@ -346,8 +342,8 @@ expect_number(const Value& value, std::optional<Range> call_location, const std:
     auto arg1 = this->arguments().get(0);
     auto arg2 = this->arguments().get(1);
 
-    auto num1 = expect_number(arg1, this->call_location(), "1");
-    auto num2 = expect_number(arg2, this->call_location(), "2");
+    auto num1 = expect_number(arg1, this->call_location(), 1);
+    auto num2 = expect_number(arg2, this->call_location(), 2);
 
     auto origin = BinaryOrigin{
         .lhs = std::make_shared<Value>(num1),

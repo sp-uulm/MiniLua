@@ -4,6 +4,9 @@
 #include "tree_sitter_lua.hpp"
 
 #include <chrono>
+#include <fstream>
+#include <iostream>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -40,9 +43,6 @@ void InterpreterConfig::all(bool def) {
     this->trace_break = def;
     this->trace_varargs = def;
 }
-
-// class InterpreterException
-InterpreterException::InterpreterException(const std::string& what) : std::runtime_error(what) {}
 
 struct Interpreter::Impl {
     ts::Parser parser;
@@ -98,6 +98,30 @@ auto Interpreter::parse(std::string source_code) -> ParseResult {
 
     return result;
 }
+
+static auto load_file(const std::string& path) -> std::string {
+    std::ifstream ifs;
+    ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    ifs.open(path);
+    return std::string(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
+}
+
+auto Interpreter::parse_file(const std::string& path) -> ParseResult {
+    try {
+        std::string source_code = load_file(path);
+        auto parse_result = this->parse(source_code);
+
+        auto file = std::make_shared<std::string>(path);
+        this->environment().set_file(file);
+
+        return parse_result;
+    } catch (const std::ifstream::failure& e) {
+        ParseResult result;
+        result.errors.emplace_back("Failed to load file: "s + e.what());
+        return result;
+    }
+}
+
 void Interpreter::apply_source_changes(std::vector<SourceChange> source_changes) {
     // TODO apply source change
     std::cout << "apply_source_changes\n";
