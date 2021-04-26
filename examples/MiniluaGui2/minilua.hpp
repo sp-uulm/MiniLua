@@ -9,7 +9,9 @@
 #include <QThreadPool>
 #include <QtConcurrent/QtConcurrent>
 
+#include <functional>
 #include <qfuturewatcher.h>
+#include <qgraphicssceneevent.h>
 #include <sstream>
 
 #include <MiniLua/MiniLua.hpp>
@@ -33,6 +35,7 @@ protected:
 class MovableCircle : public QGraphicsEllipseItem {
     std::function<void(QPointF)> on_move;
     std::function<void(bool)> on_select;
+    std::function<void()> on_mouse_released;
 
 public:
     minilua::Value lua_x; // NOLINT
@@ -42,11 +45,13 @@ public:
 
     void set_on_move(std::function<void(QPointF)> on_move);
     void set_on_select(std::function<void(bool)> on_select);
+    void set_on_mouse_released(std::function<void()> on_mouse_released);
 
     void update_value_ranges(const minilua::RangeMap& range_map);
 
 protected:
     auto itemChange(GraphicsItemChange change, const QVariant& value) -> QVariant override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 };
 
 class Minilua : public QMainWindow {
@@ -73,6 +78,7 @@ signals:
     void new_stderr(std::string str);
     void new_circle(minilua::Value x, minilua::Value y, minilua::Value size, Qt::GlobalColor color);
     void circle_moved(MovableCircle* circle, QPointF new_point);
+    void mouse_released();
 
 private:
     Ui::Minilua* ui;

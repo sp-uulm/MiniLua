@@ -6,10 +6,12 @@
 #include <optional>
 #include <qfuturewatcher.h>
 #include <qgraphicsscene.h>
+#include <qgraphicssceneevent.h>
 #include <qnamespace.h>
 #include <qpoint.h>
 #include <string>
 #include <unistd.h>
+#include <utility>
 
 static auto str_to_color(const std::string& color_str) -> Qt::GlobalColor {
     if (color_str == "red") {
@@ -55,12 +57,18 @@ MovableCircle::MovableCircle(minilua::Value x, minilua::Value y, double size, Qt
     // fill color
     this->setBrush(QBrush(color));
     this->setOpacity(0.8); // NOLINT
+
+    this->setTransformOriginPoint(boundingRect().center());
 }
 void MovableCircle::set_on_move(std::function<void(QPointF)> on_move) {
     this->on_move = std::move(on_move);
 }
 void MovableCircle::set_on_select(std::function<void(bool)> on_select) {
     this->on_select = std::move(on_select);
+}
+
+void MovableCircle::set_on_mouse_released(std::function<void()> on_mouse_released) {
+    this->on_mouse_released = std::move(on_mouse_released);
 }
 void MovableCircle::update_value_ranges(const minilua::RangeMap& range_map) {
     this->lua_x = this->lua_x.with_origin(this->lua_x.origin().with_updated_ranges(range_map));
@@ -79,6 +87,10 @@ auto MovableCircle::itemChange(GraphicsItemChange change, const QVariant& value)
     return QGraphicsEllipseItem::itemChange(change, value);
 }
 
+void MovableCircle::mouseReleaseEvent(QGraphicsSceneMouseEvent* /*event*/) {
+    this->on_mouse_released();
+}
+
 Minilua::Minilua(QMainWindow* parent)
     : QMainWindow(parent), ui(new Ui::Minilua), interpreter(),
       out_buf([this](auto str) { emit new_stdout(str); }),
@@ -87,6 +99,9 @@ Minilua::Minilua(QMainWindow* parent)
     ui->setupUi(this);
     hide_cancel_button();
     ui->graphics->setScene(new QGraphicsScene());
+    ui->graphics->scene()->setSceneRect(ui->graphics->rect());
+    auto* zero_text = ui->graphics->scene()->addSimpleText("0");
+    zero_text->setPos(0, 0);
 
     connect(this, &Minilua::new_stdout, this, &Minilua::writeTextToLog);
     connect(this, &Minilua::new_stderr, this, &Minilua::writeErrorToLog);
@@ -94,6 +109,12 @@ Minilua::Minilua(QMainWindow* parent)
     connect(&watcher, &QFutureWatcher<void>::finished, this, &Minilua::hide_cancel_button);
     connect(this, &Minilua::new_circle, this, &Minilua::create_circle);
     connect(this, &Minilua::circle_moved, this, &Minilua::apply_move_source_change);
+    connect(this, &Minilua::mouse_released, this, [this]() {
+        clear_circles();
+        future.cancel();
+        future = QtConcurrent::run(&this->pool, [this]() { this->exec_interpreter(); });
+        watcher.setFuture(future);
+    });
 
     auto& env = this->interpreter.environment();
     env.set_stdout(&this->out_stream);
@@ -143,6 +164,8 @@ void Minilua::create_circle(
         std::cerr << "circle: " << circle->pos().x() << ", " << circle->pos().y() << "\n";
     });
 
+    circle->set_on_mouse_released([this]() { emit mouse_released(); });
+
     std::cerr << "created circle: " << circle->pos().x() << ", " << circle->pos().y() << "\n";
 
     this->circles.push_back(circle);
@@ -167,6 +190,10 @@ void Minilua::apply_move_source_change(MovableCircle* circle, QPointF new_point)
 
     auto source_changes = minilua::SourceChangeTree(source_change).collect_first_alternative();
 
+    for (const auto& sc : source_changes) {
+        cout << sc << endl;
+    }
+    cout << "apply source changes" << endl;
     const auto range_map = this->interpreter.apply_source_changes(source_changes);
 
     // update ranges in origins of stored values
@@ -192,6 +219,10 @@ void Minilua::on_runButton_clicked() {
     ui->cancelButton->setVisible(true);
     std::string source_code = ui->inputField->toPlainText().toStdString();
     this->writeTextToLog("Application started");
+
+    auto rect = ui->graphics->rect();
+    ui->graphics->scene()->addLine(-rect.width() / 2, 0, rect.width(), 0);
+    ui->graphics->scene()->addLine(0, -rect.height(), 0, rect.height());
 
     clear_circles();
     future.cancel();
