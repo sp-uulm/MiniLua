@@ -333,7 +333,6 @@ expect_number(const Value& value, std::optional<Range> call_location, const std:
 
     auto num = expect_number(arg, this->call_location(), "1");
 
-    // TODO not sure if we need to use arg or the result of calling to_number
     auto origin = UnaryOrigin{
         .val = std::make_shared<minilua::Value>(num),
         .location = this->call_location(),
@@ -350,8 +349,6 @@ expect_number(const Value& value, std::optional<Range> call_location, const std:
     auto num1 = expect_number(arg1, this->call_location(), "1");
     auto num2 = expect_number(arg2, this->call_location(), "2");
 
-    // TODO not sure if we need to use arg1 and arg2 here or the results of
-    // calling to_number
     auto origin = BinaryOrigin{
         .lhs = std::make_shared<Value>(num1),
         .rhs = std::make_shared<Value>(num2),
@@ -501,7 +498,6 @@ void Origin::set_file(std::optional<std::shared_ptr<std::string>> file) {
                 }
             },
             [&file](LiteralOrigin& origin) { origin.location.file = file; },
-            // TODO: fix formating
             [](NoOrigin& /*unused*/) {}, [](ExternalOrigin& /*unused*/) {}, [](auto /*unused*/) {}},
         this->origin);
 }
@@ -894,7 +890,6 @@ auto Value::to_number(const Value base, std::optional<Range> location) const -> 
 }
 
 auto Value::to_string(std::optional<Range> location) const -> Value {
-    // TODO origin
     return std::visit(
         overloaded{
             [](Bool b) -> Value { return b.value ? "true" : "false"; },
