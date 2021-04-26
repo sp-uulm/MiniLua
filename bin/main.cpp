@@ -1,6 +1,7 @@
 #include "MiniLua/MiniLua.hpp"
 #include "MiniLua/interpreter.hpp"
 
+#include <chrono>
 #include <fstream>
 #include <iostream>
 
@@ -35,16 +36,22 @@ auto main(int argc, char* argv[]) -> int {
     minilua::Interpreter interpreter;
     interpreter.config().all(trace);
 
-    if (auto result = interpreter.parse(source_code); !result) {
+    auto parse_result = interpreter.parse(source_code);
+    if (!parse_result) {
         std::cerr << "Failed to parse\nErrors:\n";
-        for (const auto& error : result.errors) {
+        for (const auto& error : parse_result.errors) {
             std::cerr << " - " << error << "\n";
         }
         return 3;
     }
 
+    std::cerr << "Parsing took " << parse_result.elapsed_time << "ns\n";
+
     try {
+        auto t_start = std::chrono::steady_clock::now();
         auto result = interpreter.evaluate();
+        auto t_end = std::chrono::steady_clock::now();
+
         std::cerr << "Terminated successfullly with value:\n\t" << result.value.to_literal()
                   << "\n";
         if (result.source_change.has_value()) {
@@ -53,6 +60,9 @@ auto main(int argc, char* argv[]) -> int {
 
         // TODO pretty print
         std::cerr << "\nThe value had origin: " << result.value.origin() << "\n";
+
+        auto time = std::chrono::duration_cast<std::chrono::nanoseconds>(t_end - t_start).count();
+        std::cerr << "Interpreting took " << time << "ns\n";
     } catch (const minilua::InterpreterException& e) {
         std::cerr << "Evaluation failed with: " << e.what() << "\n";
         return 4;
