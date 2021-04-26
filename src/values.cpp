@@ -317,7 +317,7 @@ static auto expect_number(const Value& value, std::optional<Range> call_location
     -> Value {
     auto number = value.to_number(Nil(), std::move(call_location));
     if (number.is_nil()) {
-        auto message = "number expected, got "s + value.type();
+        auto message = std::string("number expected, got ") + value.type();
         throw BadArgumentError(index, message);
     }
     return number;

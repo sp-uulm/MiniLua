@@ -117,7 +117,7 @@ auto Interpreter::parse_file(const std::string& path) -> ParseResult {
         return parse_result;
     } catch (const std::ifstream::failure& e) {
         ParseResult result;
-        result.errors.emplace_back("Failed to load file: "s + e.what());
+        result.errors.emplace_back(std::string("Failed to load file: ") + e.what());
         return result;
     }
 }
