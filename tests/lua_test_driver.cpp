@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <regex>
+#include <string>
 
 auto operator<<(std::ostream& o, const std::vector<minilua::SourceChange>& self) -> std::ostream& {
     o << "[";
@@ -19,11 +20,19 @@ auto operator<<(std::ostream& o, const std::vector<minilua::SourceChange>& self)
     return o << " ]";
 }
 
+static auto read_optional_file(const std::string& path) -> std::optional<std::string> {
+    try {
+        std::ifstream ifs;
+        ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        ifs.open(path);
+        return std::string(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
+    } catch (const std::exception&) {
+        return std::nullopt;
+    }
+}
+
 auto read_input_from_file(const std::string& path) -> std::string {
-    std::ifstream ifs;
-    ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    ifs.open(path);
-    return std::string(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
+    return read_optional_file(path).value();
 }
 
 // struct ExpectedChange
@@ -78,6 +87,15 @@ auto get_tests() -> std::vector<std::unique_ptr<BaseTest>>& { return tests; }
 
 void register_test(BaseTest* test) { tests.push_back(std::unique_ptr<BaseTest>(test)); }
 
+static auto change_extension(const std::string& path, const std::string& new_ext) -> std::string {
+    auto last_dot = path.find_last_of('.');
+    if (last_dot == std::string::npos) {
+        throw std::runtime_error("Path has no dot: " + path);
+    }
+
+    return path.substr(0, last_dot + 1) + new_ext;
+}
+
 void test_file(const std::string& file) {
     std::string program = read_input_from_file(file);
 
@@ -99,10 +117,15 @@ void test_file(const std::string& file) {
     REQUIRE(parse_result);
 
     // evaluate
-    auto result = interpreter.evaluate();
+    try {
+        auto result = interpreter.evaluate();
 
-    // check
-    for (auto& test : tests) {
-        test->run(result);
+        // check
+        for (auto& test : tests) {
+            test->run(result);
+        }
+    } catch (const minilua::InterpreterException& e) {
+        // NOTE we ignore errors here because they will be caught when running
+        // the lua tests directly
     }
 }

@@ -1,0 +1,7 @@
+error: __root__:10: some error
+stack traceback:
+	[NATIVE]: in function 'error'
+	__root__:10: in function 'func3'
+	__root__:6: in function 'func2'
+	__root__:2: in function 'func1'
+	__root__:13: in main chunk
