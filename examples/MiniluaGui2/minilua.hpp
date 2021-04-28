@@ -66,7 +66,7 @@ private slots:
 
     void hide_cancel_button();
 
-    void writeTextToLog(const std::string& text);
+    void writeTextToLog(std::string text);
     void writeErrorToLog(const std::string& text);
 
     void

@@ -9,6 +9,7 @@
 #include <qgraphicssceneevent.h>
 #include <qnamespace.h>
 #include <qpoint.h>
+#include <qtextcursor.h>
 #include <string>
 #include <unistd.h>
 #include <utility>
@@ -208,11 +209,22 @@ void Minilua::apply_move_source_change(MovableCircle* circle, QPointF new_point)
     ui->inputField->setPlainText(QString::fromStdString(this->interpreter.source_code()));
 }
 
-void Minilua::writeTextToLog(const std::string& text) {
-    ui->log->append(QString::fromStdString(text));
+void Minilua::writeTextToLog(std::string text) {
+    ui->log->moveCursor(QTextCursor::End);
+    text = text + "\n";
+    ui->log->insertHtml(
+        "<font color=\"white\">" + QString(text.c_str()).replace('\n', "<br>") + "</font>");
+    if (*(text.end() - 1) == '\n') {
+        ui->log->append("\n");
+    }
 }
 void Minilua::writeErrorToLog(const std::string& text) {
-    ui->log->append(QString::fromStdString(text));
+    ui->log->moveCursor(QTextCursor::End);
+    ui->log->insertHtml(
+        "<font color=\"red\">" + QString(text.c_str()).replace('\n', "<br>") + "</font>");
+    if (*(text.end() - 1) == '\n') {
+        ui->log->append("\n");
+    }
 }
 
 void Minilua::on_runButton_clicked() {
@@ -232,6 +244,7 @@ void Minilua::on_runButton_clicked() {
 
 void Minilua::on_cancelButton_released() {
     future.cancel();
+
     this->writeTextToLog("Application stopped");
 }
 
@@ -243,8 +256,8 @@ void Minilua::exec_interpreter() {
         for (const auto& e : parse_result.errors) {
             writeErrorToLog(e + "\n");
         }
+        return;
     }
-
     try {
         const auto eval_result = this->interpreter.evaluate();
         std::stringstream ss;
@@ -252,6 +265,6 @@ void Minilua::exec_interpreter() {
            << "   SOURCE CHANGES: " << eval_result.source_change << "\n";
         writeTextToLog(ss.str());
     } catch (const minilua::InterpreterException& e) {
-        writeTextToLog(e.what());
+        writeErrorToLog(e.what());
     }
 }
