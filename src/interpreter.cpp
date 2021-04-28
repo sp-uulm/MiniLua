@@ -134,7 +134,6 @@ auto Interpreter::parse_file(const std::string& path) -> ParseResult {
     }
 }
 
-}
 auto Interpreter::evaluate() -> EvalResult {
     details::Interpreter interpreter{this->config(), this->impl->parser};
     return interpreter.run(this->impl->tree, this->impl->env.get_raw_impl().inner);
