@@ -10,7 +10,6 @@ else()
     add_executable(${PROJECT_NAME}-newgui
         mainwindow.cpp
         main.cpp)
-        # resources.qrc)
     target_include_directories(${PROJECT_NAME}-newgui PRIVATE .)
 
     target_link_libraries(${PROJECT_NAME}-newgui
