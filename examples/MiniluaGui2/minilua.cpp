@@ -62,7 +62,6 @@ void MovableCircle::set_on_select(std::function<void(bool)> on_select) {
 void MovableCircle::update_value_ranges(const minilua::RangeMap& range_map) {
     this->lua_x = this->lua_x.with_origin(this->lua_x.origin().with_updated_ranges(range_map));
     this->lua_y = this->lua_y.with_origin(this->lua_y.origin().with_updated_ranges(range_map));
-    // throw std::exception();
 }
 
 auto MovableCircle::itemChange(GraphicsItemChange change, const QVariant& value) -> QVariant {
