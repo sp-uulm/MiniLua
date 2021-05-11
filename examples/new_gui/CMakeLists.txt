@@ -8,7 +8,6 @@ if (NOT Qt6_FOUND)
     message(WARN "Qt6 was not found. Disabling gui example")
 else()
     add_executable(${PROJECT_NAME}-newgui
-        # mainwindow.ui
         mainwindow.cpp
         main.cpp)
         # resources.qrc)
