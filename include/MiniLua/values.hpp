@@ -640,7 +640,7 @@ public:
      *
      * \note The table might still contain a `Nil` value for the key.
      */
-    auto has(const Value& key) -> bool;
+    [[nodiscard]] auto has(const Value& key) const -> bool;
     /**
      * @brief Sets the key to value.
      *
@@ -1770,7 +1770,8 @@ public:
      * integer in that base. Otherwise `Nil` is returned.
      */
     [[nodiscard]] auto
-    to_number(Value base = Nil(), std::optional<Range> location = std::nullopt) const -> Value;
+    to_number(const Value& base = Nil(), std::optional<Range> location = std::nullopt) const
+        -> Value;
 
     /**
      * @brief Converts the value to a `String`.

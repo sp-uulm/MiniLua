@@ -902,7 +902,7 @@ Value::operator bool() const {
     return std::visit([](const auto& value) { return bool(value); }, this->impl->val);
 }
 
-auto Value::to_number(const Value base, std::optional<Range> location) const -> Value {
+auto Value::to_number(const Value& base, std::optional<Range> location) const -> Value {
     return std::visit(
         overloaded{
             [this, &location](const String& number, const Nil& /*nil*/) -> Value {
@@ -927,7 +927,7 @@ auto Value::to_number(const Value base, std::optional<Range> location) const -> 
                 static std::regex to_number_int_pattern(R"(\s*-?[a-zA-Z0-9]+)");
 
                 // NOTE: we only parse ints when we get a base
-                // the base has to be between 2 adn 35 (because numbers with other bases
+                // the base (has) to be between 2 adn 35 (because numbers with other bases
                 // are not representable strings)
                 if (!base.is_int()) {
                     throw std::runtime_error("base has no integer representation");
