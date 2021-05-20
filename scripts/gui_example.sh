@@ -7,5 +7,5 @@ pushd build
 make MiniLua-newgui
 popd
 
-time ./build/examples/new_gui/MiniLua-newgui "$@"
+time ./build/examples/MiniluaGui/MiniLua-newgui "$@"
 

@@ -22,7 +22,7 @@ set(PROJECT_SOURCES
         minilua.ui
 )
 set(PROJECT_NAME_GUI
-    ${PROJECT_NAME}-newgui2
+    ${PROJECT_NAME}-newgui
 )
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     add_executable(
