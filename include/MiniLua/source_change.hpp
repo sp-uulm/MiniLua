@@ -4,6 +4,7 @@
 #include "MiniLua/utils.hpp"
 #include <cstdint>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <numeric>
 #include <optional>
@@ -53,6 +54,16 @@ constexpr auto operator>=(Location lhs, Location rhs) noexcept -> bool {
 }
 auto operator<<(std::ostream&, const Location&) -> std::ostream&;
 
+} // namespace minilua
+
+namespace std {
+template <> struct hash<minilua::Location> {
+    auto operator()(const minilua::Location& location) const -> size_t;
+};
+} // namespace std
+
+namespace minilua {
+
 /**
  * @brief A range (sometimes called span) in source code.
  *
@@ -85,6 +96,24 @@ struct Range {
 auto operator==(const Range& lhs, const Range& rhs) noexcept -> bool;
 auto operator!=(const Range& lhs, const Range& rhs) noexcept -> bool;
 auto operator<<(std::ostream&, const Range&) -> std::ostream&;
+
+struct RangeStartCompare {
+    constexpr auto operator()(const Range& lhs, const Range& rhs) const -> bool {
+        return lhs.start < rhs.start;
+    }
+};
+
+using RangeMap = std::map<Range, Range, RangeStartCompare>;
+
+} // namespace minilua
+
+namespace std {
+template <> struct hash<minilua::Range> {
+    auto operator()(const minilua::Range& range) const -> size_t;
+};
+} // namespace std
+
+namespace minilua {
 
 class SourceChangeTree;
 

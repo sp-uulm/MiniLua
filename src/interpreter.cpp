@@ -1,10 +1,13 @@
 #include "MiniLua/interpreter.hpp"
 #include "details/interpreter.hpp"
+#include "details/tree_sitter_interop.hpp"
 #include "tree_sitter/tree_sitter.hpp"
 #include "tree_sitter_lua.hpp"
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -68,7 +71,7 @@ auto Interpreter::config() -> InterpreterConfig& { return this->_config; }
 void Interpreter::set_config(InterpreterConfig config) { this->_config = config; }
 
 auto Interpreter::environment() const -> Environment& { return impl->env; }
-auto Interpreter::source_code() const -> std::string_view { return impl->source_code; }
+auto Interpreter::source_code() const -> const std::string& { return impl->source_code; }
 
 auto Interpreter::parse(std::string source_code) -> ParseResult {
     this->impl->source_code = std::move(source_code);
@@ -97,6 +100,24 @@ static auto load_file(const std::string& path) -> std::string {
     return std::string(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
 }
 
+auto Interpreter::apply_source_changes(std::vector<SourceChange> source_changes) -> RangeMap {
+    std::vector<ts::Edit> edits;
+    edits.reserve(source_changes.size());
+
+    std::transform(
+        source_changes.begin(), source_changes.end(), std::back_inserter(edits), to_ts_edit);
+
+    auto edit_result = this->impl->tree.edit(edits);
+
+    this->impl->source_code = this->impl->tree.source();
+
+    RangeMap range_map;
+    for (const auto& applied_edit : edit_result.applied_edits) {
+        range_map[from_ts_range(applied_edit.before)] = from_ts_range(applied_edit.after);
+    }
+    return range_map;
+}
+
 auto Interpreter::parse_file(const std::string& path) -> ParseResult {
     try {
         std::string source_code = load_file(path);
@@ -113,10 +134,6 @@ auto Interpreter::parse_file(const std::string& path) -> ParseResult {
     }
 }
 
-void Interpreter::apply_source_changes(std::vector<SourceChange> source_changes) {
-    // TODO apply source change
-    std::cout << "apply_source_changes\n";
-}
 auto Interpreter::evaluate() -> EvalResult {
     details::Interpreter interpreter{this->config(), this->impl->parser};
     return interpreter.run(this->impl->tree, this->impl->env.get_raw_impl().inner);

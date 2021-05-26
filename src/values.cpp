@@ -505,6 +505,45 @@ void Origin::set_file(std::optional<std::shared_ptr<std::string>> file) {
 auto Origin::simplify() const -> Origin {
     return std::visit([](const auto& origin) -> Origin { return origin.simplify(); }, this->raw());
 }
+[[nodiscard]] auto Origin::with_updated_ranges(const RangeMap& range_map) const -> Origin {
+    return std::visit(
+        overloaded{
+            [&range_map](const LiteralOrigin& origin) -> Origin {
+                return origin.with_updated_ranges(range_map);
+            },
+            [&range_map](const BinaryOrigin& origin) -> Origin {
+                auto lhs_origin = origin.lhs->origin().with_updated_ranges(range_map);
+                auto rhs_origin = origin.rhs->origin().with_updated_ranges(range_map);
+
+                auto new_origin = origin;
+                new_origin.lhs = std::make_shared<Value>(origin.lhs->with_origin(lhs_origin));
+                new_origin.rhs = std::make_shared<Value>(origin.rhs->with_origin(rhs_origin));
+                return new_origin;
+            },
+            [&range_map](const UnaryOrigin& origin) -> Origin {
+                auto val_origin = origin.val->origin().with_updated_ranges(range_map);
+
+                auto new_origin = origin;
+                new_origin.val = std::make_shared<Value>(origin.val->with_origin(val_origin));
+                return new_origin;
+            },
+            [&range_map](const MultipleArgsOrigin& origin) -> Origin {
+                std::vector<Value> new_values;
+                new_values.reserve(origin.values.size());
+
+                for (const auto& value : origin.values) {
+                    auto new_origin = value.origin().with_updated_ranges(range_map);
+                    new_values.push_back(value.with_origin(new_origin));
+                }
+
+                auto new_origin = origin;
+                new_origin.values = new_values;
+                return new_origin;
+            },
+            [&range_map](const auto& origin) -> Origin { return origin; },
+        },
+        this->origin);
+}
 
 auto operator==(const Origin& lhs, const Origin& rhs) noexcept -> bool {
     return lhs.raw() == rhs.raw();
@@ -534,6 +573,62 @@ auto operator<<(std::ostream& os, const ExternalOrigin&) -> std::ostream& {
 
 // struct LiteralOrigin
 auto LiteralOrigin::simplify() const -> Origin { return *this; }
+
+auto LiteralOrigin::with_updated_ranges(const RangeMap& range_map) const -> LiteralOrigin {
+    auto find_range = [&range_map](auto predicate) {
+        return std::find_if(range_map.begin(), range_map.end(), predicate);
+    };
+    auto find_range_from_end = [&range_map](auto predicate) {
+        return std::find_if(range_map.rbegin(), range_map.rend(), predicate);
+    };
+
+    // update if range matches exactly
+    {
+        // [from, to] tuple,
+        // where start of both is equal to the start of this origins location
+        const auto range_update = find_range([this](const auto& range) {
+            return range.first.start == this->location.start &&
+                   range.first.end == this->location.end;
+        });
+
+        if (range_update != range_map.end()) {
+            auto location = range_update->second;
+            location.file = this->location.file;
+            return LiteralOrigin{.location = location};
+        }
+    }
+
+    // update if range is before this origin in the code
+    // we need to update this to make tree-sitter behave correctly when updating
+    // different origins multiple times
+    {
+        // [from, to] tuple,
+        // that is the first before the location of this origin (only considering byte)
+        const auto range_update = find_range_from_end(
+            [this](const auto& range) { return range.first.end.byte < this->location.start.byte; });
+
+        if (range_update != range_map.rend()) {
+            const auto& [from, to] = *range_update;
+            auto location = this->location;
+
+            // move the byte offset if this origin is after the range to update
+            auto byte_diff = to.end.byte - from.end.byte;
+            location.start.byte += byte_diff;
+            location.end.byte += byte_diff;
+
+            // if the range to update is on the same line, also update the column index
+            if (from.end.line == this->location.end.line) {
+                auto column_diff = to.end.column - from.end.column;
+                location.start.column += column_diff;
+                location.end.column += column_diff;
+            }
+
+            return LiteralOrigin{.location = location};
+        }
+    }
+
+    return *this;
+}
 
 auto operator==(const LiteralOrigin& lhs, const LiteralOrigin& rhs) noexcept -> bool {
     return lhs.location == rhs.location;
@@ -735,7 +830,7 @@ auto Value::contains_function() const -> bool {
     return new_value;
 }
 
-[[nodiscard]] auto Value::force(Value new_value, std::string origin) const
+[[nodiscard]] auto Value::force(const Value& new_value, const std::string& /*origin*/) const
     -> std::optional<SourceChangeTree> {
     // TODO how to integrate origin string?
     return this->origin().force(new_value);
@@ -954,9 +1049,13 @@ static inline auto num_op_helper(
 [[nodiscard]] auto Value::negate(std::optional<Range> location) const -> Value {
     auto origin = Origin(UnaryOrigin{
         .val = std::make_shared<Value>(*this),
-        .location = location,
-        .reverse = [](const Value& new_value, const Value& old_value)
-            -> std::optional<SourceChangeTree> { return old_value.force(-new_value); }});
+        .location = std::move(location),
+        .reverse = [](const Value& new_value,
+                      const Value& old_value) -> std::optional<SourceChangeTree> {
+            // Number n = std::get<Number>(new_value);
+            cout << "reverse - with negate-function to " << new_value.type() << endl;
+            return old_value.force(-new_value);
+        }});
 
     return std::visit(
                overloaded{
@@ -991,8 +1090,21 @@ static inline auto num_op_helper(
     return num_op_helper(
         *this, rhs, [](Number lhs, Number rhs) { return lhs * rhs; }, "multiply",
         binary_num_reverse(
-            [](Number new_value, Number rhs) { return new_value / rhs; },
-            [](Number new_value, Number lhs) { return new_value / lhs; }, "mul"),
+            [](Number new_value, Number rhs) -> std::optional<Number> {
+                if (rhs != 0) {
+                    return new_value / rhs;
+                } else {
+                    return std::nullopt;
+                }
+            },
+            [](Number new_value, Number lhs) -> std::optional<Number> {
+                if (lhs != 0) {
+                    return new_value / lhs;
+                } else {
+                    return std::nullopt;
+                }
+            },
+            "mul"),
         location);
 }
 [[nodiscard]] auto Value::div(const Value& rhs, std::optional<Range> location) const -> Value {
