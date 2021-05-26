@@ -225,8 +225,8 @@
             </dt>
             <dd>The type of this value as a string.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a94c8887ffc749f5da01929f381843be0" class="m-doc">force</a>(</span><span class="m-doc-wrap"><a href="classminilua_1_1Value.html" class="m-doc">Value</a> new_value,
-              std::string origin = &quot;&quot;) const -&gt; std::optional&lt; SourceChangeTree &gt; -&gt; auto</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a175446016f4c3c378382bdb5b9e9d8bc" class="m-doc">force</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1Value.html" class="m-doc">Value</a>&amp; new_value,
+              const std::string&amp; origin = &quot;&quot;) const -&gt; std::optional&lt; SourceChangeTree &gt; -&gt; auto</span>
             </dt>
             <dd>Tries to force this value to become <code>new_value</code>.</dd>
             <dt>
@@ -459,10 +459,10 @@
             <p>Sets the <a href="classminilua_1_1Origin.html" class="m-doc">Origin</a>.</p>
 <p>This is a builder style method and creates a new <a href="classminilua_1_1Value.html" class="m-doc">Value</a>.</p>
           </div></section>
-          <section class="m-doc-details" id="a94c8887ffc749f5da01929f381843be0"><div>
+          <section class="m-doc-details" id="a175446016f4c3c378382bdb5b9e9d8bc"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">auto minilua::<wbr />Value::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a94c8887ffc749f5da01929f381843be0" class="m-doc-self">force</a>(</span><span class="m-doc-wrap"><a href="classminilua_1_1Value.html" class="m-doc">Value</a> new_value,
-              std::string origin = &quot;&quot;) const -&gt; std::optional&lt; SourceChangeTree &gt;</span></span>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />Value::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a175446016f4c3c378382bdb5b9e9d8bc" class="m-doc-self">force</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1Value.html" class="m-doc">Value</a>&amp; new_value,
+              const std::string&amp; origin = &quot;&quot;) const -&gt; std::optional&lt; SourceChangeTree &gt;</span></span>
             </h3>
             <p>Tries to force this value to become <code>new_value</code>.</p>
 <p>Does not actually change the value. This will only return a <code><a href="structminilua_1_1SourceChange.html" class="m-doc">SourceChange</a></code> that (when applied) would result in the this value being changed to <code>new_value</code>.</p><p>The return value should be returned in <code><a href="classminilua_1_1Function.html" class="m-doc">Function</a></code>s otherwise this does not have any effect.</p><p>This throws an exception if the types of the values didn&#x27;t match.</p>

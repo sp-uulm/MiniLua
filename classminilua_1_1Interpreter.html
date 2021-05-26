@@ -108,15 +108,15 @@
             </dt>
             <dd>Returns the environment for modification.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a8d49d7331de176e5108a8a319140ac78" class="m-doc">source_code</a>(</span><span class="m-doc-wrap">) const -&gt; std::string_view -&gt; auto</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a70a6f29b22ed6b287bdbae3daaacf02e" class="m-doc">source_code</a>(</span><span class="m-doc-wrap">) const -&gt; const std::string &amp; -&gt; auto</span>
             </dt>
             <dd>Returns a view into the current source code.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#aabb20a73723822998fa93527b12b3ee1" class="m-doc">parse</a>(</span><span class="m-doc-wrap">std::string source_code) -&gt; ParseResult -&gt; auto</span>
             </dt>
             <dd>Parse fresh source code.</dd>
-            <dt id="a9a2d0d27ed5e8130f84265055a453aa9">
-              <span class="m-doc-wrap-bumper">void <a href="#a9a2d0d27ed5e8130f84265055a453aa9" class="m-doc-self">apply_source_changes</a>(</span><span class="m-doc-wrap">std::vector&lt;<a href="structminilua_1_1SourceChange.html" class="m-doc">SourceChange</a>&gt;)</span>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#af591dfaecfcd8acf6ba1373b6a2f991e" class="m-doc">apply_source_changes</a>(</span><span class="m-doc-wrap">std::vector&lt;<a href="structminilua_1_1SourceChange.html" class="m-doc">SourceChange</a>&gt;) -&gt; RangeMap -&gt; auto</span>
             </dt>
             <dd>Applies a list of single source changes.</dd>
             <dt>
@@ -141,9 +141,9 @@
             <p>Returns the environment for modification.</p>
 <aside class="m-note m-info"><h4>Note</h4><p>This will not directly be used by the interpreter so you can just reuse an existing interpreter/environment without resetting it.</p></aside>
           </div></section>
-          <section class="m-doc-details" id="a8d49d7331de176e5108a8a319140ac78"><div>
+          <section class="m-doc-details" id="a70a6f29b22ed6b287bdbae3daaacf02e"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">auto minilua::<wbr />Interpreter::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a8d49d7331de176e5108a8a319140ac78" class="m-doc-self">source_code</a>(</span><span class="m-doc-wrap">) const -&gt; std::string_view</span></span>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />Interpreter::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a70a6f29b22ed6b287bdbae3daaacf02e" class="m-doc-self">source_code</a>(</span><span class="m-doc-wrap">) const -&gt; const std::string &amp;</span></span>
             </h3>
             <p>Returns a view into the current source code.</p>
 <aside class="m-note m-danger"><h4>Warning</h4><p>The returned value will become invalid if the source code is changed (by calling parse or apply_source_changes).</p></aside>
@@ -154,6 +154,13 @@
             </h3>
             <p>Parse fresh source code.</p>
 <p>Errors are part of <a href="structminilua_1_1ParseResult.html" class="m-doc">ParseResult</a>.</p>
+          </div></section>
+          <section class="m-doc-details" id="af591dfaecfcd8acf6ba1373b6a2f991e"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />Interpreter::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#af591dfaecfcd8acf6ba1373b6a2f991e" class="m-doc-self">apply_source_changes</a>(</span><span class="m-doc-wrap">std::vector&lt;<a href="structminilua_1_1SourceChange.html" class="m-doc">SourceChange</a>&gt;) -&gt; RangeMap</span></span>
+            </h3>
+            <p>Applies a list of single source changes.</p>
+<p>This returns a map of ranges that were changed. Keys are the old ranges and values are the new ranges. Note that this map only contains ranges for the applied source changes. Other range might have moved and are not present in the map.</p>
           </div></section>
           <section class="m-doc-details" id="a47d8b89428d14ff81089a03b5521af22"><div>
             <h3>
