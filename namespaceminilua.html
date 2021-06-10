@@ -286,6 +286,15 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a1489923e84fc2569f0880879f5f51981" class="m-doc-self">parse_string_literal</a>(</span><span class="m-doc-wrap">const std::string&amp; str) -&gt; Value -&gt; auto</span>
             </dt>
             <dd>Parse and escape a string into a lua value string.</dd>
+            <dt id="a8a0763abf3444cbef51a1eabf5acf336">
+              <span class="m-doc-wrap-bumper">auto <a href="#a8a0763abf3444cbef51a1eabf5acf336" class="m-doc-self">simplify</a>(</span><span class="m-doc-wrap">const std::optional&lt;<a href="classminilua_1_1SourceChangeTree.html" class="m-doc">SourceChangeTree</a>&gt;&amp; tree) -&gt; std::optional&lt; SourceChangeTree &gt; -&gt; auto</span>
+            </dt>
+            <dd>See <a href="classminilua_1_1SourceChangeTree.html#a72f2bfd137b96f01d395dfa987ce31ea" class="m-doc">SourceChangeTree::<wbr />simplify</a>.</dd>
+            <dt id="afc248bc9d6282a746ee614ab83b0f2e7">
+              <span class="m-doc-wrap-bumper">auto <a href="#afc248bc9d6282a746ee614ab83b0f2e7" class="m-doc-self">combine_source_changes</a>(</span><span class="m-doc-wrap">const std::optional&lt;<a href="classminilua_1_1SourceChangeTree.html" class="m-doc">SourceChangeTree</a>&gt;&amp; lhs,
+              const std::optional&lt;<a href="classminilua_1_1SourceChangeTree.html" class="m-doc">SourceChangeTree</a>&gt;&amp; rhs) -&gt; std::optional&lt; SourceChangeTree &gt; -&gt; auto</span>
+            </dt>
+            <dd>Combines two source changes using a <code><a href="structminilua_1_1SourceChangeCombination.html" class="m-doc">SourceChangeCombination</a></code> if necessary.</dd>
             <dt>
               <div class="m-doc-template">template&lt;typename T, typename... Args&gt;</div>
               <span class="m-doc-wrap-bumper">auto <a href="#a2ab2504267030f658f182e1e2094bd6e" class="m-doc">make_owning</a>(</span><span class="m-doc-wrap">Args... args) -&gt; owning_ptr&lt; T &gt; -&gt; auto</span>
@@ -296,15 +305,6 @@
               int base) -&gt; std::string -&gt; auto</span>
             </dt>
             <dd></dd>
-            <dt id="a8a0763abf3444cbef51a1eabf5acf336">
-              <span class="m-doc-wrap-bumper">auto <a href="#a8a0763abf3444cbef51a1eabf5acf336" class="m-doc-self">simplify</a>(</span><span class="m-doc-wrap">const std::optional&lt;<a href="classminilua_1_1SourceChangeTree.html" class="m-doc">SourceChangeTree</a>&gt;&amp; tree) -&gt; std::optional&lt; SourceChangeTree &gt; -&gt; auto</span>
-            </dt>
-            <dd>See <a href="classminilua_1_1SourceChangeTree.html#a72f2bfd137b96f01d395dfa987ce31ea" class="m-doc">SourceChangeTree::<wbr />simplify</a>.</dd>
-            <dt id="afc248bc9d6282a746ee614ab83b0f2e7">
-              <span class="m-doc-wrap-bumper">auto <a href="#afc248bc9d6282a746ee614ab83b0f2e7" class="m-doc-self">combine_source_changes</a>(</span><span class="m-doc-wrap">const std::optional&lt;<a href="classminilua_1_1SourceChangeTree.html" class="m-doc">SourceChangeTree</a>&gt;&amp; lhs,
-              const std::optional&lt;<a href="classminilua_1_1SourceChangeTree.html" class="m-doc">SourceChangeTree</a>&gt;&amp; rhs) -&gt; std::optional&lt; SourceChangeTree &gt; -&gt; auto</span>
-            </dt>
-            <dd>Combines two source changes using a <code><a href="structminilua_1_1SourceChangeCombination.html" class="m-doc">SourceChangeCombination</a></code> if necessary.</dd>
             <dt id="a7a2cc759826e2cd91ea818c27ce0a687">
               <div class="m-doc-template">template&lt;typename Fn&gt;</div>
               <span class="m-doc-wrap-bumper">auto <a href="#a7a2cc759826e2cd91ea818c27ce0a687" class="m-doc-self">with_call_stack</a>(</span><span class="m-doc-wrap">Fn f,

@@ -76,7 +76,7 @@
 <p>MiniLua is a lua interpreter with source value tracking.</p><ul><li><a href="architecture.html" class="m-doc">Architecture Overview</a></li></ul><section id="autotoc_md5"><h2><a href="#autotoc_md5">Usage Example</a></h2><pre class="m-code"><span class="n">minilua</span><span class="o">::</span><span class="n">Interpreter</span> <span class="n">interpreter</span><span class="p">;</span>
 
 <span class="c1">// parse the program</span>
-<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">interpreter</span><span class="p">.</span><span class="n">parse</span><span class="p">(</span><span class="s">&quot;x_coord = 10; forceValue(x_coord, 25)&quot;</span><span class="p">))</span> <span class="p">{</span>
+<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">interpreter</span><span class="p">.</span><span class="n">parse</span><span class="p">(</span><span class="s">&quot;x_coord = 10; force(x_coord, 25)&quot;</span><span class="p">))</span> <span class="p">{</span>
     <span class="c1">// parser failed</span>
 <span class="p">}</span>
 
@@ -91,7 +91,7 @@
 
 <span class="c1">// source code is now:</span>
 <span class="c1">//</span>
-<span class="c1">// xcoord = 10; forceValue(c_coord, 25)</span>
+<span class="c1">// xcoord = 25; force(x_coord, 25)</span>
 
 <span class="c1">// re-run</span></pre></section><section id="autotoc_md6"><h2><a href="#autotoc_md6">Origin Tracking and Source Changes</a></h2><p>This Lua interpreter tracks the <a href="classminilua_1_1Origin.html" class="m-doc">Origin</a> of all (or most) <a href="classminilua_1_1Value.html" class="m-doc">Values</a>. The following Lua code</p><pre class="m-code"><span class="c1">-- Lua Code</span>
 <span class="n">x</span> <span class="o">=</span> <span class="mi">10</span>
