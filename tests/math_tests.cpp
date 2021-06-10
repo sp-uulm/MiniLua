@@ -1933,7 +1933,7 @@ TEST_CASE("math.sqrt(x)") {
         list = minilua::Vallist({minilua::Value(i)});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::sqrt(ctx));
-        CHECK(isnan(n.as_float()));
+        CHECK(std::isnan(n.as_float()));
     }
 
     SECTION("Strings") {
@@ -1962,7 +1962,7 @@ TEST_CASE("math.sqrt(x)") {
         list = minilua::Vallist({i});
         ctx = ctx.make_new(list);
         n = std::get<minilua::Number>(minilua::math::sqrt(ctx));
-        CHECK(isnan(n.as_float()));
+        CHECK(std::isnan(n.as_float()));
     }
 
     SECTION("invalid input") {

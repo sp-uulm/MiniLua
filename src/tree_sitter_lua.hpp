@@ -12,9 +12,6 @@ namespace ts {
  */
 const Language LUA_LANGUAGE = Language(tree_sitter_lua());
 
-// TODO document them
-// TODO we should really generate this automatically
-// TODO how to deal with unnamed (e.g. operators "+", etc. are still useful)
 const TypeId NODE_BREAK_STATEMENT = LUA_LANGUAGE.node_type_id("break_statement", true);
 const TypeId NODE_SPREAD = LUA_LANGUAGE.node_type_id("spread", true);
 const TypeId NODE_SELF = LUA_LANGUAGE.node_type_id("self", true);

@@ -156,7 +156,7 @@ void Interpreter::execute_stdlib(Env& env) {
     } catch (const std::exception& e) {
         // This should never actually throw an exception
         throw InterpreterException(
-            "THIS IS A BUG! Failed to execute the stdlib file: "s + e.what());
+            std::string("THIS IS A BUG! Failed to execute the stdlib file: ") + e.what());
     }
 }
 
@@ -176,7 +176,7 @@ auto Interpreter::load_stdlib() -> ts::Tree {
         if (stdlib_tree.root_node().has_error()) {
             std::stringstream ss;
             ts::visit_tree(stdlib_tree, [&ss](ts::Node node) {
-                if (node.type() == "ERROR"s || node.is_missing()) {
+                if (node.type() == std::string("ERROR") || node.is_missing()) {
                     ss << "Error in node: ";
                     ss << ts::debug_print_node(node);
                 }
@@ -187,7 +187,8 @@ auto Interpreter::load_stdlib() -> ts::Tree {
         return stdlib_tree;
     } catch (const std::exception& e) {
         // This should never actually throw an exception
-        throw InterpreterException("THIS IS A BUG! Failed to parse the stdlib: "s + e.what());
+        throw InterpreterException(
+            std::string("THIS IS A BUG! Failed to parse the stdlib: ") + e.what());
     }
 }
 
@@ -208,7 +209,7 @@ auto Interpreter::run_file(const ts::Tree& tree, Env& env) -> EvalResult {
     } catch (const InterpreterException&) {
         throw;
     } catch (const std::exception& e) {
-        throw InterpreterException("unknown error: "s + e.what());
+        throw InterpreterException(std::string("unknown error: ") + e.what());
     }
 }
 
