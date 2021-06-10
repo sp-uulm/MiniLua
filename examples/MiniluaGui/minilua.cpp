@@ -191,9 +191,9 @@ void Minilua::apply_move_source_change(MovableCircle* circle, QPointF new_point)
     auto source_changes = minilua::SourceChangeTree(source_change).collect_first_alternative();
 
     for (const auto& sc : source_changes) {
-        cout << sc << endl;
+        std::cout << sc << std::endl;
     }
-    cout << "apply source changes" << endl;
+    std::cout << "apply source changes" << std::endl;
     const auto range_map = this->interpreter.apply_source_changes(source_changes);
 
     // update ranges in origins of stored values

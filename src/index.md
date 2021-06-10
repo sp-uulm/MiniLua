@@ -12,7 +12,7 @@ MiniLua is a lua interpreter with source value tracking.
 minilua::Interpreter interpreter;
 
 // parse the program
-if (!interpreter.parse("x_coord = 10; forceValue(x_coord, 25)")) {
+if (!interpreter.parse("x_coord = 10; force(x_coord, 25)")) {
     // parser failed
 }
 
@@ -27,7 +27,7 @@ if (result.source_change) {
 
 // source code is now:
 //
-// xcoord = 10; forceValue(c_coord, 25)
+// xcoord = 25; force(x_coord, 25)
 
 // re-run
 ```

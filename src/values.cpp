@@ -317,7 +317,7 @@ static auto expect_number(const Value& value, std::optional<Range> call_location
     -> Value {
     auto number = value.to_number(Nil(), std::move(call_location));
     if (number.is_nil()) {
-        auto message = "number expected, got "s + value.type();
+        auto message = std::string("number expected, got ") + value.type();
         throw BadArgumentError(index, message);
     }
     return number;
@@ -329,7 +329,6 @@ static auto expect_number(const Value& value, std::optional<Range> call_location
 
     auto num = expect_number(arg, this->call_location(), 1);
 
-    // TODO not sure if we need to use arg or the result of calling to_number
     auto origin = UnaryOrigin{
         .val = std::make_shared<minilua::Value>(num),
         .location = this->call_location(),
@@ -346,8 +345,6 @@ static auto expect_number(const Value& value, std::optional<Range> call_location
     auto num1 = expect_number(arg1, this->call_location(), 1);
     auto num2 = expect_number(arg2, this->call_location(), 2);
 
-    // TODO not sure if we need to use arg1 and arg2 here or the results of
-    // calling to_number
     auto origin = BinaryOrigin{
         .lhs = std::make_shared<Value>(num1),
         .rhs = std::make_shared<Value>(num2),
@@ -497,7 +494,6 @@ void Origin::set_file(std::optional<std::shared_ptr<std::string>> file) {
                 }
             },
             [&file](LiteralOrigin& origin) { origin.location.file = file; },
-            // TODO: fix formating
             [](NoOrigin& /*unused*/) {}, [](ExternalOrigin& /*unused*/) {}, [](auto /*unused*/) {}},
         this->origin);
 }
@@ -902,7 +898,7 @@ Value::operator bool() const {
     return std::visit([](const auto& value) { return bool(value); }, this->impl->val);
 }
 
-auto Value::to_number(const Value base, std::optional<Range> location) const -> Value {
+auto Value::to_number(const Value& base, std::optional<Range> location) const -> Value {
     return std::visit(
         overloaded{
             [this, &location](const String& number, const Nil& /*nil*/) -> Value {
@@ -927,7 +923,7 @@ auto Value::to_number(const Value base, std::optional<Range> location) const -> 
                 static std::regex to_number_int_pattern(R"(\s*-?[a-zA-Z0-9]+)");
 
                 // NOTE: we only parse ints when we get a base
-                // the base has to be between 2 adn 35 (because numbers with other bases
+                // the base (has) to be between 2 adn 35 (because numbers with other bases
                 // are not representable strings)
                 if (!base.is_int()) {
                     throw std::runtime_error("base has no integer representation");
@@ -985,7 +981,6 @@ auto Value::to_number(const Value base, std::optional<Range> location) const -> 
 }
 
 auto Value::to_string(std::optional<Range> location) const -> Value {
-    // TODO origin
     return std::visit(
         overloaded{
             [](Bool b) -> Value { return b.value ? "true" : "false"; },
@@ -994,12 +989,12 @@ auto Value::to_string(std::optional<Range> location) const -> Value {
             [](Table t) -> Value { // TODO: maybe improve the way to get the address.
                 // at the moment it could be that every time you call it the
                 // address has changed because of the change in the stack
-                ostringstream get_address;
+                std::ostringstream get_address;
                 get_address << &t;
                 return get_address.str();
             },
             [](Function f) -> Value {
-                ostringstream get_address;
+                std::ostringstream get_address;
                 get_address << &f;
                 return get_address.str();
             },
@@ -1053,7 +1048,7 @@ static inline auto num_op_helper(
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
             // Number n = std::get<Number>(new_value);
-            cout << "reverse - with negate-function to " << new_value.type() << endl;
+            std::cout << "reverse - with negate-function to " << new_value.type() << std::endl;
             return old_value.force(-new_value);
         }});
 

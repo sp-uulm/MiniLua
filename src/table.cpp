@@ -165,7 +165,9 @@ auto Table::get(const Value& key) const -> Value {
         return Value(value->second);
     }
 }
-auto Table::has(const Value& key) -> bool { return impl->value.find(key) != impl->value.end(); }
+auto Table::has(const Value& key) const -> bool {
+    return impl->value.find(key) != impl->value.end();
+}
 void Table::set(const Value& key, Value value) {
     if (key.is_nil()) {
         throw std::runtime_error("table index is nil");
