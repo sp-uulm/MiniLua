@@ -4,8 +4,8 @@
 #include "tree_sitter/tree_sitter.hpp"
 #include "tree_sitter_lua.hpp"
 
-#include <chrono>
 #include <algorithm>
+#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <iterator>
