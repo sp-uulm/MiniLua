@@ -1048,7 +1048,7 @@ static inline auto num_op_helper(
         .reverse = [](const Value& new_value,
                       const Value& old_value) -> std::optional<SourceChangeTree> {
             // Number n = std::get<Number>(new_value);
-            cout << "reverse - with negate-function to " << new_value.type() << endl;
+            std::cout << "reverse - with negate-function to " << new_value.type() << std::endl;
             return old_value.force(-new_value);
         }});
 
