@@ -2,6 +2,7 @@
 #include "MiniLua/utils.hpp"
 #include "MiniLua/values.hpp"
 #include <cmath>
+#include <future>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -152,6 +153,50 @@ auto concat(const CallContext& ctx) -> Value {
         list.raw(), sep.raw(), i.raw(), j.raw());
 }
 
+auto move(const CallContext& ctx) -> Value {
+    auto a1 = ctx.arguments().get(0);
+    auto f = ctx.arguments().get(1);
+    auto e = ctx.arguments().get(2);
+    auto t = ctx.arguments().get(3);
+    auto a2 = ctx.arguments().get(4);
+
+    return std::visit(
+        overloaded{
+            [](Table a1, const Value& f, const Value& e, const Value& t, Nil /*unused*/) -> Value {
+                int fi = try_value_is_int(f, "move", 2);
+                int ei = try_value_is_int(e, "move", 3);
+                int ti = try_value_is_int(t, "move", 4);
+
+                for (; fi <= ei; fi++) {
+                    a1.set(ti, a1.get(fi));
+                    ti++;
+                }
+                return a1;
+            },
+            [](const Table& a1, const Value& f, const Value& e, const Value& t, Table a2) -> Value {
+                int fi = try_value_is_int(f, "move", 2);
+                int ei = try_value_is_int(e, "move", 3);
+                int ti = try_value_is_int(t, "move", 4);
+
+                for (; fi <= ei; fi++) {
+                    a2.set(ti, a1.get(fi));
+                    ti++;
+                }
+                return a2;
+            },
+            [](const Table& /*unused*/, const Value& /*unused*/, const Value& /*unused*/,
+               const Value& /*unused*/, auto a2) -> Value {
+                throw std::runtime_error(
+                    "bad argument #5 to 'move' (tabe expected, got " + std::string(a2.TYPE) + ")");
+            },
+            [](auto a1, auto /*unused*/, auto /*unused*/, auto /*unused*/,
+               auto /*unused*/) -> Value {
+                throw std::runtime_error(
+                    "bad argument #1 to 'move' (table expected, got " + std::string(a1.TYPE) + ")");
+            }},
+        a1.raw(), f.raw(), e.raw(), t.raw(), a2.raw());
+}
+
 void insert(const CallContext& ctx) {
     auto list = ctx.arguments().get(0);
     auto pos = ctx.arguments().get(1);
@@ -187,6 +232,18 @@ auto pack(const CallContext& ctx) -> Value {
         t.set(i, a);
     }
     return t;
+}
+
+auto remove(const CallContext& ctx) -> Value {
+    auto list = ctx.arguments().get(0);
+    auto pos = ctx.arguments().get(1);
+
+    return std::visit(
+        overloaded{[](auto list, auto) -> Value {
+            throw std::runtime_error(
+                "bad argument #1 to 'remove' (table expected, got " + std::string(list.TYPE) + ")");
+        }},
+        list.raw(), pos.raw());
 }
 
 auto unpack(const CallContext& ctx) -> Vallist {
