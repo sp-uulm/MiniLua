@@ -239,11 +239,40 @@ auto remove(const CallContext& ctx) -> Value {
     auto pos = ctx.arguments().get(1);
 
     return std::visit(
-        overloaded{[](auto list, auto) -> Value {
-            throw std::runtime_error(
-                "bad argument #1 to 'remove' (table expected, got " + std::string(list.TYPE) + ")");
-        }},
+        overloaded{
+            [](Table list, Nil /*unused*/) -> Value {
+                auto tmp = list.get(list.border());
+                list.set(list.border(), Nil());
+                return tmp;
+            },
+            [](Table list, const Value& pos) -> Value {
+                int posi = try_value_is_int(pos, "remove", 2);
+                auto tmp = list.get(posi);
+                for (int i = posi + 1; i <= list.border(); i++) {
+                    list.set(posi, list.get(i));
+                    posi++;
+                }
+                list.set(list.border(), Nil());
+                return tmp;
+            },
+            [](auto list, auto /*unused*/) -> Value {
+                throw std::runtime_error(
+                    "bad argument #1 to 'remove' (table expected, got " + std::string(list.TYPE) +
+                    ")");
+            }},
         list.raw(), pos.raw());
+}
+
+void sort(const CallContext& ctx) {
+    auto list = ctx.arguments().get(0);
+    auto comp = ctx.arguments().get(1);
+
+    std::visit(
+        overloaded{[](auto list, auto /*unused*/) {
+            throw std::runtime_error(
+                "bad argument #1 to 'sort' (table expected, got " + std::string(list.TYPE) + ")");
+        }},
+        list.raw(), comp.raw());
 }
 
 auto unpack(const CallContext& ctx) -> Vallist {
