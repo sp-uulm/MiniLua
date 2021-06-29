@@ -1,6 +1,7 @@
 #include "MiniLua/table_functions.hpp"
 #include "MiniLua/utils.hpp"
 #include "MiniLua/values.hpp"
+#include <algorithm>
 #include <cmath>
 #include <future>
 #include <stdexcept>
@@ -268,10 +269,42 @@ void sort(const CallContext& ctx) {
     auto comp = ctx.arguments().get(1);
 
     std::visit(
-        overloaded{[](auto list, auto /*unused*/) {
-            throw std::runtime_error(
-                "bad argument #1 to 'sort' (table expected, got " + std::string(list.TYPE) + ")");
-        }},
+        overloaded{
+            [](Table list, Nil /*unused*/) {
+                std::vector<Value> content;
+                for (int i = 1; i <= list.border(); i++) {
+                    content.push_back(list.get(i));
+                }
+                std::sort(content.begin(), content.end());
+                for (int i = 1; i <= list.border(); i++) {
+                    list.set(i, content.at(i));
+                }
+            },
+            [&ctx](Table list, const Function& comp) {
+                std::vector<Value> content;
+                for (int i = 1; i <= list.border(); i++) {
+                    content.push_back(list.get(i));
+                }
+                std::sort(
+                    content.begin(), content.end(),
+                    [&ctx, &comp](const Value& a, const Value& b) -> bool {
+                        auto c = ctx.make_new(Vallist{a, b});
+                        auto erg = comp.call(c).values().get(0);
+                        if (erg.type() == "Boolean") {
+                            return std::get<Bool>(erg).value;
+                        } else {
+                            throw std::runtime_error("invalid order function for sorting");
+                        }
+                    });
+                for (int i = 1; i <= list.border(); i++) {
+                    list.set(i, content.at(i));
+                }
+            },
+            [](auto list, auto /*unused*/) {
+                throw std::runtime_error(
+                    "bad argument #1 to 'sort' (table expected, got " + std::string(list.TYPE) +
+                    ")");
+            }},
         list.raw(), comp.raw());
 }
 
