@@ -225,7 +225,28 @@ void insert(const CallContext& ctx) {
 }
 
 auto pack(const CallContext& ctx) -> Value {
-    // TODO: add origin
+    Origin origin = Origin(MultipleArgsOrigin{
+        .values = std::make_shared<Vallist>(ctx.arguments()),
+        .location = ctx.call_location(),
+        .reverse = [](const Value& new_value,
+                      const Vallist& args) -> std::optional<SourceChangeTree> {
+            Table t = std::get<Table>(new_value);
+            SourceChangeCombination trees;
+
+            auto it = args.begin();
+            for (const auto& [key, value] : t) {
+                if (!(key.type() == "Number") || std::get<Number>(key).try_as_int() < 1 ||
+                    std::get<Number>(key).try_as_int() > t.border() ||
+                    std::get<Number>(key).try_as_int() > args.size()) {
+                    break;
+                }
+                auto sct = *it->force(value);
+                trees.add(sct);
+                it++;
+            }
+
+            return SourceChangeTree(trees);
+        }});
     Table t = Table();
     int i = 1;
 
@@ -236,6 +257,8 @@ auto pack(const CallContext& ctx) -> Value {
 }
 
 auto remove(const CallContext& ctx) -> Value {
+    // Doesn't need an origin because the value that is returned already should has one since it
+    // isn't generated new
     auto list = ctx.arguments().get(0);
     auto pos = ctx.arguments().get(1);
 
@@ -275,7 +298,9 @@ void sort(const CallContext& ctx) {
                 for (int i = 1; i <= list.border(); i++) {
                     content.push_back(list.get(i));
                 }
-                std::sort(content.begin(), content.end());
+                std::sort(content.begin(), content.end(), [](const Value& a, const Value& b) {
+                    return std::get<Bool>(a.less_than(b)).value;
+                });
                 for (int i = 1; i <= list.border(); i++) {
                     list.set(i, content.at(i));
                 }
