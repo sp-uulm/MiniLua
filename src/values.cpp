@@ -268,7 +268,7 @@ CallContext::~CallContext() = default;
     -> CallContext {
     CallContext new_cc{*this};
     new_cc.impl->args = std::move(args);
-    new_cc.impl->location = location;
+    new_cc.impl->location = std::move(location);
     return new_cc;
 }
 
@@ -393,7 +393,7 @@ CallResult::CallResult(Vallist vallist, std::optional<SourceChangeTree> sc)
     }
 }
 
-auto CallResult::combine(CallResult other) const -> CallResult {
+auto CallResult::combine(const CallResult& other) const -> CallResult {
     auto source_changes = combine_source_changes(this->source_change(), other.source_change());
     return CallResult(other.values(), source_changes);
 }
@@ -466,7 +466,7 @@ auto Origin::raw() -> Type& { return this->origin; }
                 return origin.reverse(new_value, *origin.val);
             },
             [&new_value](const MultipleArgsOrigin& origin) -> std::optional<SourceChangeTree> {
-                return origin.reverse(new_value, origin.values);
+                return origin.reverse(new_value, *origin.values);
             },
             [&new_value](const LiteralOrigin& origin) -> std::optional<SourceChangeTree> {
                 return SourceChange(origin.location, new_value.to_literal());
@@ -525,18 +525,18 @@ auto Origin::simplify() const -> Origin {
             },
             [&range_map](const MultipleArgsOrigin& origin) -> Origin {
                 std::vector<Value> new_values;
-                new_values.reserve(origin.values.size());
+                new_values.reserve((*origin.values).size());
 
-                for (const auto& value : origin.values) {
+                for (const auto& value : *origin.values) {
                     auto new_origin = value.origin().with_updated_ranges(range_map);
                     new_values.push_back(value.with_origin(new_origin));
                 }
 
                 auto new_origin = origin;
-                new_origin.values = new_values;
+                *new_origin.values = new_values;
                 return new_origin;
             },
-            [&range_map](const auto& origin) -> Origin { return origin; },
+            [](const auto& origin) -> Origin { return origin; },
         },
         this->origin);
 }
@@ -554,16 +554,28 @@ auto operator<<(std::ostream& os, const Origin& self) -> std::ostream& {
 // struct NoOrigin
 auto NoOrigin::simplify() const -> Origin { return *this; }
 
-auto operator==(const NoOrigin&, const NoOrigin&) noexcept -> bool { return true; }
-auto operator!=(const NoOrigin&, const NoOrigin&) noexcept -> bool { return false; }
-auto operator<<(std::ostream& os, const NoOrigin&) -> std::ostream& { return os << "NoOrigin{}"; }
+auto operator==(const NoOrigin& /*unused*/, const NoOrigin& /*unused*/) noexcept -> bool {
+    return true;
+}
+auto operator!=(const NoOrigin& /*unused*/, const NoOrigin& /*unused*/) noexcept -> bool {
+    return false;
+}
+auto operator<<(std::ostream& os, const NoOrigin& /*unused*/) -> std::ostream& {
+    return os << "NoOrigin{}";
+}
 
 // struct ExternalOrigin
 auto ExternalOrigin::simplify() const -> Origin { return *this; }
 
-auto operator==(const ExternalOrigin&, const ExternalOrigin&) noexcept -> bool { return true; }
-auto operator!=(const ExternalOrigin&, const ExternalOrigin&) noexcept -> bool { return true; }
-auto operator<<(std::ostream& os, const ExternalOrigin&) -> std::ostream& {
+auto operator==(const ExternalOrigin& /*unused*/, const ExternalOrigin& /*unused*/) noexcept
+    -> bool {
+    return true;
+}
+auto operator!=(const ExternalOrigin& /*unused*/, const ExternalOrigin& /*unused*/) noexcept
+    -> bool {
+    return true;
+}
+auto operator<<(std::ostream& os, const ExternalOrigin& /*unused*/) -> std::ostream& {
     return os << "ExternalOrigin";
 }
 
@@ -697,8 +709,8 @@ auto operator<<(std::ostream& os, const UnaryOrigin& self) -> std::ostream& {
 
 // struct MultipleArgsOrigin
 auto MultipleArgsOrigin::simplify() const -> Origin {
-    if (this->values.size() != 0 &&
-        std::all_of(this->values.begin(), this->values.end(), [](const auto& value) {
+    if (this->values->size() != 0 &&
+        std::all_of(this->values->begin(), this->values->end(), [](const auto& value) {
             return value.has_origin();
         })) {
         return *this;
@@ -980,7 +992,7 @@ auto Value::to_number(const Value& base, std::optional<Range> location) const ->
         this->raw(), base.raw());
 }
 
-auto Value::to_string(std::optional<Range> location) const -> Value {
+auto Value::to_string(std::optional<Range> /*location*/) const -> Value {
     return std::visit(
         overloaded{
             [](Bool b) -> Value { return b.value ? "true" : "false"; },
@@ -1004,7 +1016,7 @@ auto Value::to_string(std::optional<Range> location) const -> Value {
         this->raw());
 }
 
-auto Value::to_bool(std::optional<Range> location) const -> Value {
+auto Value::to_bool(std::optional<Range> /*location*/) const -> Value {
     // TODO origin
     return bool(*this);
 }
@@ -1012,7 +1024,7 @@ auto Value::to_bool(std::optional<Range> location) const -> Value {
 template <typename Fn, typename FnRev>
 static inline auto num_op_helper(
     const Value& lhs, const Value& rhs, Fn op, std::string err_info, FnRev reverse,
-    std::optional<Range> location) -> Value {
+    const std::optional<Range>& location) -> Value {
     static_assert(
         std::is_invocable_v<Fn, Number, Number>, "op is not invocable with two Number arguments");
 
