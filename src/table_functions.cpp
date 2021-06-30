@@ -44,7 +44,8 @@ auto static try_value_is_int(Value s, const std::string& method_name, int arg_in
 
 namespace table {
 auto concat(const CallContext& ctx) -> Value {
-    // TODO: Add origin
+    // Didn't add an origin because i have no idea how i should reverse this because i would need
+    // the seperator to split it back up
     std::string result;
     auto list = ctx.arguments().get(0);
     auto sep = ctx.arguments().get(1);
@@ -155,6 +156,7 @@ auto concat(const CallContext& ctx) -> Value {
 }
 
 auto move(const CallContext& ctx) -> Value {
+    // No orgin needed because a2 is already given as an existing value
     auto a1 = ctx.arguments().get(0);
     auto f = ctx.arguments().get(1);
     auto e = ctx.arguments().get(2);
@@ -253,7 +255,7 @@ auto pack(const CallContext& ctx) -> Value {
     for (const auto& a : ctx.arguments()) {
         t.set(i, a);
     }
-    return t;
+    return Value(t).with_origin(origin);
 }
 
 auto remove(const CallContext& ctx) -> Value {
@@ -334,7 +336,8 @@ void sort(const CallContext& ctx) {
 }
 
 auto unpack(const CallContext& ctx) -> Vallist {
-    // TODO: add origin
+    // It only returns the Values of the Table, so no new values are generated and every value in
+    // the vallist should keep its origin i think
     std::vector<Value> vector;
     auto list = ctx.arguments().get(0);
     auto i = ctx.arguments().get(1);
