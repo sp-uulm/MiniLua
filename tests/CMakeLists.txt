@@ -11,6 +11,7 @@ add_executable(MiniLua-tests
     public_api/environment.cpp
     public_api/source_changes.cpp
     stdlib_tests.cpp
+    table_functions_tests.cpp
     math_tests.cpp
     tree_sitter_ast_tests.cpp
     gc.cpp)

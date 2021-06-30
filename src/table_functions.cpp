@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include <future>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <utility>
