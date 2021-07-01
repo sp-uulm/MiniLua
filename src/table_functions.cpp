@@ -67,14 +67,14 @@ auto concat(const CallContext& ctx) -> Value {
                 }
                 return Value(result);
             },
-            [&result](
-                const Table& list, const Value& sep, Nil /*unused*/, Nil /*unused*/) -> Value {
+            [&result,
+             &sep](const Table& list, auto /*sep*/, Nil /*unused*/, Nil /*unused*/) -> Value {
                 if (!sep.is_number() && !sep.is_string()) {
                     throw std::runtime_error(
                         "bad argument #2 to 'concat' (string expected, got" + sep.type() + ")");
                 }
                 String s = std::get<String>(sep.to_string());
-                for (int m = 1; m <= list.border();) {
+                for (int m = 1; m <= list.border(); m++) {
                     Value v = list.get(m);
                     if (!v.is_number() && !v.is_string()) {
                         throw std::runtime_error(
@@ -82,13 +82,14 @@ auto concat(const CallContext& ctx) -> Value {
                     }
                     String vs = std::get<String>(v.to_string());
                     result += vs.value;
-                    if (++m != list.border()) {
+                    if (m != list.border()) {
                         result += s.value;
                     }
                 }
                 return Value(result);
             },
-            [&result](const Table& list, const Value& sep, Value i, Nil /*unused*/) -> Value {
+            [&result, &sep,
+             &i](const Table& list, auto /*sep*/, auto /*i*/, Nil /*unused*/) -> Value {
                 if (!sep.is_number() && !sep.is_string()) {
                     throw std::runtime_error(
                         "bad argument #2 to 'concat' (string expected, got" + sep.type() + ")");
@@ -97,7 +98,7 @@ auto concat(const CallContext& ctx) -> Value {
 
                 int m = try_value_is_int(std::move(i), "concat", 3);
 
-                for (; m <= list.border();) {
+                for (; m <= list.border(); m++) {
                     Value v;
                     if (list.has(m)) {
                         v = list.get(m);
@@ -111,14 +112,15 @@ auto concat(const CallContext& ctx) -> Value {
                     }
                     String vs = std::get<String>(v.to_string());
                     result += vs.value;
-                    if (++m < list.size()) {
+                    if (m != list.border()) {
                         result += s.value;
                     }
                 }
 
                 return Value(result);
             },
-            [&result](const Table& list, const Value& sep, Value i, Value j) -> Value {
+            [&result, &sep, &i,
+             &j](const Table& list, auto /*sep*/, auto /*i*/, auto /*j*/) -> Value {
                 if (!sep.is_number() && !sep.is_string()) {
                     throw std::runtime_error(
                         "bad argument #2 to 'concat' (string expected, got" + sep.type() + ")");
@@ -128,7 +130,7 @@ auto concat(const CallContext& ctx) -> Value {
                 int m = try_value_is_int(std::move(i), "concat", 3);
                 int j_int = try_value_is_int(std::move(j), "concat", 4);
                 ;
-                for (; m <= j_int;) {
+                for (; m <= j_int; m++) {
                     Value v;
                     if (list.has(m)) {
                         v = list.get(m);
@@ -142,7 +144,7 @@ auto concat(const CallContext& ctx) -> Value {
                     }
                     String vs = std::get<String>(v.to_string());
                     result += vs.value;
-                    if (++m < j_int) {
+                    if (m != j_int) {
                         result += s.value;
                     }
                 }
