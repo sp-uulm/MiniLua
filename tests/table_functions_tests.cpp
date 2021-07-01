@@ -126,36 +126,50 @@ TEST_CASE("table.concat(list [, sep [, i [, j]]])") {
     }
 
     SECTION("Incorrect inputs") {
-        std::unordered_map<minilua::Value, minilua::Value> map = {
-            {1, "Hallo"}, {2, "Welt"}, {3, "!"}, {4, "Minilua"}, {5, "Universität"}};
-        minilua::Table table(map);
-        ctx = ctx.make_new({2});
-        CHECK_THROWS_WITH(
-            minilua::table::concat(ctx),
-            Contains("bad argument #1 to 'concat'") && Contains("table expected"));
+        SECTION("Valid table, invalid inputs") {
+            std::unordered_map<minilua::Value, minilua::Value> map = {
+                {1, "Hallo"}, {2, "Welt"}, {3, "!"}, {4, "Minilua"}, {5, "Universität"}};
+            minilua::Table table(map);
 
-        ctx = ctx.make_new({table, true});
-        CHECK_THROWS_WITH(
-            minilua::table::concat(ctx),
-            Contains("bad argument #2 to 'concat'") && Contains("string expected"));
+            ctx = ctx.make_new({2});
+            CHECK_THROWS_WITH(
+                minilua::table::concat(ctx),
+                Contains("bad argument #1 to 'concat'") && Contains("table expected"));
 
-        ctx = ctx.make_new({table, " ", "welt"});
-        CHECK_THROWS_WITH(
-            minilua::table::concat(ctx),
-            Contains("bad argument #3 to 'concat'") && Contains("number expected"));
-        ctx = ctx.make_new({table, " ", true});
-        CHECK_THROWS_WITH(
-            minilua::table::concat(ctx),
-            Contains("bad argument #3 to 'concat'") && Contains("number expected"));
+            ctx = ctx.make_new({table, true});
+            CHECK_THROWS_WITH(
+                minilua::table::concat(ctx),
+                Contains("bad argument #2 to 'concat'") && Contains("string expected"));
 
-        ctx = ctx.make_new({table, " ", 3, "welt"});
-        CHECK_THROWS_WITH(
-            minilua::table::concat(ctx),
-            Contains("bad argument #4 to 'concat'") && Contains("number expected"));
-        ctx = ctx.make_new({table, " ", 3, true});
-        CHECK_THROWS_WITH(
-            minilua::table::concat(ctx),
-            Contains("bad argument #4 to 'concat'") && Contains("number expected"));
+            ctx = ctx.make_new({table, " ", "welt"});
+            CHECK_THROWS_WITH(
+                minilua::table::concat(ctx),
+                Contains("bad argument #3 to 'concat'") && Contains("number expected"));
+            ctx = ctx.make_new({table, " ", true});
+            CHECK_THROWS_WITH(
+                minilua::table::concat(ctx),
+                Contains("bad argument #3 to 'concat'") && Contains("number expected"));
+
+            ctx = ctx.make_new({table, " ", 3, "welt"});
+            CHECK_THROWS_WITH(
+                minilua::table::concat(ctx),
+                Contains("bad argument #4 to 'concat'") && Contains("number expected"));
+            ctx = ctx.make_new({table, " ", 3, true});
+            CHECK_THROWS_WITH(
+                minilua::table::concat(ctx),
+                Contains("bad argument #4 to 'concat'") && Contains("number expected"));
+        }
+
+        SECTION("Invalid table, valid input") {
+            std::unordered_map<minilua::Value, minilua::Value> map = {
+                {1, "Hallo"}, {2, "Welt"}, {3, true}, {4, false}, {5, "Universität"}};
+            minilua::Table table(map);
+
+            ctx = ctx.make_new({table, " ", 2});
+            CHECK_THROWS_WITH(
+                minilua::table::concat(ctx),
+                Contains("Invalid value") && Contains("in table for 'concat'!"));
+        }
     }
 }
 
