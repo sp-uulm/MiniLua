@@ -25,7 +25,11 @@ auto static try_value_is_int(Value s, const std::string& method_name, int arg_in
     auto tmp = Number(1);
     try {
         if (s.is_string()) {
-            tmp = std::get<Number>(s.to_number());
+            Value v = s.to_number();
+            if (v == Nil()) {
+                throw std::runtime_error("");
+            }
+            tmp = std::get<Number>(v);
         } else if (!s.is_number()) {
             throw std::runtime_error("");
         }
@@ -71,7 +75,7 @@ auto concat(const CallContext& ctx) -> Value {
              &sep](const Table& list, auto /*sep*/, Nil /*unused*/, Nil /*unused*/) -> Value {
                 if (!sep.is_number() && !sep.is_string()) {
                     throw std::runtime_error(
-                        "bad argument #2 to 'concat' (string expected, got" + sep.type() + ")");
+                        "bad argument #2 to 'concat' (string expected, got " + sep.type() + ")");
                 }
                 String s = std::get<String>(sep.to_string());
                 for (int m = 1; m <= list.border(); m++) {
@@ -92,7 +96,7 @@ auto concat(const CallContext& ctx) -> Value {
              &i](const Table& list, auto /*sep*/, auto /*i*/, Nil /*unused*/) -> Value {
                 if (!sep.is_number() && !sep.is_string()) {
                     throw std::runtime_error(
-                        "bad argument #2 to 'concat' (string expected, got" + sep.type() + ")");
+                        "bad argument #2 to 'concat' (string expected, got " + sep.type() + ")");
                 }
                 String s = std::get<String>(sep.to_string());
 
@@ -123,7 +127,7 @@ auto concat(const CallContext& ctx) -> Value {
              &j](const Table& list, auto /*sep*/, auto /*i*/, auto /*j*/) -> Value {
                 if (!sep.is_number() && !sep.is_string()) {
                     throw std::runtime_error(
-                        "bad argument #2 to 'concat' (string expected, got" + sep.type() + ")");
+                        "bad argument #2 to 'concat' (string expected, got " + sep.type() + ")");
                 }
                 String s = std::get<String>(sep.to_string());
 
