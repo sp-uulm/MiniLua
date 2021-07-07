@@ -862,7 +862,18 @@ auto Value::bind(CallContext call_context) const -> std::function<CallResult(Val
 }
 
 auto Value::type() const -> std::string {
-    return std::visit([](auto value) { return std::string(value.TYPE); }, this->raw());
+    return std::visit(
+        overloaded{
+            [](const Table& value) -> std::string {
+                Value metamethod = value.get_metamethod("__type");
+                if (metamethod.is_nil()) {
+                    return std::string(minilua::Table::TYPE);
+                } else {
+                    return std::get<String>(metamethod).value;
+                }
+            },
+            [](auto value) -> std::string { return std::string(value.TYPE); }},
+        this->raw());
 }
 
 auto operator==(const Value& a, const Value& b) noexcept -> bool { return a.raw() == b.raw(); }
