@@ -248,3 +248,14 @@ TEST_CASE("table.insert(list [,pos], value)") {
         }
     }
 }
+
+TEST_CASE("table.pack(...)") {
+    minilua::Vallist list{"Hallo", "Welt", "!", 42, 123, "Minilua"};
+    minilua::Table table{{1, "Hallo"}, {2, "Welt"}, {3, "!"}, {4, 42}, {5, 123}, {6, "Minilua"}};
+
+    minilua::Table t = std::get<minilua::Table>(minilua::table::pack(ctx.make_new(list)));
+
+    for (int i = 1; i <= table.border(); i++) {
+        CHECK(t.get(i) == table.get(i));
+    }
+}
