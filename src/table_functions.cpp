@@ -221,11 +221,11 @@ void insert(const CallContext& ctx) {
 
     std::visit(
         overloaded{
-            [&value](Table& table, Nil /*unused*/, auto /*value*/) {
+            [&value](Table& table, Nil /*unused*/) {
                 Number pos = table.border() + 1;
                 table.set(pos, value);
             },
-            [&pos, &value](Table& table, auto /*pos*/, auto /*value*/) {
+            [&pos, &value](Table& table, auto /*pos*/) {
                 int p = try_value_is_int(pos, "insert", 2);
 
                 if (p < 1 || p > table.border()) {
@@ -240,12 +240,12 @@ void insert(const CallContext& ctx) {
                 }
                 table.set(p, value);
             },
-            [](auto table, auto /*unused*/, auto /*unused*/) {
+            [](auto table, auto /*unused*/) {
                 throw std::runtime_error(
                     "bad argument #1 to 'insert' (table expected, got " + std::string(table.TYPE) +
                     ")");
             }},
-        list.raw(), pos.raw(), value.raw());
+        list.raw(), pos.raw());
 }
 
 auto pack(const CallContext& ctx) -> Value {
@@ -274,8 +274,9 @@ auto pack(const CallContext& ctx) -> Value {
     Table t = Table();
     int i = 1;
 
+    std::cout << ctx.arguments() << std::endl;
     for (const auto& a : ctx.arguments()) {
-        t.set(i, a);
+        t.set(i++, a);
     }
     return Value(t).with_origin(origin);
 }
