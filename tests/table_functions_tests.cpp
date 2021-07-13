@@ -178,5 +178,73 @@ TEST_CASE("table.insert(list [,pos], value)") {
         std::unordered_map<minilua::Value, minilua::Value> map = {
             {1, "Hallo"}, {2, "Welt"}, {3, "!"}, {4, "Minilua"}, {5, "Universität"}};
         minilua::Table table(map);
+
+        SECTION("No optional parameters") {
+            ctx = ctx.make_new({table, minilua::Nil(), 42});
+
+            minilua::table::insert(ctx);
+            CHECK(table.has(6));
+            CHECK(table.get(6) == 42);
+        }
+
+        SECTION("Insert between the elements of table") {
+            ctx = ctx.make_new({table, 3, "code"});
+
+            minilua::table::insert(ctx);
+            CHECK(table.has(6));
+            CHECK(table.get(3) == "code");
+        }
+
+        SECTION("Insert between the elements of table with number-formated string") {
+            ctx = ctx.make_new({table, "3", "code"});
+
+            minilua::table::insert(ctx);
+            CHECK(table.has(6));
+            CHECK(table.get(3) == "code");
+        }
+    }
+
+    SECTION("invalid input") {
+        std::unordered_map<minilua::Value, minilua::Value> map = {
+            {1, "Hallo"}, {2, "Welt"}, {3, "!"}, {4, "Minilua"}, {5, "Universität"}};
+        minilua::Table table(map);
+
+        SECTION("Insert outside of the border") {
+            ctx = ctx.make_new({table, 100, 43});
+
+            CHECK_THROWS_WITH(
+                minilua::table::insert(ctx), Contains("#2") && Contains("position out of bounds"));
+
+            ctx = ctx.make_new({table, 0, 43});
+
+            CHECK_THROWS_WITH(
+                minilua::table::insert(ctx), Contains("#2") && Contains("position out of bounds"));
+
+            ctx = ctx.make_new({table, -100, 43});
+
+            CHECK_THROWS_WITH(
+                minilua::table::insert(ctx), Contains("#2") && Contains("position out of bounds"));
+        }
+
+        SECTION("Insert at a non-number-position") {
+            ctx = ctx.make_new({table, "lua", 43});
+
+            CHECK_THROWS_WITH(
+                minilua::table::insert(ctx),
+                Contains("bad argument #2") && Contains("number expected"));
+        }
+
+        SECTION("Call function with no value to insert") {
+            ctx = ctx.make_new({table});
+
+            CHECK_THROWS_WITH(minilua::table::insert(ctx), Contains("wrong number of arguments"));
+        }
+
+        SECTION("first argument isn't a table") {
+            ctx = ctx.make_new({42, minilua::Nil(), 234});
+
+            CHECK_THROWS_WITH(
+                minilua::table::insert(ctx), Contains("argument #1") && Contains("table expected"));
+        }
     }
 }

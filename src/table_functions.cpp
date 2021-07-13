@@ -212,15 +212,26 @@ void insert(const CallContext& ctx) {
     auto pos = ctx.arguments().get(1);
     auto value = ctx.arguments().get(2);
 
+    // Casulty because we return nil if no argument is given, but nil could be inserted. This edge
+    // case throws an error in our program, in lua the insertion works as intended I don't have an
+    // idea how to do that besides this way.
+    if (value == Nil()) {
+        throw std::runtime_error("wrong number of arguments to 'insert'");
+    }
+
     std::visit(
         overloaded{
-            [](Table& table, Nil /*unused*/, const Value& value) {
+            [&value](Table& table, Nil /*unused*/, auto /*value*/) {
                 Number pos = table.border() + 1;
                 table.set(pos, value);
             },
-            [](Table& table, const Value& pos, const Value& value) {
+            [&pos, &value](Table& table, auto /*pos*/, auto /*value*/) {
                 int p = try_value_is_int(pos, "insert", 2);
-                if (table.has(p)) {
+
+                if (p < 1 || p > table.border()) {
+                    throw std::runtime_error(
+                        "bad argument #2 to 'insert' (position out of bounds)");
+                } else {
                     // move every element one to the right so make space for the new element that is
                     // inserted if pos is already occupied
                     for (int i = table.border(); i >= p; i--) {
@@ -229,7 +240,11 @@ void insert(const CallContext& ctx) {
                 }
                 table.set(p, value);
             },
-            [](auto /*unused*/, auto /*unused*/, auto /*unused*/) {}},
+            [](auto table, auto /*unused*/, auto /*unused*/) {
+                throw std::runtime_error(
+                    "bad argument #1 to 'insert' (table expected, got " + std::string(table.TYPE) +
+                    ")");
+            }},
         list.raw(), pos.raw(), value.raw());
 }
 
