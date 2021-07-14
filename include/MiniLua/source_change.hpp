@@ -315,7 +315,7 @@ public:
      * For possible implementations see
      * `SourceChangeTree::visit_first_alternative`.
      */
-    template <typename Visitor> decltype(auto) visit(Visitor visitor) {
+    template <typename Visitor> auto visit(Visitor visitor) -> decltype(auto) {
         static_assert(std::is_invocable_v<Visitor, SourceChange&>);
         static_assert(std::is_invocable_v<Visitor, SourceChangeCombination&>);
         static_assert(std::is_invocable_v<Visitor, SourceChangeAlternative&>);
@@ -332,7 +332,7 @@ public:
      * For possible usage see implementation of
      * `SourceChangeTree::visit_first_alternative`.
      */
-    template <typename Visitor> decltype(auto) visit(Visitor visitor) const {
+    template <typename Visitor> auto visit(Visitor visitor) const -> decltype(auto) {
         static_assert(std::is_invocable_v<Visitor, const SourceChange&>);
         static_assert(std::is_invocable_v<Visitor, const SourceChangeCombination&>);
         static_assert(std::is_invocable_v<Visitor, const SourceChangeAlternative&>);

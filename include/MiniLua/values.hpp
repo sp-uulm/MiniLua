@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include <functional>
+#include <memory>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
@@ -323,7 +324,7 @@ public:
     [[nodiscard]] auto is_int() const -> bool;
     [[nodiscard]] auto is_float() const -> bool;
 
-    template <typename Fn> auto visit(Fn fn) const {
+    template <typename Fn> [[nodiscard]] auto visit(Fn fn) const {
         static_assert(std::is_invocable_v<Fn, Int>, "fn must be invocable with an int parameter");
         static_assert(
             std::is_invocable_v<Fn, Float>, "fn must be invocable with a double parameter");
@@ -706,6 +707,13 @@ public:
     [[nodiscard]] auto next(const Value& key) const -> Vallist;
 
     /**
+     * Removes the element of the Table including its key.
+     *
+     * This method should just be used as a helper for table.remove to remove the key as well as the
+     *value
+     **/
+    void remove(const Value& key);
+    /**
      * @brief Returns the current metatable of this table.
      */
     [[nodiscard]] auto get_metatable() const -> std::optional<Table>;
@@ -822,7 +830,7 @@ public:
     template <typename... Args>
     [[nodiscard]] auto make_new(Args... args, std::optional<Range> location = std::nullopt) const
         -> CallContext {
-        return this->make_new(Vallist{args...}, location);
+        return this->make_new(Vallist{args...}, std::move(location));
     }
 
     /**
@@ -1002,7 +1010,7 @@ public:
      * Takes the value of the given call result (`other`) and combines the
      * source changes.
      */
-    [[nodiscard]] auto combine(CallResult other) const -> CallResult;
+    [[nodiscard]] auto combine(const CallResult& other) const -> CallResult;
 };
 
 auto operator==(const CallResult&, const CallResult&) -> bool;
@@ -1294,9 +1302,7 @@ auto operator<<(std::ostream&, const UnaryOrigin&) -> std::ostream&;
 struct MultipleArgsOrigin {
     using ReverseFn = std::optional<SourceChangeTree>(const Value&, const Vallist&);
 
-    // TODO this can be made more efficient using shared_ptr (see the other
-    // origins) but this is not used very much
-    Vallist values;
+    std::shared_ptr<Vallist> values = std::make_shared<Vallist>(Vallist());
     std::optional<Range> location;
     // new_value, old_values
     std::function<ReverseFn> reverse;

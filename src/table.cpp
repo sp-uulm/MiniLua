@@ -311,6 +311,8 @@ auto Table::next(const Value& key) const -> Vallist {
         key.raw());
 }
 
+void Table::remove(const Value& key) { this->impl->value.erase(key); }
+
 auto Table::get_metatable() const -> std::optional<Table> { return this->impl->metatable; }
 void Table::set_metatable(std::optional<Table> metatable) {
     this->impl->metatable = std::move(metatable);

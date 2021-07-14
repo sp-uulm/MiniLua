@@ -3,6 +3,7 @@
 #include <MiniLua/values.hpp>
 #include <catch2/catch.hpp>
 #include <cmath>
+#include <memory>
 #include <utility>
 
 auto make_call_context(minilua::Vallist args, std::optional<minilua::Range> location = std::nullopt)
@@ -162,8 +163,8 @@ TEST_CASE("Simplify Origin") {
         REQUIRE(
             minilua::Origin(
                 minilua::MultipleArgsOrigin{
-                    .values = minilua::Vallist(
-                        {minilua::Value().with_origin(minilua::ExternalOrigin()), minilua::Nil()}),
+                    .values = std::make_shared<minilua::Vallist>(minilua::Vallist(
+                        {minilua::Value().with_origin(minilua::ExternalOrigin()), minilua::Nil()})),
                 })
                 .simplify() == minilua::NoOrigin());
     }

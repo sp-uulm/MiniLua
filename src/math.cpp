@@ -1,5 +1,6 @@
 #include <cmath>
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <random>
 #include <regex>
@@ -409,7 +410,7 @@ auto log(const CallContext& ctx) -> Value {
 
 auto max(const CallContext& ctx) -> Value {
     Origin origin = Origin(MultipleArgsOrigin{
-        .values = ctx.arguments(),
+        .values = std::make_shared<Vallist>(ctx.arguments()),
         .location = ctx.call_location(),
         .reverse = [](const Value& /*new_value*/,
                       const Vallist& /*args*/) -> std::optional<SourceChangeTree> {
@@ -432,7 +433,7 @@ auto max(const CallContext& ctx) -> Value {
 
 auto min(const CallContext& ctx) -> Value {
     Origin origin = Origin(MultipleArgsOrigin{
-        .values = ctx.arguments(),
+        .values = std::make_shared<Vallist>(ctx.arguments()),
         .location = ctx.call_location(),
         .reverse = [](const Value& /*new_value*/,
                       const Vallist& /*args*/) -> std::optional<SourceChangeTree> {
