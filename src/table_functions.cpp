@@ -332,7 +332,7 @@ void sort(const CallContext& ctx) {
                     return std::get<Bool>(a.less_than(b)).value;
                 });
                 for (int i = 1; i <= list.border(); i++) {
-                    list.set(i, content.at(i));
+                    list.set(i, content.at(i - 1));
                 }
             },
             [&ctx](Table list, const Function& comp) {
@@ -345,15 +345,21 @@ void sort(const CallContext& ctx) {
                     [&ctx, &comp](const Value& a, const Value& b) -> bool {
                         auto c = ctx.make_new(Vallist{a, b});
                         auto erg = comp.call(c).values().get(0);
-                        if (erg.type() == "Boolean") {
+
+                        if (erg.type() == "boolean") {
                             return std::get<Bool>(erg).value;
                         } else {
                             throw std::runtime_error("invalid order function for sorting");
                         }
                     });
                 for (int i = 1; i <= list.border(); i++) {
-                    list.set(i, content.at(i));
+                    list.set(i, content.at(i - 1));
                 }
+            },
+            [](const Table& /*unused*/, auto a) {
+                throw std::runtime_error(
+                    "bad argument #2 to 'sort' (function expected, got " + std::string(a.TYPE) +
+                    ")");
             },
             [](auto list, auto /*unused*/) {
                 throw std::runtime_error(

@@ -430,6 +430,79 @@ TEST_CASE("table.remove(list [, pos])") {
     }
 }
 
+TEST_CASE("table.sort(list [, comp])") {
+    std::unordered_map<minilua::Value, minilua::Value> map = {
+        {1, 99}, {2, 98}, {3, 97}, {4, 96}, {5, 95}};
+    minilua::Table t(map);
+
+    SECTION("Call with only table") {
+        ctx = ctx.make_new({t});
+
+        minilua::table::sort(ctx);
+
+        bool sorted = true;
+        for (int i = 1; i < t.border(); i++) {
+            if (t.get(i).greater_than(t.get(i + 1))) {
+                sorted = false;
+                break;
+            }
+        }
+        CHECK(sorted);
+    }
+
+    SECTION("Call with comparision-function") {
+        minilua::Function f = *new minilua::Function([](const minilua::CallContext& ctx) {
+            auto arg1 = ctx.arguments().get(0);
+            auto arg2 = ctx.arguments().get(1);
+            return arg1.greater_than(arg2);
+        });
+
+        ctx = ctx.make_new({t, f});
+
+        minilua::table::sort(ctx);
+
+        bool sorted = true;
+        for (int i = 1; i < t.border(); i++) {
+            if (t.get(i).less_than_or_equal(t.get(i + 1))) {
+                sorted = false;
+                break;
+            }
+        }
+        CHECK(sorted);
+    }
+
+    SECTION("invalid input") {
+        SECTION("no table") {
+            ctx = ctx.make_new({42});
+
+            CHECK_THROWS_WITH(
+                minilua::table::sort(ctx),
+                Contains("bad argument #1") && Contains("table expected"));
+        }
+
+        SECTION("wrong return-type of function") {
+            minilua::Function f = *new minilua::Function([](const minilua::CallContext& ctx) {
+                auto arg1 = ctx.arguments().get(0);
+                auto arg2 = ctx.arguments().get(1);
+                return 42;
+            });
+
+            ctx = ctx.make_new({t, f});
+
+            CHECK_THROWS_WITH(
+                minilua::table::sort(ctx), Contains("invalid order function for sorting"));
+        }
+
+        SECTION("wrong type for optional parameter") {
+            ctx = ctx.make_new({t, 42});
+
+            CHECK_THROWS_WITH(
+                minilua::table::sort(ctx),
+                Contains("bad argument #2") && Contains("function expected"));
+        }
+    }
+}
+
 TEST_CASE("table.unpack(list [, i [, j]])") {
     std::unordered_map<minilua::Value, minilua::Value> map = {
         {1, 99}, {2, 98}, {3, 97}, {4, 96}, {5, 95}};
@@ -475,7 +548,6 @@ TEST_CASE("table.unpack(list [, i [, j]])") {
 
             minilua::Vallist v = minilua::table::unpack(ctx);
 
-            std::cout << v << std::endl;
             for (const auto& a : v) {
                 if (i >= 1 && i <= t.border()) {
                     CHECK(a == t.get(i++));

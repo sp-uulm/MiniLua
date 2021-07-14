@@ -3,9 +3,8 @@
 
 #include <MiniLua/values.hpp>
 
-namespace minilua {
+namespace minilua::table {
 
-namespace table {
 auto concat(const CallContext& ctx) -> Value;
 
 void insert(const CallContext& ctx);
@@ -19,6 +18,5 @@ auto remove(const CallContext& ctx) -> Value;
 void sort(const CallContext& ctx);
 
 auto unpack(const CallContext& ctx) -> Vallist;
-} // end namespace table
-} // end namespace minilua
+} // end namespace minilua::table
 #endif
