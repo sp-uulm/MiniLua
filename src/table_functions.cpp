@@ -213,7 +213,7 @@ auto move(const CallContext& ctx) -> Value {
 
     return std::visit(
         overloaded{
-            [](Table a1, const Value& f, const Value& e, const Value& t, Nil /*unused*/) -> Value {
+            [&f, &e, &t](Table a1, Nil /*unused*/) -> Value {
                 int fi = try_value_is_int(f, "move", 2);
                 int ei = try_value_is_int(e, "move", 3);
                 int ti = try_value_is_int(t, "move", 4);
@@ -224,7 +224,7 @@ auto move(const CallContext& ctx) -> Value {
                 }
                 return a1;
             },
-            [](const Table& a1, const Value& f, const Value& e, const Value& t, Table a2) -> Value {
+            [&f, &e, &t](const Table& a1, Table a2) -> Value {
                 int fi = try_value_is_int(f, "move", 2);
                 int ei = try_value_is_int(e, "move", 3);
                 int ti = try_value_is_int(t, "move", 4);
@@ -235,17 +235,15 @@ auto move(const CallContext& ctx) -> Value {
                 }
                 return a2;
             },
-            [](const Table& /*unused*/, const Value& /*unused*/, const Value& /*unused*/,
-               const Value& /*unused*/, auto a2) -> Value {
+            [](const Table& /*unused*/, auto a2) -> Value {
                 throw std::runtime_error(
-                    "bad argument #5 to 'move' (tabe expected, got " + std::string(a2.TYPE) + ")");
+                    "bad argument #5 to 'move' (table expected, got " + std::string(a2.TYPE) + ")");
             },
-            [](auto a1, auto /*unused*/, auto /*unused*/, auto /*unused*/,
-               auto /*unused*/) -> Value {
+            [](auto a1, auto /*unused*/) -> Value {
                 throw std::runtime_error(
                     "bad argument #1 to 'move' (table expected, got " + std::string(a1.TYPE) + ")");
             }},
-        a1.raw(), f.raw(), e.raw(), t.raw(), a2.raw());
+        a1.raw(), a2.raw());
 }
 
 auto pack(const CallContext& ctx) -> Value {
