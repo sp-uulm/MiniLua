@@ -429,3 +429,87 @@ TEST_CASE("table.remove(list [, pos])") {
         }
     }
 }
+
+TEST_CASE("table.unpack(list [, i [, j]])") {
+    std::unordered_map<minilua::Value, minilua::Value> map = {
+        {1, 99}, {2, 98}, {3, 97}, {4, 96}, {5, 95}};
+    minilua::Table t(map);
+
+    SECTION("valid inputs") {
+        SECTION("no optional parameters") {
+            ctx = ctx.make_new({t});
+
+            minilua::Vallist v = minilua::table::unpack(ctx);
+
+            int i = 1;
+            for (const auto& p : v) {
+                CHECK(p == t.get(i++));
+            }
+        }
+
+        SECTION("call with a start-position") {
+            int i = 3;
+            ctx = ctx.make_new({t, i});
+
+            minilua::Vallist v = minilua::table::unpack(ctx);
+
+            for (const auto& p : v) {
+                CHECK(p == t.get(i++));
+            }
+        }
+
+        SECTION("call with all parameters") {
+            int i = 2;
+            ctx = ctx.make_new({t, i, "4"});
+
+            minilua::Vallist v = minilua::table::unpack(ctx);
+
+            for (const auto& p : v) {
+                CHECK(p == t.get(i++));
+            }
+        }
+
+        SECTION("start and end-pos are outside of [1, #border]") {
+            int i = -3;
+            ctx = ctx.make_new({t, i, 10});
+
+            minilua::Vallist v = minilua::table::unpack(ctx);
+
+            std::cout << v << std::endl;
+            for (const auto& a : v) {
+                if (i >= 1 && i <= t.border()) {
+                    CHECK(a == t.get(i++));
+                } else {
+                    CHECK(a == minilua::Nil());
+                    i++;
+                }
+            }
+        }
+
+        SECTION("invalid inputs") {
+            SECTION("no table") {
+                ctx = ctx.make_new({42});
+
+                CHECK_THROWS_WITH(
+                    minilua::table::unpack(ctx),
+                    Contains("bad argument #1") && Contains("table expected"));
+            }
+
+            SECTION("startpos isn't a number") {
+                ctx = ctx.make_new({t, "hallo"});
+
+                CHECK_THROWS_WITH(
+                    minilua::table::unpack(ctx),
+                    Contains("bad argument #2") && Contains("number expected"));
+            }
+
+            SECTION("endpospos isn't a number") {
+                ctx = ctx.make_new({t, "2", "hallo"});
+
+                CHECK_THROWS_WITH(
+                    minilua::table::unpack(ctx),
+                    Contains("bad argument #3") && Contains("number expected"));
+            }
+        }
+    }
+}

@@ -272,7 +272,6 @@ auto pack(const CallContext& ctx) -> Value {
     Table t = Table();
     int i = 1;
 
-    std::cout << ctx.arguments() << std::endl;
     for (const auto& a : ctx.arguments()) {
         t.set(i++, a);
     }
@@ -380,18 +379,18 @@ auto unpack(const CallContext& ctx) -> Vallist {
                 }
                 return Vallist(vector);
             },
-            [&vector](const Table& list, const Value& i, Nil /*unused*/) {
+            [&vector, &i](const Table& list, auto /*i*/, Nil /*unused*/) {
                 int i_int = try_value_is_int(i, "unpack", 2);
                 for (; i_int <= list.border(); i_int++) {
-                    vector.push_back(list.get(i));
+                    vector.push_back(list.get(i_int));
                 }
                 return Vallist(vector);
             },
-            [&vector](const Table& list, const Value& i, const Value& j) {
+            [&vector, &i, &j](const Table& list, auto /*i*/, auto /*j*/) {
                 int i_int = try_value_is_int(i, "unpack", 2);
                 int j_int = try_value_is_int(j, "unpack", 3);
                 for (; i_int <= j_int; i_int++) {
-                    vector.push_back(list.get(i));
+                    vector.push_back(list.get(i_int));
                 }
                 return Vallist(vector);
             },
