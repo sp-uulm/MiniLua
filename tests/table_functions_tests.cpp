@@ -481,7 +481,7 @@ TEST_CASE("table.sort(list [, comp])") {
         }
 
         SECTION("wrong return-type of function") {
-            minilua::Function f = *new minilua::Function([](const minilua::CallContext& ctx) {
+            minilua::Function f([](const minilua::CallContext& ctx) {
                 auto arg1 = ctx.arguments().get(0);
                 auto arg2 = ctx.arguments().get(1);
                 return 42;
