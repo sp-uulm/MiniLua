@@ -707,6 +707,13 @@ public:
     [[nodiscard]] auto next(const Value& key) const -> Vallist;
 
     /**
+     * Removes the element of the Table including its key.
+     *
+     * This method should just be used as a helper for table.remove to remove the key as well as the
+     *value
+     **/
+    void remove(const Value& key);
+    /**
      * @brief Returns the current metatable of this table.
      */
     [[nodiscard]] auto get_metatable() const -> std::optional<Table>;
