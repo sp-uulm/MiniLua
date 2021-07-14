@@ -249,6 +249,89 @@ TEST_CASE("table.insert(list [,pos], value)") {
     }
 }
 
+TEST_CASE("table.move(a1, f, e, t [, a2])") {
+    std::unordered_map<minilua::Value, minilua::Value> map = {
+        {1, 99}, {2, 98}, {3, 97}, {4, 96}, {5, 95}};
+    minilua::Table table(map);
+
+    SECTION("move elements inside table around") {
+        SECTION("move elements to outside of border") {
+            ctx = ctx.make_new({table, 1, 3, 40});
+
+            minilua::Table erg = std::get<minilua::Table>(minilua::table::move(ctx));
+
+            for (int i = 40; i < 43; i++) {
+                CHECK(erg.has(i));
+                CHECK(erg.get(i) == table.get(i - 39));
+            }
+        }
+
+        SECTION("move elements around inside the border") {
+            ctx = ctx.make_new({table, 1, 3, 4});
+
+            minilua::Table erg = std::get<minilua::Table>(minilua::table::move(ctx));
+
+            for (int i = 4; i < 7; i++) {
+                CHECK(erg.has(i));
+                CHECK(erg.get(i) == table.get(i - 3));
+            }
+        }
+    }
+
+    SECTION("move elements into another table") {
+        minilua::Table t2 = ctx.make_table();
+        ctx = ctx.make_new({table, 1, 3, "4", t2});
+
+        t2 = std::get<minilua::Table>(minilua::table::move(ctx));
+
+        for (int i = 4; i < 7; i++) {
+            CHECK(t2.has(i));
+            CHECK(t2.get(i) == table.get(i - 3));
+        }
+    }
+
+    SECTION("invalid inputs") {
+        std::unordered_map<minilua::Value, minilua::Value> map = {
+            {1, 99}, {2, 98}, {3, 97}, {4, 96}, {5, 95}};
+        minilua::Table table(map);
+
+        SECTION("no start table") {
+            ctx = ctx.make_new({1, 2, 3, 4});
+
+            CHECK_THROWS_WITH(
+                minilua::table::move(ctx), Contains("argument #1") && Contains("table expected"));
+        }
+
+        SECTION("no destination table, but a value is given") {
+            ctx = ctx.make_new({table, 1, 2, 3, 4});
+
+            CHECK_THROWS_WITH(
+                minilua::table::move(ctx), Contains("argument #5") && Contains("table expected"));
+        }
+
+        SECTION("start-key for start-table isn't a number") {
+            ctx = ctx.make_new({table, "welt", 2, 3});
+
+            CHECK_THROWS_WITH(
+                minilua::table::move(ctx), Contains("argument #2") && Contains("number expected"));
+        }
+
+        SECTION("end-key for start-table isn't a number") {
+            ctx = ctx.make_new({table, 1, "hallo", 3});
+
+            CHECK_THROWS_WITH(
+                minilua::table::move(ctx), Contains("argument #3") && Contains("number expected"));
+        }
+
+        SECTION("start-key for start-table isn't a number") {
+            ctx = ctx.make_new({table, 1, 2, "essen"});
+
+            CHECK_THROWS_WITH(
+                minilua::table::move(ctx), Contains("argument #4") && Contains("number expected"));
+        }
+    }
+}
+
 TEST_CASE("table.pack(...)") {
     minilua::Vallist list{"Hallo", "Welt", "!", 42, 123, "Minilua"};
     minilua::Table table{{1, "Hallo"}, {2, "Welt"}, {3, "!"}, {4, 42}, {5, 123}, {6, "Minilua"}};
