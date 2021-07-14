@@ -73,6 +73,7 @@ void add_stdlib(Table& table) {
 
     table.set("math", create_math_table(table.allocator()));
     table.set("io", create_io_table(table.allocator()));
+    table.set("table", create_table_table(table.allocator()));
 }
 
 } // namespace details

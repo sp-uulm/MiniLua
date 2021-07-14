@@ -47,6 +47,20 @@ auto static try_value_is_int(Value s, const std::string& method_name, int arg_in
     }
 }
 
+auto create_table_table(MemoryAllocator* allocator) -> Table {
+    Table table(allocator);
+
+    table.set("concat", table::concat);
+    table.set("insert", table::insert);
+    table.set("move", table::insert);
+    table.set("pack", table::pack);
+    table.set("remove", table::remove);
+    table.set("sort", table::sort);
+    table.set("unpack", table::unpack);
+
+    return table;
+}
+
 namespace table {
 auto concat(const CallContext& ctx) -> Value {
     // Didn't add an origin because i have no idea how i should reverse this because i would need
