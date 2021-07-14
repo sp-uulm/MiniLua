@@ -451,7 +451,7 @@ TEST_CASE("table.sort(list [, comp])") {
     }
 
     SECTION("Call with comparision-function") {
-        minilua::Function f = *new minilua::Function([](const minilua::CallContext& ctx) {
+        minilua::Function f([](const minilua::CallContext& ctx) {
             auto arg1 = ctx.arguments().get(0);
             auto arg2 = ctx.arguments().get(1);
             return arg1.greater_than(arg2);
