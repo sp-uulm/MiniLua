@@ -342,3 +342,90 @@ TEST_CASE("table.pack(...)") {
         CHECK(t.get(i) == table.get(i));
     }
 }
+
+TEST_CASE("table.remove(list [, pos])") {
+    SECTION("Valid input") {
+        std::unordered_map<minilua::Value, minilua::Value> map = {
+            {1, 99}, {2, 98}, {3, 97}, {4, 96}, {5, 95}};
+        minilua::Table table(map);
+
+        SECTION("remove last element") {
+            ctx = ctx.make_new({table});
+
+            minilua::Value v = minilua::table::remove(ctx);
+
+            CHECK(!table.has(5));
+            CHECK(v == 95);
+        }
+
+        SECTION("remove an element between 1 and #table") {
+            ctx = ctx.make_new({table, "3"});
+
+            minilua::Value v = minilua::table::remove(ctx);
+
+            CHECK(!table.has(5));
+            CHECK(v == 97);
+        }
+
+        SECTION("remove #table+1") {
+            ctx = ctx.make_new({table, table.border() + 1});
+
+            minilua::Value v = minilua::table::remove(ctx);
+
+            CHECK(!table.has(table.border() + 1));
+            CHECK(v == minilua::Nil());
+        }
+
+        SECTION("remove the element at pos 0 when #table = 0") {
+            minilua::Table t = ctx.make_table();
+            t.set(0, 42);
+
+            ctx = ctx.make_new({t, 0});
+
+            minilua::Value v = minilua::table::remove(ctx);
+
+            CHECK(!table.has(0));
+            CHECK(v == 42);
+        }
+    }
+
+    SECTION("invalid input") {
+        std::unordered_map<minilua::Value, minilua::Value> map = {
+            {1, 99}, {2, 98}, {3, 97}, {4, 96}, {5, 95}, {"welt", 2021}, {100, 200}};
+        minilua::Table t(map);
+
+        SECTION("list is no table") {
+            ctx = ctx.make_new({42});
+
+            CHECK_THROWS_WITH(
+                minilua::table::remove(ctx),
+                Contains("bad argument #1") && Contains("table expected"));
+        }
+
+        SECTION("pos is no number") {
+            ctx = ctx.make_new({t, "welt"});
+
+            CHECK_THROWS_WITH(
+                minilua::table::remove(ctx),
+                Contains("bad argument #2") && Contains("number expected"));
+        }
+
+        SECTION("pos is out of bounds") {
+            SECTION("pos = 0 when #t > 0") {
+                ctx = ctx.make_new({t, 0});
+
+                CHECK_THROWS_WITH(
+                    minilua::table::remove(ctx),
+                    Contains("bad argument #2") && Contains("position out of bounds"));
+            }
+
+            SECTION("pos > #t+1") {
+                ctx = ctx.make_new({t, 100});
+
+                CHECK_THROWS_WITH(
+                    minilua::table::remove(ctx),
+                    Contains("bad argument #2") && Contains("position out of bounds"));
+            }
+        }
+    }
+}

@@ -289,17 +289,25 @@ auto remove(const CallContext& ctx) -> Value {
         overloaded{
             [](Table list, Nil /*unused*/) -> Value {
                 auto tmp = list.get(list.border());
-                list.set(list.border(), Nil());
+                list.remove(list.border());
                 return tmp;
             },
-            [](Table list, const Value& pos) -> Value {
+            [&pos](Table list, auto /*pos*/) -> Value {
                 int posi = try_value_is_int(pos, "remove", 2);
+                if (posi > list.border() + 1 || (posi < 1 && list.border() != 0)) {
+                    throw std::runtime_error(
+                        "bad argument #2 to 'remove' (position out of bounds)");
+                }
                 auto tmp = list.get(posi);
+                if (posi == list.border() + 1) {
+                    list.remove(posi);
+                    return tmp;
+                }
                 for (int i = posi + 1; i <= list.border(); i++) {
                     list.set(posi, list.get(i));
                     posi++;
                 }
-                list.set(list.border(), Nil());
+                list.remove(list.border());
                 return tmp;
             },
             [](auto list, auto /*unused*/) -> Value {
