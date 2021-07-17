@@ -184,7 +184,7 @@ void insert(const CallContext& ctx) {
     // Casulty because we return nil if no argument is given, but nil could be inserted. This edge
     // case throws an error in our program, in lua the insertion works as intended I don't have an
     // idea how to do that besides this way.
-    if (value == Nil()) {
+    if (ctx.arguments().size() < 3) {
         throw std::runtime_error("wrong number of arguments to 'insert'");
     }
 
@@ -271,7 +271,7 @@ auto pack(const CallContext& ctx) -> Value {
 
             auto it = args.begin();
             for (const auto& [key, value] : t) {
-                if (!(key.type() == "Number") || std::get<Number>(key).try_as_int() < 1 ||
+                if (key.type() != Number::TYPE || std::get<Number>(key).try_as_int() < 1 ||
                     std::get<Number>(key).try_as_int() > t.border() ||
                     std::get<Number>(key).try_as_int() > args.size()) {
                     break;
@@ -360,7 +360,9 @@ void sort(const CallContext& ctx) {
                         auto c = ctx.make_new(Vallist{a, b});
                         auto erg = comp.call(c).values().get(0);
 
-                        if (erg.type() == "boolean") {
+                        // More arguments than 2 are possible, but they are always Nil.
+                        // 2 arguments must be there always since we must compare two values
+                        if (ctx.arguments().size() >= 2 && erg.type() == "boolean") {
                             return std::get<Bool>(erg).value;
                         } else {
                             throw std::runtime_error("invalid order function for sorting");
