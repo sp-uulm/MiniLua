@@ -218,7 +218,7 @@ void insert(const CallContext& ctx) {
 }
 
 auto move(const CallContext& ctx) -> Value {
-    // No orgin needed because a2 is already given as an existing value
+    // No origin needed because a2 is already given as an existing value
     auto a1 = ctx.arguments().get(0);
     auto f = ctx.arguments().get(1);
     auto e = ctx.arguments().get(2);
