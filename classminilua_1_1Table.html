@@ -219,6 +219,10 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a664ae1837b1fc46549071573a89099aa" class="m-doc">next</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1Value.html" class="m-doc">Value</a>&amp; key) const -&gt; Vallist -&gt; auto</span>
             </dt>
             <dd>The next index of the table and its associated value after index.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#ad1b00218167dd9783d2b12eba88e8f61" class="m-doc">remove</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1Value.html" class="m-doc">Value</a>&amp; key)</span>
+            </dt>
+            <dd></dd>
             <dt id="a7c65bc1c30dd1555f9b485ffd91ee3b8">
               <span class="m-doc-wrap-bumper">auto <a href="#a7c65bc1c30dd1555f9b485ffd91ee3b8" class="m-doc-self">get_metatable</a>(</span><span class="m-doc-wrap">) const -&gt; std::optional&lt; Table &gt; -&gt; auto</span>
             </dt>
@@ -343,6 +347,12 @@
               </tfoot>
             </table>
 <p>If there is no value at the index an exception is thrown.</p>
+          </div></section>
+          <section class="m-doc-details" id="ad1b00218167dd9783d2b12eba88e8f61"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void minilua::<wbr />Table::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad1b00218167dd9783d2b12eba88e8f61" class="m-doc-self">remove</a>(</span><span class="m-doc-wrap">const <a href="classminilua_1_1Value.html" class="m-doc">Value</a>&amp; key)</span></span>
+            </h3>
+<p>Removes the element of the <a href="classminilua_1_1Table.html" class="m-doc">Table</a> including its key.</p><p>This method should just be used as a helper for <a href="namespaceminilua_1_1table.html#a905b396ef63e0d13e140d1bd0ea20fc2" class="m-doc">table.remove</a> to remove the key as well as the value</p>
           </div></section>
           <section class="m-doc-details" id="a1e1f9c7d6c7e65c063edb7c6245ef979"><div>
             <h3>

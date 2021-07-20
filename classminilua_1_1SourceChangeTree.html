@@ -67,7 +67,7 @@
             </li>
           </ul>
         </div>
-<p>Walk the tree with <code><a href="classminilua_1_1SourceChangeTree.html#ac7b2f24facef7cb614c9b6bf25ea914a" class="m-doc">SourceChangeTree::<wbr />visit</a></code>, <code><a href="classminilua_1_1SourceChangeTree.html#a6085685b51f24b58523468f809303b3c" class="m-doc">SourceChangeTree::<wbr />visit_first_alternative</a></code>, <code><a href="classminilua_1_1SourceChangeTree.html#a94871f59ceea6c42c6fadd0f0d267243" class="m-doc">SourceChangeTree::<wbr />visit_all</a></code>.</p><p>To simply get the first complete source change use <code><a href="classminilua_1_1SourceChangeTree.html#ad799422793011dcfbc4e39d5d9fbc5a5" class="m-doc">SourceChangeTree::<wbr />collect_first_alternative</a></code>.</p><p>Supports equality operators.</p>
+<p>Walk the tree with <code><a href="classminilua_1_1SourceChangeTree.html#ab8a1d41ca760fe26e40bd6751afb6814" class="m-doc">SourceChangeTree::<wbr />visit</a></code>, <code><a href="classminilua_1_1SourceChangeTree.html#a6085685b51f24b58523468f809303b3c" class="m-doc">SourceChangeTree::<wbr />visit_first_alternative</a></code>, <code><a href="classminilua_1_1SourceChangeTree.html#a94871f59ceea6c42c6fadd0f0d267243" class="m-doc">SourceChangeTree::<wbr />visit_all</a></code>.</p><p>To simply get the first complete source change use <code><a href="classminilua_1_1SourceChangeTree.html#ad799422793011dcfbc4e39d5d9fbc5a5" class="m-doc">SourceChangeTree::<wbr />collect_first_alternative</a></code>.</p><p>Supports equality operators.</p>
         <section id="typeless-methods">
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
@@ -114,12 +114,12 @@
             <dd></dd>
             <dt>
               <div class="m-doc-template">template&lt;typename Visitor&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#ac7b2f24facef7cb614c9b6bf25ea914a" class="m-doc">visit</a>(</span><span class="m-doc-wrap">Visitor visitor) -&gt; decltype(auto)</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#ab8a1d41ca760fe26e40bd6751afb6814" class="m-doc">visit</a>(</span><span class="m-doc-wrap">Visitor visitor) -&gt; auto</span>
             </dt>
             <dd>Visit the root node of the tree of source changes.</dd>
             <dt>
               <div class="m-doc-template">template&lt;typename Visitor&gt;</div>
-              <span class="m-doc-wrap-bumper">auto <a href="#a42d741043fb7025e1d06d4fa0b34b5d1" class="m-doc">visit</a>(</span><span class="m-doc-wrap">Visitor visitor) const -&gt; decltype(auto)</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#ada4d5b10cf3e07c7a98593c7d27c7e76" class="m-doc">visit</a>(</span><span class="m-doc-wrap">Visitor visitor) -&gt; auto</span>
             </dt>
             <dd>Visit the root node of the tree of source changes.</dd>
             <dt>
@@ -172,22 +172,22 @@
             </h3>
 <p>Removes the filename from the ranges in the tree.</p>
           </div></section>
-          <section class="m-doc-details" id="ac7b2f24facef7cb614c9b6bf25ea914a"><div>
+          <section class="m-doc-details" id="ab8a1d41ca760fe26e40bd6751afb6814"><div>
             <h3>
               <div class="m-doc-template">
                 template&lt;typename Visitor&gt;
               </div>
-              <span class="m-doc-wrap-bumper">decltype(auto) minilua::<wbr />SourceChangeTree::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac7b2f24facef7cb614c9b6bf25ea914a" class="m-doc-self">visit</a>(</span><span class="m-doc-wrap">Visitor visitor)</span></span>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />SourceChangeTree::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab8a1d41ca760fe26e40bd6751afb6814" class="m-doc-self">visit</a>(</span><span class="m-doc-wrap">Visitor visitor)</span></span>
             </h3>
             <p>Visit the root node of the tree of source changes.</p>
 <aside class="m-note m-info"><h4>Note</h4><p>You have to manually navigate through the tree.</p></aside><p><code>Visitor</code> has to be callable with <code><a href="structminilua_1_1SourceChange.html" class="m-doc">SourceChange</a>&amp;</code>, <code><a href="structminilua_1_1SourceChangeCombination.html" class="m-doc">SourceChangeCombination</a>&amp;</code> and <code><a href="structminilua_1_1SourceChangeAlternative.html" class="m-doc">SourceChangeAlternative</a>&amp;</code>.</p><p>For possible implementations see <code><a href="classminilua_1_1SourceChangeTree.html#a6085685b51f24b58523468f809303b3c" class="m-doc">SourceChangeTree::<wbr />visit_first_alternative</a></code>.</p>
           </div></section>
-          <section class="m-doc-details" id="a42d741043fb7025e1d06d4fa0b34b5d1"><div>
+          <section class="m-doc-details" id="ada4d5b10cf3e07c7a98593c7d27c7e76"><div>
             <h3>
               <div class="m-doc-template">
                 template&lt;typename Visitor&gt;
               </div>
-              <span class="m-doc-wrap-bumper">decltype(auto) minilua::<wbr />SourceChangeTree::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a42d741043fb7025e1d06d4fa0b34b5d1" class="m-doc-self">visit</a>(</span><span class="m-doc-wrap">Visitor visitor) const</span></span>
+              <span class="m-doc-wrap-bumper">auto minilua::<wbr />SourceChangeTree::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ada4d5b10cf3e07c7a98593c7d27c7e76" class="m-doc-self">visit</a>(</span><span class="m-doc-wrap">Visitor visitor)</span></span>
             </h3>
             <p>Visit the root node of the tree of source changes.</p>
 <aside class="m-note m-info"><h4>Note</h4><p>You have to manually navigate through the tree.</p></aside><p><code>Visitor</code> has to be callable with <code>const <a href="structminilua_1_1SourceChange.html" class="m-doc">SourceChange</a>&amp;</code>, <code>const <a href="structminilua_1_1SourceChangeCombination.html" class="m-doc">SourceChangeCombination</a>&amp;</code> and <code>const <a href="structminilua_1_1SourceChangeAlternative.html" class="m-doc">SourceChangeAlternative</a>&amp;</code>.</p><p>For possible usage see implementation of <code><a href="classminilua_1_1SourceChangeTree.html#a6085685b51f24b58523468f809303b3c" class="m-doc">SourceChangeTree::<wbr />visit_first_alternative</a></code>.</p>
