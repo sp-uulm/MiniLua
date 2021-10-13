@@ -57,8 +57,12 @@ auto find_loader(const CallContext& ctx) -> Vallist {
 
 auto require(const CallContext& ctx) -> Value {
     auto modname = ctx.arguments().get(0);
-    if (!modname.is_string()) {
-        throw std::runtime_error("");
+    if (modname.is_number()) {
+        // lua threads numbers as stings in this case
+        modname = modname.to_string();
+    } else if (!modname.is_string()) {
+        throw std::runtime_error(
+            "bad argument #1 to 'require' (string expected, got " + modname.type() + ")");
     }
     if (package::loaded.has(modname)) {
         return package::loaded.get(modname);
@@ -71,6 +75,8 @@ auto require(const CallContext& ctx) -> Value {
         if (!erg.is_nil()) {
             package::loaded.set(modname, erg);
         } else if (package::loaded.get(modname).is_nil()) {
+            // true is assigned because it's defined this way in the lua documentation.
+            // It's probably to prevent repearedly trying to load a same module if that fails once.
             package::loaded.set(modname, true);
         }
     }
