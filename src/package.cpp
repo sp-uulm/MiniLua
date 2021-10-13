@@ -1,5 +1,7 @@
 #include "MiniLua/values.hpp"
 #include <MiniLua/package.hpp>
+#include <regex>
+#include <string>
 
 namespace minilua {
 auto create_package_table(MemoryAllocator* allocator) -> Table {
@@ -29,8 +31,82 @@ Value cpath = Nil();
 Value path = Nil();
 Table loaded;
 Table preload;
-Table searchers;
+Table searchers = *new Table(
+    {{1,
+      [](const CallContext& ctx) -> Value {
+          auto name = ctx.arguments().get(0);
+          return preload.get(name);
+      }},
+     {2, 2}});
 
+auto static split_string(std::string text, std::string sep) -> std::vector<std::string> {
+    std::vector<std::string> parts;
+
+    int pos = 0;
+    while ((pos = text.find(sep)) != std::string::npos) {
+        // this check is needed for back to back seperators so they don't get inserted
+        if (pos != 0) {
+            parts.push_back(text.substr(0, pos));
+        }
+        text.erase(0, pos + sep.length());
+    }
+    // insert the remaining part of text
+    parts.push_back(text);
+
+    return parts;
+}
+
+auto searchpath(const CallContext& ctx) -> Vallist {
+    auto name = ctx.arguments().get(0);
+    auto path = ctx.arguments().get(1);
+    auto sep = ctx.arguments().get(2);
+    auto rep = ctx.arguments().get(3);
+
+    // default values for optional parameters
+    if (sep.is_nil()) {
+        sep = ".";
+    }
+    if (rep.is_nil()) {
+        // default value is the system directory seperator
+        rep = std::get<String>(config).value[0];
+    }
+    // type handeling
+    if (name.is_number()) {
+        name = name.to_string();
+    } else if (!name.is_string()) {
+        throw std::runtime_error(
+            "bad argument #1 to 'searchpath' (string expected, got " + name.type() + ")");
+    }
+    if (path.is_number()) {
+        path = path.to_string();
+    } else if (!path.is_string()) {
+        throw std::runtime_error(
+            "bad argument #2 to 'searchpath' (string expected, got " + path.type() + ")");
+    }
+    if (!sep.is_string() and !sep.is_number()) {
+        throw std::runtime_error(
+            "bad argument #3 to 'searchpath' (string expected, got " + sep.type() + ")");
+    }
+    if (!rep.is_number() and !rep.is_string()) {
+        throw std::runtime_error(
+            "bad argument #4 to 'searchpath' (string expected, got " + rep.type() + ")");
+    }
+    // logical section
+    auto parts = split_string(std::get<String>(path).value, ";");
+    name = std::regex_replace(
+        std::get<String>(name).value, std::regex(std::get<String>(sep.to_string()).value),
+        std::get<String>(rep.to_string()).value);
+
+    std::string looked_up_files;
+    for (auto s : parts) {
+        s = std::regex_replace(s, std::regex("?"), std::get<String>(name).value);
+
+        // TODO: check if file s exists
+        // If exists then return s
+        // else add "no file 's'\n" to looked_up_files
+    }
+    return Vallist({Nil(), looked_up_files});
+}
 } // end namespace package
 
 auto find_loader(const CallContext& ctx) -> Vallist {

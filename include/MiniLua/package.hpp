@@ -7,5 +7,7 @@
 namespace minilua {
 auto require(const CallContext& ctx) -> Value;
 
-namespace package {} // end namespace package
+namespace package {
+auto searchpath(const CallContext& ctx) -> Vallist;
+} // end namespace package
 } // end namespace minilua
