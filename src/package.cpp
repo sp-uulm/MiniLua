@@ -1,5 +1,6 @@
 #include "MiniLua/values.hpp"
 #include <MiniLua/package.hpp>
+#include <memory>
 #include <regex>
 #include <string>
 
@@ -31,13 +32,20 @@ Value cpath = Nil();
 Value path = Nil();
 Table loaded;
 Table preload;
-Table searchers = *new Table(
+Table searchers = std::make_unique<Table>(new Table(
     {{1,
       [](const CallContext& ctx) -> Value {
           auto name = ctx.arguments().get(0);
           return preload.get(name);
       }},
-     {2, 2}});
+     {2, [](CallContext ctx) -> Value {
+          ctx = ctx.make_new({ctx.arguments().get(0), path});
+          auto paths = searchpath(ctx);
+          if (paths.get(0).is_nil()) {
+              // TODO: print paths.get(1)
+          }
+          return paths.get(0);
+      }}}));
 
 auto static split_string(std::string text, std::string sep) -> std::vector<std::string> {
     std::vector<std::string> parts;
@@ -70,7 +78,7 @@ auto searchpath(const CallContext& ctx) -> Vallist {
         // default value is the system directory seperator
         rep = std::get<String>(config).value[0];
     }
-    // type handeling
+    // type handling
     if (name.is_number()) {
         name = name.to_string();
     } else if (!name.is_string()) {
@@ -134,7 +142,7 @@ auto find_loader(const CallContext& ctx) -> Vallist {
 auto require(const CallContext& ctx) -> Value {
     auto modname = ctx.arguments().get(0);
     if (modname.is_number()) {
-        // lua threads numbers as stings in this case
+        // lua treads numbers as stings in this case
         modname = modname.to_string();
     } else if (!modname.is_string()) {
         throw std::runtime_error(
@@ -152,7 +160,7 @@ auto require(const CallContext& ctx) -> Value {
             package::loaded.set(modname, erg);
         } else if (package::loaded.get(modname).is_nil()) {
             // true is assigned because it's defined this way in the lua documentation.
-            // It's probably to prevent repearedly trying to load a same module if that fails once.
+            // It's probably to prevent repeatedly trying to load the same module if it fails once.
             package::loaded.set(modname, true);
         }
     }
