@@ -32,7 +32,7 @@ Value cpath = Nil();
 Value path = Nil();
 Table loaded;
 Table preload;
-Table searchers = std::make_unique<Table>(new Table(
+std::unique_ptr<Table> searchers = std::unique_ptr<Table>(new Table(
     {{1,
       [](const CallContext& ctx) -> Value {
           auto name = ctx.arguments().get(0);
@@ -120,7 +120,7 @@ auto searchpath(const CallContext& ctx) -> Vallist {
 auto find_loader(const CallContext& ctx) -> Vallist {
     String modname = std::get<String>(ctx.arguments().get(0));
     std::string error_msg;
-    for (const auto& p : package::searchers) {
+    for (const auto& p : *package::searchers) {
         Value searcher = p.second;
 
         if (searcher.is_function()) {
