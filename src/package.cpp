@@ -15,24 +15,24 @@ auto create_package_table(MemoryAllocator* allocator) -> Table {
 namespace package {
 
 #ifndef _WIN64
-Value config = "\\\n"
-               ";\n"
-               "?\n"
-               "!\n"
-               "-";
+static Value config = "\\\n"
+                      ";\n"
+                      "?\n"
+                      "!\n"
+                      "-";
 #else
-minilua::Value config = "/\n"
-                        ";\n"
-                        "?\n"
-                        "!\n"
-                        "-";
+static Value config = "/\n"
+                      ";\n"
+                      "?\n"
+                      "!\n"
+                      "-";
 #endif
 
-Value cpath = Nil();
-Value path = Nil();
-Table loaded;
-Table preload;
-std::unique_ptr<Table> searchers = std::unique_ptr<Table>(new Table(
+static Value cpath = Nil();
+static Value path = Nil();
+static Table loaded;
+static Table preload;
+static std::unique_ptr<Table> searchers = std::unique_ptr<Table>(new Table(
     {{1,
       [](const CallContext& ctx) -> Value {
           auto name = ctx.arguments().get(0);
