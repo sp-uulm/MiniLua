@@ -1,12 +1,13 @@
 #include "MiniLua/values.hpp"
 #include <MiniLua/package.hpp>
+#include <cstddef>
 #include <memory>
 #include <regex>
 #include <string>
 
 namespace minilua {
 auto create_package_table(MemoryAllocator* allocator) -> Table {
-    std::unordered_map<Value, Value> math_functions;
+    std::unordered_map<Value, Value> package_functions;
     Table package(allocator);
 
     return package;
@@ -28,7 +29,9 @@ static Value config = "/\n"
                       "-";
 #endif
 
-static Value cpath = Nil();
+static char* path1 = std::getenv("LUA_CPATH_5_3");
+static char* path2 = std::getenv("LUA_CPATH");
+static Value cpath = Value(path1 != nullptr ? path1 : (path2 != nullptr ? path2 : MINILUA_CPATH_DEFAULT));
 static Value path = Nil();
 static Table loaded;
 static Table preload;
