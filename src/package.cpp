@@ -28,21 +28,16 @@ static Value config = "/\n"
                       "!\n"
                       "-";
 #endif
-
-static char* path1 = std::getenv("LUA_CPATH_5_3");
-static char* path2 = std::getenv("LUA_CPATH");
-static Value cpath = Value(path1 != nullptr ? path1 : (path2 != nullptr ? path2 : MINILUA_CPATH_DEFAULT));
-static Value path = Nil();
-static Table loaded;
-static Table preload;
-static std::unique_ptr<Table> searchers = std::unique_ptr<Table>(new Table(
+Table LOADED;
+Table PRELOAD;
+std::unique_ptr<Table> SEARCHERS = std::unique_ptr<Table>(new Table(
     {{1,
       [](const CallContext& ctx) -> Value {
           auto name = ctx.arguments().get(0);
-          return preload.get(name);
+          return PRELOAD.get(name);
       }},
      {2, [](CallContext ctx) -> Value {
-          ctx = ctx.make_new({ctx.arguments().get(0), path});
+          ctx = ctx.make_new({ctx.arguments().get(0), PATH});
           auto paths = searchpath(ctx);
           if (paths.get(0).is_nil()) {
               // TODO: print paths.get(1)
@@ -50,7 +45,7 @@ static std::unique_ptr<Table> searchers = std::unique_ptr<Table>(new Table(
           return paths.get(0);
       }}}));
 
-auto static split_string(std::string text, std::string sep) -> std::vector<std::string> {
+auto static split_string(std::string text, const std::string& sep) -> std::vector<std::string> {
     std::vector<std::string> parts;
 
     int pos = 0;
@@ -118,12 +113,13 @@ auto searchpath(const CallContext& ctx) -> Vallist {
     }
     return Vallist({Nil(), looked_up_files});
 }
+
 } // end namespace package
 
 auto find_loader(const CallContext& ctx) -> Vallist {
     String modname = std::get<String>(ctx.arguments().get(0));
     std::string error_msg;
-    for (const auto& p : *package::searchers) {
+    for (const auto& p : *package::SEARCHERS) {
         Value searcher = p.second;
 
         if (searcher.is_function()) {
@@ -151,8 +147,8 @@ auto require(const CallContext& ctx) -> Value {
         throw std::runtime_error(
             "bad argument #1 to 'require' (string expected, got " + modname.type() + ")");
     }
-    if (package::loaded.has(modname)) {
-        return package::loaded.get(modname);
+    if (package::LOADED.has(modname)) {
+        return package::LOADED.get(modname);
     } else {
         // Search for loader in package.searchers
         auto tmp = find_loader(ctx);
@@ -160,14 +156,14 @@ auto require(const CallContext& ctx) -> Value {
         const Value& extra_value = tmp.get(1);
         auto erg = loader.call(ctx.make_new({modname, extra_value})).values().get(0);
         if (!erg.is_nil()) {
-            package::loaded.set(modname, erg);
-        } else if (package::loaded.get(modname).is_nil()) {
+            package::LOADED.set(modname, erg);
+        } else if (package::LOADED.get(modname).is_nil()) {
             // true is assigned because it's defined this way in the lua documentation.
             // It's probably to prevent repeatedly trying to load the same module if it fails once.
-            package::loaded.set(modname, true);
+            package::LOADED.set(modname, true);
         }
     }
-    return package::loaded.get(modname);
+    return package::LOADED.get(modname);
 }
 
 } // end namespace minilua
