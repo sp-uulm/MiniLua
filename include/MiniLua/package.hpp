@@ -21,6 +21,10 @@ namespace minilua {
 auto require(const CallContext& ctx) -> Value;
 
 namespace package {
+const Value CPATH = Value(std::getenv("LUA_CPATH_5_3") != nullptr ? std::getenv("LUA_CPATH_5_3") :
+            (std::getenv("LUA_CPATH") != nullptr ? std::getenv("LUA_CPATH") : MINILUA_CPATH_DEFAULT));
+const Value PATH = Value(std::getenv("LUA_PATH_5_3") != nullptr ? std::getenv("LUA_PATH_5_3") :
+            (std::getenv("LUA_PATH") != nullptr ? std::getenv("LUA_PATH") : MINILUA_PATH_DEFAULT));
 auto searchpath(const CallContext& ctx) -> Vallist;
 } // end namespace package
 } // end namespace minilua
