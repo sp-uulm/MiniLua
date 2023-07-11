@@ -206,18 +206,20 @@ String::String(std::string value) : value(std::move(value)) {}
     std::string str;
     str.reserve(this->value.size() + 2);
 
-    // characters to replace
-    // 7 -> \a (bell)
-    // 8 -> \b (back space)
-    // 9 -> \t (horizontal tab)
-    // 10 -> \n (line feed)
-    // 11 -> \v (vertical tab)
-    // 12 -> \f (form feed)
-    // 13 -> \r (cariage return)
-    // \ -> \\
-    // " -> \"
-    // ' -> \' (not needed if string surrounded by ")
-    // invisible chars -> \000
+    /*
+    characters to replace
+        7 -> \a (bell)
+        8 -> \b (back space)
+        9 -> \t (horizontal tab)
+        10 -> \n (line feed)
+        11 -> \v (vertical tab)
+        12 -> \f (form feed)
+        13 -> \r (cariage return)
+        \ -> \\
+        " -> \"
+        ' -> \' (not needed if string surrounded by ")
+        invisible chars -> \000
+    */
 
     str.append("\"");
 
