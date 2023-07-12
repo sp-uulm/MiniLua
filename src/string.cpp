@@ -17,16 +17,12 @@
 #include "MiniLua/values.hpp"
 
 namespace minilua {
-    auto static try_value_is_int(Value s, const std::string& method_name, int arg_index) -> Number::Int {
-        try {
-            if (s.is_number()) {
-                return std::get<Number>(s).try_as_int();
-            }
-        } catch (const std::runtime_error& e) {
-            throw std::runtime_error(
-                "bad argument #" + std::to_string(arg_index) + " to '" + method_name +
-                "' (number expected, got " + s.type() + ")");
+    template<class Result>
+    auto static try_value_as(Value s, const std::string& method_name, int arg_index) -> Result {
+        if (s.is_number()) {
+            return std::get<Number>(s).convert_to<Result>();
         }
+
         auto tmp = Number(1);
         try {
             if (s.is_string()) {
@@ -35,7 +31,7 @@ namespace minilua {
                     throw std::runtime_error("");
                 }
                 tmp = std::get<Number>(v);
-            } else if (!s.is_number()) {
+            } else {
                 throw std::runtime_error("");
             }
         } catch (const std::runtime_error& e) {
@@ -43,8 +39,9 @@ namespace minilua {
                 "bad argument #" + std::to_string(arg_index) + " to '" + method_name +
                 "' (number expected, got " + s.type() + ")");
         }
+
         try {
-            return tmp.try_as_int();
+            return tmp.convert_to<Result>();
         } catch (const std::runtime_error& e) {
             throw std::runtime_error(
                 "bad argument #" + std::to_string(arg_index) + " to '" + method_name +
@@ -62,16 +59,6 @@ namespace minilua {
     }
 
     auto static parse_string(const std::string& str, std::vector<Value> args)-> std::string {
-        const std::vector<char> flags = {'-', '+', '0', ' ', '#'};
-        const std::vector<char> width = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
-        const char precision = '.';
-        const std::vector<char> types = { '%', 'd', 'i', 'u', 'f', 'e', 'E', 'g', 'G', 'x', 'X', 'a', 'A', 'o', 'q'};
-        std::vector<char> validChars; //union of the vectors above
-        validChars.reserve(flags.size() + width.size() + types.size() + 1);
-        validChars.insert(validChars.end(), flags.begin(), flags.end());
-        validChars.insert(validChars.end(), width.begin(), width.end());
-        validChars.insert(validChars.end(), precision);
-        validChars.insert(validChars.end(), types.begin(), types.end());
         std::string_view s(str);
         std::stringstream ss;
 
@@ -82,14 +69,6 @@ namespace minilua {
         const int default_width = ss.width();
         const char default_fill = ' ';
         while (pos < s.length()) {
-            int length = default_width;
-            int precision = 1;
-            bool alternate_form = false;
-            bool zero_pad = false;
-            bool left_adjust = false;
-            bool sign = false;
-            bool blank = false;
-
             ss << std::dec;
             ss << std::nouppercase;
             ss << std::noshowbase;
@@ -98,23 +77,36 @@ namespace minilua {
             ss.precision(default_precision);
             ss.width(default_width);
             ss.fill(default_fill);
-            pos = s.find_first_of('%', pos); // n-th char, but n-1-th index in array
-            size_t start_pos = pos;
-            if (pos == std::string::npos) { break; } //no escape character found -> return
-            int lengthOfEscape = s.find_first_not_of(std::string(validChars.begin(), validChars.end()));
-            std::string_view escape = s.substr(pos, lengthOfEscape - pos - 1);   //get escape strin
-            ss << s.substr(0, pos);
-            s.remove_prefix(lengthOfEscape-1);
+
+            int length = default_width;
+            int precision = 1;
+            bool alternate_form = false;
+            bool zero_pad = false;
+            bool left_adjust = false;
+            bool sign = false;
+            bool blank = false;
+
+            size_t start_pos = s.find('%', pos);
+            if (start_pos == std::string_view::npos) {
+                ss << s.substr(pos);
+                break;
+            }
+
+            ss << s.substr(pos, start_pos - pos);
+            pos = ++start_pos;
 
             //search for flags and apply them
             for (bool in_flags = true; in_flags && pos < s.length(); ++pos) {
                 switch (s[pos]) {
                     case '#':
                         alternate_form = true;
+                        ss << std::showbase;
                         break;
                     case '0':
-                        zero_pad = true;
-                        ss.fill('0');
+                        if (!left_adjust) {
+                            zero_pad = true;
+                            ss.fill('0');
+                        }
                         break;
                     case ' ':
                         blank = true;
@@ -124,10 +116,10 @@ namespace minilua {
                         ss << std::showpoint;
                         break;
                     case '-':
-                        ss << std::left;
                         zero_pad = false;
                         ss.fill(default_fill);
                         left_adjust = true;
+                        ss << std::left;
                         break;
                     default:
                         in_flags = false;
@@ -137,23 +129,23 @@ namespace minilua {
             }
 
             //search for width and
-            if (pos < s.length() && isspace(s[pos]) == 0) {
+            if (pos < s.length() && isdigit(s[pos])) {
                 size_t end;
                 try {
                     length = std::stoi(std::string(s.substr(pos)), &end);
+                    pos += end;
+                    ss.width(length);
                 } catch (const std::invalid_argument& e) {}
-                pos += end;
-                ss.width(length);
             }
 
             //search for precision
-            if (pos < s.length() && s[pos] == '.') {
+            if (pos + 1 < s.length() && s[pos] == '.' && isdigit(s[pos + 1])) {
                 size_t end;
                 try {
                     precision = std::stoi(std::string(s.substr(++pos)), &end);
+                    pos += end;
+                    ss.precision(precision);
                 } catch (const std::invalid_argument& e) {}
-                pos += end;
-                ss.precision(precision);
             }
 
             //check for conversion type
@@ -161,16 +153,16 @@ namespace minilua {
                 throw std::runtime_error("invalid conversion '" + std::string(s.substr(start_pos, pos - start_pos)) + "' to 'format'");
             }
             auto arg_value = args.at(numEscapes);
-            switch (s[pos]) {
+            switch (s[pos++]) {
                 case 'd':
                 case 'i': {
                     if (precision == 0) {
                         zero_pad = false;
                         ss.fill(default_fill);
                     }
-                    const Number::Int imm = try_value_is_int(arg_value, "format", numEscapes+2);
-                    if (imm == 0 and precision == 0) { continue; } // output 0 with precision 0 results in empty output
-                    if (blank and imm >= 0) { ss << " "; }
+                    const auto imm = try_value_as<Number::Int>(arg_value, "format", numEscapes+2);
+                    if (imm == 0 && precision == 0) { continue; } // output 0 with precision 0 results in empty output
+                    if (blank && imm >= 0) { ss << " "; }
                     ss << std::right;
                     ss.fill('0');
                     ss.width(precision);
@@ -178,16 +170,13 @@ namespace minilua {
                     break;
                 }
                 case 'o': {
-                    if (blank) { throw std::runtime_error("invalid conversion specification: '" + std::string(s.substr(start_pos, pos - start_pos)) + "'"); }
                     if (precision == 0) {
                         zero_pad = false;
                         ss.fill(default_fill);
                     }
-                    if (alternate_form) { ss << std::showbase; }
                     ss << std::oct;
-                    const Number::Int imm = try_value_is_int(arg_value, "format", numEscapes+2);
-                    if (imm == 0 and precision == 0) { continue; } // output 0 with precision 0 results in empty output
-                    if (blank and imm >= 0) { ss << " "; }
+                    const auto imm = try_value_as<Number::Int>(arg_value, "format", numEscapes+2);
+                    if (imm == 0 && precision == 0) { continue; } // output 0 with precision 0 results in empty output
                     ss << std::right;
                     ss.fill('0');
                     ss.width(precision);
@@ -195,14 +184,13 @@ namespace minilua {
                     break;
                 }
                 case 'u': {
-                    if (blank || alternate_form) { throw std::runtime_error("invalid conversion specification: '" + std::string(s.substr(start_pos, pos - start_pos)) + "'"); }
+                    if (alternate_form) { throw std::runtime_error("invalid conversion specification: '" + std::string(s.substr(start_pos, pos - start_pos)) + "'"); }
                     if (precision == 0) {
                         zero_pad = false;
                         ss.fill(default_fill);
                     }
-                    const unsigned long imm = try_value_is_int(arg_value, "format", numEscapes + 2);
-                    if (imm == 0 and precision == 0) { continue; } // output 0 with precision 0 results in empty output
-                    if (blank and imm >= 0) { ss << " "; }
+                    const unsigned long imm = try_value_as<Number::Int>(arg_value, "format", numEscapes + 2);
+                    if (imm == 0 && precision == 0) { continue; } // output 0 with precision 0 results in empty output
                     ss << std::right;
                     ss.fill('0');
                     ss.width(precision);
@@ -217,17 +205,9 @@ namespace minilua {
                         zero_pad = false;
                         ss.fill(default_fill);
                     }
-                    if (blank) {
-                        ss << std::nouppercase;
-                        throw std::runtime_error("invalid conversion specification: '" + std::string(s.substr(start_pos, pos - start_pos)) + "'");
-                    }
-                    if (alternate_form){
-                        ss << std::showbase;
-                    }
-                    const Number::Int imm = try_value_is_int(arg_value, "format", numEscapes+2);
-                    if (imm == 0 and precision == 0) { continue; } // output 0 with precision 0 results in empty output
+                    const auto imm = try_value_as<Number::Float>(arg_value, "format", numEscapes+2);
+                    if (imm == 0 && precision == 0) { continue; } // output 0 with precision 0 results in empty output
                     ss << std::right;
-                    if (blank and imm >= 0) { ss << " "; }
                     ss << std::hex;
                     ss.fill('0');
                     ss.width(precision);
@@ -237,14 +217,15 @@ namespace minilua {
                 case 'E':
                     ss << std::uppercase;
                 case 'e':{
-                    const Number::Int imm = try_value_is_int(arg_value, "format", numEscapes+2);
+                    const auto imm = try_value_as<Number::Float>(arg_value, "format", numEscapes+2);
                     ss << std::scientific;
                     ss << imm;
                     ss << std::defaultfloat;
                     break;
                 }
                 case 'f':{
-                    const Number::Int imm = try_value_is_int(arg_value, "format", numEscapes+2);
+                    const auto imm = try_value_as<Number::Float>(arg_value, "format", numEscapes+2);
+                    std::cout << "imm: " << imm << "\n";
                     ss << std::fixed;
                     ss << imm;
                     ss << std::defaultfloat;
@@ -253,7 +234,7 @@ namespace minilua {
                 case 'G':
                     ss << std::uppercase;
                 case 'g': {
-                    const Number::Int imm = try_value_is_int(arg_value, "format", numEscapes+2);
+                    const auto imm = try_value_as<Number::Float>(arg_value, "format", numEscapes+2);
                     ss << std::defaultfloat;
                     ss << imm;
                     break;
@@ -261,7 +242,7 @@ namespace minilua {
                 case 'A':
                     ss << std::uppercase;
                 case 'a': {
-                    const Number::Int imm = try_value_is_int(arg_value, "format", numEscapes+2);
+                    const auto imm = try_value_as<Number::Float>(arg_value, "format", numEscapes+2);
                     ss << std::hexfloat;
                     ss << imm;
                     ss << std::defaultfloat;
@@ -271,7 +252,7 @@ namespace minilua {
                     if (alternate_form || zero_pad || blank || sign) {
                         throw std::runtime_error("invalid conversion specification: '" + std::string(s.substr(start_pos, pos - start_pos)) + "'");
                     }
-                    const char imm = try_value_is_int(arg_value, "format", numEscapes+2);
+                    const char imm = try_value_as<Number::Int>(arg_value, "format", numEscapes+2);
                     ss << imm;
                     break;
                 }
@@ -287,12 +268,9 @@ namespace minilua {
                     ss << "%";
                     break;
                 default:
-                    throw std::runtime_error("invalid conversion '" + std::string(escape) + "' to 'format'");
+                    throw std::runtime_error("invalid conversion '" + std::string(s.substr(start_pos, pos - start_pos)) + "' to 'format'");
                     break;
             }
-
-
-            //std::string arg = std::get<String>(try_value_is_string(args.at(numEscapes), "format", numEscapes + 2)).value;
 
             numEscapes++;
         }
@@ -335,7 +313,7 @@ namespace string {
             },
             [&result, &i](const String& s, auto /*i*/, Nil) -> Vallist {
                 std::string str = s.value;
-                int i_int = try_value_is_int(i, "byte", 2) - 1;
+                int i_int = try_value_as<Number::Int>(i, "byte", 2) - 1;
                 int j = i_int;
 
                 for (; i_int <= j && i_int < str.length(); i_int++){
@@ -346,7 +324,7 @@ namespace string {
             [&result, &j](const String& s, Nil, auto /*j*/) -> Vallist {
                 std::string str = s.value;
                 int i_int = 0;
-                int j_int = try_value_is_int(j, "byte", 3) - 1;
+                int j_int = try_value_as<Number::Int>(j, "byte", 3) - 1;
 
                 for (; i_int <= j_int && i_int < str.length(); i_int++) {
                     result.emplace_back((int) str[i_int]);
@@ -355,8 +333,8 @@ namespace string {
             },
             [&result, &i, &j](const String& s, auto /*i*/, auto /*j*/) -> Vallist {
                 std::string str = s.value;
-                int i_int = try_value_is_int(i, "byte", 2) - 1;
-                int j_int = try_value_is_int(j, "byte", 3) - 1;
+                int i_int = try_value_as<Number::Int>(i, "byte", 2) - 1;
+                int j_int = try_value_as<Number::Int>(j, "byte", 3) - 1;
 
                 for (; i_int <= j_int && i_int < str.length(); i_int++) {
                     result.emplace_back((int) str[i_int]);
@@ -375,7 +353,7 @@ namespace string {
         int i = 0;
 
         for (const auto& arg : ctx.arguments()) {
-            int lettr = try_value_is_int(arg, "char", i);
+            int lettr = try_value_as<Number::Int>(arg, "char", i);
             result.emplace_back((char) lettr);
             i++;
         }
@@ -387,7 +365,7 @@ namespace string {
         auto formatstring = ctx.arguments().get(0);
         std::vector<Value> args;
         const auto& tmp_args = ctx.arguments();
-        auto iterator = tmp_args.begin()++;
+        auto iterator = tmp_args.begin()+1;
 
         //remove first argument formatstring from arguments-list
         for (auto arg = *iterator;iterator != tmp_args.end();iterator++) {
@@ -426,7 +404,7 @@ namespace string {
         if (!seperator.is_nil()){
             sep = std::get<String>(try_value_is_string(seperator, "rep", 3)).value;
         }
-        int reps = try_value_is_int(n, "rep", 2);
+        int reps = try_value_as<Number::Int>(n, "rep", 2);
 
         std::string result = str;
         for (int i = 1; i < reps; i++) {
@@ -450,7 +428,7 @@ namespace string {
         auto j = ctx.arguments().get(2);
 
         std::string str = std::get<String>(try_value_is_string(s, "sub", 1)).value;
-        int start = try_value_is_int(i, "sub", 2) - 1;
+        int start = try_value_as<Number::Int>(i, "sub", 2) - 1;
         int distance = str.length(); // this overshoots the end of the string, but substr of std stops at the end
         return str.substr(start, distance);
     }

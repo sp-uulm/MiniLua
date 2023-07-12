@@ -94,6 +94,8 @@ auto Number::convert_to_int() const -> Int {
         [](Number::Float value) -> Number::Int { return static_cast<Number::Int>(value); },
     });
 }
+template<> [[nodiscard]] auto Number::convert_to<Number::Int>() const -> Number::Int { return convert_to_int(); }
+template<> [[nodiscard]] auto Number::convert_to<Number::Float>() const -> Number::Float { return as_float(); }
 auto Number::raw() const -> std::variant<Int, Float> { return this->value; }
 auto Number::is_int() const -> bool { return std::holds_alternative<Int>(this->value); }
 auto Number::is_float() const -> bool { return std::holds_alternative<Float>(this->value); }
