@@ -65,21 +65,7 @@ namespace minilua {
         //find escapes and replace them with the argument
         int numEscapes = 0;
         size_t pos = 0;
-        const int default_precision = ss.precision();
-        const int default_width = ss.width();
-        const char default_fill = ' ';
         while (pos < s.length()) {
-            ss << std::dec;
-            ss << std::nouppercase;
-            ss << std::noshowbase;
-            ss << std::noshowpoint;
-            ss << std::right;
-            ss.precision(default_precision);
-            ss.width(default_width);
-            ss.fill(default_fill);
-
-            int length = default_width;
-            int precision = 1;
             bool alternate_form = false;
             bool zero_pad = false;
             bool left_adjust = false;
@@ -92,34 +78,29 @@ namespace minilua {
                 break;
             }
 
+            // get string before escape
+            // TODO: maybe useless since snprintf can use it. Rethink if necessary
             ss << s.substr(pos, start_pos - pos);
-            pos = ++start_pos;
+            pos = start_pos + 1;
 
             //search for flags and apply them
             for (bool in_flags = true; in_flags && pos < s.length(); ++pos) {
                 switch (s[pos]) {
                     case '#':
                         alternate_form = true;
-                        ss << std::showbase;
                         break;
                     case '0':
-                        if (!left_adjust) {
-                            zero_pad = true;
-                            ss.fill('0');
-                        }
+                        zero_pad = !left_adjust;
                         break;
                     case ' ':
                         blank = true;
                         break;
                     case '+':
                         sign = true;
-                        ss << std::showpoint;
                         break;
                     case '-':
                         zero_pad = false;
-                        ss.fill(default_fill);
                         left_adjust = true;
-                        ss << std::left;
                         break;
                     default:
                         in_flags = false;
@@ -128,136 +109,62 @@ namespace minilua {
                 }
             }
 
-            //search for width and
-            if (pos < s.length() && isdigit(s[pos])) {
-                size_t end;
-                try {
-                    length = std::stoi(std::string(s.substr(pos)), &end);
-                    pos += end;
-                    ss.width(length);
-                } catch (const std::invalid_argument& e) {}
-            }
+            //search for width "%.5d"
+            pos = s.find_first_not_of("0123456789", pos);
 
             //search for precision
-            if (pos + 1 < s.length() && s[pos] == '.' && isdigit(s[pos + 1])) {
-                size_t end;
-                try {
-                    precision = std::stoi(std::string(s.substr(++pos)), &end);
-                    pos += end;
-                    ss.precision(precision);
-                } catch (const std::invalid_argument& e) {}
+            if (pos < s.length() && s[pos] == '.') {
+                pos = s.find_first_not_of("0123456789", pos+1);
             }
+
+            pos = pos == std::string_view::npos ? s.length() : pos;
 
             //check for conversion type
             if (pos >= s.length()) {
                 throw std::runtime_error("invalid conversion '" + std::string(s.substr(start_pos, pos - start_pos)) + "' to 'format'");
             }
+
+            auto escape = std::string(s.substr(start_pos, pos - start_pos + 1));
+            const auto *form = escape.c_str();
+            auto format_escape = [&ss, form](auto arg) -> void {
+                std::vector<char> buffer;
+                int size = std::snprintf(nullptr, 0, form, arg) + 1;
+                buffer.resize(size);
+                std::snprintf(buffer.data(), size, form, arg);
+                ss << buffer.data();
+            };
             auto arg_value = args.at(numEscapes);
             switch (s[pos++]) {
-                case 'd':
-                case 'i': {
-                    if (precision == 0) {
-                        zero_pad = false;
-                        ss.fill(default_fill);
-                    }
-                    const auto imm = try_value_as<Number::Int>(arg_value, "format", numEscapes+2);
-                    if (imm == 0 && precision == 0) { continue; } // output 0 with precision 0 results in empty output
-                    if (blank && imm >= 0) { ss << " "; }
-                    ss << std::right;
-                    ss.fill('0');
-                    ss.width(precision);
-                    ss << imm;
-                    break;
-                }
-                case 'o': {
-                    if (precision == 0) {
-                        zero_pad = false;
-                        ss.fill(default_fill);
-                    }
-                    ss << std::oct;
-                    const auto imm = try_value_as<Number::Int>(arg_value, "format", numEscapes+2);
-                    if (imm == 0 && precision == 0) { continue; } // output 0 with precision 0 results in empty output
-                    ss << std::right;
-                    ss.fill('0');
-                    ss.width(precision);
-                    ss << imm;
-                    break;
-                }
-                case 'u': {
+                case 'u': //one more error-case, the rest is the same behavior
                     if (alternate_form) { throw std::runtime_error("invalid conversion specification: '" + std::string(s.substr(start_pos, pos - start_pos)) + "'"); }
-                    if (precision == 0) {
-                        zero_pad = false;
-                        ss.fill(default_fill);
-                    }
-                    const unsigned long imm = try_value_as<Number::Int>(arg_value, "format", numEscapes + 2);
-                    if (imm == 0 && precision == 0) { continue; } // output 0 with precision 0 results in empty output
-                    ss << std::right;
-                    ss.fill('0');
-                    ss.width(precision);
-                    ss << imm;
-                    break;
-                }
-
+                case 'd':
+                case 'i': //same error and type behavior as 'o'
                 case 'X':
-                    ss << std::uppercase;
-                case 'x':{
-                    if (precision == 0) {
-                        zero_pad = false;
-                        ss.fill(default_fill);
-                    }
-                    const auto imm = try_value_as<Number::Float>(arg_value, "format", numEscapes+2);
-                    if (imm == 0 && precision == 0) { continue; } // output 0 with precision 0 results in empty output
-                    ss << std::right;
-                    ss << std::hex;
-                    ss.fill('0');
-                    ss.width(precision);
-                    ss << imm;
+                case 'x': //same error and type behavior as 'o'
+                case 'o': {
+                    format_escape(try_value_as<Number::Int>(arg_value, "format", numEscapes+2));
                     break;
                 }
+                // same error behavior for all of those. Formating is done by snprintf
                 case 'E':
-                    ss << std::uppercase;
-                case 'e':{
-                    const auto imm = try_value_as<Number::Float>(arg_value, "format", numEscapes+2);
-                    ss << std::scientific;
-                    ss << imm;
-                    ss << std::defaultfloat;
-                    break;
-                }
-                case 'f':{
-                    const auto imm = try_value_as<Number::Float>(arg_value, "format", numEscapes+2);
-                    std::cout << "imm: " << imm << "\n";
-                    ss << std::fixed;
-                    ss << imm;
-                    ss << std::defaultfloat;
-                    break;
-                }
+                case 'e':
+                case 'f':
                 case 'G':
-                    ss << std::uppercase;
-                case 'g': {
-                    const auto imm = try_value_as<Number::Float>(arg_value, "format", numEscapes+2);
-                    ss << std::defaultfloat;
-                    ss << imm;
-                    break;
-                }
+                case 'g':
                 case 'A':
-                    ss << std::uppercase;
-                case 'a': {
-                    const auto imm = try_value_as<Number::Float>(arg_value, "format", numEscapes+2);
-                    ss << std::hexfloat;
-                    ss << imm;
-                    ss << std::defaultfloat;
+                case 'a':
+                    format_escape(try_value_as<Number::Float>(arg_value, "format", numEscapes+2));
                     break;
-                }
                 case 'c': {
                     if (alternate_form || zero_pad || blank || sign) {
                         throw std::runtime_error("invalid conversion specification: '" + std::string(s.substr(start_pos, pos - start_pos)) + "'");
                     }
                     const char imm = try_value_as<Number::Int>(arg_value, "format", numEscapes+2);
-                    ss << imm;
+                    format_escape(imm);
                     break;
                 }
                 case 's': {
-                    ss << arg_value.to_string();
+                    format_escape(std::get<String>(arg_value.to_string()).value.c_str());
                     break;
                 }
                 case '%':
@@ -265,14 +172,13 @@ namespace minilua {
                     if (alternate_form || zero_pad || sign || blank || left_adjust) {
                         throw std::runtime_error("invalid conversion specification: '" + std::string(s.substr(start_pos, pos - start_pos)) + "'");
                     }
-                    ss << "%";
+                    ss << '%';
                     break;
                 default:
                     throw std::runtime_error("invalid conversion '" + std::string(s.substr(start_pos, pos - start_pos)) + "' to 'format'");
-                    break;
             }
 
-            numEscapes++;
+            ++numEscapes;
         }
         return ss.str();
     }
@@ -363,18 +269,14 @@ namespace string {
 
     auto format(const CallContext &ctx) -> Value {
         auto formatstring = ctx.arguments().get(0);
-        std::vector<Value> args;
-        const auto& tmp_args = ctx.arguments();
-        auto iterator = tmp_args.begin()+1;
-
-        //remove first argument formatstring from arguments-list
-        for (auto arg = *iterator;iterator != tmp_args.end();iterator++) {
-            args.push_back(arg);
-        }
+        std::vector<Value> args(ctx.arguments().size() - 1);
 
         if (!formatstring.is_string() && formatstring.is_number()) {
             throw std::runtime_error("bad argument #1 to 'format' (string expected, got " + formatstring.type() + ")");
         }
+
+        //remove first argument formatstring from arguments-list
+        std::copy(ctx.arguments().begin() + 1, ctx.arguments().end(), args.begin());
 
         return parse_string(std::get<String>(formatstring).value, args);
     }
