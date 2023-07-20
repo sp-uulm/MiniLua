@@ -329,6 +329,14 @@ namespace string {
     }
 
     auto format(const CallContext &ctx) -> Value {
+        Origin origin = MultipleArgsOrigin{
+            .values = std::make_shared<Vallist>(ctx.arguments()),
+            .location = ctx.call_location(),
+            .reverse = [](const Value& /*new_value*/, const Vallist& /*args*/) -> std::optional<SourceChangeTree> {
+                // No reverse possible. Dont know which characters where changed.
+                return std::nullopt;
+            }
+        };
         auto formatstring = ctx.arguments().get(0);
         std::vector<Value> args(ctx.arguments().size() - 1);
 
@@ -339,14 +347,16 @@ namespace string {
         //remove first argument formatstring from arguments-list
         std::copy(ctx.arguments().begin() + 1, ctx.arguments().end(), args.begin());
 
-        return parse_string(std::get<String>(formatstring).value, args);
+        return Value(parse_string(std::get<String>(formatstring).value, args)).with_origin(origin);
     }
 
     auto len(const CallContext &ctx) -> Value {
         auto s = try_value_is_string(ctx.arguments().get(0), "len", 1);
 
         String str = std::get<String>(s.raw());
-        return (long) str.value.length();
+        // can't reverse length because with the change of the result more characters have to be added to the string.
+        // Or if the string is shorter than previously, characters have to be removed. But it is not clear where in the string.
+        return Value((long) str.value.length()).with_origin(NoOrigin());
     }
 
     auto lower(const CallContext& ctx) -> Value {
@@ -378,11 +388,23 @@ namespace string {
     }
 
     auto reverse(const CallContext& ctx) -> Value {
+        Origin origin = UnaryOrigin{
+            .val = std::make_shared<Value>(ctx.arguments().get(0)),
+            .location = ctx.call_location(),
+            .reverse = [](const Value& new_value, const Value& old_value) -> std::optional<SourceChangeTree> {
+                if (!new_value.is_string()) {
+                    return std::nullopt;
+                }
+                std::string s = std::get<String>(new_value).value;
+                std::reverse(s.begin(), s.end());
+                return old_value.force(s);
+            }
+        };
         auto s = try_value_is_string(ctx.arguments().get(0), "reverse", 1);
 
         std::string str = std::get<String>(s).value;
         std::reverse(str.begin(), str.end());
-        return str;
+        return Value(str).with_origin(origin);
     }
 
     auto sub(const CallContext& ctx) -> Value {
