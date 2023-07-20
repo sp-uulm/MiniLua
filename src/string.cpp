@@ -300,6 +300,22 @@ namespace string {
     }
 
     auto Char(const CallContext& ctx) -> Value {
+        Origin origin = MultipleArgsOrigin{
+            .values = std::make_shared<Vallist>(ctx.arguments()),
+            .location = ctx.call_location(),
+            .reverse = [](const Value& new_value, const Vallist& args) -> std::optional<SourceChangeTree> {
+                if (!new_value.is_string()) {
+                    return std::nullopt;
+                }
+                auto new_string = std::get<String>(new_value).value;
+                SourceChangeCombination source_changes;
+                for (int i = 0; i < new_string.length(); ++i) {
+                    int val = new_string[i];
+                    source_changes.add(args.get(i).force(val).value());
+                }
+                return source_changes;
+            }
+        };
         std::vector<char> result;
         int i = 0;
 
@@ -309,7 +325,7 @@ namespace string {
             i++;
         }
 
-        return {std::string(result.begin(), result.end())};
+        return Value(std::string(result.begin(), result.end())).with_origin(origin);
     }
 
     auto format(const CallContext &ctx) -> Value {
