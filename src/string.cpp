@@ -20,9 +20,9 @@
 
 namespace minilua {
     template<class Result>
-    auto static try_value_as(Value s, const std::string& method_name, int arg_index) -> Result {
+    auto static try_value_as(Value s, const std::string& method_name, int arg_index, bool needs_int_representation = false) -> Result {
         if (s.is_number()) {
-            return std::get<Number>(s).convert_to<Result>();
+            return std::get<Number>(s).convert_to<Result>(needs_int_representation);
         }
 
         auto tmp = Number(1);
@@ -43,7 +43,7 @@ namespace minilua {
         }
 
         try {
-            return tmp.convert_to<Result>();
+            return tmp.convert_to<Result>(needs_int_representation);
         } catch (const std::runtime_error& e) {
             throw std::runtime_error(
                 "bad argument #" + std::to_string(arg_index) + " to '" + method_name +
@@ -144,7 +144,7 @@ namespace minilua {
                 case 'X':
                 case 'x': //same error and type behavior as 'o'
                 case 'o': {
-                    format_escape(try_value_as<Number::Int>(arg_value, "format", numEscapes+2));
+                    format_escape(try_value_as<Number::Int>(arg_value, "format", numEscapes+2, true));
                     break;
                 }
                 // same error behavior for all of those. Formating is done by snprintf
@@ -161,7 +161,7 @@ namespace minilua {
                     if (alternate_form || zero_pad || blank || sign) {
                         throw std::runtime_error("invalid conversion specification: '" + std::string(s.substr(start_pos, pos - start_pos)) + "'");
                     }
-                    const char imm = try_value_as<Number::Int>(arg_value, "format", numEscapes+2);
+                    const char imm = try_value_as<Number::Int>(arg_value, "format", numEscapes+2, true);
                     format_escape(imm);
                     break;
                 }
@@ -246,7 +246,7 @@ namespace string {
             },
             [&result, &i, &values, &location, &reverse](const String& s, auto /*i*/, Nil) -> Vallist {
                 std::string str = s.value;
-                int i_int = try_value_as<Number::Int>(i, "byte", 2) - 1;
+                int i_int = try_value_as<Number::Int>(i, "byte", 2, true) - 1;
                 int j = i_int;
 
                 for (; i_int <= j && i_int < str.length(); i_int++){
@@ -263,7 +263,7 @@ namespace string {
             [&result, &j, &values, &location, &reverse](const String& s, Nil, auto /*j*/) -> Vallist {
                 std::string str = s.value;
                 int i_int = 0;
-                int j_int = try_value_as<Number::Int>(j, "byte", 3) - 1;
+                int j_int = try_value_as<Number::Int>(j, "byte", 3, true) - 1;
 
                 for (; i_int <= j_int && i_int < str.length(); i_int++) {
                     Value v = (int) str[i_int];
@@ -278,8 +278,8 @@ namespace string {
             },
             [&result, &i, &j, &values, &location, &reverse](const String& s, auto /*i*/, auto /*j*/) -> Vallist {
                 std::string str = s.value;
-                int i_int = try_value_as<Number::Int>(i, "byte", 2) - 1;
-                int j_int = try_value_as<Number::Int>(j, "byte", 3) - 1;
+                int i_int = try_value_as<Number::Int>(i, "byte", 2, true) - 1;
+                int j_int = try_value_as<Number::Int>(j, "byte", 3, true) - 1;
 
                 for (; i_int <= j_int && i_int < str.length(); i_int++) {
                     Value v = (int) str[i_int];
@@ -320,7 +320,7 @@ namespace string {
         int i = 0;
 
         for (const auto& arg : ctx.arguments()) {
-            int lettr = try_value_as<Number::Int>(arg, "char", i);
+            int lettr = try_value_as<Number::Int>(arg, "char", i, true);
             result.emplace_back((char) lettr);
             i++;
         }
@@ -364,7 +364,7 @@ namespace string {
 
         std::string str = std::get<String>(Value(s)).value;
         std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c){return std::tolower(c);});
-        return str;
+        return Value(str).with_origin(NoOrigin());
     }
 
     auto rep(const CallContext& ctx) -> Value {
@@ -377,14 +377,15 @@ namespace string {
         if (!seperator.is_nil()){
             sep = std::get<String>(try_value_is_string(seperator, "rep", 3)).value;
         }
-        int reps = try_value_as<Number::Int>(n, "rep", 2);
+        int reps = try_value_as<Number::Int>(n, "rep", 2, true);
 
         std::string result = str;
         for (int i = 1; i < reps; i++) {
             result += sep + str;
         }
 
-        return result;
+        // Too many posibilites what could be changed for reverse (maybe everything if there is no repeat in new string)
+        return Value(result).with_origin(NoOrigin());
     }
 
     auto reverse(const CallContext& ctx) -> Value {
@@ -408,14 +409,57 @@ namespace string {
     }
 
     auto sub(const CallContext& ctx) -> Value {
+        Origin origin = MultipleArgsOrigin{
+            .values = std::make_shared<Vallist>(ctx.arguments()),
+            .location = ctx.call_location(),
+            .reverse = [](const Value& new_value, const Vallist& old_args) -> std::optional<SourceChangeTree> {
+                if (!new_value.is_string()) {
+                    return std::nullopt;
+                }
+                std::string old_str = std::get<String>(old_args.get(0)).value;
+                std::string new_str = std::get<String>(new_value).value;
+                int i = std::get<Number>(old_args.get(1)).convert_to_int();
+                int j = old_args.get(2).is_nil() ? old_str.length() : std::get<Number>(old_args.get(2)).convert_to_int();
+                if (i < 0) {
+                    i = i = old_str.length() - std::abs(i) + 1;
+                }
+                if (j < 0) {
+                    j = old_str.length() - std::abs(j) + 1;
+                }
+                i = std::max(i - 1, 0);
+                j = std::max(j - 1, 0);
+                int distance = j - i + 1;
+
+                // check if new string has same propotions as old string
+                if (new_str.length() != distance) {
+                    return std::nullopt;
+                }
+                old_str.replace(i, distance, new_str);
+                //TODO: return other source change alternatives like changing the result to another part of the string so that i and j change.
+                //This will also open up the option to change the length of the result
+                return old_args.get(0).force(old_str);
+            }
+        };
         auto s = ctx.arguments().get(0);
         auto i = ctx.arguments().get(1);
         auto j = ctx.arguments().get(2);
 
         std::string str = std::get<String>(try_value_is_string(s, "sub", 1)).value;
-        int start = try_value_as<Number::Int>(i, "sub", 2) - 1;
-        int distance = str.length(); // this overshoots the end of the string, but substr of std stops at the end
-        return str.substr(start, distance);
+        int start = try_value_as<Number::Int>(i, "sub", 2, true);
+        int end = str.length();
+        if (!j.is_nil()) {
+            end = try_value_as<Number::Int>(j, "sub", 3, true);
+        }
+        if (start < 0) {
+            start = start = str.length() - std::abs(start) + 1;
+        }
+        if (end < 0) {
+            end = str.length() - std::abs(end) + 1;
+        }
+        start = std::max(start - 1, 0);
+        end = std::max(end - 1, 0);
+        int distance = end - start + 1;
+        return Value(str.substr(start, distance)).with_origin(origin);
     }
 
     auto upper(const CallContext& ctx) -> Value {
@@ -423,7 +467,8 @@ namespace string {
 
         std::string str = std::get<String>(Value(s)).value;
         std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c){return std::toupper(c);});
-        return str;
+        //No way to reverse: no way to know which characters where changed to upper case.
+        return Value(str).with_origin(NoOrigin());
     }
 } // end of namespace string
 } // end of namespace minilua
