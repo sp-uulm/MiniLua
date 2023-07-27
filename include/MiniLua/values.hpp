@@ -309,13 +309,8 @@ public:
      */
     [[nodiscard]] auto try_as_int() const -> Int;
 
-    // template<class Result>
-    // [[nodiscard]] auto convert_to() const -> Result {
-    //     static_assert(sizeof(Result) == -1, "invalid Result type for function convert_to<>");
-    // }
-
     template<class Result>
-    [[nodiscard]] auto convert_to(bool  /*needs_int_representation*/ = false) const -> Result {
+    [[nodiscard]] auto convert_to(bool /*needs_int_representation*/ = false) const -> Result {
         static_assert(sizeof(Result) == -1, "invalid Result type for function convert_to<>");
     }
 

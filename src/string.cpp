@@ -247,6 +247,9 @@ namespace string {
             [&result, &i, &values, &location, &reverse](const String& s, auto /*i*/, Nil) -> Vallist {
                 std::string str = s.value;
                 int i_int = try_value_as<Number::Int>(i, "byte", 2, true) - 1;
+                if (i_int < 0) {
+                    i_int = str.length() + i_int + 1;
+                }
                 int j = i_int;
 
                 for (; i_int <= j && i_int < str.length(); i_int++){
@@ -264,6 +267,10 @@ namespace string {
                 std::string str = s.value;
                 int i_int = 0;
                 int j_int = try_value_as<Number::Int>(j, "byte", 3, true) - 1;
+                if (j_int < 0) {
+                    j_int = str.length() + j_int + 1;
+                }
+
 
                 for (; i_int <= j_int && i_int < str.length(); i_int++) {
                     Value v = (int) str[i_int];
@@ -280,6 +287,12 @@ namespace string {
                 std::string str = s.value;
                 int i_int = try_value_as<Number::Int>(i, "byte", 2, true) - 1;
                 int j_int = try_value_as<Number::Int>(j, "byte", 3, true) - 1;
+                if (i_int < 0) {
+                    i_int = str.length() + i_int + 1;
+                }
+                if (j_int < 0) {
+                    j_int = str.length() + j_int + 1;
+                }
 
                 for (; i_int <= j_int && i_int < str.length(); i_int++) {
                     Value v = (int) str[i_int];
