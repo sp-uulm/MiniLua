@@ -248,6 +248,20 @@ namespace string {
                     .reverse = reverse
                 })));
             },
+            [&values, &location, &reverse](const Number& str, Nil /*unused*/, Nil /*unused*/) -> Vallist {
+                Value result = Nil();
+                String s = std::get<String>(Value(str).to_string());
+
+                if ((int) s.value[0] != 0) {
+                    result = (int) s.value[0];
+                }
+
+                return Vallist(result.with_origin(Origin(MultipleArgsOrigin{
+                    .values = std::make_shared<Vallist>(values),
+                    .location = location,
+                    .reverse = reverse
+                })));
+            },
             [&result, &i, &values, &location, &reverse](const String& s, auto /*i*/, Nil) -> Vallist {
                 std::string str = s.value;
                 int i_int = try_value_as<Number::Int>(i, "byte", 2, true) - 1;
@@ -256,7 +270,26 @@ namespace string {
                 }
                 int j = i_int;
 
-                for (; i_int <= j && i_int < str.length(); i_int++){
+                for (; i_int <= j && i_int < str.length(); ++i_int){
+                    Value v = (int) str[i_int];
+                    values.emplace_back(i_int);
+                    result.push_back(v.with_origin(MultipleArgsOrigin{
+                        .values = std::make_shared<Vallist>(values),
+                        .location = location,
+                        .reverse = reverse
+                    }));
+                }
+                return {result};
+            },
+            [&result, &i, &values, &location, &reverse](const Number& s, auto /*i*/, Nil) -> Vallist {
+                std::string str = std::get<String>(Value(s).to_string()).value;
+                int i_int = try_value_as<Number::Int>(i, "byte", 2, true) - 1;
+                if (i_int < 0) {
+                    i_int = str.length() + i_int + 1;
+                }
+                int j = i_int;
+
+                for (; i_int <= j && i_int < str.length(); ++i_int){
                     Value v = (int) str[i_int];
                     values.emplace_back(i_int);
                     result.push_back(v.with_origin(MultipleArgsOrigin{
@@ -276,7 +309,27 @@ namespace string {
                 }
 
 
-                for (; i_int <= j_int && i_int < str.length(); i_int++) {
+                for (; i_int <= j_int && i_int < str.length(); ++i_int) {
+                    Value v = (int) str[i_int];
+                    values.emplace_back(i_int);
+                    result.push_back(v.with_origin(MultipleArgsOrigin{
+                        .values = std::make_shared<Vallist>(values),
+                        .location = location,
+                        .reverse = reverse
+                    }));
+                }
+                return {result};
+            },
+            [&result, &j, &values, &location, &reverse](const Number& s, Nil, auto /*j*/) -> Vallist {
+                std::string str = std::get<String>(Value(s).to_string()).value;
+                int i_int = 0;
+                int j_int = try_value_as<Number::Int>(j, "byte", 3, true) - 1;
+                if (j_int < 0) {
+                    j_int = str.length() + j_int + 1;
+                }
+
+
+                for (; i_int <= j_int && i_int < str.length(); ++i_int) {
                     Value v = (int) str[i_int];
                     values.emplace_back(i_int);
                     result.push_back(v.with_origin(MultipleArgsOrigin{
@@ -309,9 +362,31 @@ namespace string {
                 }
                 return {result};
             },
+            [&result, &i, &j, &values, &location, &reverse](const Number& s, auto /*i*/, auto /*j*/) -> Vallist {
+                std::string str = std::get<String>(Value(s).to_string()).value;
+                int i_int = try_value_as<Number::Int>(i, "byte", 2, true) - 1;
+                int j_int = try_value_as<Number::Int>(j, "byte", 3, true) - 1;
+                if (i_int < 0) {
+                    i_int = str.length() + i_int + 1;
+                }
+                if (j_int < 0) {
+                    j_int = str.length() + j_int + 1;
+                }
+
+                for (; i_int <= j_int && i_int < str.length(); i_int++) {
+                    Value v = (int) str[i_int];
+                    values.emplace_back(i_int);
+                    result.push_back(v.with_origin(MultipleArgsOrigin{
+                        .values = std::make_shared<Vallist>(values),
+                        .location = location,
+                        .reverse = reverse
+                    }));
+                }
+                return {result};
+            },
             [&s](const auto& /*unused*/, const auto& /*unused*/, const auto& /*unused*/) -> Vallist{
                 throw std::runtime_error(
-            "bad argument #1 to 'next' (table expected, got " + s.type() + ")");
+            "bad argument #1 to 'byte' (string expected, got " + s.type() + ")");
             }
         }, s.raw(), i.raw(), j.raw());
     }
