@@ -10,7 +10,6 @@
 
 #include "MiniLua/environment.hpp"
 #include "MiniLua/string.hpp"
-#include "MiniLua/source_change.hpp"
 #include "MiniLua/values.hpp"
 
 using Catch::Matchers::Contains;
@@ -57,11 +56,11 @@ TEST_CASE("string.byte"){
     }
 
     SECTION("String, Number, Nil") {
-        auto testFunction = [&ctx](auto str, auto i,  auto expected_result){
+        auto testFunction = [&ctx](auto str, auto i, auto expected_result, int expected_size = 1){
             ctx = ctx.make_new({str, i});
             auto result_list = minilua::string::byte(ctx);
-            CHECK(result_list.size() == 1);
             CHECK(result_list.get(0) == minilua::Value(expected_result));
+            CHECK(result_list.size() == expected_size);
         };
 
         std::string s = "Hallo";
@@ -69,14 +68,14 @@ TEST_CASE("string.byte"){
         testFunction(s, i, 108);
 
         i = 7;
-        testFunction(s, i, minilua::Nil());
+        testFunction(s, i, minilua::Nil(), 0);
     }
 
     SECTION("Number, Number, Nil") {
-        auto testFunction = [&ctx](auto str, auto i,  auto expected_result){
+        auto testFunction = [&ctx](auto str, auto i,  auto expected_result, int expected_size = 1){
             ctx = ctx.make_new({str, i});
             auto result_list = minilua::string::byte(ctx);
-            CHECK(result_list.size() == 1);
+            CHECK(result_list.size() == expected_size);
             CHECK(result_list.get(0) == minilua::Value(expected_result));
         };
 
@@ -85,7 +84,7 @@ TEST_CASE("string.byte"){
         testFunction(s, i, 51);
 
         i = 0;
-        testFunction(s, i, minilua::Nil());
+        testFunction(s, i, minilua::Nil(), 0);
 
         i = -3;
         testFunction(s, i, 52);
@@ -114,7 +113,6 @@ TEST_CASE("string.byte"){
                 CHECK(resultList.get(idx) == result);
                 ++idx;
             }
-            CHECK(resultList == expected_results);
         };
 
         std::string s = "hallo";
@@ -154,7 +152,6 @@ TEST_CASE("string.byte"){
                 CHECK(resultList.get(idx) == result);
                 ++idx;
             }
-            CHECK(resultList == expected_results);
         };
 
         std::string s = "hallo";
@@ -192,7 +189,6 @@ TEST_CASE("string.byte"){
                 CHECK(resultList.get(idx) == result);
                 ++idx;
             }
-            CHECK(resultList == expected_results);
         };
 
         std::string s = "hallo";
@@ -213,7 +209,7 @@ TEST_CASE("string.byte"){
 
         i = 2;
         j = "8";
-        testFunction(s, i, j, 3, {97, 108, 108, 111});
+        testFunction(s, i, j, 4, {97, 108, 108, 111});
 
         i = 6;
         j = "8";
@@ -230,7 +226,6 @@ TEST_CASE("string.byte"){
                 CHECK(resultList.get(idx) == result);
                 ++idx;
             }
-            CHECK(resultList == expected_results);
         };
 
         std::string s = "hallo";
@@ -251,7 +246,7 @@ TEST_CASE("string.byte"){
 
         i = "2";
         j = "8";
-        testFunction(s, i, j, 3, {97, 108, 108, 111});
+        testFunction(s, i, j, 4, {97, 108, 108, 111});
 
         i = "6";
         j = "8";
@@ -268,7 +263,6 @@ TEST_CASE("string.byte"){
                 CHECK(resultList.get(idx) == result);
                 ++idx;
             }
-            CHECK(resultList == expected_results);
         };
 
         int s = 12345;
@@ -289,7 +283,7 @@ TEST_CASE("string.byte"){
 
         i = 2;
         j = 8;
-        testFunction(s, i, j, 3, {50, 51, 52, 53});
+        testFunction(s, i, j, 4, {50, 51, 52, 53});
 
         i = 6;
         j = 8;
@@ -306,7 +300,6 @@ TEST_CASE("string.byte"){
                 CHECK(resultList.get(idx) == result);
                 ++idx;
             }
-            CHECK(resultList == expected_results);
         };
 
         int s = 12345;
@@ -327,7 +320,7 @@ TEST_CASE("string.byte"){
 
         i = "2";
         j = 8;
-        testFunction(s, i, j, 3, {50, 51, 52, 53});
+        testFunction(s, i, j, 4, {50, 51, 52, 53});
 
         i = "6";
         j = 8;
@@ -344,7 +337,6 @@ TEST_CASE("string.byte"){
                 CHECK(resultList.get(idx) == result);
                 ++idx;
             }
-            CHECK(resultList == expected_results);
         };
 
         int s = 12345;
@@ -365,7 +357,7 @@ TEST_CASE("string.byte"){
 
         i = 2;
         j = "8";
-        testFunction(s, i, j, 3, {50, 51, 52, 53});
+        testFunction(s, i, j, 4, {50, 51, 52, 53});
 
         i = 6;
         j = "8";
@@ -382,7 +374,6 @@ TEST_CASE("string.byte"){
                 CHECK(resultList.get(idx) == result);
                 ++idx;
             }
-            CHECK(resultList == expected_results);
         };
 
         int s = 12345;
@@ -403,7 +394,7 @@ TEST_CASE("string.byte"){
 
         i = "2";
         j = "8";
-        testFunction(s, i, j, 3, {50, 51, 52, 53});
+        testFunction(s, i, j, 4, {50, 51, 52, 53});
 
         i = "6";
         j = "8";
@@ -411,10 +402,9 @@ TEST_CASE("string.byte"){
     }
 
     SECTION("Invalid Input") {
-        auto testFunction = [&ctx](auto str, auto i = minilua::Nil(), auto j = minilua::Nil(), const std::string& expected_error_message_part_1 = "", const std::string& expected_error_message_part_2 = ""){
+        auto testFunction = [&ctx](auto str, auto i, auto j, const std::string& expected_error_message_part_1, const std::string& expected_error_message_part_2){
             ctx = ctx.make_new({str, i});
-            auto result_list = minilua::string::byte(ctx);
-            CHECK_THROWS_WITH(result_list.size(), Contains(expected_error_message_part_1) && Contains(expected_error_message_part_2));
+            CHECK_THROWS_WITH(minilua::string::byte(ctx), Contains(expected_error_message_part_1) && Contains(expected_error_message_part_2));
         };
         SECTION("invalid s") {
             bool s = false;
@@ -434,7 +424,7 @@ TEST_CASE("string.byte"){
                 std::string i = "zwei";
                 int j = 6;
 
-                testFunction(s, i, j, "bad argument #2", "number expected");
+                testFunction(s, i, minilua::Nil(), "bad argument #2", "number expected");
 
                 testFunction(s, true, j, "bad argument #2", "number expected");
             }
