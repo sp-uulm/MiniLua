@@ -236,7 +236,11 @@ namespace string {
 
         return std::visit(overloaded{
             [&values, &location, &reverse](const String& s, Nil /*unused*/, Nil /*unused*/) -> Vallist {
-                Value result = (int)s.value[0];
+                Value result = Nil();
+
+                if ((int) s.value[0] != 0) {
+                    result = (int) s.value[0];
+                }
 
                 return Vallist(result.with_origin(Origin(MultipleArgsOrigin{
                     .values = std::make_shared<Vallist>(values),
