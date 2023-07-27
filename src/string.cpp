@@ -22,7 +22,13 @@ namespace minilua {
     template<class Result>
     auto static try_value_as(Value s, const std::string& method_name, int arg_index, bool needs_int_representation = false) -> Result {
         if (s.is_number()) {
-            return std::get<Number>(s).convert_to<Result>(needs_int_representation);
+            try {
+                return std::get<Number>(s).convert_to<Result>(needs_int_representation);
+            } catch (const std::runtime_error& e) {
+                throw std::runtime_error(
+                    "bad argument #" + std::to_string(arg_index) + " to '" + method_name +
+                    "' (number has no integer representation)");
+            }
         }
 
         auto tmp = Number(1);
@@ -30,6 +36,7 @@ namespace minilua {
             if (s.is_string()) {
                 Value v = s.to_number();
                 if (v == Nil()) {
+                    std::cout << "s is no number" << std::endl;
                     throw std::runtime_error("");
                 }
                 tmp = std::get<Number>(v);
