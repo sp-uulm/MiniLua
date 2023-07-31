@@ -9,8 +9,8 @@
 namespace minilua {
 
 /**
-* Returns a table with all string functions
-*/
+ * Returns a table with all string functions
+ */
 auto create_string_table(MemoryAllocator* allocator) -> Table;
 
 /**

@@ -49,7 +49,7 @@ auto parse_number_literal(const std::string& str) -> Value {
             str_copy.erase(remove_if(str_copy.begin(), str_copy.end(), isspace), str_copy.end());
             auto value = std::stod(str_copy);
             // NOTE if the value is out of range HUGE_VAL is returned
-            //if (false) {
+            // if (false) {
             //    throw std::runtime_error(
             //        "Could not completely parse float literal. This is a bug.");
             //}

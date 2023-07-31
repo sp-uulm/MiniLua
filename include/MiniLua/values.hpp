@@ -309,7 +309,7 @@ public:
      */
     [[nodiscard]] auto try_as_int() const -> Int;
 
-    template<class Result>
+    template <class Result>
     [[nodiscard]] auto convert_to(bool /*needs_int_representation*/ = false) const -> Result {
         static_assert(sizeof(Result) == -1, "invalid Result type for function convert_to<>");
     }
@@ -388,11 +388,13 @@ public:
     [[nodiscard]] auto logic_or(const Number& rhs) const -> Number;
 };
 
-template<>
-[[nodiscard]] auto Number::convert_to<Number::Int>(bool needs_int_representation) const -> Number::Int;
+template <>
+[[nodiscard]] auto Number::convert_to<Number::Int>(bool needs_int_representation) const
+    -> Number::Int;
 
-template<>
-[[nodiscard]] auto Number::convert_to<Number::Float>(bool needs_int_representation) const -> Number::Float;
+template <>
+[[nodiscard]] auto Number::convert_to<Number::Float>(bool needs_int_representation) const
+    -> Number::Float;
 
 /**
  * @brief A lua string value.
