@@ -173,7 +173,7 @@ jobs:
     env:
       CC: clang-10
       CXX: clang++-10
-      CLANG_FORMAT: clang-format-15
+      CLANG_FORMAT: clang-format
 
     continue-on-error: false
 
@@ -185,7 +185,7 @@ jobs:
       - name: Setup VM
         run: |
           ./.github/workflows/install_packages.sh
-          sudo apt-get install clang-format-15
+          sudo apt-get install clang-format
       - name: Setup CMake
         run: ./scripts/setup_build.sh
       - name: Lint
