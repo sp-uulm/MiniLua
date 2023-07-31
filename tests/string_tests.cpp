@@ -555,7 +555,7 @@ TEST_CASE("string.byte") {
             expected_string = minilua::Value("AlLo").to_literal();
             REQUIRE(result.has_value());
 
-            CHECK(result.value().collect_first_alternative()[0] == minilua::SourceChange(minilua::Range, expected_string));
+            CHECK(result.value().collect_first_alternative()[0] == minilua::SourceChange(minilua::Range(), expected_string));
         }
 
         SECTION("Invalid force") {
