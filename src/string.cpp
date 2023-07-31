@@ -45,7 +45,6 @@ auto static try_value_as(
             throw std::runtime_error("");
         }
     } catch (const std::runtime_error& e) {
-        std::cout << "error catched" << std::endl;
         throw std::runtime_error(
             "bad argument #" + std::to_string(arg_index) + " to '" + method_name +
             "' (number expected, got " + s.type() + ")");
@@ -235,44 +234,45 @@ auto byte(const CallContext& ctx) -> Vallist {
     auto values = std::vector<Value>(2);
     auto location = ctx.call_location();
     auto reverse = [](const Value& new_value,
-                      const Vallist& args) -> std::optional<SourceChangeTree> {
+        const Value& old_str, const Value& idx) -> std::optional<SourceChangeTree> {
         if (!new_value.is_number()) {
             return std::nullopt;
         }
-        const auto& old_str = args.get(0);
         auto s = std::get<String>(old_str).value;
         char new_char = std::get<Number>(new_value).try_as_int();
         Number::Int i = 1;
 
-        if (!args.get(1).is_nil()) {
-            i = std::get<Number>(args.get(1)).try_as_int();
+        if (!idx.is_nil()) {
+            i = std::get<Number>(idx).try_as_int();
         }
 
         s[i - 1] = new_char;
+        std::cout << "new string: " << s << std::endl;
         return old_str.force(s);
     };
-    auto s = ctx.arguments().get(0);
-    values.push_back(s);
+    Value byte_string = ctx.arguments().get(0);
+    values.push_back(byte_string);
     auto i = ctx.arguments().get(1);
     auto j = ctx.arguments().get(2);
     std::vector<Value> result;
 
     return std::visit(
         overloaded{
-            [&values, &location,
-             &reverse](const String& s, Nil /*unused*/, Nil /*unused*/) -> Vallist {
+            [&byte_string, &location, &reverse](const String& s, Nil /*unused*/, Nil /*unused*/) -> Vallist {
                 Value result = Nil();
 
                 if ((int)s.value[0] != 0) {
                     result = (int)s.value[0];
                 }
 
-                return Vallist(result.with_origin(Origin(MultipleArgsOrigin{
-                    .values = std::make_shared<Vallist>(values),
+                return Vallist(result.with_origin(Origin(BinaryOrigin{
+                    .lhs = std::make_shared<Value>(byte_string),
+                    .rhs = std::make_shared<Value>(Nil()),
                     .location = location,
-                    .reverse = reverse})));
+                    .reverse = reverse}
+                    )));
             },
-            [&values, &location,
+            [&byte_string, &location,
              &reverse](const Number& str, Nil /*unused*/, Nil /*unused*/) -> Vallist {
                 Value result = Nil();
                 String s = std::get<String>(Value(str).to_string());
@@ -281,12 +281,14 @@ auto byte(const CallContext& ctx) -> Vallist {
                     result = (int)s.value[0];
                 }
 
-                return Vallist(result.with_origin(Origin(MultipleArgsOrigin{
-                    .values = std::make_shared<Vallist>(values),
+                return Vallist(result.with_origin(Origin(BinaryOrigin{
+                    .lhs = std::make_shared<Value>(byte_string),
+                    .rhs = std::make_shared<Value>(Nil()),
                     .location = location,
-                    .reverse = reverse})));
+                    .reverse = reverse}
+                    )));
             },
-            [&result, &i, &values, &location,
+            [&result, &i, &byte_string, &location,
              &reverse](const String& s, auto /*i*/, Nil) -> Vallist {
                 std::string str = s.value;
                 int i_int = try_value_as<Number::Int>(i, "byte", 2, true) - 1;
@@ -297,15 +299,16 @@ auto byte(const CallContext& ctx) -> Vallist {
 
                 for (; i_int <= j && i_int < str.length(); ++i_int) {
                     Value v = (int)str[i_int];
-                    values.emplace_back(i_int);
-                    result.push_back(v.with_origin(MultipleArgsOrigin{
-                        .values = std::make_shared<Vallist>(values),
-                        .location = location,
-                        .reverse = reverse}));
+                    result.push_back(v.with_origin(BinaryOrigin{
+                    .lhs = std::make_shared<Value>(byte_string),
+                    .rhs = std::make_shared<Value>(i_int),
+                    .location = location,
+                    .reverse = reverse}
+                    ));
                 }
                 return {result};
             },
-            [&result, &i, &values, &location,
+            [&result, &i, &byte_string, &location,
              &reverse](const Number& s, auto /*i*/, Nil) -> Vallist {
                 std::string str = std::get<String>(Value(s).to_string()).value;
                 int i_int = try_value_as<Number::Int>(i, "byte", 2, true) - 1;
@@ -316,15 +319,16 @@ auto byte(const CallContext& ctx) -> Vallist {
 
                 for (; i_int <= j && i_int < str.length(); ++i_int) {
                     Value v = (int)str[i_int];
-                    values.emplace_back(i_int);
-                    result.push_back(v.with_origin(MultipleArgsOrigin{
-                        .values = std::make_shared<Vallist>(values),
-                        .location = location,
-                        .reverse = reverse}));
+                    result.push_back(v.with_origin(BinaryOrigin{
+                    .lhs = std::make_shared<Value>(byte_string),
+                    .rhs = std::make_shared<Value>(i_int),
+                    .location = location,
+                    .reverse = reverse}
+                    ));
                 }
                 return {result};
             },
-            [&result, &j, &values, &location,
+            [&result, &j, &byte_string, &location,
              &reverse](const String& s, Nil, auto /*j*/) -> Vallist {
                 std::string str = s.value;
                 int i_int = 0;
@@ -335,15 +339,16 @@ auto byte(const CallContext& ctx) -> Vallist {
 
                 for (; i_int <= j_int && i_int < str.length(); ++i_int) {
                     Value v = (int)str[i_int];
-                    values.emplace_back(i_int);
-                    result.push_back(v.with_origin(MultipleArgsOrigin{
-                        .values = std::make_shared<Vallist>(values),
-                        .location = location,
-                        .reverse = reverse}));
+                    result.push_back(v.with_origin(BinaryOrigin{
+                    .lhs = std::make_shared<Value>(byte_string),
+                    .rhs = std::make_shared<Value>(i_int),
+                    .location = location,
+                    .reverse = reverse}
+                    ));
                 }
                 return {result};
             },
-            [&result, &j, &values, &location,
+            [&result, &j, &byte_string, &location,
              &reverse](const Number& s, Nil, auto /*j*/) -> Vallist {
                 std::string str = std::get<String>(Value(s).to_string()).value;
                 int i_int = 0;
@@ -354,15 +359,16 @@ auto byte(const CallContext& ctx) -> Vallist {
 
                 for (; i_int <= j_int && i_int < str.length(); ++i_int) {
                     Value v = (int)str[i_int];
-                    values.emplace_back(i_int);
-                    result.push_back(v.with_origin(MultipleArgsOrigin{
-                        .values = std::make_shared<Vallist>(values),
-                        .location = location,
-                        .reverse = reverse}));
+                    result.push_back(v.with_origin(BinaryOrigin{
+                    .lhs = std::make_shared<Value>(byte_string),
+                    .rhs = std::make_shared<Value>(i_int),
+                    .location = location,
+                    .reverse = reverse}
+                    ));
                 }
                 return {result};
             },
-            [&result, &i, &j, &values, &location,
+            [&result, &i, &j, &byte_string, &location,
              &reverse](const String& s, auto /*i*/, auto /*j*/) -> Vallist {
                 std::string str = s.value;
                 int i_int = try_value_as<Number::Int>(i, "byte", 2, true) - 1;
@@ -376,15 +382,16 @@ auto byte(const CallContext& ctx) -> Vallist {
 
                 for (; i_int <= j_int && i_int < str.length(); i_int++) {
                     Value v = (int)str[i_int];
-                    values.emplace_back(i_int);
-                    result.push_back(v.with_origin(MultipleArgsOrigin{
-                        .values = std::make_shared<Vallist>(values),
-                        .location = location,
-                        .reverse = reverse}));
+                    result.push_back(v.with_origin(BinaryOrigin{
+                    .lhs = std::make_shared<Value>(byte_string),
+                    .rhs = std::make_shared<Value>(i_int),
+                    .location = location,
+                    .reverse = reverse}
+                    ));
                 }
                 return {result};
             },
-            [&result, &i, &j, &values, &location,
+            [&result, &i, &j, &byte_string, &location,
              &reverse](const Number& s, auto /*i*/, auto /*j*/) -> Vallist {
                 std::string str = std::get<String>(Value(s).to_string()).value;
                 int i_int = try_value_as<Number::Int>(i, "byte", 2, true) - 1;
@@ -398,20 +405,21 @@ auto byte(const CallContext& ctx) -> Vallist {
 
                 for (; i_int <= j_int && i_int < str.length(); i_int++) {
                     Value v = (int)str[i_int];
-                    values.emplace_back(i_int);
-                    result.push_back(v.with_origin(MultipleArgsOrigin{
-                        .values = std::make_shared<Vallist>(values),
-                        .location = location,
-                        .reverse = reverse}));
+                    result.push_back(v.with_origin(BinaryOrigin{
+                    .lhs = std::make_shared<Value>(byte_string),
+                    .rhs = std::make_shared<Value>(i_int),
+                    .location = location,
+                    .reverse = reverse}
+                    ));
                 }
                 return {result};
             },
-            [&s](
+            [&byte_string](
                 const auto& /*unused*/, const auto& /*unused*/, const auto& /*unused*/) -> Vallist {
                 throw std::runtime_error(
-                    "bad argument #1 to 'byte' (string expected, got " + s.type() + ")");
+                    "bad argument #1 to 'byte' (string expected, got " + byte_string.type() + ")");
             }},
-        s.raw(), i.raw(), j.raw());
+        byte_string.raw(), i.raw(), j.raw());
 }
 
 auto Char(const CallContext& ctx) -> Value {
