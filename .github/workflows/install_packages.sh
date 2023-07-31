@@ -4,4 +4,4 @@ sudo apt-get update
 sudo apt-get install \
     lcov gcovr \
     libboost-all-dev \
-    qt5-default
+    qtbase5-dev qt5-qmake
