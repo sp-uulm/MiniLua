@@ -14,12 +14,12 @@
 
 using Catch::Matchers::Contains;
 
-TEST_CASE("string.byte"){
+TEST_CASE("string.byte") {
     minilua::Environment env;
     minilua::CallContext ctx(&env);
 
     SECTION("String, Nil, Nil") {
-        auto testFunction = [&ctx](auto str, auto expected_result){
+        auto testFunction = [&ctx](auto str, auto expected_result) {
             ctx = ctx.make_new({str});
             auto result_list = minilua::string::byte(ctx);
             CHECK(result_list.size() == 1);
@@ -39,7 +39,7 @@ TEST_CASE("string.byte"){
     }
 
     SECTION("Number, Nil, Nil") {
-        auto testFunction = [&ctx](auto str, auto expected_result){
+        auto testFunction = [&ctx](auto str, auto expected_result) {
             ctx = ctx.make_new({str});
             auto result_list = minilua::string::byte(ctx);
             CHECK(result_list.size() == 1);
@@ -56,7 +56,7 @@ TEST_CASE("string.byte"){
     }
 
     SECTION("String, Number, Nil") {
-        auto testFunction = [&ctx](auto str, auto i, auto expected_result, int expected_size = 1){
+        auto testFunction = [&ctx](auto str, auto i, auto expected_result, int expected_size = 1) {
             ctx = ctx.make_new({str, i});
             auto result_list = minilua::string::byte(ctx);
             CHECK(result_list.get(0) == minilua::Value(expected_result));
@@ -72,7 +72,7 @@ TEST_CASE("string.byte"){
     }
 
     SECTION("Number, Number, Nil") {
-        auto testFunction = [&ctx](auto str, auto i,  auto expected_result, int expected_size = 1){
+        auto testFunction = [&ctx](auto str, auto i, auto expected_result, int expected_size = 1) {
             ctx = ctx.make_new({str, i});
             auto result_list = minilua::string::byte(ctx);
             CHECK(result_list.size() == expected_size);
@@ -91,7 +91,7 @@ TEST_CASE("string.byte"){
     }
 
     SECTION("String, String, Nil") {
-        auto testFunction = [&ctx](auto str, auto i,  auto expected_result){
+        auto testFunction = [&ctx](auto str, auto i, auto expected_result) {
             ctx = ctx.make_new({str, i});
             auto result_list = minilua::string::byte(ctx);
             CHECK(result_list.size() == 1);
@@ -104,7 +104,9 @@ TEST_CASE("string.byte"){
     }
 
     SECTION("String, Number, Number") {
-        auto testFunction = [&ctx](auto str, auto i, auto j, int num_expected_results, std::initializer_list<minilua::Value> expected_results){
+        auto testFunction = [&ctx](
+                                auto str, auto i, auto j, int num_expected_results,
+                                std::initializer_list<minilua::Value> expected_results) {
             ctx = ctx.make_new({str, i, j});
             auto resultList = minilua::string::byte(ctx);
             CHECK(resultList.size() == num_expected_results);
@@ -143,7 +145,9 @@ TEST_CASE("string.byte"){
     }
 
     SECTION("String, String, Number") {
-        auto testFunction = [&ctx](auto str, auto i, auto j, int num_expected_results, std::initializer_list<minilua::Value> expected_results){
+        auto testFunction = [&ctx](
+                                auto str, auto i, auto j, int num_expected_results,
+                                std::initializer_list<minilua::Value> expected_results) {
             ctx = ctx.make_new({str, i, j});
             auto resultList = minilua::string::byte(ctx);
             CHECK(resultList.size() == num_expected_results);
@@ -180,7 +184,9 @@ TEST_CASE("string.byte"){
     }
 
     SECTION("String, Number, String") {
-        auto testFunction = [&ctx](auto str, auto i, auto j, int num_expected_results, std::initializer_list<minilua::Value> expected_results){
+        auto testFunction = [&ctx](
+                                auto str, auto i, auto j, int num_expected_results,
+                                std::initializer_list<minilua::Value> expected_results) {
             ctx = ctx.make_new({str, i, j});
             auto resultList = minilua::string::byte(ctx);
             CHECK(resultList.size() == num_expected_results);
@@ -217,7 +223,9 @@ TEST_CASE("string.byte"){
     }
 
     SECTION("String, String, String") {
-        auto testFunction = [&ctx](auto str, auto i, auto j, int num_expected_results, std::initializer_list<minilua::Value> expected_results){
+        auto testFunction = [&ctx](
+                                auto str, auto i, auto j, int num_expected_results,
+                                std::initializer_list<minilua::Value> expected_results) {
             ctx = ctx.make_new({str, i, j});
             auto resultList = minilua::string::byte(ctx);
             CHECK(resultList.size() == num_expected_results);
@@ -254,7 +262,9 @@ TEST_CASE("string.byte"){
     }
 
     SECTION("Number, Number, Number") {
-        auto testFunction = [&ctx](auto str, auto i, auto j, int num_expected_results, std::initializer_list<minilua::Value> expected_results){
+        auto testFunction = [&ctx](
+                                auto str, auto i, auto j, int num_expected_results,
+                                std::initializer_list<minilua::Value> expected_results) {
             ctx = ctx.make_new({str, i, j});
             auto resultList = minilua::string::byte(ctx);
             CHECK(resultList.size() == num_expected_results);
@@ -291,7 +301,9 @@ TEST_CASE("string.byte"){
     }
 
     SECTION("Number, String, Number") {
-        auto testFunction = [&ctx](auto str, auto i, auto j, int num_expected_results, std::initializer_list<minilua::Value> expected_results){
+        auto testFunction = [&ctx](
+                                auto str, auto i, auto j, int num_expected_results,
+                                std::initializer_list<minilua::Value> expected_results) {
             ctx = ctx.make_new({str, i, j});
             auto resultList = minilua::string::byte(ctx);
             CHECK(resultList.size() == num_expected_results);
@@ -328,7 +340,9 @@ TEST_CASE("string.byte"){
     }
 
     SECTION("Number, Number, String") {
-        auto testFunction = [&ctx](auto str, auto i, auto j, int num_expected_results, std::initializer_list<minilua::Value> expected_results){
+        auto testFunction = [&ctx](
+                                auto str, auto i, auto j, int num_expected_results,
+                                std::initializer_list<minilua::Value> expected_results) {
             ctx = ctx.make_new({str, i, j});
             auto resultList = minilua::string::byte(ctx);
             CHECK(resultList.size() == num_expected_results);
@@ -365,7 +379,9 @@ TEST_CASE("string.byte"){
     }
 
     SECTION("Number, String, String") {
-        auto testFunction = [&ctx](auto str, auto i, auto j, int num_expected_results, std::initializer_list<minilua::Value> expected_results){
+        auto testFunction = [&ctx](
+                                auto str, auto i, auto j, int num_expected_results,
+                                std::initializer_list<minilua::Value> expected_results) {
             ctx = ctx.make_new({str, i, j});
             auto resultList = minilua::string::byte(ctx);
             CHECK(resultList.size() == num_expected_results);
@@ -402,9 +418,14 @@ TEST_CASE("string.byte"){
     }
 
     SECTION("Invalid Input") {
-        auto testFunction = [&ctx](auto str, auto i, auto j, const std::string& expected_error_message_part_1, const std::string& expected_error_message_part_2){
+        auto testFunction = [&ctx](
+                                auto str, auto i, auto j,
+                                const std::string& expected_error_message_part_1,
+                                const std::string& expected_error_message_part_2) {
             ctx = ctx.make_new({str, i});
-            CHECK_THROWS_WITH(minilua::string::byte(ctx), Contains(expected_error_message_part_1) && Contains(expected_error_message_part_2));
+            CHECK_THROWS_WITH(
+                minilua::string::byte(ctx),
+                Contains(expected_error_message_part_1) && Contains(expected_error_message_part_2));
         };
         SECTION("invalid s") {
             bool s = false;
@@ -415,7 +436,9 @@ TEST_CASE("string.byte"){
             minilua::Table table = {};
             testFunction(table, i, j, "bad argument #1", "string expected");
 
-            testFunction(minilua::Nil(), minilua::Nil(), minilua::Nil(), "bad argument #1", "string expected");
+            testFunction(
+                minilua::Nil(), minilua::Nil(), minilua::Nil(), "bad argument #1",
+                "string expected");
         }
 
         SECTION("invalid i") {
@@ -433,8 +456,10 @@ TEST_CASE("string.byte"){
                 std::string s = "Hallo Welt!";
 
                 testFunction(s, 3.5, 6, "bad argument #2", "number has no integer representation");
-                testFunction(s, 3.5, 6.5, "bad argument #2", "number has no integer representation");
-                testFunction(s, "3.5", 6, "bad argument #2", "number has no integer representation");
+                testFunction(
+                    s, 3.5, 6.5, "bad argument #2", "number has no integer representation");
+                testFunction(
+                    s, "3.5", 6, "bad argument #2", "number has no integer representation");
             }
         }
 
@@ -454,8 +479,10 @@ TEST_CASE("string.byte"){
                 std::string s = "Hallo Welt!";
 
                 testFunction(s, 3, 6.5, "bad argument #3", "number has no integer representation");
-                testFunction(s, "3", 6.5, "bad argument #3", "number has no integer representation");
-                testFunction(s, 3, "6.5", "bad argument #3", "number has no integer representation");
+                testFunction(
+                    s, "3", 6.5, "bad argument #3", "number has no integer representation");
+                testFunction(
+                    s, 3, "6.5", "bad argument #3", "number has no integer representation");
             }
         }
     }
