@@ -69,6 +69,9 @@ TEST_CASE("string.byte") {
 
         i = 7;
         testFunction(s, i, minilua::Nil(), 0);
+
+        i = -4;
+        testFunction(s, i, 97);
     }
 
     SECTION("Number, Number, Nil") {
@@ -103,16 +106,35 @@ TEST_CASE("string.byte") {
         testFunction(s, i, 108);
     }
 
+    SECTION("String, Nil, Number") {
+        auto testFunction = [&ctx](
+                                auto str, auto j, int num_expected_results,
+                                std::initializer_list<minilua::Value> expected_results) {
+            ctx = ctx.make_new({str, minilua::Nil(), j});
+            auto result_list = minilua::string::byte(ctx);
+            CHECK(result_list.size() == num_expected_results);
+            int idx = 0;
+            for (const auto& result : expected_results) {
+                CHECK(result_list.get(idx) == result);
+                ++idx;
+            }
+        };
+
+        std::string s = "Hallo";
+        int j = 3;
+        testFunction(s, j, 3, {72, 97, 108});
+    }
+
     SECTION("String, Number, Number") {
         auto testFunction = [&ctx](
                                 auto str, auto i, auto j, int num_expected_results,
                                 std::initializer_list<minilua::Value> expected_results) {
             ctx = ctx.make_new({str, i, j});
-            auto resultList = minilua::string::byte(ctx);
-            CHECK(resultList.size() == num_expected_results);
+            auto result_list = minilua::string::byte(ctx);
+            CHECK(result_list.size() == num_expected_results);
             int idx = 0;
             for (const auto& result : expected_results) {
-                CHECK(resultList.get(idx) == result);
+                CHECK(result_list.get(idx) == result);
                 ++idx;
             }
         };
@@ -422,7 +444,7 @@ TEST_CASE("string.byte") {
                                 auto str, auto i, auto j,
                                 const std::string& expected_error_message_part_1,
                                 const std::string& expected_error_message_part_2) {
-            ctx = ctx.make_new({str, i});
+            ctx = ctx.make_new({str, i, j});
             CHECK_THROWS_WITH(
                 minilua::string::byte(ctx),
                 Contains(expected_error_message_part_1) && Contains(expected_error_message_part_2));

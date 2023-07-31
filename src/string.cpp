@@ -38,7 +38,6 @@ auto static try_value_as(
         if (s.is_string()) {
             Value v = s.to_number();
             if (v == Nil()) {
-                std::cout << s.to_literal() << " s is no number" << std::endl;
                 throw std::runtime_error("");
             }
             tmp = std::get<Number>(v);
