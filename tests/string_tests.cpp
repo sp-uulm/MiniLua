@@ -125,6 +125,28 @@ TEST_CASE("string.byte") {
         testFunction(s, j, 3, {72, 97, 108});
     }
 
+    SECTION("Number, Nil, Number") {
+        auto testFunction = [&ctx](
+                                auto str, auto j, int num_expected_results,
+                                std::initializer_list<minilua::Value> expected_results) {
+            ctx = ctx.make_new({str, minilua::Nil(), j});
+            auto result_list = minilua::string::byte(ctx);
+            CHECK(result_list.size() == num_expected_results);
+            int idx = 0;
+            for (const auto& result : expected_results) {
+                CHECK(result_list.get(idx) == result);
+                ++idx;
+            }
+        };
+
+        int s = 123456;
+        int j = 3;
+        testFunction(s, j, 3, {49, 50, 51});
+
+        j = -3;
+        testFunction(s, j, 4, {49, 50, 51, 52});
+    }
+
     SECTION("String, Number, Number") {
         auto testFunction = [&ctx](
                                 auto str, auto i, auto j, int num_expected_results,
