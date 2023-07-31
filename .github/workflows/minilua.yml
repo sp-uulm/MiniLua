@@ -171,8 +171,8 @@ jobs:
     runs-on: ubuntu-22.04
 
     env:
-      CC: clang-11
-      CXX: clang++-11
+      CC: clang
+      CXX: clang++
       CLANG_FORMAT: clang-format
 
     continue-on-error: false
