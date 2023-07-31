@@ -240,14 +240,12 @@ auto byte(const CallContext& ctx) -> Vallist {
         }
         auto s = std::get<String>(old_str).value;
         char new_char = std::get<Number>(new_value).try_as_int();
-        Number::Int i = 1;
+        Number::Int i = 0;
 
         if (!idx.is_nil()) {
             i = std::get<Number>(idx).try_as_int();
         }
-
-        s[i - 1] = new_char;
-        std::cout << "new string: " << s << std::endl;
+        s[i] = new_char;
         return old_str.force(s);
     };
     Value byte_string = ctx.arguments().get(0);
