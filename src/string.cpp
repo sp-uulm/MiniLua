@@ -426,10 +426,10 @@ auto Char(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Vallist& args) -> std::optional<SourceChangeTree> {
-            if (!new_value.is_string()) {
+            auto new_string = std::get<String>(new_value).value;
+            if (!new_value.is_string() || new_string.length() != args.size()) {
                 return std::nullopt;
             }
-            auto new_string = std::get<String>(new_value).value;
             SourceChangeCombination source_changes;
             for (int i = 0; i < new_string.length(); ++i) {
                 int val = new_string[i];
