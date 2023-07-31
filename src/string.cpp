@@ -426,8 +426,11 @@ auto Char(const CallContext& ctx) -> Value {
         .location = ctx.call_location(),
         .reverse = [](const Value& new_value,
                       const Vallist& args) -> std::optional<SourceChangeTree> {
+            if (!new_value.is_string()) {
+                return std::nullopt;
+            }
             auto new_string = std::get<String>(new_value).value;
-            if (!new_value.is_string() || new_string.length() != args.size()) {
+            if ( new_string.length() != args.size()) {
                 return std::nullopt;
             }
             SourceChangeCombination source_changes;
