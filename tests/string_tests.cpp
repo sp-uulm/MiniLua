@@ -125,7 +125,7 @@ TEST_CASE("string.byte") {
         int j = 3;
         testFunction(s, j, 3, {72, 97, 108});
 
-        j = -2;
+        j = -3;
         testFunction(s, j, 3, {72, 97, 108});
     }
 
@@ -190,6 +190,10 @@ TEST_CASE("string.byte") {
         testFunction(s, i, j, 0, {minilua::Nil()});
 
         testFunction(s, 2.0, 8.0, 4, {97, 108, 108, 111});
+
+        i = 3;
+        j = -8;
+        testFunction(s, i, j, 0, {minilua::Nil()});
     }
 
     SECTION("String, String, Number") {
