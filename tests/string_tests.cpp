@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "MiniLua/environment.hpp"
+#include "MiniLua/source_change.hpp"
 #include "MiniLua/string.hpp"
 #include "MiniLua/values.hpp"
 
@@ -528,6 +529,26 @@ TEST_CASE("string.byte") {
                 testFunction(
                     s, 3, "6.5", "bad argument #3", "number has no integer representation");
             }
+        }
+    }
+
+    SECTION("REVERSE") {
+        SECTION("Valid force") {
+            std::string s = "Allo";
+            minilua::Value v = minilua::Value(s).with_origin(minilua::LiteralOrigin());
+            ctx = ctx.make_new({v});
+            auto res = minilua::string::byte(ctx).get(0);
+            REQUIRE(res == minilua::Value(65));
+
+            auto result = res.force(97);
+            std::string expected_string = minilua::Value("allo").to_literal();
+            REQUIRE(result.has_value());
+
+            CHECK(result.value().collect_first_alternative()[0] == minilua::SourceChange(minilua::Range(), expected_string));
+        }
+
+        SECTION("Invalid force") {
+
         }
     }
 }
