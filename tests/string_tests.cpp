@@ -619,4 +619,49 @@ TEST_CASE("string.char") {
             CHECK_THROWS_WITH(minilua::string::Char(ctx), Contains("bad argument #1") && Contains("number expected, got string"));
         }
     }
+
+    SECTION("Reverse"){
+        SECTION("Valid force") {
+            std::vector<minilua::Value> v;
+            for (minilua::Value arg : {65, 102, 102, 101}) {
+                v.push_back(arg.with_origin(minilua::LiteralOrigin()));
+            }
+            minilua::Vallist args(v);
+            ctx = ctx.make_new(std::move(args));
+            auto res = minilua::string::Char(ctx);
+            REQUIRE(res == minilua::Value("Affe"));
+
+            auto result = res.force("affe");
+            std::vector<minilua::SourceChangeTree> expected;
+            for (auto a : {97, 102, 102, 101}) {
+                expected.emplace_back(minilua::SourceChange(minilua::Range(), std::to_string(a)));
+            }
+
+            REQUIRE(result.has_value());
+
+            auto source_changes = result.value().collect_first_alternative();
+            CHECK(source_changes.size() == expected.size());
+
+            for (int i = 0; i < source_changes.size(); ++i) {
+                CHECK(source_changes[i] == expected[i]);
+            }
+        }
+
+        SECTION("Invalid force") {
+            std::vector<minilua::Value> v;
+            for (minilua::Value arg : {65, 102, 102, 101}) {
+                v.push_back(arg.with_origin(minilua::LiteralOrigin()));
+            }
+            minilua::Vallist args(v);
+            ctx = ctx.make_new(std::move(args));
+            auto res = minilua::string::Char(ctx);
+            REQUIRE(res == minilua::Value("Affe"));
+
+            auto result = res.force(1234);
+            CHECK_FALSE(result.has_value());
+
+            result = res.force("123456");
+            CHECK_FALSE(result.has_value());
+        }
+    }
 }
