@@ -6,6 +6,7 @@
 #include <list>
 #include <random>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "MiniLua/environment.hpp"
@@ -574,6 +575,48 @@ TEST_CASE("string.byte") {
 
             auto result = res.force(true);
             CHECK_FALSE(result.has_value());
+        }
+    }
+}
+
+TEST_CASE("string.char") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    auto test_function = [&ctx](minilua::Vallist args, auto expected_result) {
+        ctx = ctx.make_new(std::move(args));
+        auto result = minilua::string::Char(ctx);
+        CHECK(result == minilua::Value(expected_result));
+    };
+
+    SECTION("Numbers") {
+        minilua::Vallist args{65, 102, 102, 101};
+        test_function(args, "Affe");
+    }
+
+    SECTION("Strings") {
+        minilua::Vallist args{"65", 102, 102, 101};
+        test_function(args, "Affe");
+    }
+
+    SECTION("Invalid Input") {
+        SECTION("Number out of range") {
+            minilua::Vallist args{"65", 102, 102, -1};
+            ctx = ctx.make_new(std::move(args));
+
+            CHECK_THROWS_WITH(minilua::string::Char(ctx), Contains("bad argument #4") && Contains("value out of range"));
+
+            args = {"65", 102, 1020, -1};
+            ctx = ctx.make_new(std::move(args));
+
+            CHECK_THROWS_WITH(minilua::string::Char(ctx), Contains("bad argument #3") && Contains("value out of range"));
+        }
+
+        SECTION("Malformated String") {
+            minilua::Vallist args{"Baum", 102, 102, -1};
+            ctx = ctx.make_new(std::move(args));
+
+            CHECK_THROWS_WITH(minilua::string::Char(ctx), Contains("bad argument #1") && Contains("number expected, got string"));
         }
     }
 }
