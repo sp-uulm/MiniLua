@@ -438,10 +438,16 @@ auto Char(const CallContext& ctx) -> Value {
             return source_changes;
         }};
     std::vector<char> result;
-    int i = 0;
+    int i = 1;
 
     for (const auto& arg : ctx.arguments()) {
         int lettr = try_value_as<Number::Int>(arg, "char", i, true);
+        if (lettr < 0 || lettr > 255) {
+            std::stringstream ss;
+            ss << "bad argument #" << i << " to 'char' ";
+            ss << "(value out of range)" << std::endl;
+            throw std::runtime_error(ss.str());
+        }
         result.emplace_back((char)lettr);
         i++;
     }
