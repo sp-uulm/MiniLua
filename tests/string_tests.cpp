@@ -535,8 +535,8 @@ TEST_CASE("string.byte") {
     SECTION("REVERSE") {
         SECTION("Valid force") {
             std::string s = "Allo";
-            minilua::Value v = minilua::Value(s).with_origin(minilua::LiteralOrigin());
-            ctx = ctx.make_new({v});
+            minilua::Value str = minilua::Value(s).with_origin(minilua::LiteralOrigin());
+            ctx = ctx.make_new({str});
             auto res = minilua::string::byte(ctx).get(0);
             REQUIRE(res == minilua::Value(65));
 
@@ -545,10 +545,28 @@ TEST_CASE("string.byte") {
             REQUIRE(result.has_value());
 
             CHECK(result.value().collect_first_alternative()[0] == minilua::SourceChange(minilua::Range(), expected_string));
+
+            minilua::Value i = minilua::Value(3).with_origin(minilua::LiteralOrigin());
+            ctx = ctx.make_new({str, i});
+            res = minilua::string::byte(ctx).get(0);
+            REQUIRE(res == minilua::Value(108));
+
+            result = res.force(76);
+            expected_string = minilua::Value("AlLo").to_literal();
+            REQUIRE(result.has_value());
+
+            CHECK(result.value().collect_first_alternative()[0] == minilua::SourceChange(minilua::Range, expected_string));
         }
 
         SECTION("Invalid force") {
+            std::string s = "Allo";
+            minilua::Value str = minilua::Value(s).with_origin(minilua::LiteralOrigin());
+            ctx = ctx.make_new({str});
+            auto res = minilua::string::byte(ctx).get(0);
+            REQUIRE(res == minilua::Value(65));
 
+            auto result = res.force(true);
+            CHECK_FALSE(result.has_value());
         }
     }
 }
