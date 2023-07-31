@@ -124,6 +124,9 @@ TEST_CASE("string.byte") {
         std::string s = "Hallo";
         int j = 3;
         testFunction(s, j, 3, {72, 97, 108});
+
+        j = -2;
+        testFunction(s, j, 3, {72, 97, 108});
     }
 
     SECTION("Number, Nil, Number") {
