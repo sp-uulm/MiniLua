@@ -755,9 +755,118 @@ TEST_CASE("string.lower") {
 
     SECTION("Invalid Input") {
         ctx = ctx.make_new({true});
-        CHECK_THROWS_WITH(minilua::string::lower(ctx), Contains("bad arguments #1") && Contains("string expected, got bool"));
+        CHECK_THROWS_WITH(
+            minilua::string::lower(ctx),
+            Contains("bad argument #1") && Contains("string expected, got boolean"));
 
         ctx = ctx.make_new({minilua::Nil()});
-        CHECK_THROWS_WITH(minilua::string::lower(ctx), Contains("bad arguments #1") && Contains("string expected, got nil"));
+        CHECK_THROWS_WITH(
+            minilua::string::lower(ctx),
+            Contains("bad argument #1") && Contains("string expected, got nil"));
+    }
+}
+
+TEST_CASE("string.reverse") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    auto test_function = [&ctx](const auto& s, const std::string& expected) {
+        ctx = ctx.make_new({s});
+        auto result = minilua::string::reverse(ctx);
+
+        CHECK(result == minilua::Value(expected));
+    };
+
+    SECTION("String") {
+        std::vector<std::string> args = {"ollaH", "Hallo", "🙂🙃"};
+
+        for (const auto& arg : args) {
+            std::string expected = arg;
+            std::reverse(expected.begin(), expected.end());
+            test_function(arg, expected);
+        }
+    }
+
+    SECTION("Number") {
+        std::vector<int> args = {12345, 54321, 1, -15};
+
+        for (const auto& a : args) {
+            std::string arg = std::to_string(a);
+            std::string expected = arg;
+            std::reverse(expected.begin(), expected.end());
+            test_function(arg, expected);
+        }
+
+        test_function(32.45, "54.23");
+    }
+
+    SECTION("Invalid Input") {
+        ctx = ctx.make_new({true});
+        CHECK_THROWS_WITH(
+            minilua::string::reverse(ctx),
+            Contains("bad argument #1") && Contains("string expected, got boolean"));
+
+        ctx = ctx.make_new({minilua::Nil()});
+        CHECK_THROWS_WITH(
+            minilua::string::reverse(ctx),
+            Contains("bad argument #1") && Contains("string expected, got nil"));
+
+        ctx = ctx.make_new({minilua::Table()});
+        CHECK_THROWS_WITH(
+            minilua::string::reverse(ctx),
+            Contains("bad argument #1") && Contains("string expected, got table"));
+    }
+
+    SECTION("reverse value") {
+        SECTION("Valid force") {
+            ctx = ctx.make_new({minilua::Value("Hallo").with_origin(minilua::LiteralOrigin())});
+            auto res = minilua::string::reverse(ctx);
+
+            REQUIRE(res == minilua::Value("ollaH"));
+
+            auto result = res.force("nomiS");
+
+            REQUIRE(result.has_value());
+
+            std::string expected = minilua::Value("Simon").to_literal();
+
+            CHECK(
+                result.value().collect_first_alternative()[0] ==
+                minilua::SourceChange(minilua::Range(), expected));
+
+            ctx = ctx.make_new({minilua::Value(12345).with_origin(minilua::LiteralOrigin())});
+            res = minilua::string::reverse(ctx);
+
+            REQUIRE(res == minilua::Value("54321"));
+
+            result = res.force("PI");
+
+            REQUIRE(result.has_value());
+
+            expected = minilua::Value("IP").to_literal();
+
+            CHECK(
+                result.value().collect_first_alternative()[0] ==
+                minilua::SourceChange(minilua::Range(), expected));
+        }
+
+        SECTION("Invalid force") {
+            ctx = ctx.make_new({minilua::Value("Hallo").with_origin(minilua::LiteralOrigin())});
+            auto res = minilua::string::reverse(ctx);
+
+            REQUIRE(res == minilua::Value("ollaH"));
+
+            auto result = res.force(56);
+
+            CHECK_FALSE(result.has_value());
+
+            result = res.force(minilua::Table());
+
+            CHECK_FALSE(result.has_value());
+
+            result = res.force(minilua::Nil());
+
+            CHECK_FALSE(result.has_value());
+        }
     }
 }
