@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -evx
 
+clang-format -dump-config
 CLANG_FORMAT=${CLANG_FORMAT:-clang-format}
 
 DIR=$(dirname "${BASH_SOURCE[0]}")
