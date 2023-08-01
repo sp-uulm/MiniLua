@@ -552,7 +552,9 @@ TEST_CASE("string.byte") {
             std::string expected_string = minilua::Value("allo").to_literal();
             REQUIRE(result.has_value());
 
-            CHECK(result.value().collect_first_alternative()[0] == minilua::SourceChange(minilua::Range(), expected_string));
+            CHECK(
+                result.value().collect_first_alternative()[0] ==
+                minilua::SourceChange(minilua::Range(), expected_string));
 
             minilua::Value i = minilua::Value(3).with_origin(minilua::LiteralOrigin());
             ctx = ctx.make_new({str, i});
@@ -563,7 +565,9 @@ TEST_CASE("string.byte") {
             expected_string = minilua::Value("AlLo").to_literal();
             REQUIRE(result.has_value());
 
-            CHECK(result.value().collect_first_alternative()[0] == minilua::SourceChange(minilua::Range(), expected_string));
+            CHECK(
+                result.value().collect_first_alternative()[0] ==
+                minilua::SourceChange(minilua::Range(), expected_string));
         }
 
         SECTION("Invalid force") {
@@ -604,23 +608,29 @@ TEST_CASE("string.char") {
             minilua::Vallist args{"65", 102, 102, -1};
             ctx = ctx.make_new(std::move(args));
 
-            CHECK_THROWS_WITH(minilua::string::Char(ctx), Contains("bad argument #4") && Contains("value out of range"));
+            CHECK_THROWS_WITH(
+                minilua::string::Char(ctx),
+                Contains("bad argument #4") && Contains("value out of range"));
 
             args = {"65", 102, 1020, -1};
             ctx = ctx.make_new(std::move(args));
 
-            CHECK_THROWS_WITH(minilua::string::Char(ctx), Contains("bad argument #3") && Contains("value out of range"));
+            CHECK_THROWS_WITH(
+                minilua::string::Char(ctx),
+                Contains("bad argument #3") && Contains("value out of range"));
         }
 
         SECTION("Malformated String") {
             minilua::Vallist args{"Baum", 102, 102, -1};
             ctx = ctx.make_new(std::move(args));
 
-            CHECK_THROWS_WITH(minilua::string::Char(ctx), Contains("bad argument #1") && Contains("number expected, got string"));
+            CHECK_THROWS_WITH(
+                minilua::string::Char(ctx),
+                Contains("bad argument #1") && Contains("number expected, got string"));
         }
     }
 
-    SECTION("Reverse"){
+    SECTION("Reverse") {
         SECTION("Valid force") {
             std::vector<minilua::Value> v;
             for (minilua::Value arg : {65, 102, 102, 101}) {
@@ -664,4 +674,36 @@ TEST_CASE("string.char") {
             CHECK_FALSE(result.has_value());
         }
     }
+}
+
+TEST_CASE("string.len") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+    auto test_function = [&ctx](const auto& str, int expected) {
+        ctx = ctx.make_new({str});
+        auto result = minilua::string::len(ctx);
+        int len = std::get<minilua::Number>(result).try_as_int();
+
+        CHECK(len == expected);
+    };
+
+    SECTION("String") {
+        std::vector<std::string> cases = {"hello", "", "123456"};
+
+        for (const auto& s : cases) {
+            test_function(s, s.length());
+        }
+    }
+
+    SECTION("Number") {
+        std::vector<int> cases = {123, -10, 0};
+
+        for (const auto& s : cases) {
+            test_function(s, std::to_string(s).length());
+        }
+
+        test_function(-23.98, 6);
+    }
+
+    SECTION("Invalid Input") {}
 }
