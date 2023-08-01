@@ -1,8 +1,9 @@
-#!/usr/bin/env bash
+#!/usr/bin/env nix-shell
+#!nix-shell -i bash --pure ../shell.nix
+
 set -evx
 
-clang-format -dump-config
-CLANG_FORMAT=${CLANG_FORMAT:-clang-format}
+CLANG_FORMAT=clang-format
 
 DIR=$(dirname "${BASH_SOURCE[0]}")
 source "$DIR/_common.sh"

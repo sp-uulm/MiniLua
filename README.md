@@ -9,6 +9,8 @@ Also see: [Documentation](https://sp-uulm.github.io/MiniLua/)
 
 ## Building MiniLua
 
+To build the project, you need to have 'nix' installed.
+
 Make sure you cloned the repository with submodules (e.g. `git clone --recurse-submodules git@github.com:sp-uulm/MiniLua.git`) or if you already cloned the repository you need to fetch the submodules (e.g. `git submodule update --init --recursive`).
 
 Now you can use it like any other CMake project:

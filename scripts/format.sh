@@ -1,6 +1,7 @@
-#!/usr/bin/env bash
+#!/usr/bin/env nix-shell
+#!nix-shell -i bash --pure ../shell.nix
 
 DIR=$(dirname "${BASH_SOURCE[0]}")
 source "$DIR/_common.sh"
 
-clang-format $FILES $@
+"${CLANG_FORMAT:-clang-format}" -i $FILES "$@"
