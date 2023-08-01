@@ -168,7 +168,7 @@ jobs:
 
   check-code-format:
     name: Check Code Format
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     env:
       CC: clang
@@ -185,7 +185,7 @@ jobs:
       - name: Setup VM
         run: |
           ./.github/workflows/install_packages.sh
-          sudo apt-get install clang-format-15
+          sudo apt-get install clang-format
       - name: Setup CMake
         run: ./scripts/setup_build.sh
       - name: Lint
