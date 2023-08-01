@@ -31,6 +31,8 @@ EOF
     exit 1
 fi
 
+source "$(dirname "${BASH_SOURCE[0]}")/../../scripts/_env.sh"
+
 # Reformat C/C++ files that are part of the commit
 for file in $(git diff --cached --name-only | grep -E '\.(c|h|cpp|hpp)$'); do
     echo "Formatting $file"

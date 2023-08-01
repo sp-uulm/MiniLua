@@ -1,5 +1,4 @@
-#!/usr/bin/env nix-shell
-#!nix-shell -i bash --pure ../shell.nix
+#!/usr/bin/env bash
 
 set -evx
 

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+source "$(dirname "${BASH_SOURCE[0]}")/_env.sh"
+
 pushd build
 make MiniLua-bin
 popd
