@@ -707,12 +707,18 @@ TEST_CASE("string.len") {
 
     SECTION("Invalid Input") {
         ctx = ctx.make_new({true});
-        CHECK_THROWS_WITH(minilua::string::len(ctx), Contains("bad argument #1") && Contains("string expected, got bool"));
+        CHECK_THROWS_WITH(
+            minilua::string::len(ctx),
+            Contains("bad argument #1") && Contains("string expected, got bool"));
 
         ctx = ctx.make_new({minilua::Table()});
-        CHECK_THROWS_WITH(minilua::string::len(ctx), Contains("bad argument #1") && Contains("string expected, got table"));
+        CHECK_THROWS_WITH(
+            minilua::string::len(ctx),
+            Contains("bad argument #1") && Contains("string expected, got table"));
 
         ctx = ctx.make_new({minilua::Nil()});
-        CHECK_THROWS_WITH(minilua::string::len(ctx), Contains("bad argument #1") && Contains("string expected, got nil"));
+        CHECK_THROWS_WITH(
+            minilua::string::len(ctx),
+            Contains("bad argument #1") && Contains("string expected, got nil"));
     }
 }
