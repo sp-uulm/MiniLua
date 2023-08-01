@@ -169,8 +169,6 @@ jobs:
   check-code-format:
     name: Check Code Format
     runs-on: ubuntu-latest
-    container:
-      image: nixos/nix:2.17.0
 
     env:
       CC: clang
@@ -180,8 +178,8 @@ jobs:
     continue-on-error: false
 
     steps:
-      - name: Install node for checkout code
-        run: nix-env -i nodejs_16
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v4
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
