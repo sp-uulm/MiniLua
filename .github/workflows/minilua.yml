@@ -180,6 +180,8 @@ jobs:
     continue-on-error: false
 
     steps:
+      - name: Install node for checkout code
+        run: nix-env -i nodejs_16
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
