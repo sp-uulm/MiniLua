@@ -580,12 +580,12 @@ auto sub(const CallContext& ctx) -> Value {
         end = try_value_as<Number::Int>(j, "sub", 3, true);
     }
     if (start < 0) {
-        start = start = str.length() - std::abs(start) + 1;
+        start = str.length() - std::abs(start) + 1;
     }
     if (end < 0) {
         end = str.length() - std::abs(end) + 1;
     }
-    if (end < start) {
+    if (end < start || start > (signed)str.length()) {
         return Value("").with_origin(origin);
     }
     start = std::max(start - 1, 0);
