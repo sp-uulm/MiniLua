@@ -934,19 +934,19 @@ TEST_CASE("string.sub") {
             CHECK(result == expected);
         };
 
-        test_function(123456, 3, "3456");
+        test_function("HalloWelt!", 6, "Welt!");
 
-        test_function(123456, 3.0, "3456");
+        test_function("HalloWelt!", 6.0, "Welt!");
 
-        test_function(123456, 8, "");
+        test_function("Hallo", 6, "");
 
-        test_function(123456, -3, "456");
+        test_function("Hallo", -3, "llo");
 
-        test_function(123456, -8, "123456");
+        test_function("Hallo", -7, "Hallo");
 
-        test_function(123456, 0, "123456");
+        test_function("Hallo", 0, "Hallo");
 
-        test_function(123.456, 5, "456");
+        test_function("Lachender 😃", 5, "ender 😃");
     }
 
     SECTION("Number, String, Nil") {
@@ -971,6 +971,49 @@ TEST_CASE("string.sub") {
         test_function(123456, "0", "123456");
 
         test_function(123.456, "5", "456");
+    }
+
+    SECTION("String, Number, Number") {
+        auto test_function =
+            [&ctx](const auto& s, const auto& i, const auto& j, const std::string& expected) {
+                ctx = ctx.make_new({minilua::Value(s), minilua::Value(i), minilua::Value(j)});
+                auto result = minilua::string::sub(ctx);
+
+                REQUIRE(result.type() == minilua::String::TYPE);
+                CHECK(result == expected);
+            };
+
+        test_function("HalloWelt!", 6, 8, "Wel");
+
+        test_function("HalloWelt!", 6.0, 8, "Wel");
+
+        test_function("HalloWelt!", 6, 8.0, "Wel");
+
+        test_function("HalloWelt!", 6.0, 8.0, "Wel");
+
+        test_function("HalloWelt!", 6, 8., "Wel");
+
+        test_function("HalloWelt!", 6., 8, "Wel");
+
+        test_function("Hallo", 6, 8, "");
+
+        test_function("Hallo", 6, 3, "");
+
+        test_function("Hallo", 2, 6, "allo");
+
+        test_function("Hallo", -7, -6, "");
+
+        test_function("Hallo", 2, -3, "al");
+
+        test_function("Hallo", -4, -3, "al");
+
+        test_function("Hallo", -4, 4, "all");
+
+        test_function("Hallo", 4, 4, "l");
+
+        test_function("Hallo", 0, 5, "Hallo");
+
+        test_function("Lachender 😃", 10, 11, " 😃");
     }
 }
 
