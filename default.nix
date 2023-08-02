@@ -8,27 +8,21 @@
       inherit system;
     },
 }:
-pkgs.mkShell {
+pkgs.stdenv.mkDerivation {
+  pname = "MiniLua";
+  version = "0.1.0";
+  src = with pkgs.lib; cleanSourceWith {
+    src = cleanSource ./.;
+    filter = path: type: path != toString ./. + "/build";
+  };
+
   nativeBuildInputs = with pkgs; [
-    # Build tools
-    niv
-    git
     cmake
 
     # Dependencies
     boost
     qt6.qtbase
     qt6.qmake
-
-    # Tools
-    clang-tools
-    python3
-    lcov
-    gcovr
-    doxygen
-    which
-    curl
+    qt6.wrapQtAppsHook
   ];
-
-  IN_MINILUA_NIX_SHELL = true;
 }
