@@ -1410,6 +1410,61 @@ TEST_CASE("string.sub") {
                 Contains("bad argument #3") && Contains("number has no integer representation"));
         }
     }
+
+    SECTION("REVERSE") {
+
+        ctx = ctx.make_new(
+            {minilua::Value("Maus").with_origin(minilua::LiteralOrigin()),
+             minilua::Value(2).with_origin(minilua::LiteralOrigin())});
+
+        SECTION("Valid force") {
+            auto test_function = [&ctx](
+                                     const std::string& original_s, const auto& i, const auto& j,
+                                     const std::string& expected_result,
+                                     const std::string& force_to,
+                                     const std::string& expected_new_s) {
+                ctx = ctx.make_new(
+                    {minilua::Value(original_s).with_origin(minilua::LiteralOrigin()),
+                     minilua::Value(i).with_origin(minilua::LiteralOrigin()),
+                     minilua::Value(j).with_origin(minilua::LiteralOrigin())});
+                auto res = minilua::string::sub(ctx);
+
+                REQUIRE(res == expected_result);
+
+                auto result = res.force(force_to);
+
+                REQUIRE(result.has_value());
+                std::string expected = minilua::Value(expected_new_s).to_literal();
+                CHECK(
+                    result.value().collect_first_alternative()[0] ==
+                    minilua::SourceChange(minilua::Range(), expected));
+            };
+
+            test_function("Maus", 2, minilua::Nil(), "aus", "ail", "Mail");
+
+            // test_function("Megamaus", -6, -3, "gama", "Baum", "MeBaumus");
+        }
+
+        SECTION("Invalid force") {
+            auto test_function = [&ctx](
+                                     const std::string& original_s, const auto& i, const auto& j,
+                                     const std::string& expected_result, const auto& force_to) {
+                ctx = ctx.make_new(
+                    {minilua::Value(original_s).with_origin(minilua::LiteralOrigin()),
+                     minilua::Value(i).with_origin(minilua::LiteralOrigin()),
+                     minilua::Value(j).with_origin(minilua::LiteralOrigin())});
+                auto res = minilua::string::sub(ctx);
+
+                REQUIRE(res == expected_result);
+
+                CHECK_FALSE(res.force(force_to).has_value());
+            };
+
+            test_function("Maus", 2, 5, "aus", "Baum");
+
+            // test_function("Maus", 5, 7, "", 42);
+        }
+    }
 }
 
 TEST_CASE("string.upper") {
