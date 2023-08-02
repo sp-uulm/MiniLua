@@ -589,8 +589,8 @@ auto sub(const CallContext& ctx) -> Value {
         return Value("").with_origin(origin);
     }
     start = std::max(start - 1, 0);
-    end = std::max(end - 1, 0);
-    int distance = end - start + 1;
+    end = std::max(end, 0);
+    int distance = end - start;
     return Value(str.substr(start, distance)).with_origin(origin);
 }
 
