@@ -555,12 +555,14 @@ auto sub(const CallContext& ctx) -> Value {
             if (j < 0) {
                 j = old_str.length() - std::abs(j) + 1;
             }
+            j = std::min(j, ((signed)old_str.length()));
             i = std::max(i - 1, 0);
             j = std::max(j - 1, 0);
             int distance = j - i + 1;
 
             // check if new string has same propotions as old string
             if (new_str.length() != distance) {
+                std::cout << "length doesnt match distance " << distance << std::endl;
                 return std::nullopt;
             }
             old_str.replace(i, distance, new_str);
