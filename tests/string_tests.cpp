@@ -873,6 +873,107 @@ TEST_CASE("string.reverse") {
     }
 }
 
+TEST_CASE("string.sub") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("String, Number, Nil") {
+        auto test_function = [&ctx](const auto& s, const auto& i, const std::string& expected) {
+            ctx = ctx.make_new({minilua::Value(s), minilua::Value(i)});
+            auto result = minilua::string::sub(ctx);
+
+            REQUIRE(result.type() == minilua::String::TYPE);
+            CHECK(result == expected);
+        };
+
+        test_function("HalloWelt!", 6, "Welt!");
+
+        test_function("HalloWelt!", 6.0, "Welt!");
+
+        test_function("Hallo", 6, "");
+
+        test_function("Hallo", -3, "llo");
+
+        test_function("Hallo", -7, "Hallo");
+
+        test_function("Hallo", 0, "Hallo");
+
+        test_function("Lachender 😃", 5, "ender 😃");
+    }
+
+    SECTION("String, String, Nil") {
+        auto test_function = [&ctx](const auto& s, const auto& i, const std::string& expected) {
+            ctx = ctx.make_new({minilua::Value(s), minilua::Value(i)});
+            auto result = minilua::string::sub(ctx);
+
+            REQUIRE(result.type() == minilua::String::TYPE);
+            CHECK(result == expected);
+        };
+
+        test_function("HalloWelt!", "6", "Welt!");
+
+        test_function("HalloWelt!", "6.0", "Welt!");
+
+        test_function("Hallo", "6", "");
+
+        test_function("Hallo", "-3", "llo");
+
+        test_function("Hallo", "-7", "Hallo");
+
+        test_function("Hallo", "0", "Hallo");
+
+        test_function("Lachender 😃", "5", "ender 😃");
+    }
+
+    SECTION("Number, Number, Nil") {
+        auto test_function = [&ctx](const auto& s, const auto& i, const std::string& expected) {
+            ctx = ctx.make_new({minilua::Value(s), minilua::Value(i)});
+            auto result = minilua::string::sub(ctx);
+
+            REQUIRE(result.type() == minilua::String::TYPE);
+            CHECK(result == expected);
+        };
+
+        test_function(123456, 3, "3456");
+
+        test_function(123456, 3.0, "3456");
+
+        test_function(123456, 8, "");
+
+        test_function(123456, -3, "456");
+
+        test_function(123456, -8, "123456");
+
+        test_function(123456, 0, "123456");
+
+        test_function(123.456, 5, "456");
+    }
+
+    SECTION("Number, String, Nil") {
+        auto test_function = [&ctx](const auto& s, const auto& i, const std::string& expected) {
+            ctx = ctx.make_new({minilua::Value(s), minilua::Value(i)});
+            auto result = minilua::string::sub(ctx);
+
+            REQUIRE(result.type() == minilua::String::TYPE);
+            CHECK(result == expected);
+        };
+
+        test_function(123456, "3", "3456");
+
+        test_function(123456, "3.0", "3456");
+
+        test_function(123456, "8", "");
+
+        test_function(123456, "-3", "456");
+
+        test_function(123456, "-8", "123456");
+
+        test_function(123456, "0", "123456");
+
+        test_function(123.456, "5", "456");
+    }
+}
+
 TEST_CASE("string.upper") {
     minilua::Environment env;
     minilua::CallContext ctx(&env);
