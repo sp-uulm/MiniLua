@@ -1013,7 +1013,402 @@ TEST_CASE("string.sub") {
 
         test_function("Hallo", 0, 5, "Hallo");
 
-        test_function("Lachender 😃", 10, 11, " 😃");
+        test_function("Lachender 😃", 10, 14, " 😃");
+    }
+
+    SECTION("String, String, Number") {
+        auto test_function =
+            [&ctx](const auto& s, const auto& i, const auto& j, const std::string& expected) {
+                ctx = ctx.make_new({minilua::Value(s), minilua::Value(i), minilua::Value(j)});
+                auto result = minilua::string::sub(ctx);
+
+                REQUIRE(result.type() == minilua::String::TYPE);
+                CHECK(result == expected);
+            };
+
+        test_function("HalloWelt!", "6", 8, "Wel");
+
+        test_function("HalloWelt!", "6.0", 8, "Wel");
+
+        test_function("HalloWelt!", "6", 8.0, "Wel");
+
+        test_function("HalloWelt!", "6.0", 8.0, "Wel");
+
+        test_function("HalloWelt!", "6", 8., "Wel");
+
+        test_function("HalloWelt!", "6.", 8, "Wel");
+
+        test_function("Hallo", "6", 8, "");
+
+        test_function("Hallo", "6", 3, "");
+
+        test_function("Hallo", "2", 6, "allo");
+
+        test_function("Hallo", "-7", -6, "");
+
+        test_function("Hallo", "2", -3, "al");
+
+        test_function("Hallo", "-4", -3, "al");
+
+        test_function("Hallo", "-4", 4, "all");
+
+        test_function("Hallo", "4", 4, "l");
+
+        test_function("Hallo", "0", 5, "Hallo");
+
+        test_function("Lachender 😃", "10", 14, " 😃");
+    }
+
+    SECTION("String, Number, String") {
+        auto test_function =
+            [&ctx](const auto& s, const auto& i, const auto& j, const std::string& expected) {
+                ctx = ctx.make_new({minilua::Value(s), minilua::Value(i), minilua::Value(j)});
+                auto result = minilua::string::sub(ctx);
+
+                REQUIRE(result.type() == minilua::String::TYPE);
+                CHECK(result == expected);
+            };
+
+        test_function("HalloWelt!", 6, "8", "Wel");
+
+        test_function("HalloWelt!", 6.0, "8", "Wel");
+
+        test_function("HalloWelt!", 6, "8.0", "Wel");
+
+        test_function("HalloWelt!", 6.0, "8.0", "Wel");
+
+        test_function("HalloWelt!", 6, "8.", "Wel");
+
+        test_function("HalloWelt!", 6., "8", "Wel");
+
+        test_function("Hallo", 6, "8", "");
+
+        test_function("Hallo", 6, "3", "");
+
+        test_function("Hallo", 2, "6", "allo");
+
+        test_function("Hallo", -7, "-6", "");
+
+        test_function("Hallo", 2, "-3", "al");
+
+        test_function("Hallo", -4, "-3", "al");
+
+        test_function("Hallo", -4, "4", "all");
+
+        test_function("Hallo", 4, "4", "l");
+
+        test_function("Hallo", 0, "5", "Hallo");
+
+        test_function("Lachender 😃", 10, "14", " 😃");
+    }
+
+    SECTION("String, String, String") {
+        auto test_function =
+            [&ctx](const auto& s, const auto& i, const auto& j, const std::string& expected) {
+                ctx = ctx.make_new({minilua::Value(s), minilua::Value(i), minilua::Value(j)});
+                auto result = minilua::string::sub(ctx);
+
+                REQUIRE(result.type() == minilua::String::TYPE);
+                CHECK(result == expected);
+            };
+
+        test_function("HalloWelt!", "6", "8", "Wel");
+
+        test_function("HalloWelt!", "6.0", "8", "Wel");
+
+        test_function("HalloWelt!", "6", "8.0", "Wel");
+
+        test_function("HalloWelt!", "6.0", "8.0", "Wel");
+
+        test_function("HalloWelt!", "6", "8.", "Wel");
+
+        test_function("HalloWelt!", "6.", "8", "Wel");
+
+        test_function("Hallo", "7", "8", "");
+
+        test_function("Hallo", "6", "3", "");
+
+        test_function("Hallo", "2", "6", "allo");
+
+        test_function("Hallo", "-7", "-6", "");
+
+        test_function("Hallo", "2", "-3", "al");
+
+        test_function("Hallo", "-4", "-3", "al");
+
+        test_function("Hallo", "-4", "4", "all");
+
+        test_function("Hallo", "4", "4", "l");
+
+        test_function("Hallo", "0", "5", "Hallo");
+
+        test_function("Lachender 😃", "10", "14", " 😃");
+    }
+
+    SECTION("Number, Number, Number") {
+        auto test_function =
+            [&ctx](const auto& s, const auto& i, const auto& j, const std::string& expected) {
+                ctx = ctx.make_new({minilua::Value(s), minilua::Value(i), minilua::Value(j)});
+                auto result = minilua::string::sub(ctx);
+
+                REQUIRE(result.type() == minilua::String::TYPE);
+                CHECK(result == expected);
+            };
+
+        test_function(123456789, 6, 8, "678");
+
+        test_function(123456789, 6.0, 8, "678");
+
+        test_function(123456789, 6, 8.0, "678");
+
+        test_function(123456789, 6.0, 8.0, "678");
+
+        test_function(123456789, 6, 8., "678");
+
+        test_function(123456789, 6., 8, "678");
+
+        test_function(1234, 6, 8, "");
+
+        test_function(1234, 6, 3, "");
+
+        test_function(123456789, 2, 6, "23456");
+
+        test_function(12345, -7, -6, "");
+
+        test_function(123456789, -4, 4, "");
+
+        test_function(123456789, 2, -3, "234567");
+
+        test_function(123456789, -4, -3, "67");
+
+        test_function(123456789, -4, 7, "67");
+
+        test_function(123456789, 4, 4, "4");
+
+        test_function(123456789, 0, 5, "12345");
+
+        test_function(-1234, 2, 3, "12");
+
+        test_function(23.56, 1, 3, "23.");
+    }
+
+    SECTION("Number, String, Number") {
+        auto test_function =
+            [&ctx](const auto& s, const auto& i, const auto& j, const std::string& expected) {
+                ctx = ctx.make_new({minilua::Value(s), minilua::Value(i), minilua::Value(j)});
+                auto result = minilua::string::sub(ctx);
+
+                REQUIRE(result.type() == minilua::String::TYPE);
+                CHECK(result == expected);
+            };
+
+        test_function(123456789, "6", 8, "678");
+
+        test_function(123456789, "6.0", 8, "678");
+
+        test_function(123456789, "6", 8.0, "678");
+
+        test_function(123456789, "6.0", 8.0, "678");
+
+        test_function(123456789, "6", 8., "678");
+
+        test_function(123456789, "6.", 8, "678");
+
+        test_function(1234, "6", 8, "");
+
+        test_function(1234, "6", 3, "");
+
+        test_function(123456789, "2", 6, "23456");
+
+        test_function(12345, "-7", -6, "");
+
+        test_function(123456789, "-4", 4, "");
+
+        test_function(123456789, "2", -3, "234567");
+
+        test_function(123456789, "-4", -3, "67");
+
+        test_function(123456789, "-4", 7, "67");
+
+        test_function(123456789, "4", 4, "4");
+
+        test_function(123456789, "0", 5, "12345");
+
+        test_function(-1234, "2", 3, "12");
+
+        test_function(23.56, "1", 3, "23.");
+    }
+
+    SECTION("Number, Number, String") {
+        auto test_function =
+            [&ctx](const auto& s, const auto& i, const auto& j, const std::string& expected) {
+                ctx = ctx.make_new({minilua::Value(s), minilua::Value(i), minilua::Value(j)});
+                auto result = minilua::string::sub(ctx);
+
+                REQUIRE(result.type() == minilua::String::TYPE);
+                CHECK(result == expected);
+            };
+
+        test_function(123456789, 6, "8", "678");
+
+        test_function(123456789, 6.0, "8", "678");
+
+        test_function(123456789, 6, "8.0", "678");
+
+        test_function(123456789, 6.0, "8.0", "678");
+
+        test_function(123456789, 6, "8.", "678");
+
+        test_function(123456789, 6., "8", "678");
+
+        test_function(1234, 6, "8", "");
+
+        test_function(1234, 6, "3", "");
+
+        test_function(123456789, 2, "6", "23456");
+
+        test_function(12345, -7, "-6", "");
+
+        test_function(123456789, -4, "4", "");
+
+        test_function(123456789, 2, "-3", "234567");
+
+        test_function(123456789, -4, "-3", "67");
+
+        test_function(123456789, -4, "7", "67");
+
+        test_function(123456789, 4, "4", "4");
+
+        test_function(123456789, 0, "5", "12345");
+
+        test_function(-1234, 2, "3", "12");
+
+        test_function(23.56, 1, "3", "23.");
+    }
+
+    SECTION("Number, String, String") {
+        auto test_function =
+            [&ctx](const auto& s, const auto& i, const auto& j, const std::string& expected) {
+                ctx = ctx.make_new({minilua::Value(s), minilua::Value(i), minilua::Value(j)});
+                auto result = minilua::string::sub(ctx);
+
+                REQUIRE(result.type() == minilua::String::TYPE);
+                CHECK(result == expected);
+            };
+
+        test_function(123456789, "6", "8", "678");
+
+        test_function(123456789, "6.0", "8", "678");
+
+        test_function(123456789, "6", "8.0", "678");
+
+        test_function(123456789, "6.0", "8.0", "678");
+
+        test_function(123456789, "6", "8.", "678");
+
+        test_function(123456789, "6.", "8", "678");
+
+        test_function(1234, "6", "8", "");
+
+        test_function(1234, "6", "3", "");
+
+        test_function(123456789, "2", "6", "23456");
+
+        test_function(12345, "-7", "-6", "");
+
+        test_function(123456789, "-4", "4", "");
+
+        test_function(123456789, "2", "-3", "234567");
+
+        test_function(123456789, "-4", "-3", "67");
+
+        test_function(123456789, "-4", "7", "67");
+
+        test_function(123456789, "4", "4", "4");
+
+        test_function(123456789, "0", "5", "12345");
+
+        test_function(-1234, "2", "3", "12");
+
+        test_function(23.56, "1", "3", "23.");
+    }
+
+    SECTION("Invalid input") {
+        SECTION("s is not string") {
+            ctx = ctx.make_new({true, 1, 2});
+
+            CHECK_THROWS_WITH(
+                minilua::string::sub(ctx),
+                Contains("bad argument #1") && Contains("string expected, got boolean"));
+
+            ctx = ctx.make_new({minilua::Table(), 1, 2});
+
+            CHECK_THROWS_WITH(
+                minilua::string::sub(ctx),
+                Contains("bad argument #1") && Contains("string expected, got table"));
+        }
+
+        SECTION("i is not a number") {
+            ctx = ctx.make_new({"hallo", "welt", 2});
+
+            CHECK_THROWS_WITH(
+                minilua::string::sub(ctx),
+                Contains("bad argument #2") && Contains("number expected, got string"));
+
+            ctx = ctx.make_new({"hallo", minilua::Nil(), 2});
+
+            CHECK_THROWS_WITH(
+                minilua::string::sub(ctx),
+                Contains("bad argument #2") && Contains("number expected, got nil"));
+        }
+
+        SECTION("i is not in integer format") {
+            ctx = ctx.make_new({"hallo", 1.5, 2});
+
+            CHECK_THROWS_WITH(
+                minilua::string::sub(ctx),
+                Contains("bad argument #2") && Contains("number has no integer representation"));
+
+            ctx = ctx.make_new({"hallo", -1.5, -2});
+
+            CHECK_THROWS_WITH(
+                minilua::string::sub(ctx),
+                Contains("bad argument #2") && Contains("number has no integer representation"));
+        }
+
+        SECTION("j is not a number") {
+            ctx = ctx.make_new({"hallo", 2, false});
+
+            CHECK_THROWS_WITH(
+                minilua::string::sub(ctx),
+                Contains("bad argument #3") && Contains("number expected, got boolean"));
+
+            ctx = ctx.make_new({"hallo", 2, minilua::Table()});
+
+            CHECK_THROWS_WITH(
+                minilua::string::sub(ctx),
+                Contains("bad argument #3") && Contains("number expected, got table"));
+
+            ctx = ctx.make_new({"hallo", 2, "minilua::Table"});
+
+            CHECK_THROWS_WITH(
+                minilua::string::sub(ctx),
+                Contains("bad argument #3") && Contains("number expected, got string"));
+        }
+
+        SECTION("j is not in integer format") {
+            ctx = ctx.make_new({"hallo", 2, 3.67});
+
+            CHECK_THROWS_WITH(
+                minilua::string::sub(ctx),
+                Contains("bad argument #3") && Contains("number has no integer representation"));
+
+            ctx = ctx.make_new({"hallo", 3, -4.665});
+
+            CHECK_THROWS_WITH(
+                minilua::string::sub(ctx),
+                Contains("bad argument #3") && Contains("number has no integer representation"));
+        }
     }
 }
 
