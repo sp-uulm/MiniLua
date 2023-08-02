@@ -878,7 +878,7 @@ TEST_CASE("string.upper") {
     minilua::CallContext ctx(&env);
     auto test_function = [&ctx](const auto& str, const std::string& expected) {
         ctx = ctx.make_new({str});
-        auto result = minilua::string::lower(ctx);
+        auto result = minilua::string::upper(ctx);
 
         CHECK(result == minilua::Value(expected));
     };
@@ -908,12 +908,12 @@ TEST_CASE("string.upper") {
     SECTION("Invalid Input") {
         ctx = ctx.make_new({true});
         CHECK_THROWS_WITH(
-            minilua::string::lower(ctx),
+            minilua::string::upper(ctx),
             Contains("bad argument #1") && Contains("string expected, got boolean"));
 
         ctx = ctx.make_new({minilua::Nil()});
         CHECK_THROWS_WITH(
-            minilua::string::lower(ctx),
+            minilua::string::upper(ctx),
             Contains("bad argument #1") && Contains("string expected, got nil"));
     }
 }
