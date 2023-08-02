@@ -734,6 +734,8 @@ TEST_CASE("string.lower") {
     };
 
     SECTION("String") {
+        test_function("hallo", "hallo");
+
         test_function("HALLO", "hallo");
 
         test_function("WeLt!", "welt!");
@@ -868,5 +870,50 @@ TEST_CASE("string.reverse") {
 
             CHECK_FALSE(result.has_value());
         }
+    }
+}
+
+TEST_CASE("string.upper") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+    auto test_function = [&ctx](const auto& str, const std::string& expected) {
+        ctx = ctx.make_new({str});
+        auto result = minilua::string::lower(ctx);
+
+        CHECK(result == minilua::Value(expected));
+    };
+
+    SECTION("String") {
+        test_function("HALLO", "HALLO");
+
+        test_function("hallo", "HALLO");
+
+        test_function("WeLt!", "WELT!");
+
+        test_function("", "");
+
+        test_function("🙂", "🙂");
+
+        test_function("!§$%&/()=?*'_:;", "!§$%&/()=?*'_:;");
+    }
+
+    SECTION("Number") {
+        test_function(12345, "12345");
+
+        test_function(-5, "-5");
+
+        test_function(-3.56, "-3.56");
+    }
+
+    SECTION("Invalid Input") {
+        ctx = ctx.make_new({true});
+        CHECK_THROWS_WITH(
+            minilua::string::lower(ctx),
+            Contains("bad argument #1") && Contains("string expected, got boolean"));
+
+        ctx = ctx.make_new({minilua::Nil()});
+        CHECK_THROWS_WITH(
+            minilua::string::lower(ctx),
+            Contains("bad argument #1") && Contains("string expected, got nil"));
     }
 }
