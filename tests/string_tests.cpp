@@ -1442,7 +1442,7 @@ TEST_CASE("string.sub") {
 
             test_function("Maus", 2, minilua::Nil(), "aus", "ail", "Mail");
 
-            // test_function("Megamaus", -6, -3, "gama", "Baum", "MeBaumus");
+            test_function("Megamaus", -6, -3, "gama", "Baum", "MeBaumus");
         }
 
         SECTION("Invalid force") {
@@ -1462,7 +1462,7 @@ TEST_CASE("string.sub") {
 
             test_function("Maus", 2, 5, "aus", "Baum");
 
-            // test_function("Maus", 5, 7, "", 42);
+            test_function("Maus", 5, 7, "", 42);
         }
     }
 }
