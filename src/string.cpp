@@ -505,6 +505,9 @@ auto rep(const CallContext& ctx) -> Value {
     }
     int reps = try_value_as<Number::Int>(n, "rep", 2, true);
 
+    if (reps <= 0) {
+        return Value("").with_origin(NoOrigin());
+    }
     std::string result = str;
     for (int i = 1; i < reps; i++) {
         result += sep + str;
