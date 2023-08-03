@@ -768,6 +768,81 @@ TEST_CASE("string.lower") {
     }
 }
 
+TEST_CASE("string.rep") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    SECTION("String, Number, Nil") {
+        auto test_function = [&ctx](const auto& s, const auto& n, const std::string& expected) {
+            ctx = ctx.make_new({s, n});
+            auto result = minilua::string::rep(ctx);
+
+            CHECK(result == expected);
+        };
+
+        test_function("Hi", 3, "HiHiHi");
+
+        test_function("Hi", -3, "");
+
+        test_function("", 5, "");
+
+        test_function("Baum", 0, "");
+    }
+
+    SECTION("String, String, Nil") {
+        auto test_function = [&ctx](const auto& s, const auto& n, const std::string& expected) {
+            ctx = ctx.make_new({s, n});
+            auto result = minilua::string::rep(ctx);
+
+            CHECK(result == expected);
+        };
+
+        test_function("Hi", "3", "HiHiHi");
+
+        test_function("Hi", "-3", "");
+
+        test_function("", "5", "");
+
+        test_function("Baum", "0", "");
+    }
+
+    SECTION("Number, Number, Nil") {
+        auto test_function = [&ctx](const auto& s, const auto& n, const std::string& expected) {
+            ctx = ctx.make_new({s, n});
+            auto result = minilua::string::rep(ctx);
+
+            CHECK(result == expected);
+        };
+
+        test_function(12, 3, "121212");
+
+        test_function(45, -3, "");
+
+        test_function(0, 5, "00000");
+
+        test_function(123456789, 0, "");
+    }
+
+    SECTION("Number, String, Nil") {
+        auto test_function = [&ctx](const auto& s, const auto& n, const std::string& expected) {
+            ctx = ctx.make_new({s, n});
+            auto result = minilua::string::rep(ctx);
+
+            CHECK(result == expected);
+        };
+
+        test_function(12, "3", "121212");
+
+        test_function(45, "-3", "");
+
+        test_function(0, "5", "00000");
+
+        test_function(05, "5", "55555");
+
+        test_function(123456789, "0", "");
+    }
+}
+
 TEST_CASE("string.reverse") {
     minilua::Environment env;
     minilua::CallContext ctx(&env);
