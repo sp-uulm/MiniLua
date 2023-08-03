@@ -2,6 +2,7 @@
 #include <array>
 #include <cstddef>
 #include <ios>
+#include <iostream>
 #include <memory>
 #include <optional>
 #include <regex>
@@ -500,22 +501,23 @@ auto rep(const CallContext& ctx) -> Value {
 
     std::string str = std::get<String>(try_value_is_string(s, "rep", 1)).value;
     std::string sep;
+    int reps = try_value_as<Number::Int>(n, "rep", 2, true);
     if (!seperator.is_nil()) {
         sep = std::get<String>(try_value_is_string(seperator, "rep", 3)).value;
     }
-    int reps = try_value_as<Number::Int>(n, "rep", 2, true);
 
     if (reps <= 0) {
         return Value("").with_origin(NoOrigin());
     }
-    std::string result = str;
+    std::stringstream result;
+    result << str;
     for (int i = 1; i < reps; i++) {
-        result += sep + str;
+        result << sep << str;
     }
 
     // Too many posibilites what could be changed for reverse (maybe everything if there is no
     // repeat in new string)
-    return Value(result).with_origin(NoOrigin());
+    return Value(result.str()).with_origin(NoOrigin());
 }
 
 auto reverse(const CallContext& ctx) -> Value {
