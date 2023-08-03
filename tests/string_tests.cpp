@@ -5,6 +5,7 @@
 #include <iostream>
 #include <list>
 #include <random>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -787,6 +788,10 @@ TEST_CASE("string.rep") {
         test_function("", 5, "");
 
         test_function("Baum", 0, "");
+
+        test_function("Hi", 3.0, "HiHiHi");
+
+        test_function("Hi", 3., "HiHiHi");
     }
 
     SECTION("String, String, Nil") {
@@ -804,6 +809,10 @@ TEST_CASE("string.rep") {
         test_function("", "5", "");
 
         test_function("Baum", "0", "");
+
+        test_function("Hi", "3.0", "HiHiHi");
+
+        test_function("Hi", "3.", "HiHiHi");
     }
 
     SECTION("Number, Number, Nil") {
@@ -821,6 +830,10 @@ TEST_CASE("string.rep") {
         test_function(0, 5, "00000");
 
         test_function(123456789, 0, "");
+
+        test_function(123, 3.0, "123123123");
+
+        test_function(456, 3., "456456456");
     }
 
     SECTION("Number, String, Nil") {
@@ -840,6 +853,258 @@ TEST_CASE("string.rep") {
         test_function(05, "5", "55555");
 
         test_function(123456789, "0", "");
+
+        test_function(123, "3.0", "123123123");
+
+        test_function(456, "3.", "456456456");
+    }
+
+    SECTION("String, Number, String") {
+        auto test_function =
+            [&ctx](const auto& s, const auto& n, const auto& sep, const std::string& expected) {
+                ctx = ctx.make_new({s, n, sep});
+                auto result = minilua::string::rep(ctx);
+
+                CHECK(result == expected);
+            };
+
+        test_function("Hi", 3, " ", "Hi Hi Hi");
+
+        test_function("Hi", -3, "Tim", "");
+
+        test_function("", 5, "n", "nnnn");
+
+        test_function("Baum", 0, "clear", "");
+
+        test_function("Hi", 3.0, " ", "Hi Hi Hi");
+
+        test_function("Hi", 3., " ", "Hi Hi Hi");
+
+        test_function("Zeile", 2, "\n", "Zeile\nZeile");
+
+        test_function("Zeile", 1, "\n", "Zeile");
+    }
+
+    SECTION("String, Number, Number") {
+        auto test_function =
+            [&ctx](const auto& s, const auto& n, const auto& sep, const std::string& expected) {
+                ctx = ctx.make_new({s, n, sep});
+                auto result = minilua::string::rep(ctx);
+
+                CHECK(result == expected);
+            };
+
+        test_function("Hi", 3, 1, "Hi1Hi1Hi");
+
+        test_function("Hi", -3, 42, "");
+
+        test_function("", 5, 6, "6666");
+
+        test_function("Baum", 0, 100, "");
+
+        test_function("Hi", 3.0, 6, "Hi6Hi6Hi");
+
+        test_function("Hi", 3., 6, "Hi6Hi6Hi");
+
+        test_function("Zeile", 2, 42, "Zeile42Zeile");
+
+        test_function("Zeile", 1, 55, "Zeile");
+    }
+
+    SECTION("String, String, String") {
+        auto test_function =
+            [&ctx](const auto& s, const auto& n, const auto& sep, const std::string& expected) {
+                ctx = ctx.make_new({s, n, sep});
+                auto result = minilua::string::rep(ctx);
+
+                CHECK(result == expected);
+            };
+
+        test_function("Hi", "3", "1", "Hi1Hi1Hi");
+
+        test_function("Hi", "-3", "42", "");
+
+        test_function("", "5", "6", "6666");
+
+        test_function("Baum", "0", "100", "");
+
+        test_function("Hi", "3.0", "6", "Hi6Hi6Hi");
+
+        test_function("Hi", "3.", "6", "Hi6Hi6Hi");
+
+        test_function("Zeile", "2", "42", "Zeile42Zeile");
+
+        test_function("Zeile", "1", "55", "Zeile");
+    }
+
+    SECTION("String, String, Number") {
+        auto test_function =
+            [&ctx](const auto& s, const auto& n, const auto& sep, const std::string& expected) {
+                ctx = ctx.make_new({s, n, sep});
+                auto result = minilua::string::rep(ctx);
+
+                CHECK(result == expected);
+            };
+
+        test_function("Hi", "3", 1, "Hi1Hi1Hi");
+
+        test_function("Hi", "-3", 42, "");
+
+        test_function("", "5", 6, "6666");
+
+        test_function("Baum", "0", 100, "");
+
+        test_function("Hi", "3.0", 6, "Hi6Hi6Hi");
+
+        test_function("Hi", "3.", 6, "Hi6Hi6Hi");
+
+        test_function("Zeile", "2", 42, "Zeile42Zeile");
+
+        test_function("Zeile", "1", 55, "Zeile");
+    }
+
+    SECTION("Number, Number, String") {
+        auto test_function =
+            [&ctx](const auto& s, const auto& n, const auto& sep, const std::string& expected) {
+                ctx = ctx.make_new({s, n, sep});
+                auto result = minilua::string::rep(ctx);
+
+                CHECK(result == expected);
+            };
+
+        test_function(12, 4, ".", "12.12.12.12");
+
+        test_function(45, -3, "zweiundviewzig", "");
+
+        test_function(0, 5, "n", "0n0n0n0n0");
+
+        test_function(123456789, 0, "baum", "");
+
+        test_function(123, 3.0, " ", "123 123 123");
+
+        std::stringstream ss;
+        ss << "456"
+           << "\t"
+           << "456"
+           << "\t"
+           << "456";
+        test_function(456, 3., "\t", ss.str());
+    }
+
+    SECTION("Number, Number, Number") {
+        auto test_function =
+            [&ctx](const auto& s, const auto& n, const auto& sep, const std::string& expected) {
+                ctx = ctx.make_new({s, n, sep});
+                auto result = minilua::string::rep(ctx);
+
+                CHECK(result == expected);
+            };
+
+        test_function(12, 4, 3, "12312312312");
+
+        test_function(45, -3, 45, "");
+
+        test_function(0, 5, -3, "0-30-30-30-30");
+
+        test_function(123456789, 0, 45, "");
+
+        test_function(123, 3.0, 4, "12341234123");
+
+        test_function(454, 3., 5, "45454545454");
+    }
+
+    SECTION("Number, String, String") {
+        auto test_function =
+            [&ctx](const auto& s, const auto& n, const auto& sep, const std::string& expected) {
+                ctx = ctx.make_new({s, n, sep});
+                auto result = minilua::string::rep(ctx);
+
+                CHECK(result == expected);
+            };
+
+        test_function(12, "4", ".", "12.12.12.12");
+
+        test_function(45, "-3", "zweiundviewzig", "");
+
+        test_function(0, "5", "n", "0n0n0n0n0");
+
+        test_function(123456789, "0", "baum", "");
+
+        test_function(123, "3.0", " ", "123 123 123");
+
+        std::stringstream ss;
+        ss << "456"
+           << "\t"
+           << "456"
+           << "\t"
+           << "456";
+        test_function(456, "3.", "\t", ss.str());
+    }
+
+    SECTION("Number, String, Number") {
+        auto test_function =
+            [&ctx](const auto& s, const auto& n, const auto& sep, const std::string& expected) {
+                ctx = ctx.make_new({s, n, sep});
+                auto result = minilua::string::rep(ctx);
+
+                CHECK(result == expected);
+            };
+
+        test_function(12, "4", 3, "12312312312");
+
+        test_function(45, "-3", 45, "");
+
+        test_function(0, "5", -3, "0-30-30-30-30");
+
+        test_function(123456789, "0", 45, "");
+
+        test_function(123, "3.0", 4, "12341234123");
+
+        test_function(454, "3.", 5, "45454545454");
+    }
+
+    SECTION("Invalid Input") {
+        auto test_function = [&ctx](
+                                 const auto& s, const auto& n, const auto& sep,
+                                 const std::string& expected_error_message_part_1,
+                                 const std::string& expected_error_message_part_2) {
+            ctx = ctx.make_new({s, n, sep});
+
+            CHECK_THROWS_WITH(
+                minilua::string::rep(ctx),
+                Contains(expected_error_message_part_1) && Contains(expected_error_message_part_2));
+        };
+
+        SECTION("s is no string") {
+            test_function(
+                true, "baum", minilua::Nil(), "bad argument #1", "string expected, got boolean");
+
+            test_function(
+                minilua::Table(), 42, "sep", "bad argument #1", "string expected, got table");
+        }
+
+        SECTION("n is no number") {
+            test_function(
+                "hallo", "welt", "space", "bad argument #2", "number expected, got string");
+
+            test_function("Hallo ", false, true, "bad argument #2", "number expected, got boolean");
+        }
+
+        SECTION("n is no integer") {
+            test_function(
+                "hallo", 42.42, "space", "bad argument #2", "number has no integer representation");
+
+            test_function(
+                "hallo", -42.24, "space", "bad argument #2",
+                "number has no integer representation");
+        }
+
+        SECTION("sep is no string") {
+            test_function(
+                "hallo", 42, minilua::Table(), "bad argument #3", "string expected, got table");
+
+            test_function("hallo", -42, true, "bad argument #3", "string expected, got boolean");
+        }
     }
 }
 
