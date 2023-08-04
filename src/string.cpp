@@ -140,7 +140,7 @@ auto static parse_string(const std::string& str, std::vector<Value> args) -> std
 
         auto escape = std::string(s.substr(start_pos, pos - start_pos + 1));
         const auto* form = escape.c_str();
-        auto format_escape = [&ss, form](auto arg) -> void {
+        auto format_escape = [&ss, &form](auto arg) -> void {
             std::vector<char> buffer;
             int size = std::snprintf(nullptr, 0, form, arg) + 1;
             buffer.resize(size);
@@ -160,6 +160,7 @@ auto static parse_string(const std::string& str, std::vector<Value> args) -> std
         case 'X':
         case 'x': // same error and type behavior as 'o'
         case 'o': {
+            form = escape.insert(escape.length() - 1, 1, 'l').c_str();
             format_escape(try_value_as<Number::Int>(arg_value, "format", numEscapes + 2, true));
             break;
         }
@@ -567,7 +568,6 @@ auto sub(const CallContext& ctx) -> Value {
 
             // check if new string has same propotions as old string
             if (new_str.length() != distance) {
-                std::cout << "length doesnt match distance " << distance << std::endl;
                 return std::nullopt;
             }
             old_str.replace(i, distance, new_str);
