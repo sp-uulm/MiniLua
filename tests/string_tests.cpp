@@ -677,6 +677,151 @@ TEST_CASE("string.char") {
     }
 }
 
+TEST_CASE("string.format") {
+    minilua::Environment env;
+    minilua::CallContext ctx(&env);
+
+    // There are endless posibilites to combine options and modifiers.
+    // Therefore only a single escape string is tested , with multiple options and modifiers
+
+    auto test_function =
+        [&ctx](const auto& formatstring, const auto& value, const std::string& expected_result) {
+            ctx = ctx.make_new({formatstring, value});
+            auto result = minilua::string::format(ctx);
+
+            CHECK(result == expected_result);
+        };
+
+    SECTION("Valid input") {
+        SECTION("%s") {
+            std::string s = "Hallo";
+            test_function(s, minilua::Nil(), s);
+
+            s = "Hallo %s";
+            test_function(s, "Welt!", "Hallo Welt!");
+            test_function(s, 123, "Hallo 123");
+            test_function(s, true, "Hallo true");
+            test_function(s, 23.45, "Hallo 23.45");
+            test_function("hallo %#0-9scon", 12, "hallo 12       con");
+            test_function("hallo %#+9scon", 12, "hallo        12con");
+            test_function("hallo %scon", 12, "hallo 12con");
+        }
+
+        SECTION("%%") {}
+
+        SECTION("Integer format strings") {
+            SECTION("%c") {
+                std::string s = "Hallo";
+
+                test_function(s, "bla", s);
+                test_function("%c", 65, "A");
+                test_function("%3cus", 65, "  Aus");
+                test_function("%-3.5cus", 65, "A  us");
+            }
+
+            SECTION("%d") {
+                std::string s = "Hallo";
+
+                test_function(s, "bla", s);
+                test_function("%d", 65, "65");
+                test_function("%-3dus", 65, "65 us");
+                test_function("%8.5dus", 65, "   00065us");
+                test_function("%#+3d", 65, "+65");
+                test_function("%#3d", -65, "-65");
+                test_function("% d", 65, " 65");
+            }
+
+            SECTION("%i") {
+                std::string s = "Hallo";
+
+                test_function(s, "bla", s);
+                test_function("%i", 65, "65");
+                test_function("%-3ius", 65, "65 us");
+                test_function("%8.5ius", 65, "   00065us");
+                test_function("%#+3i", 65, "+65");
+                test_function("%#3i", -65, "-65");
+                test_function("%#3i", 65, " 65");
+            }
+
+            SECTION("%o") {
+                std::string s = "Hallo";
+
+                test_function(s, "bla", s);
+                test_function("%o", 10, "12");
+                test_function("%#o", 10, "012");
+                test_function("%4o", 10, "  12");
+                test_function("%-4o", 10, "12  ");
+                test_function("%#4o", 10, " 012");
+                test_function("%-#4o", 10, "012 ");
+                test_function("% .5o", 10, "00012");
+                test_function("%# 6.4o", 10, "  0012");
+                test_function("%04o", 10, "0012");
+                test_function("%-#04o", 10, "012 ");
+            }
+
+            SECTION("%u") {
+                std::string s = "Hallo";
+
+                test_function(s, "bla", s);
+                test_function("%u", 42, "42");
+                test_function("%u", -42, "18446744073709551574");
+                test_function("%5u", 42.0, "   42");
+                test_function("% 5u", 42., "   42");
+                test_function("%05u", 42.0, "00042");
+                test_function("%0-5u", 42, "42   ");
+                test_function("%u", std::pow(2, 36), "68719476736");
+            }
+
+            SECTION("%x, %X") {
+                std::string s = "Hallo";
+
+                test_function(s, "bla", s);
+                test_function("%x", 15, "f");
+                test_function("%#x", 15, "0xf");
+                test_function("%04x", 15, "000f");
+                test_function("%0#4x", 15, "0x0f");
+                test_function("%0#.4x", 15, "0x000f");
+                test_function("%0#-4x", 15, "0xf ");
+                test_function("%X", 15, "F");
+                test_function("%#X", 15, "0XF");
+                test_function("%04X", 15, "000F");
+                test_function("%0#4X", 15, "0X0F");
+                test_function("%0#.4X", 15, "0X000F");
+                test_function("%0#-4X", 15, "0XF ");
+                test_function("%4X", 15, "   F");
+            }
+        }
+
+        SECTION("Number format strings") {
+            SECTION("%a, %A") {
+                std::string s = "Hallo";
+
+                test_function(s, "bla", s);
+                test_function("%a", 15, "0x1.ep+3");
+                test_function("%a", 1.5, "0x1.8p+0");
+                test_function("%#a", 15, "0x1.ep+3");
+                test_function("%08a", 15, "0x1.ep+3");
+                test_function("%010alm", 20, "0x001.4p+4lm");
+                test_function("%-010alm", 20, "0x1.4p+4  lm");
+                test_function("%-010.5alm", 20, "0x1.40000p+4lm");
+                test_function("% -010.5alm", 20, " 0x1.40000p+4lm");
+                test_function("%+-010.5alm", 20, "+0x1.40000p+4lm");
+                test_function("%-010.5alm", -20, "-0x1.40000p+4lm");
+            }
+
+            SECTION("%e, %E") {}
+
+            SECTION("%f") {}
+
+            SECTION("%g, %G") {}
+        }
+    }
+
+    SECTION("Invalid input") {
+        // hallo %#0-' '9scon
+    }
+}
+
 TEST_CASE("string.len") {
     minilua::Environment env;
     minilua::CallContext ctx(&env);
