@@ -709,7 +709,10 @@ TEST_CASE("string.format") {
             test_function("hallo %scon", 12, "hallo 12con");
         }
 
-        SECTION("%%") {}
+        SECTION("%%") {
+            test_function("%%", minilua::Nil(), "%");
+            test_function("hallo%%welt", minilua::Nil(), "hallo%welt");
+        }
 
         SECTION("Integer format strings") {
             SECTION("%c") {
@@ -919,6 +922,12 @@ TEST_CASE("string.format") {
 
     SECTION("Invalid input") {
         // hallo %#0-' '9scon
+        SECTION("Invalid format string") {
+            ctx = ctx.make_new({true});
+            CHECK_THROWS_WITH(
+                minilua::string::format(ctx),
+                Contains("bad argument #1") && Contains("string expected, got boolean"));
+        }
     }
 }
 
