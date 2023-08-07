@@ -446,14 +446,6 @@ auto Char(const CallContext& ctx) -> Value {
 }
 
 auto format(const CallContext& ctx) -> Value {
-    Origin origin = MultipleArgsOrigin{
-        .values = std::make_shared<Vallist>(ctx.arguments()),
-        .location = ctx.call_location(),
-        .reverse = [](const Value& /*new_value*/,
-                      const Vallist& /*args*/) -> std::optional<SourceChangeTree> {
-            // No reverse possible. Dont know which characters where changed.
-            return std::nullopt;
-        }};
     auto formatstring = ctx.arguments().get(0);
     std::vector<Value> args(ctx.arguments().size() - 1);
 
@@ -465,7 +457,7 @@ auto format(const CallContext& ctx) -> Value {
     // remove first argument formatstring from arguments-list
     std::copy(ctx.arguments().begin() + 1, ctx.arguments().end(), args.begin());
 
-    return Value(parse_string(std::get<String>(formatstring).value, args)).with_origin(origin);
+    return Value(parse_string(std::get<String>(formatstring).value, args)).with_origin(NoOrigin());
 }
 
 auto len(const CallContext& ctx) -> Value {
