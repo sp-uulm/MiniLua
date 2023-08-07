@@ -133,9 +133,9 @@ auto static parse_string(const std::string& str, std::vector<Value> args) -> std
 
         // check for conversion type
         if (pos >= s.length()) {
-            throw std::runtime_error(
-                "invalid conversion '" + std::string(s.substr(start_pos, pos - start_pos)) +
-                "' to 'format'");
+            throw std::runtime_error("invalid format (width or precision too long)");
+            // "invalid conversion '" + std::string(s.substr(start_pos, pos - start_pos)) +
+            // "' to 'format'");
         }
 
         auto escape = std::string(s.substr(start_pos, pos - start_pos + 1));
@@ -465,7 +465,7 @@ auto format(const CallContext& ctx) -> Value {
     auto formatstring = ctx.arguments().get(0);
     std::vector<Value> args(ctx.arguments().size() - 1);
 
-    if (!formatstring.is_string() && formatstring.is_number()) {
+    if (!formatstring.is_string() && !formatstring.is_number()) {
         throw std::runtime_error(
             "bad argument #1 to 'format' (string expected, got " + formatstring.type() + ")");
     }
