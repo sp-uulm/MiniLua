@@ -921,6 +921,18 @@ TEST_CASE("string.format") {
 
         SECTION("Combination of escape strings") {
             // Only a couple of combinations will be tested to check for correct behaviour
+            auto test_function_2 = [&ctx](
+                                       const auto& formatstring, const auto& value_1,
+                                       const auto& value_2, const std::string& expected_result) {
+                ctx = ctx.make_new({formatstring, value_1, value_2});
+                auto result = minilua::string::format(ctx);
+
+                CHECK(result == expected_result);
+            };
+
+            test_function_2("%s%s", "Hallo ", "Welt!", "Hallo Welt!");
+            test_function_2("%s%i", "Tree", 32, "Tree32");
+            test_function_2("Dieser %s ist ein %s", "Text", "Erfolg", "Dieser Text ist ein Erfolg");
         }
     }
 
