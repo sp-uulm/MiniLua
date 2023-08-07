@@ -918,6 +918,10 @@ TEST_CASE("string.format") {
                 test_function("%#09.6G", 42, "0042.0000");
             }
         }
+
+        SECTION("Combination of escape strings") {
+            // Only a couple of combinations will be tested to check for correct behaviour
+        }
     }
 
     SECTION("Invalid input") {
@@ -927,6 +931,73 @@ TEST_CASE("string.format") {
             CHECK_THROWS_WITH(
                 minilua::string::format(ctx),
                 Contains("bad argument #1") && Contains("string expected, got boolean"));
+
+            ctx = ctx.make_new({"%123", 123});
+            CHECK_THROWS_WITH(
+                minilua::string::format(ctx),
+                Contains("invalid format") && Contains("width or precision too long"));
+
+            ctx = ctx.make_new({"%w", 123});
+            CHECK_THROWS_WITH(
+                minilua::string::format(ctx), Contains("invalid option '%w' to 'format'"));
+
+            ctx = ctx.make_new({"hallo %#0-' '9scon", 123});
+            CHECK_THROWS_WITH(
+                minilua::string::format(ctx),
+                Contains("invalid option") && Contains("to 'format'"));
+
+            SECTION("invalid options for %%") {
+                ctx = ctx.make_new({"%#%", 12});
+                CHECK_THROWS_WITH(
+                    minilua::string::format(ctx),
+                    Contains("invalid option") && Contains("to 'format'"));
+
+                ctx = ctx.make_new({"% %", 12});
+                CHECK_THROWS_WITH(
+                    minilua::string::format(ctx),
+                    Contains("invalid option") && Contains("to 'format'"));
+                ctx = ctx.make_new({"%-%", 12});
+                CHECK_THROWS_WITH(
+                    minilua::string::format(ctx),
+                    Contains("invalid option") && Contains("to 'format'"));
+
+                ctx = ctx.make_new({"%+%", 12});
+                CHECK_THROWS_WITH(
+                    minilua::string::format(ctx),
+                    Contains("invalid option") && Contains("to 'format'"));
+
+                ctx = ctx.make_new({"%0%", 12});
+                CHECK_THROWS_WITH(
+                    minilua::string::format(ctx),
+                    Contains("invalid option") && Contains("to 'format'"));
+
+                ctx = ctx.make_new({"%23%", 12});
+                CHECK_THROWS_WITH(
+                    minilua::string::format(ctx),
+                    Contains("invalid option") && Contains("to 'format'"));
+
+                ctx = ctx.make_new({"%.91%", 12});
+                CHECK_THROWS_WITH(
+                    minilua::string::format(ctx),
+                    Contains("invalid option") && Contains("to 'format'"));
+            }
+        }
+
+        SECTION("argument is of invalid type") {
+            ctx = ctx.make_new({"%i", 123.456});
+            CHECK_THROWS_WITH(
+                minilua::string::format(ctx),
+                Contains("bad argument #2") && Contains("number has no integer representation"));
+
+            ctx = ctx.make_new({"%i", minilua::Table()});
+            CHECK_THROWS_WITH(
+                minilua::string::format(ctx),
+                Contains("bad argument #2") && Contains("number expected, got table"));
+
+            ctx = ctx.make_new({"%s%i", "Hallo", minilua::Table()});
+            CHECK_THROWS_WITH(
+                minilua::string::format(ctx),
+                Contains("bad argument #3") && Contains("number expected, got table"));
         }
     }
 }
