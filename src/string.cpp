@@ -78,11 +78,6 @@ auto static parse_string(const std::string& str, std::vector<Value> args) -> std
     int numEscapes = 0;
     size_t pos = 0;
     while (pos < s.length()) {
-        bool alternate_form = false;
-        bool zero_pad = false;
-        bool left_adjust = false;
-        bool sign = false;
-        bool blank = false;
 
         size_t start_pos = s.find('%', pos);
         if (start_pos == std::string_view::npos) {
@@ -99,20 +94,11 @@ auto static parse_string(const std::string& str, std::vector<Value> args) -> std
         for (bool in_flags = true; in_flags && pos < s.length(); ++pos) {
             switch (s[pos]) {
             case '#':
-                alternate_form = true;
-                break;
             case '0':
-                zero_pad = !left_adjust;
-                break;
             case ' ':
-                blank = true;
-                break;
             case '+':
-                sign = true;
-                break;
             case '-':
-                zero_pad = false;
-                left_adjust = true;
+                // do nothing, just recognize they exist
                 break;
             default:
                 in_flags = false;
@@ -150,11 +136,13 @@ auto static parse_string(const std::string& str, std::vector<Value> args) -> std
         auto arg_value = args.at(numEscapes);
         switch (s[pos++]) {
         case 'u': // one more error-case, the rest is the same behavior
+            /* Only needed in lua5.4
             if (alternate_form) {
                 throw std::runtime_error(
                     "invalid conversion specification: '" +
                     std::string(s.substr(start_pos, pos - start_pos)) + "'");
             }
+            */
         case 'd':
         case 'i': // same error and type behavior as 'o'
         case 'X':
@@ -175,11 +163,15 @@ auto static parse_string(const std::string& str, std::vector<Value> args) -> std
             format_escape(try_value_as<Number::Float>(arg_value, "format", numEscapes + 2));
             break;
         case 'c': {
+            /*
+            only needed for lua5.4
+
             if (alternate_form || zero_pad || blank || sign) {
                 throw std::runtime_error(
                     "invalid conversion specification: '" +
                     std::string(s.substr(start_pos, pos - start_pos)) + "'");
             }
+            */
             const char imm = try_value_as<Number::Int>(arg_value, "format", numEscapes + 2, true);
             format_escape(imm);
             break;
@@ -190,16 +182,16 @@ auto static parse_string(const std::string& str, std::vector<Value> args) -> std
         }
         case '%':
             // no flags allowed
-            if (alternate_form || zero_pad || sign || blank || left_adjust) {
+            if (escape.length() > 2) {
                 throw std::runtime_error(
-                    "invalid conversion specification: '" +
-                    std::string(s.substr(start_pos, pos - start_pos)) + "'");
+                    "invalid option '" + std::string(s.substr(start_pos, pos - start_pos)) +
+                    "' to 'format'");
             }
             ss << '%';
             break;
         default:
             throw std::runtime_error(
-                "invalid conversion '" + std::string(s.substr(start_pos, pos - start_pos)) +
+                "invalid option '" + std::string(s.substr(start_pos, pos - start_pos)) +
                 "' to 'format'");
         }
 
