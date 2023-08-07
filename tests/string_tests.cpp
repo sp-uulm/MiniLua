@@ -59,12 +59,13 @@ TEST_CASE("string.byte") {
     }
 
     SECTION("String, Number, Nil") {
-        auto testFunction = [&ctx](auto str, auto i, auto expected_result, int expected_size = 1) {
-            ctx = ctx.make_new({str, i});
-            auto result_list = minilua::string::byte(ctx);
-            CHECK(result_list.get(0) == minilua::Value(expected_result));
-            CHECK(result_list.size() == expected_size);
-        };
+        auto testFunction =
+            [&ctx](auto str, auto i, auto expected_result, unsigned int expected_size = 1) {
+                ctx = ctx.make_new({str, i});
+                auto result_list = minilua::string::byte(ctx);
+                CHECK(result_list.get(0) == minilua::Value(expected_result));
+                CHECK(result_list.size() == expected_size);
+            };
 
         std::string s = "Hallo";
         int i = 3;
@@ -78,12 +79,13 @@ TEST_CASE("string.byte") {
     }
 
     SECTION("Number, Number, Nil") {
-        auto testFunction = [&ctx](auto str, auto i, auto expected_result, int expected_size = 1) {
-            ctx = ctx.make_new({str, i});
-            auto result_list = minilua::string::byte(ctx);
-            CHECK(result_list.size() == expected_size);
-            CHECK(result_list.get(0) == minilua::Value(expected_result));
-        };
+        auto testFunction =
+            [&ctx](auto str, auto i, auto expected_result, unsigned int expected_size = 1) {
+                ctx = ctx.make_new({str, i});
+                auto result_list = minilua::string::byte(ctx);
+                CHECK(result_list.size() == expected_size);
+                CHECK(result_list.get(0) == minilua::Value(expected_result));
+            };
 
         int s = 123456;
         int i = 3;
@@ -111,7 +113,7 @@ TEST_CASE("string.byte") {
 
     SECTION("String, Nil, Number") {
         auto testFunction = [&ctx](
-                                auto str, auto j, int num_expected_results,
+                                auto str, auto j, unsigned int num_expected_results,
                                 std::initializer_list<minilua::Value> expected_results) {
             ctx = ctx.make_new({str, minilua::Nil(), j});
             auto result_list = minilua::string::byte(ctx);
@@ -133,7 +135,7 @@ TEST_CASE("string.byte") {
 
     SECTION("Number, Nil, Number") {
         auto testFunction = [&ctx](
-                                auto str, auto j, int num_expected_results,
+                                auto str, auto j, unsigned int num_expected_results,
                                 std::initializer_list<minilua::Value> expected_results) {
             ctx = ctx.make_new({str, minilua::Nil(), j});
             auto result_list = minilua::string::byte(ctx);
@@ -155,7 +157,7 @@ TEST_CASE("string.byte") {
 
     SECTION("String, Number, Number") {
         auto testFunction = [&ctx](
-                                auto str, auto i, auto j, int num_expected_results,
+                                auto str, auto i, auto j, unsigned int num_expected_results,
                                 std::initializer_list<minilua::Value> expected_results) {
             ctx = ctx.make_new({str, i, j});
             auto result_list = minilua::string::byte(ctx);
@@ -200,7 +202,7 @@ TEST_CASE("string.byte") {
 
     SECTION("String, String, Number") {
         auto testFunction = [&ctx](
-                                auto str, auto i, auto j, int num_expected_results,
+                                auto str, auto i, auto j, unsigned int num_expected_results,
                                 std::initializer_list<minilua::Value> expected_results) {
             ctx = ctx.make_new({str, i, j});
             auto resultList = minilua::string::byte(ctx);
@@ -239,7 +241,7 @@ TEST_CASE("string.byte") {
 
     SECTION("String, Number, String") {
         auto testFunction = [&ctx](
-                                auto str, auto i, auto j, int num_expected_results,
+                                auto str, auto i, auto j, unsigned int num_expected_results,
                                 std::initializer_list<minilua::Value> expected_results) {
             ctx = ctx.make_new({str, i, j});
             auto resultList = minilua::string::byte(ctx);
@@ -278,7 +280,7 @@ TEST_CASE("string.byte") {
 
     SECTION("String, String, String") {
         auto testFunction = [&ctx](
-                                auto str, auto i, auto j, int num_expected_results,
+                                auto str, auto i, auto j, unsigned int num_expected_results,
                                 std::initializer_list<minilua::Value> expected_results) {
             ctx = ctx.make_new({str, i, j});
             auto resultList = minilua::string::byte(ctx);
@@ -317,7 +319,7 @@ TEST_CASE("string.byte") {
 
     SECTION("Number, Number, Number") {
         auto testFunction = [&ctx](
-                                auto str, auto i, auto j, int num_expected_results,
+                                auto str, auto i, auto j, unsigned int num_expected_results,
                                 std::initializer_list<minilua::Value> expected_results) {
             ctx = ctx.make_new({str, i, j});
             auto resultList = minilua::string::byte(ctx);
@@ -356,7 +358,7 @@ TEST_CASE("string.byte") {
 
     SECTION("Number, String, Number") {
         auto testFunction = [&ctx](
-                                auto str, auto i, auto j, int num_expected_results,
+                                auto str, auto i, auto j, unsigned int num_expected_results,
                                 std::initializer_list<minilua::Value> expected_results) {
             ctx = ctx.make_new({str, i, j});
             auto resultList = minilua::string::byte(ctx);
@@ -395,7 +397,7 @@ TEST_CASE("string.byte") {
 
     SECTION("Number, Number, String") {
         auto testFunction = [&ctx](
-                                auto str, auto i, auto j, int num_expected_results,
+                                auto str, auto i, auto j, unsigned int num_expected_results,
                                 std::initializer_list<minilua::Value> expected_results) {
             ctx = ctx.make_new({str, i, j});
             auto resultList = minilua::string::byte(ctx);
@@ -434,7 +436,7 @@ TEST_CASE("string.byte") {
 
     SECTION("Number, String, String") {
         auto testFunction = [&ctx](
-                                auto str, auto i, auto j, int num_expected_results,
+                                auto str, auto i, auto j, unsigned int num_expected_results,
                                 std::initializer_list<minilua::Value> expected_results) {
             ctx = ctx.make_new({str, i, j});
             auto resultList = minilua::string::byte(ctx);
@@ -653,7 +655,7 @@ TEST_CASE("string.char") {
             auto source_changes = result.value().collect_first_alternative();
             CHECK(source_changes.size() == expected.size());
 
-            for (int i = 0; i < source_changes.size(); ++i) {
+            for (unsigned int i = 0; i < source_changes.size(); ++i) {
                 CHECK(source_changes[i] == expected[i]);
             }
         }
@@ -741,6 +743,10 @@ TEST_CASE("string.format") {
                 test_function("%#+3i", 65, "+65");
                 test_function("%#3i", -65, "-65");
                 test_function("%#3i", 65, " 65");
+
+                test_function(
+                    "The number %i is the answer to everything.", 42,
+                    "The number 42 is the answer to everything.");
             }
 
             SECTION("%o") {
@@ -782,6 +788,7 @@ TEST_CASE("string.format") {
                 test_function("%0#4x", 15, "0x0f");
                 test_function("%0#.4x", 15, "0x000f");
                 test_function("%0#-4x", 15, "0xf ");
+
                 test_function("%X", 15, "F");
                 test_function("%#X", 15, "0XF");
                 test_function("%04X", 15, "000F");
@@ -807,13 +814,106 @@ TEST_CASE("string.format") {
                 test_function("% -010.5alm", 20, " 0x1.40000p+4lm");
                 test_function("%+-010.5alm", 20, "+0x1.40000p+4lm");
                 test_function("%-010.5alm", -20, "-0x1.40000p+4lm");
+
+                test_function("%A", 15, "0X1.EP+3");
+                test_function("%A", 1.5, "0X1.8P+0");
+                test_function("%#A", 15, "0X1.EP+3");
+                test_function("%08A", 15, "0X1.EP+3");
+                test_function("%010Alm", 20, "0X001.4P+4lm");
+                test_function("%-010Alm", 20, "0X1.4P+4  lm");
+                test_function("%-010.5Alm", 20, "0X1.40000P+4lm");
+                test_function("%+-010.5Alm", 20, "+0X1.40000P+4lm");
+                test_function("%-010.5Alm", -20, "-0X1.40000P+4lm");
+                test_function("% -010.5Alm", 20, " 0X1.40000P+4lm");
             }
 
-            SECTION("%e, %E") {}
+            SECTION("%e, %E") {
+                std::string s = "Hallo";
 
-            SECTION("%f") {}
+                test_function(s, "bla", s);
+                test_function("%e", 15, "1.500000e+01");
+                test_function("%e", 1.5, "1.500000e+00");
+                test_function("%.0e", 15, "2e+01");
+                test_function("%#.0e", 15, "2.e+01");
+                test_function("%.0e", 14.8734, "1e+01");
+                test_function("%016e", 15, "00001.500000e+01");
+                test_function("%16e", 15, "    1.500000e+01");
+                test_function("% 16e", 15, "    1.500000e+01");
+                test_function("% -015elm", 0.12345, " 1.234500e-01  lm");
+                test_function("% e", 15, " 1.500000e+01");
+                test_function("%+ e", 15, "+1.500000e+01");
+                test_function("%.3e", 15, "1.500e+01");
 
-            SECTION("%g, %G") {}
+                test_function("%E", 15, "1.500000E+01");
+                test_function("%E", 1.5, "1.500000E+00");
+                test_function("%.0E", 15, "2E+01");
+                test_function("%#.0E", 15, "2.E+01");
+                test_function("%.0E", 14.8734, "1E+01");
+                test_function("%016E", 15, "00001.500000E+01");
+                test_function("%16E", 15, "    1.500000E+01");
+                test_function("% 16E", 15, "    1.500000E+01");
+                test_function("% -015Elm", 0.12345, " 1.234500E-01  lm");
+                test_function("% E", 15, " 1.500000E+01");
+                test_function("%+ E", 15, "+1.500000E+01");
+                test_function("%.3E", 15, "1.500E+01");
+            }
+
+            SECTION("%f") {
+                std::string s = "Hallo";
+
+                test_function(s, "bla", s);
+                test_function("%f", 15, "15.000000");
+                test_function("%f", 15.123456789, "15.123457");
+                test_function("%f", 15.987654321, "15.987654");
+                test_function("%.0f", 15.987654321, "16");
+                test_function("%#.0f", 15.21, "15.");
+                test_function("%5.0f", 15.987654321, "   16");
+                test_function("%05.0f", 15.987654321, "00016");
+                test_function("%-05.0f", 15.987654321, "16   ");
+                test_function("% .2f", 15.21, " 15.21");
+                test_function("%+.2f", 15.21, "+15.21");
+                test_function("%-.2f", 15.21, "15.21");
+                test_function("%-.2f", -15.21, "-15.21");
+            }
+
+            SECTION("%g, %G") {
+                std::string s = "Hallo";
+
+                test_function(s, "bla", s);
+                test_function("%g", 15, "15");
+                test_function("%#g", 15, "15.0000");
+                test_function("%#.2g", 15, "15.");
+                test_function("%g", 0.123, "0.123");
+                test_function("%g", 0.123456, "0.123456");
+                test_function("%g", 0.00000123, "1.23e-06");
+                test_function("%g", -0.00000123, "-1.23e-06");
+                test_function("% g", 0.00000123, " 1.23e-06");
+                test_function("%+g", 0.00000123, "+1.23e-06");
+                test_function("% g", -0.00000123, "-1.23e-06");
+                test_function("%+g", -0.00000123, "-1.23e-06");
+                test_function("%5g", 42, "   42");
+                test_function("%05g", 42, "00042");
+                test_function("%-05g", 42, "42   ");
+                test_function("%-5g", 42, "42   ");
+                test_function("%#09.6g", 42, "0042.0000");
+
+                test_function("%G", 15, "15");
+                test_function("%#G", 15, "15.0000");
+                test_function("%#.2G", 15, "15.");
+                test_function("%G", 0.123, "0.123");
+                test_function("%G", 0.123456, "0.123456");
+                test_function("%G", 0.00000123, "1.23E-06");
+                test_function("%G", -0.00000123, "-1.23E-06");
+                test_function("% G", 0.00000123, " 1.23E-06");
+                test_function("%+G", 0.00000123, "+1.23E-06");
+                test_function("% G", -0.00000123, "-1.23E-06");
+                test_function("%+G", -0.00000123, "-1.23E-06");
+                test_function("%5G", 42, "   42");
+                test_function("%05G", 42, "00042");
+                test_function("%-05G", 42, "42   ");
+                test_function("%-5G", 42, "42   ");
+                test_function("%#09.6G", 42, "0042.0000");
+            }
         }
     }
 
