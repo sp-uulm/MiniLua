@@ -13,6 +13,7 @@ add_executable(MiniLua-tests
     stdlib_tests.cpp
     table_functions_tests.cpp
     math_tests.cpp
+    string_tests.cpp
     tree_sitter_ast_tests.cpp
     gc.cpp)
 target_include_directories(MiniLua-tests PRIVATE ${tree-sitter_SOURCE_DIR}/lib/include)

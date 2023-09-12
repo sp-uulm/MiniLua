@@ -9,6 +9,11 @@
 namespace minilua {
 
 /**
+ * Returns a table with all string functions
+ */
+auto create_string_table(MemoryAllocator* allocator) -> Table;
+
+/**
  * Returns a table with all the math functions.
  */
 auto create_math_table(MemoryAllocator* allocator) -> Table;

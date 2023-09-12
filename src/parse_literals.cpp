@@ -4,6 +4,7 @@
 #include <regex>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 
 namespace minilua {
 
@@ -44,19 +45,19 @@ auto parse_number_literal(const std::string& str) -> Value {
     } else if (std::regex_match(str, to_number_general_pattern)) {
         // parse as double and check if whole input is consumed
         try {
-            char* last_pos;
             auto str_copy = str;
             str_copy.erase(remove_if(str_copy.begin(), str_copy.end(), isspace), str_copy.end());
-            auto value = std::strtod(str_copy.c_str(), &last_pos);
+            auto value = std::stod(str_copy);
             // NOTE if the value is out of range HUGE_VAL is returned
-            if (std::distance(str_copy.c_str(), static_cast<const char*>(last_pos)) !=
-                str_copy.length()) {
-                throw std::runtime_error(
-                    "Could not completely parse float literal. This is a bug.");
-            }
+            // if (false) {
+            //    throw std::runtime_error(
+            //        "Could not completely parse float literal. This is a bug.");
+            //}
             return Value(value);
         } catch (const std::out_of_range& e) {
             throw std::runtime_error("float is out of range");
+        } catch (const std::invalid_argument& e) {
+            throw std::runtime_error("No conversion to float possible");
         }
     } else {
         return Nil();

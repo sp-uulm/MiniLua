@@ -94,6 +94,16 @@ auto Number::convert_to_int() const -> Int {
         [](Number::Float value) -> Number::Int { return static_cast<Number::Int>(value); },
     });
 }
+template <>
+[[nodiscard]] auto Number::convert_to<Number::Int>(bool needs_int_representation) const
+    -> Number::Int {
+    return needs_int_representation ? try_as_int() : convert_to_int();
+}
+template <>
+[[nodiscard]] auto Number::convert_to<Number::Float>(bool /*needs_int_representation*/) const
+    -> Number::Float {
+    return as_float();
+}
 auto Number::raw() const -> std::variant<Int, Float> { return this->value; }
 auto Number::is_int() const -> bool { return std::holds_alternative<Int>(this->value); }
 auto Number::is_float() const -> bool { return std::holds_alternative<Float>(this->value); }
@@ -206,18 +216,20 @@ String::String(std::string value) : value(std::move(value)) {}
     std::string str;
     str.reserve(this->value.size() + 2);
 
-    // characters to replace
-    // 7 -> \a (bell)
-    // 8 -> \b (back space)
-    // 9 -> \t (horizontal tab)
-    // 10 -> \n (line feed)
-    // 11 -> \v (vertical tab)
-    // 12 -> \f (form feed)
-    // 13 -> \r (cariage return)
-    // \ -> \\
-    // " -> \"
-    // ' -> \' (not needed if string surrounded by ")
-    // invisible chars -> \000
+    /*
+    characters to replace
+        7 -> \a (bell)
+        8 -> \b (back space)
+        9 -> \t (horizontal tab)
+        10 -> \n (line feed)
+        11 -> \v (vertical tab)
+        12 -> \f (form feed)
+        13 -> \r (cariage return)
+        \ -> \\
+        " -> \"
+        ' -> \' (not needed if string surrounded by ")
+        invisible chars -> \000
+    */
 
     str.append("\"");
 

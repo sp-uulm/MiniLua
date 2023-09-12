@@ -168,26 +168,22 @@ jobs:
 
   check-code-format:
     name: Check Code Format
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     env:
-      CC: clang-10
-      CXX: clang++-10
-      CLANG_FORMAT: clang-format-11
+      CC: clang
+      CXX: clang++
+      CLANG_FORMAT: clang-format
 
     continue-on-error: false
 
     steps:
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v4
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
           submodules: recursive
-      - name: Setup VM
-        run: |
-          ./.github/workflows/install_packages.sh
-          sudo apt-get install clang-format-11
-      - name: Setup CMake
-        run: ./scripts/setup_build.sh
-      - name: Lint
+      - name: Check Format
         run: ./scripts/check_format.sh
 
