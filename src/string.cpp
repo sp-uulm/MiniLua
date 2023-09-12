@@ -204,7 +204,7 @@ auto create_string_table(MemoryAllocator* allocator) -> Table {
     std::unordered_map<Value, Value> string_functions;
     Table string(allocator);
     string.set("byte", string::byte);
-    string.set("char", string::Char);
+    string.set("char", string::lua_char);
     // string.set("dump", string::dump);
     // string.set("find", string::find);
     string.set("format", string::format);
@@ -407,7 +407,7 @@ auto byte(const CallContext& ctx) -> Vallist {
         byte_string.raw(), i.raw(), j.raw());
 }
 
-auto Char(const CallContext& ctx) -> Value {
+auto lua_char(const CallContext& ctx) -> Value {
     Origin origin = MultipleArgsOrigin{
         .values = std::make_shared<Vallist>(ctx.arguments()),
         .location = ctx.call_location(),
