@@ -592,7 +592,7 @@ TEST_CASE("string.char") {
 
     auto test_function = [&ctx](minilua::Vallist args, auto expected_result) {
         ctx = ctx.make_new(std::move(args));
-        auto result = minilua::string::Char(ctx);
+        auto result = minilua::string::lua_char(ctx);
         CHECK(result == minilua::Value(expected_result));
     };
 
@@ -612,14 +612,14 @@ TEST_CASE("string.char") {
             ctx = ctx.make_new(std::move(args));
 
             CHECK_THROWS_WITH(
-                minilua::string::Char(ctx),
+                minilua::string::lua_char(ctx),
                 Contains("bad argument #4") && Contains("value out of range"));
 
             args = {"65", 102, 1020, -1};
             ctx = ctx.make_new(std::move(args));
 
             CHECK_THROWS_WITH(
-                minilua::string::Char(ctx),
+                minilua::string::lua_char(ctx),
                 Contains("bad argument #3") && Contains("value out of range"));
         }
 
@@ -628,7 +628,7 @@ TEST_CASE("string.char") {
             ctx = ctx.make_new(std::move(args));
 
             CHECK_THROWS_WITH(
-                minilua::string::Char(ctx),
+                minilua::string::lua_char(ctx),
                 Contains("bad argument #1") && Contains("number expected, got string"));
         }
     }
@@ -641,7 +641,7 @@ TEST_CASE("string.char") {
             }
             minilua::Vallist args(v);
             ctx = ctx.make_new(std::move(args));
-            auto res = minilua::string::Char(ctx);
+            auto res = minilua::string::lua_char(ctx);
             REQUIRE(res == minilua::Value("Affe"));
 
             auto result = res.force("affe");
@@ -667,7 +667,7 @@ TEST_CASE("string.char") {
             }
             minilua::Vallist args(v);
             ctx = ctx.make_new(std::move(args));
-            auto res = minilua::string::Char(ctx);
+            auto res = minilua::string::lua_char(ctx);
             REQUIRE(res == minilua::Value("Affe"));
 
             auto result = res.force(1234);
