@@ -38,6 +38,7 @@ struct lua_tokens : bs::lex::lexer<Lexer>
             ("\\#",                                       LuaToken::Type::LEN)
             ("\\$",                                       LuaToken::Type::STRIP)
             ("\\\\",                                      LuaToken::Type::EVAL)
+            ("!",                                         LuaToken::Type::BANG)
             ("==",                                        LuaToken::Type::EQ)
             ("~=",                                        LuaToken::Type::NEQ)
             ("<=",                                        LuaToken::Type::LEQ)

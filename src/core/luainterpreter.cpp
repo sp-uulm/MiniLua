@@ -82,6 +82,21 @@ eval_result_t op_eval(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {
     return eval_success(result);
 }
 
+eval_result_t op_force(lua::rt::val a, lua::rt::val b, const LuaToken& tok) {
+    //cout << a.literal() << "\\" << b.literal() << endl;
+
+    val result = a;
+    result.source = sourcebinop::create(a, b, tok);
+
+    if (a.source && get<bool>(unwrap(op_neq(a, b))) ) {
+        auto sc = a.source->forceValue(b);
+
+        return eval_success(result, sc);
+    }
+
+    return eval_success(result);
+}
+
 eval_result_t op_postfix_eval(val a, const LuaToken& tok) {
     //cout << a.literal() << "\\" << endl;
 
@@ -538,6 +553,8 @@ eval_result_t ASTEvaluator::visit(const _LuaOp& op, const shared_ptr<Environment
         return op_concat(lhs, rhs) << (lhs_sc & rhs_sc);
     case LuaToken::Type::EVAL:
         return op_eval(lhs, rhs, op.op) << (lhs_sc & rhs_sc);
+    case LuaToken::Type::BANG:
+        return op_force(lhs, rhs, op.op) << (lhs_sc & rhs_sc);
     case LuaToken::Type::LT:
         return op_lt(lhs, rhs) << (lhs_sc & rhs_sc);
     case LuaToken::Type::LEQ:
@@ -1136,6 +1153,24 @@ source_change_t sourcebinop::forceValue(const val& v) const {
             return res_and;
         return nullopt;
     }
+    case LuaToken::Type::BANG:
+    {
+        auto res_and = make_shared<SourceChangeAnd>();
+        if (lhs.source) {
+            if (auto result = lhs.source->forceValue(v); result) {
+                res_and->changes.push_back(*result);
+            }
+        }
+        if (rhs.source) {
+            if (auto result = rhs.source->forceValue(v); result) {
+                res_and->changes.push_back(*result);
+            }
+        }
+
+        if (!res_and->changes.empty())
+            return res_and;
+        return nullopt;
+    }
     default:
         return nullopt;
     }
@@ -1162,6 +1197,8 @@ eval_result_t sourcebinop::reevaluate() {
         return op_concat(_lhs, _rhs);
     case LuaToken::Type::EVAL:
         return op_eval(_lhs, _rhs, op);
+    case LuaToken::Type::BANG:
+        return op_force(_lhs, _rhs, op);
     case LuaToken::Type::LT:
         return op_lt(_lhs, _rhs);
     case LuaToken::Type::LEQ:

@@ -14,7 +14,7 @@ using namespace std;
 struct LuaToken {
     enum Type {
         NONE,
-        ADD, SUB, MUL, DIV, MOD, POW, LEN, STRIP, EVAL, //+, -, *, /, %, ^, #, $, "\"
+        ADD, SUB, MUL, DIV, MOD, POW, LEN, STRIP, EVAL, BANG, //+, -, *, /, %, ^, #, $, "\", !
         EQ, NEQ, LEQ, GEQ, LT, GT, ASSIGN, //==, ~=, <=, >=, <, >, =
         LCB, RCB, LRB, RRB, LSB, RSB, //{, }, (, ), [, ]
         SEM, COLON, COMMA, DOT, CONCAT, ELLIPSE, //;, :, ,, ., .., ...

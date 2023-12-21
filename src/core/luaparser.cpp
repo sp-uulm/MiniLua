@@ -674,6 +674,7 @@ auto LuaParser::parse_exp(token_it_t& begin, token_it_t& end) const -> parse_res
             begin->type == LuaToken::Type::MOD ||
             begin->type == LuaToken::Type::CONCAT ||
             begin->type == LuaToken::Type::EVAL ||
+            begin->type == LuaToken::Type::BANG ||
             begin->type == LuaToken::Type::LT ||
             begin->type == LuaToken::Type::LEQ ||
             begin->type == LuaToken::Type::GT ||
